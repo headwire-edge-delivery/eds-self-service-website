@@ -1,0 +1,99 @@
+.wizard.block {
+    display: flex;
+    overflow: hidden;
+    border-top: 1px solid white;
+    padding-block: 32px;
+}
+
+.wizard.block > div {
+    min-width: 100vw;
+    text-align: center;
+}
+
+.wizard.block > div:not(.is-selected) {
+    display: none;
+}
+
+.wizard.block ul {
+    list-style: none;
+    padding: 0;
+    gap: 16px;
+    display: inline-flex;
+    flex-direction: column;
+    margin-inline: auto;
+}
+
+.wizard.block li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 200;
+}
+
+.wizard.block .button-container {
+    margin-top: 32px;
+}
+
+.wizard.block .template-container {
+    margin-block: 32px;
+}
+
+.wizard.block .template {
+    padding: 32px;
+    max-width: 600px;
+    width: 100%;
+    margin: auto;
+}
+
+.wizard.block .template.is-selected {
+    background-color: var(--primary-color);
+}
+
+.wizard.block .template h3 + p {
+    font-weight: 200;
+    text-align: justify;
+}
+
+.wizard.block .carousel {
+    padding-block: 16px;
+}
+
+.wizard.block .carousel img {
+    height: 300px;
+    background-color: var(--secondary-color);
+    object-fit: cover;
+}
+
+.wizard.block .carousel img:not(.is-selected) {
+    display: none;
+}
+
+.wizard.block .carousel .dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.wizard.block .carousel .dot {
+    border-radius: 50%;
+    border: 1px solid var(--secondary-color);
+    padding: 4px;
+    cursor: pointer;
+}
+
+.wizard.block .carousel .dot.is-selected {
+    background-color: var(--secondary-color);
+}
+
+.wizard.block input {
+    background-color: var(--gray-color);
+    border: 1px solid var(--secondary-color);
+    font-family: var(--font-family);
+    font-weight: 700;
+    font-size: 18px;
+    padding: 16px;
+    color: var(--secondary-color);
+    margin-block: 32px;
+}

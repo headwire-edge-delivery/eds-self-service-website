@@ -1,177 +1,146 @@
-/*
- * Copyright 2020 Adobe. All rights reserved.
- * This file is licensed to you under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. You may obtain a copy
- * of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
-
+/* Global */
 :root {
-  /* colors */
-  --link-color: #035fe6;
-  --link-hover-color: #136ff6;
-  --background-color: white;
-  --light-color: #eee;
-  --dark-color: #ccc;
-  --text-color: black;
+  --layout-width: 1280px;
+  --gray-color: rgb(230 230 230);
+  --primary-color: rgb(147 231 129);
+  --secondary-color: rgb(34 34 34);
+  --animation-duration: 300ms;
+  --font-family: system-ui, sans-serif;
+  --header-height: 64px;
 
-  /* fonts */
-  --body-font-family: roboto, roboto-fallback;
-  --heading-font-family: var(--body-font-family);
-  --fixed-font-family: 'Roboto Mono', menlo, consolas, 'Liberation Mono', monospace;
-
-  /* body sizes */
-  --body-font-size-m: 22px;
-  --body-font-size-s: 18px;
-  --body-font-size-xs: 16px;
-
-  /* heading sizes */
-  --heading-font-size-xxl: 48px;
-  --heading-font-size-xl: 40px;
-  --heading-font-size-l: 32px;
-  --heading-font-size-m: 24px;
-  --heading-font-size-s: 20px;
-  --heading-font-size-xs: 18px;
-
-  /* nav height */
-  --nav-height: 64px;
+  font-synthesis: none;
+  text-rendering: optimizelegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
 }
 
-@font-face {
-  font-family: roboto-fallback;
-  size-adjust: 100.06%;
-  ascent-override: 95%;
-  src: local('Arial');
+html {
+  font-family: var(--font-family);
+  scroll-behavior: smooth;
+  background: linear-gradient(90deg, var(--gray-color), white);
+  color: var(--secondary-color);
 }
 
-@media (width >= 900px) {
-  :root {
-    --heading-font-size-xxl: 60px;
-    --heading-font-size-xl: 48px;
-    --heading-font-size-l: 36px;
-    --heading-font-size-m: 30px;
-    --heading-font-size-s: 24px;
-    --heading-font-size-xs: 22px;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  font-size: var(--body-font-size-m);
   margin: 0;
-  font-family: var(--body-font-family);
-  line-height: 1.6;
-  color: var(--text-color);
-  background-color: var(--background-color);
-  display: none;
+  overflow-x: hidden;
 }
 
-body.appear {
-  display: block;
+/* Layout */
+header, footer {
+  height: var(--header-height);
+  padding-inline: 16px;
+  border-bottom: 1px solid var(--secondary-color);
+  border-top: 1px solid var(--secondary-color);
 }
 
 header {
-  height: var(--nav-height);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--primary-color);
+  z-index: 10;
 }
 
-h1, h2, h3,
-h4, h5, h6 {
-  font-family: var(--heading-font-family);
-  font-weight: 600;
-  line-height: 1.25;
-  margin-top: 1em;
-  margin-bottom: .5em;
-  scroll-margin: calc(var(--nav-height) + 1em);
+main {
+  padding-top: var(--header-height);
 }
 
-h1 { font-size: var(--heading-font-size-xxl) }
-h2 { font-size: var(--heading-font-size-xl) }
-h3 { font-size: var(--heading-font-size-l) }
-h4 { font-size: var(--heading-font-size-m) }
-h5 { font-size: var(--heading-font-size-s) }
-h6 { font-size: var(--heading-font-size-xs) }
-
-p, dl, ol, ul, pre, blockquote {
-  margin-top: 1em;
-  margin-bottom: 1em;
+/* Default styles */
+h1, h2, h3 {
+  color: var(--secondary-color);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+  margin: 0;
 }
 
-code, pre {
-  font-family: var(--fixed-font-family);
-  font-size: var(--body-font-size-s);
+p {
+  font-size: 18px;
+  line-height: 22px;
 }
 
-code {
-  padding: .125em;
+ul, ol {
+  margin-block: 16px;
 }
 
-pre {
-  overflow: scroll;
+h1 {
+  padding-block: 32px;
+  font-size: 42px;
+  line-height: 52px;
 }
 
-main pre {
-  background-color: var(--light-color);
-  padding: 1em;
-  border-radius: .25em;
-  overflow-x: auto;
-  white-space: pre;
+h2 {
+  font-size: 30px;
+  line-height: 30px;
+  padding-block: 24px;
 }
 
-/* links */
-a:any-link {
-  color: var(--link-color);
+h3 {
+  padding-block: 20px;
+  font-size: 20px;
+  line-height: 24px;
+}
+
+img {
+  width: 100%;
+  height: auto;
+}
+
+a {
   text-decoration: none;
+  transition: all var(--animation-duration);
+  color: var(--secondary-color);
 }
 
 a:hover {
   text-decoration: underline;
-  color: var(--link-hover-color);
 }
 
-/* buttons */
-a.button:any-link, button {
-  font-family: var(--body-font-family);
-  display: inline-block;
-  box-sizing: border-box;
-  text-decoration: none;
-  border: 2px solid transparent;
-  padding: 5px 30px;
-  text-align: center;
-  font-style: normal;
+.button-container {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--secondary-color);
+  background-color: var(--primary-color);
   font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all var(--animation-duration);
+  font-size: 14px;
+  line-height: 14px;
+  padding: 8px 16px;
   cursor: pointer;
-  color: var(--background-color);
-  background-color: var(--link-color);
-  margin: 16px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-radius: 30px;
+  color: var(--secondary-color);
 }
 
-a.button:hover, a.button:focus, button:hover, button:focus  {
-  background-color: var(--link-hover-color);
-  cursor: pointer;
+.button:hover {
+  background-color: var(--secondary-color);
+  text-decoration: none;
+  color: white;
 }
 
-button:disabled, button:disabled:hover {
-  background-color: var(--light-color);
-  cursor: unset;
+.button.secondary {
+  background-color: transparent;
 }
 
-a.button.secondary, button.secondary {
-  background-color: unset;
-  border: 2px solid currentcolor;
-  color: var(--text-color)
-}
-
-main img {
-  max-width: 100%;
-  width: auto;
-  height: auto;
+.button.secondary:hover {
+  color: var(--secondary-color);
+  background-color: var(--primary-color);
 }
 
 .icon {
@@ -183,28 +152,4 @@ main img {
 .icon img {
   height: 100%;
   width: 100%;
-}
-
-/* sections */
-main .section {
-  padding: 64px 16px;
-}
-
-@media (width >= 600px) {
-  main .section {
-    padding: 64px 32px;
-  }
-}
-
-@media (width >= 900px) {
-  .section > div {
-    max-width: 1200px;
-    margin: auto;
-  }
-}
-
-/* section metadata */
-main .section.light,
-main .section.highlight {
-  background-color: var(--light-color);
 }

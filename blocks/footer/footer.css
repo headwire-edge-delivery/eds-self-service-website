@@ -1,14 +1,15 @@
 footer {
-  padding: 2rem;
-  background-color: var(--light-color);
-  font-size: var(--body-font-size-s);
+  background-color: var(--primary-color);
 }
 
-footer .footer {
-  max-width: 1200px;
-  margin: auto;
+.footer.block {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  justify-content: center;
 }
 
-footer .footer p {
+.footer.block p {
+  font-size: 14px;
   margin: 0;
 }
