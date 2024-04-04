@@ -52,6 +52,14 @@ main {
   padding-top: var(--header-height);
 }
 
+footer {
+  display: none
+}
+
+main:has(> [data-section-status="loaded"]) +  footer {
+  display: block;
+}
+
 /* Default styles */
 h1, h2, h3 {
   color: var(--secondary-color);
