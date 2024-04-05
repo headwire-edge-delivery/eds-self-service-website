@@ -97,3 +97,35 @@
     color: var(--secondary-color);
     margin-block: 32px;
 }
+
+.wizard.block .button-container:has(a[href="#start"]) {
+    display: none;
+}
+
+.wizard.block .button-container:has(a[href="#edit"]) {
+    display: none;
+}
+
+.wizard.block .button-container:has(a[href="#edit"]).is-ready {
+    display: flex;
+}
+
+.wizard.block > div:has(a[href="#edit"]) ul li .icon {
+    display: none;
+}
+
+.wizard.block > div:has(a[href="#edit"]) ul li.is-loading .icon-sync {
+    display: inline-block;
+}
+
+.wizard.block > div:has(a[href="#edit"]) ul li.is-done .icon-check {
+    display: inline-block;
+}
+
+.wizard.block > div:has(a[href="#edit"]) ul li.is-error .icon-error {
+    display: inline-block;
+}
+
+:is(.is-authenticated, .is-anonymous) .wizard.block .button-container:has(a[href="#start"]) {
+    display: flex;
+}

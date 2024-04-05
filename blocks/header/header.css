@@ -30,3 +30,16 @@
     font-weight: 700;
     text-transform: uppercase;
 }
+
+.header.block .button-container:has(a[href="#signin"]),
+.header.block .button-container:has(a[href="#signout"]) {
+    display: none;
+}
+
+.is-authenticated .header.block .button-container:has(a[href="#signout"]) {
+    display: flex;
+}
+
+.is-anonymous .header.block .button-container:has(a[href="#signin"]) {
+    display: flex;
+}

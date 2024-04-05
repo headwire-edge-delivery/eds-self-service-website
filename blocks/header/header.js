@@ -13,4 +13,15 @@ export default async function decorate(block) {
 
   block.innerHTML = '';
   block.append(nav);
+
+  block.addEventListener('click', async (event) => {
+    const identifier = event.target.getAttribute('href');
+    if (identifier === '#signin') {
+      event.preventDefault();
+      window.auth0Client.loginWithRedirect();
+    } else if (identifier === '#signout') {
+      event.preventDefault();
+      window.auth0Client.logout();
+    }
+  });
 }
