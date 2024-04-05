@@ -99,6 +99,12 @@ export default async function decorate(block) {
   input.placeholder = 'SITE NAME';
   if (createStep) {
     createStep.querySelector('h2').after(input);
+    const createButton = createStep.querySelector('a[href="#create"]');
+    createButton.classList.add('is-disabled');
+
+    input.oninput = () => {
+      createButton.classList.toggle('is-disabled', input.value.length < 2);
+    };
   }
 
   const statusStep = block.querySelector(':scope > div:has(a[href="#edit"])');
@@ -159,6 +165,8 @@ export default async function decorate(block) {
       const accessToken = await window.auth0Client.getTokenSilently();
 
       console.log(accessToken);
+    } else if (identifier === '#new') {
+      window.location.reload();
     }
   });
 }
