@@ -14,6 +14,8 @@ import {
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
+export const API = 'https://eds-self-service-scripts.onrender.com';
+
 /**
  * Decorates the main element.
  * @param {Element} main The main element

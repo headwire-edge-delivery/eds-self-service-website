@@ -114,16 +114,24 @@
     display: none;
 }
 
-.wizard.block > div:has(a[href="#edit"]) ul li.is-loading .icon-sync {
-    display: inline-block;
+.wizard.block > div:has(a[href="#edit"]) ul li.loading::before {
+    content: "💫";
 }
 
-.wizard.block > div:has(a[href="#edit"]) ul li.is-done .icon-check {
-    display: inline-block;
+.wizard.block > div:has(a[href="#edit"]) ul li.success::before {
+    content: "✅";
 }
 
-.wizard.block > div:has(a[href="#edit"]) ul li.is-error .icon-error {
-    display: inline-block;
+.wizard.block > div:has(a[href="#edit"]) ul li.info::before {
+    content: "ℹ️";
+}
+
+.wizard.block > div:has(a[href="#edit"]) ul li.failed::before {
+    content: "❌";
+}
+
+.wizard.block > div:has(a[href="#edit"]) ul li.timeout::before {
+    content: "⏰";
 }
 
 :is(.is-authenticated, .is-anonymous) .wizard.block .button-container:has(a[href="#start"]) {

@@ -1,4 +1,4 @@
-import { decorateIcons } from '../../scripts/aem.js';
+import { API } from '../../scripts/scripts.js';
 
 /**
  * decorates the header, mainly the nav
@@ -107,15 +107,6 @@ export default async function decorate(block) {
     };
   }
 
-  const statusStep = block.querySelector(':scope > div:has(a[href="#edit"])');
-  if (statusStep) {
-    const list = statusStep.querySelector('ul');
-    list.querySelectorAll('li').forEach((el) => {
-      el.insertAdjacentHTML('afterbegin', '<span class="icon icon-sync"></span><span class="icon icon-check"></span><span class="icon icon-error"></span>');
-    });
-    decorateIcons(list);
-  }
-
   const successStep = block.lastElementChild;
   if (successStep) {
     successStep.querySelectorAll('a').forEach((el) => {
@@ -128,43 +119,58 @@ export default async function decorate(block) {
     if (identifier === '#start' && document.body.classList.contains('is-anonymous')) {
       window.auth0Client.loginWithRedirect();
     } else if (identifier === '#create') {
-      const accessToken = await window.auth0Client.getTokenSilently();
+      const user = await window.auth0Client.getUser();
+      const token = await window.auth0Client.getTokenSilently();
+      const template = block.querySelector('.template.is-selected').id;
 
-      console.log(block.querySelector('.template.is-selected').id);
-      console.log(input.value);
-      console.log(accessToken);
+      const reqCreate = await fetch(`${API}/create`, {
+        headers: {
+          'content-type': 'application/json',
+          authorization: `bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userEmail: user.email,
+          inputProjectName: input.value,
+          templateId: template,
+        }),
+        method: 'POST',
+      });
 
-      let index = 0;
-      const editStep = block.querySelector(':scope > div:has(a[href="#edit"])');
-      const list = editStep.querySelector('ul');
+      const statusEl = document.createElement('div');
+      const container = block.querySelector('.button-container:has(a[href="#edit"])');
+      container.before(statusEl);
 
-      const load = () => {
-        const child = list.children[index];
-        child.classList.add('is-loading');
-        setTimeout(() => {
-          child.classList.remove('is-loading');
-          child.classList.add('is-done');
-        }, 1000);
-
-        index += 1;
+      const error = () => {
+        statusEl.innerHTML = 'Sorry something went wrong ... <br/><br/><a class="button" href="/">Try again</a>';
       };
 
-      load();
+      if (reqCreate.ok) {
+        const { jobId } = await reqCreate.json();
 
-      const interval = setInterval(() => {
-        if (index === list.childElementCount - 1) {
-          clearInterval(interval);
-          setTimeout(() => {
-            editStep.querySelector('.button-container:has(a[href="#edit"])').classList.add('is-ready');
-          }, 2000);
-        }
+        const statusInterval = setInterval(async () => {
+          const reqStatus = await fetch(`${API}/jobs/${jobId}`);
+          if (reqStatus.ok) {
+            const { progress, finished, failed } = await reqStatus.json();
 
-        load();
-      }, 2000);
-    } else if (identifier === '#edit') {
-      const accessToken = await window.auth0Client.getTokenSilently();
+            if (failed) {
+              error();
+              clearInterval(statusInterval);
+              return;
+            }
 
-      console.log(accessToken);
+            if (finished) {
+              clearInterval(statusInterval);
+              container.classList.add('is-ready');
+            } else {
+              statusEl.innerHTML = `<ul>
+                ${progress.map(({ status, statusText }) => `<li class="${status}">${statusText}</li>`).join('')}
+              </ul>`;
+            }
+          }
+        }, 1000);
+      } else {
+        error();
+      }
     } else if (identifier === '#new') {
       window.location.reload();
     }

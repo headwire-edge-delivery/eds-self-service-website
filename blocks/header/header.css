@@ -31,15 +31,27 @@
     text-transform: uppercase;
 }
 
+.header.block a[href="/dashboard"] {
+    border: none;
+}
+
+.header.block a[href="/dashboard"] img {
+    border-radius: 50%;
+}
+
+.header.block a[href="/dashboard"].is-selected {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
 .header.block .button-container:has(a[href="#signin"]),
-.header.block .button-container:has(a[href="#signout"]) {
+.header.block .button-container:has(a[href="#signout"]),
+.header.block .button-container:has(a[href="/dashboard"]) {
     display: none;
 }
 
-.is-authenticated .header.block .button-container:has(a[href="#signout"]) {
-    display: flex;
-}
-
-.is-anonymous .header.block .button-container:has(a[href="#signin"]) {
+.is-authenticated .header.block .button-container:has(a[href="#signout"]),
+.is-anonymous .header.block .button-container:has(a[href="#signin"]),
+.is-authenticated .header.block .button-container:has(a[href="/dashboard"]) {
     display: flex;
 }

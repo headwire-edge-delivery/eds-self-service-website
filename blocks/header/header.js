@@ -14,6 +14,11 @@ export default async function decorate(block) {
   block.innerHTML = '';
   block.append(nav);
 
+  const home = block.querySelector('a[href="/"]');
+  if (home) {
+    home.title = 'Home';
+  }
+
   block.addEventListener('click', async (event) => {
     const identifier = event.target.getAttribute('href');
     if (identifier === '#signin') {
