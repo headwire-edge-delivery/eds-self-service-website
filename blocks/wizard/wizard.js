@@ -146,13 +146,46 @@ export default async function decorate(block) {
         const statusInterval = setInterval(async () => {
           const reqStatus = await fetch(`${API}/jobs/${jobId}`);
           if (reqStatus.ok) {
-            const { progress, finished } = await reqStatus.json();
+            const {
+              progress,
+              finished,
+              liveUrl,
+              driveUrl,
+              sidekickSetupUrl,
+              calendarUrl,
+            } = await reqStatus.json();
 
             if (finished) {
               clearInterval(statusInterval);
 
+              // Success
               if (!progress.find(({ status }) => status === 'failed')) {
                 container.classList.add('is-ready');
+
+                const openSite = block.querySelector('a[href="#open-site"]');
+                const openDrive = block.querySelector('a[href="#open-drive"]');
+                const installSidekick = block.querySelector('a[href="#install-sidekick"]');
+                const openCalendar = block.querySelector('a[href="#open-calendar"]');
+
+                if (openSite && liveUrl) {
+                  openSite.href = liveUrl;
+                  openSite.classList.add('is-ready');
+                }
+
+                if (openDrive && driveUrl) {
+                  openDrive.href = driveUrl;
+                  openDrive.classList.add('is-ready');
+                }
+
+                if (installSidekick && sidekickSetupUrl) {
+                  installSidekick.href = sidekickSetupUrl;
+                  installSidekick.classList.add('is-ready');
+                }
+
+                if (openCalendar && calendarUrl) {
+                  openCalendar.href = calendarUrl;
+                  openCalendar.classList.add('is-ready');
+                }
               } else {
                 statusEl.insertAdjacentHTML('beforeend', '<a class="button" href="/">Try again</a>');
               }

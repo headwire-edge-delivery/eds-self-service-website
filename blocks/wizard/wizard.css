@@ -110,6 +110,10 @@
     display: flex;
 }
 
+.wizard.block > div:last-child a[href^="#"]:not(.is-ready) {
+    display: none;
+}
+
 .wizard.block > div:has(a[href="#edit"]) ul li .icon {
     display: none;
 }
