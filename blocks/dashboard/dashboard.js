@@ -6,9 +6,21 @@ import { API, onAuthenticated } from '../../scripts/scripts.js';
 export default async function decorate(block) {
   onAuthenticated(async () => {
     const token = await window.auth0Client.getTokenSilently();
-    const { email } = await window.auth0Client.getUser();
+    const user = await window.auth0Client.getUser();
 
-    const reqList = await fetch(`${API}/list?email=${email}`, {
+    block.innerHTML = `
+        <div class="nav">
+          <h1>${user.given_name}'s Sites</h1>
+          <a href="/" class="button">Create new site</a>
+        </div>
+        <div class="content">
+            <p>Loading ...</p>
+        </div>
+    `;
+
+    const content = block.querySelector('.content');
+
+    const reqList = await fetch(`${API}/list?email=${user.email}`, {
       headers: {
         'content-type': 'application/json',
         authorization: `bearer ${token}`,
@@ -18,15 +30,9 @@ export default async function decorate(block) {
     if (reqList.ok) {
       const { projects } = await reqList.json();
       if (!projects.length) {
-        block.innerHTML = '<h1>No sites found</h1>';
+        content.innerHTML = '<p>No Sites found</p>';
       } else {
-        block.innerHTML = `
-        <div class="nav">
-          <h1>Ringel's Sites</h1>
-          <a href="/" class="button">Create new site</a>
-        </div>
-        
-        <div class="content">
+        content.innerHTML = `
           <input type="text" placeholder="Filter sites" class="filter">
           
           <ul>
@@ -39,27 +45,25 @@ export default async function decorate(block) {
                 </a>
               </li>
             `).join('')}
-              
           </ul>
-        </div>
       `;
 
-        const filter = block.querySelector('.filter');
+        const filter = content.querySelector('.filter');
         filter.oninput = () => {
           if (filter.value.length) {
-            block.querySelectorAll('h2')
+            content.querySelectorAll('h2')
               .forEach((el) => {
                 el.closest('li').hidden = !el.textContent.toLowerCase().includes(filter.value.toLowerCase().trim());
               });
           } else {
-            block.querySelectorAll('li[hidden]').forEach((el) => {
+            content.querySelectorAll('li[hidden]').forEach((el) => {
               el.hidden = false;
             });
           }
         };
       }
     } else {
-      block.innerHTML = '<h1>Oops ! Something went wrong ... </h1>';
+      content.innerHTML = '<p>Oops ! Something went wrong ... </p>';
     }
   });
 
