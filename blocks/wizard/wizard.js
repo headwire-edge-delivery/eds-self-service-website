@@ -147,6 +147,7 @@ export default async function decorate(block) {
           const reqStatus = await fetch(`${API}/jobs/${jobId}`);
           if (reqStatus.ok) {
             const {
+              projectSlug,
               progress,
               finished,
               liveUrl,
@@ -166,6 +167,7 @@ export default async function decorate(block) {
                 const openDrive = block.querySelector('a[href="#open-drive"]');
                 const installSidekick = block.querySelector('a[href="#install-sidekick"]');
                 const openCalendar = block.querySelector('a[href="#open-calendar"]');
+                const openDashboard = block.querySelector('a[href="/dashboard"]');
 
                 if (openSite && liveUrl) {
                   openSite.href = liveUrl;
@@ -185,6 +187,10 @@ export default async function decorate(block) {
                 if (openCalendar && calendarUrl) {
                   openCalendar.href = calendarUrl;
                   openCalendar.classList.add('is-ready');
+                }
+
+                if (openDashboard) {
+                  openDashboard.setAttribute('href', `${openDashboard.getAttribute('href')}/${projectSlug}`);
                 }
               } else {
                 statusEl.insertAdjacentHTML('beforeend', '<a class="button" href="/">Try again</a>');
