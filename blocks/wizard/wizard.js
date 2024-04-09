@@ -140,36 +140,31 @@ export default async function decorate(block) {
       const container = block.querySelector('.button-container:has(a[href="#edit"])');
       container.before(statusEl);
 
-      const error = () => {
-        statusEl.innerHTML = 'Sorry something went wrong ... <br/><br/><a class="button" href="/">Try again</a>';
-      };
-
       if (reqCreate.ok) {
         const { jobId } = await reqCreate.json();
 
         const statusInterval = setInterval(async () => {
           const reqStatus = await fetch(`${API}/jobs/${jobId}`);
           if (reqStatus.ok) {
-            const { progress, finished, failed } = await reqStatus.json();
-
-            if (failed) {
-              error();
-              clearInterval(statusInterval);
-              return;
-            }
+            const { progress, finished } = await reqStatus.json();
 
             if (finished) {
               clearInterval(statusInterval);
-              container.classList.add('is-ready');
+
+              if (!progress.find(({ status }) => status === 'failed')) {
+                container.classList.add('is-ready');
+              } else {
+                statusEl.insertAdjacentHTML('beforeend', '<a class="button" href="/">Try again</a>');
+              }
             } else {
               statusEl.innerHTML = `<ul>
                 ${progress.map(({ status, statusText }) => `<li class="${status}">${statusText}</li>`).join('')}
               </ul>`;
             }
           }
-        }, 1000);
+        }, 2000);
       } else {
-        error();
+        statusEl.innerHTML = 'Sorry something went wrong ... <br/><br/><a class="button" href="/">Try again</a>';
       }
     } else if (identifier === '#new') {
       window.location.reload();
