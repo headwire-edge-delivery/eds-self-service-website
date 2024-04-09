@@ -18,16 +18,6 @@ window.auth0.createAuth0Client({
   document.body.classList.add(isAuthenticated ? 'is-authenticated' : 'is-anonymous');
 
   if (isAuthenticated) {
-    const dashboard = document.querySelector('header a[href="/dashboard"]');
-    if (dashboard) {
-      const { picture } = await window.auth0Client.getUser();
-      dashboard.insertAdjacentHTML('afterbegin', `
-          <img alt="Avatar" referrerpolicy="no-referrer" src="${picture}">
-      `);
-
-      if (window.location.pathname === '/dashboard') {
-        dashboard.classList.add('is-selected');
-      }
-    }
+    document.dispatchEvent(new CustomEvent('auth0:authenticated'));
   }
 });

@@ -7,10 +7,15 @@
     height: 100%;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
 }
 
 .header.block .section {
     min-width: 100px;
+}
+
+.header.block .section:first-child {
+    flex: 1;
 }
 
 .header.block picture {
