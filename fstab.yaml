@@ -2,4 +2,4 @@ mountpoints:
   /: https://drive.google.com/drive/u/0/folders/14inZG3uWlgvpP74gi96klS0-MqT7hYyc
 
 folders:
-  /dashboard/id/: /dashboard/default
+  /site/: /site/default
