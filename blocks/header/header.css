@@ -58,13 +58,13 @@
 
 .header.block .button-container:has(a[href="#signin"]),
 .header.block .button-container:has(a[href="#signout"]),
-.header.block .button-container:has(a[href="/dashboard"]) {
+.header.block .section:has(a[href="/dashboard"]) {
     display: none;
 }
 
 .is-authenticated .header.block .button-container:has(a[href="#signout"]),
 .is-anonymous .header.block .button-container:has(a[href="#signin"]),
-.is-authenticated .header.block .button-container:has(a[href="/dashboard"]) {
+.is-authenticated .header.block .section:has(a[href="/dashboard"]) {
     display: flex;
 }
 
