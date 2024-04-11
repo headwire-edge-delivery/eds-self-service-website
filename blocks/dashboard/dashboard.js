@@ -1,4 +1,4 @@
-import { API, onAuthenticated } from '../../scripts/scripts.js';
+import { API, onAuthenticated, oops } from '../../scripts/scripts.js';
 
 /**
  * @param {Element} block
@@ -63,7 +63,7 @@ export default async function decorate(block) {
         };
       }
     } else {
-      content.innerHTML = '<p>Oops ! Something went wrong ... </p>';
+      content.querySelector('.content p').textContent = oops;
     }
   });
 }

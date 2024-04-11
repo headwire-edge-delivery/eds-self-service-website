@@ -8,6 +8,12 @@
     padding: 16px;
 }
 
+.site-details.block.is-deleting {
+    pointer-events: none;
+    opacity: .3;
+    filter: blur(2px);
+}
+
 .site-details.block .nav {
     display: flex;
     justify-content: space-between;

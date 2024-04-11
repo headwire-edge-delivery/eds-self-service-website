@@ -1,4 +1,4 @@
-import { API, onAuthenticated } from '../../scripts/scripts.js';
+import { API, onAuthenticated, oops } from '../../scripts/scripts.js';
 
 /**
  * @param {Element} block
@@ -45,7 +45,6 @@ export default async function decorate(block) {
           </div>
           
           <div class="actions">
-            <button class="button secondary edit">Edit site</button>
             <button class="button secondary delete">Delete site</button>
           </div>
         </div>
@@ -141,12 +140,19 @@ export default async function decorate(block) {
         </div>
     `;
 
-      block.querySelector('.edit').onclick = () => {
-        alert('todo');
-      };
-
-      block.querySelector('.delete').onclick = () => {
-        alert('todo');
+      block.querySelector('.delete').onclick = async () => {
+        block.classList.add('is-deleting');
+        if (window.confirm('Are you sure ?')) {
+          const reqDelete = await fetch(`${API}/delete/${project.projectSlug}`, {
+            method: 'DELETE',
+          });
+          if (reqDelete.ok) {
+            window.location.href = '/dashboard';
+          } else {
+            alert(oops);
+          }
+        }
+        block.classList.remove('is-deleting');
       };
 
       const reqIndex = await fetch(`${API}/sheet?url=${project.liveUrl}/query-index.json`);
@@ -168,7 +174,7 @@ export default async function decorate(block) {
           return `
             <tr>
                 <td>${title.textContent}</td>
-                <td>${description.textContent}</td>          
+                <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>          
                 <td>${toDate(item.lastModified).toLocaleString()}</td>
                 <td><a class="button secondary" href="/email-composer?url=${project.liveUrl}${item.path}">Edit</a></td>
             </tr>
@@ -193,7 +199,7 @@ export default async function decorate(block) {
         }).join('');
       }
     } else {
-      block.querySelector('.content p').textContent = 'Oops ! Something went wrong ... ';
+      block.querySelector('.content p').textContent = oops;
     }
   });
 }
