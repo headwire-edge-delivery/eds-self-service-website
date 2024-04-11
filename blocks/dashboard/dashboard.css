@@ -78,4 +78,5 @@
 .dashboard.block .content > p:only-child {
     display: grid;
     place-items: center;
+    min-height: calc(100vh - 350px);
 }

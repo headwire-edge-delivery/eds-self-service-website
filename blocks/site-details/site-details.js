@@ -19,7 +19,9 @@ export default async function decorate(block) {
         </div>
         
         <div class="content">
-            <p>Loading ...</p>
+            <p>
+                <img class="loading" src="/icons/loading.svg" alt="loading" loading="lazy"/>
+            </p>
         </div>
       </div>`;
 

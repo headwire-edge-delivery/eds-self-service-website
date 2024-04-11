@@ -14,7 +14,9 @@ export default async function decorate(block) {
           <a href="/" class="button">Create new site</a>
         </div>
         <div class="content">
-            <p>Loading ...</p>
+            <p>
+                <img class="loading" src="/icons/loading.svg" alt="loading" loading="lazy"/>
+            </p>
         </div>
     `;
 
