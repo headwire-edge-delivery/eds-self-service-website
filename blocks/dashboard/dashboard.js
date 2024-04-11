@@ -36,12 +36,12 @@ export default async function decorate(block) {
           <input type="text" placeholder="Filter sites" class="filter">
           
           <ul>
-            ${projects.map(({ projectSlug, projectName }) => `
+            ${projects.map(({ projectSlug, projectName, projectDescription }) => `
               <li>
                 <a href="/site/${projectSlug}">
                   <h2>${projectName}</h2>
                   <p><strong>${projectSlug}</strong></p>
-                  <p class="date">Last update on Feb 14, 2024</p>
+                  <p>${projectDescription}</p>
                 </a>
               </li>
             `).join('')}

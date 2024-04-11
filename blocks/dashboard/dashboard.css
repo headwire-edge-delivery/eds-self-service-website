@@ -70,8 +70,9 @@
     background: var(--primary-color);
 }
 
-.dashboard.block .date {
-    font-size: 14px;
+.dashboard.block ul a p {
+    font-size: 16px;
+    font-weight: 300;
 }
 
 .dashboard.block .content > p:only-child {

@@ -57,10 +57,13 @@ export default async function decorate(block) {
                         <a href="${project.liveUrl}" class="button" target="_blank">Open site</a>
                     </li>
                     <li>
-                        <a href="${project.driveUrl}" class="button" target="_blank">Open Google Drive</a>
+                        <a href="${project.driveUrl}" class="button secondary" target="_blank">Open Google Drive</a>
                     </li>
                     <li>
-                        <a href="${project.sidekickSetupUrl}" class="button" target="_blank">Install Sidekick</a>
+                        <a href="${project.sidekickSetupUrl}" class="button secondary" target="_blank">Install Sidekick</a>
+                    </li>
+                    <li>
+                        <a href="${project.liveUrl}/tools/sidekick/library.html?plugin=blocks&path=/tools/sidekick/authoring-guides/authoring-guides&index=0" class="button secondary" target="_blank">Open Docs</a>
                     </li>
                 </ul>
             </aside>
@@ -77,7 +80,7 @@ export default async function decorate(block) {
                   </div>
                   <div>
                       <strong>Last update</strong>
-                      <span>Feb 14, 2024</span>
+                      <span class="last-update"></span>
                   </div>
                   <div>
                       <strong>Site template</strong>
@@ -150,18 +153,23 @@ export default async function decorate(block) {
       if (reqIndex.ok) {
         const { filtered } = await reqIndex.json();
 
+        const toDate = (lastModified) => new Date(Number(lastModified) * 1000);
+        const lastUpdate = Math.max(...filtered.data
+          .map(({ lastModified }) => toDate(lastModified)));
+        block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
+
         block.querySelector('.emails tbody').innerHTML = filtered.data.filter(({ path }) => path.startsWith('/emails/')).map((item) => {
           const title = document.createElement('div');
           title.innerHTML = item.title;
 
           const description = document.createElement('div');
-          description.innerHTML = item.title;
+          description.innerHTML = item.description;
 
           return `
             <tr>
                 <td>${title.textContent}</td>
                 <td>${description.textContent}</td>          
-                <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
+                <td>${toDate(item.lastModified).toLocaleString()}</td>
                 <td><a class="button secondary" href="/email-composer?url=${project.liveUrl}${item.path}">Edit</a></td>
             </tr>
         `;
@@ -172,18 +180,20 @@ export default async function decorate(block) {
           title.innerHTML = item.title;
 
           const description = document.createElement('div');
-          description.innerHTML = item.title;
+          description.innerHTML = item.description;
 
           return `
             <tr>
                 <td>${title.textContent}</td>
-                <td>${description.textContent}</td>
+                <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
                 <td><a href="${project.liveUrl}${item.path}">${item.path}</a></td>          
                 <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
             </tr>
         `;
         }).join('');
       }
+    } else {
+      block.querySelector('.content p').textContent = 'Oops ! Something went wrong ... ';
     }
   });
 }
