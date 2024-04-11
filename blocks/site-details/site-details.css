@@ -1,0 +1,160 @@
+.site-details:empty {
+    height: 100vh;
+}
+
+.site-details.block {
+    max-width: var(--layout-width);
+    margin: auto;
+    padding: 16px;
+}
+
+.site-details.block .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-block: 32px;
+}
+
+.site-details.block .breadcrumbs {
+    font-size: 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    line-height: 32px;
+}
+
+.site-details.block .breadcrumbs h1 {
+    font-size: 16px;
+    padding: 0;
+}
+
+.site-details.block .actions {
+    display: flex;
+    gap: 8px;
+}
+
+.site-details.block .details {
+    flex: 1;
+}
+
+.site-details.block .content {
+    border-top: 1px solid white;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 64px;
+    padding-block: 32px
+}
+
+.site-details.block .content:has(> p:only-child) {
+    display: block;
+    padding: 0;
+}
+
+.site-details.block .content > p:only-child {
+    min-height: calc(100vh - 200px);
+    display: grid;
+    place-items: center;
+}
+
+.site-details.block aside ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.site-details.block .cards {
+    display: flex;
+    gap: 32px;
+    justify-content: space-between;
+}
+
+.site-details.block .cards span {
+    font-weight: 300;
+}
+
+.site-details.block .cards > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: calc(var(--layout-width) / 4);
+}
+
+.site-details.block .cards > div strong {
+    text-transform: uppercase;
+}
+
+.site-details.block h2 {
+    font-size: 16px;
+    margin-top: 16px;
+}
+
+.site-details.block .config {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.site-details.block .config label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.site-details.block .config ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.site-details.block .config li {
+    padding: 8px;
+    background: white;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.site-details.block table {
+    width: 100%;
+    border-collapse: collapse;
+    padding: 16px;
+}
+
+.site-details.block table :is(th,td) {
+    padding: 8px;
+    font-weight: 300;
+}
+
+.site-details.block table th {
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.site-details.block table td:first-child {
+    font-weight: 500;
+}
+
+.site-details.block table tbody {
+    background: white;
+}
+
+@media (width < 768px) {
+    .site-details.block .cards {
+        flex-direction: column;
+    }
+
+    .site-details.block table {
+        padding: 0;
+        width: calc(100vw - 32px);
+        overflow-x: auto;
+        display: block;
+    }
+}

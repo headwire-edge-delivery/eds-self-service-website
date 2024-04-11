@@ -20,6 +20,10 @@ export default async function decorate(block) {
     home.title = 'Home';
   }
 
+  if (window.location.pathname !== '/') {
+    home.insertAdjacentHTML('beforeend', '<span>Self Service</span>');
+  }
+
   block.addEventListener('click', async (event) => {
     const identifier = event.target.getAttribute('href');
     if (identifier === '#signin') {

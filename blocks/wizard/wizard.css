@@ -3,6 +3,7 @@
     overflow: hidden;
     border-top: 1px solid white;
     padding-block: 32px;
+    min-height: 50vh;
 }
 
 .wizard.block > div {
@@ -87,15 +88,17 @@
     background-color: var(--secondary-color);
 }
 
-.wizard.block input {
-    background-color: var(--gray-color);
-    border: 1px solid var(--secondary-color);
+.wizard.block :is(input, textarea) {
+    background-color: white;
+    border: none;
     font-family: var(--font-family);
-    font-weight: 700;
-    font-size: 18px;
+    font-size: 16px;
     padding: 16px;
     color: var(--secondary-color);
     margin-block: 32px;
+    display: block;
+    width: 300px;
+    margin: 16px auto auto;
 }
 
 .wizard.block .button-container:has(a[href="#start"]) {

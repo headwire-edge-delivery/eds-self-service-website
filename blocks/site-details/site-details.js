@@ -1,0 +1,189 @@
+import { API, onAuthenticated } from '../../scripts/scripts.js';
+
+/**
+ * @param {Element} block
+ */
+export default async function decorate(block) {
+  onAuthenticated(async () => {
+    const id = window.location.pathname.split('/').pop();
+    const token = await window.auth0Client.getTokenSilently();
+    const user = await window.auth0Client.getUser();
+
+    block.innerHTML = `
+        <div class="nav">
+          <div class="breadcrumbs">
+            <a href="/dashboard">
+              ${user.given_name}'s Sites
+            </a>
+          </div>
+        </div>
+        
+        <div class="content">
+            <p>Loading ...</p>
+        </div>
+      </div>`;
+
+    const reqDetails = await fetch(`${API}/list/${id}?email=${user.email}`, {
+      headers: {
+        authorization: `bearer ${token}`,
+      },
+    });
+
+    if (reqDetails.ok) {
+      const { project } = await reqDetails.json();
+
+      block.innerHTML = `
+        <div class="nav">
+          <div class="breadcrumbs">
+            <a href="/dashboard">
+              ${user.given_name}'s Sites
+            </a>
+            <span>&rsaquo;</span>
+            <a href="/dashboard" aria-current="page">
+              <h1>${project.projectName}</h1>
+            </a>
+          </div>
+          
+          <div class="actions">
+            <button class="button secondary edit">Edit site</button>
+            <button class="button secondary delete">Delete site</button>
+          </div>
+        </div>
+        
+        <div class="content">
+            <aside>
+                <ul>
+                    <li>
+                        <a href="${project.liveUrl}" class="button" target="_blank">Open site</a>
+                    </li>
+                    <li>
+                        <a href="${project.driveUrl}" class="button" target="_blank">Open Google Drive</a>
+                    </li>
+                    <li>
+                        <a href="${project.sidekickSetupUrl}" class="button" target="_blank">Install Sidekick</a>
+                    </li>
+                </ul>
+            </aside>
+
+            <div class="details">
+                <div class="cards">
+                    <div>
+                      <strong>Site id</strong>
+                      <span>${project.projectSlug}</span>
+                  </div>
+                  <div>
+                      <strong>Site description</strong>
+                      <span>${project.projectDescription}</span>
+                  </div>
+                  <div>
+                      <strong>Last update</strong>
+                      <span>Feb 14, 2024</span>
+                  </div>
+                  <div>
+                      <strong>Site template</strong>
+                      <span>${project.templateName}</span>
+                  </div>
+                </div>
+                
+                <h2>Configuration</h2>
+                <div class="config">
+                    <div>
+                      <label>Available Blocks</label>
+                      <ul>
+                        <li>Cards</li>
+                        <li>Columns</li>
+                        <li>Hero</li>
+                        <li>Embed</li>
+                        <li>Carousel</li>
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <label>SVG Icons</label>
+                      <ul>
+                        <li>error.svg</li>
+                        <li>success.svg</li>
+                        <li>edit.svg</li>
+                      </ul>
+                    </div>
+                </div>   
+                
+                <h2>Emails</h2>
+                <table class="emails">
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Path</th>
+                        <th>Last update</th>
+                        <th></th>
+                      </tr>  
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                
+                <h2>Pages</h2>
+                <table class="pages">
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Path</th>
+                        <th>Last update</th>
+                      </tr>  
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+      block.querySelector('.edit').onclick = () => {
+        alert('todo');
+      };
+
+      block.querySelector('.delete').onclick = () => {
+        alert('todo');
+      };
+
+      const reqIndex = await fetch(`${API}/sheet?url=${project.liveUrl}/query-index.json`);
+      if (reqIndex.ok) {
+        const { filtered } = await reqIndex.json();
+
+        block.querySelector('.emails tbody').innerHTML = filtered.data.filter(({ path }) => path.startsWith('/emails/')).map((item) => {
+          const title = document.createElement('div');
+          title.innerHTML = item.title;
+
+          const description = document.createElement('div');
+          description.innerHTML = item.title;
+
+          return `
+            <tr>
+                <td>${title.textContent}</td>
+                <td>${description.textContent}</td>          
+                <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
+                <td><a class="button secondary" href="/email-composer?url=${project.liveUrl}${item.path}">Edit</a></td>
+            </tr>
+        `;
+        }).join('');
+
+        block.querySelector('.pages tbody').innerHTML = filtered.data.filter(({ path }) => !path.startsWith('/emails/')).map((item) => {
+          const title = document.createElement('div');
+          title.innerHTML = item.title;
+
+          const description = document.createElement('div');
+          description.innerHTML = item.title;
+
+          return `
+            <tr>
+                <td>${title.textContent}</td>
+                <td>${description.textContent}</td>
+                <td><a href="${project.liveUrl}${item.path}">${item.path}</a></td>          
+                <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
+            </tr>
+        `;
+        }).join('');
+      }
+    }
+  });
+}

@@ -19,5 +19,7 @@ window.auth0.createAuth0Client({
 
   if (isAuthenticated) {
     document.dispatchEvent(new CustomEvent('auth0:authenticated'));
+  } else if (window.location.pathname !== '/') {
+    window.location.href = '/';
   }
 });

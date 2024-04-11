@@ -36,17 +36,24 @@
     text-transform: uppercase;
 }
 
+.header.block a[href="/"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
 .header.block a[href="/dashboard"] {
     border: none;
 }
 
-.header.block a[href="/dashboard"] img {
-    border-radius: 50%;
+.header.block a[href="/dashboard"]:hover {
+    background: transparent;
+    color: var(--secondary-color);
 }
 
-.header.block a[href="/dashboard"].is-selected {
-    background-color: var(--secondary-color);
-    color: white;
+.header.block a[href="/dashboard"] img {
+    border-radius: 50%;
 }
 
 .header.block .button-container:has(a[href="#signin"]),
@@ -59,4 +66,14 @@
 .is-anonymous .header.block .button-container:has(a[href="#signin"]),
 .is-authenticated .header.block .button-container:has(a[href="/dashboard"]) {
     display: flex;
+}
+
+@media (width < 768px) {
+    .header.block a[href="/"] span {
+        display: none;
+    }
+
+    .header.block .section {
+        min-width: auto;
+    }
 }

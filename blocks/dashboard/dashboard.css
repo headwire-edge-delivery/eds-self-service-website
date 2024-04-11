@@ -5,7 +5,7 @@
 .dashboard.block {
     max-width: var(--layout-width);
     margin: auto;
-    padding: 16px 32px;
+    padding: 16px;
 }
 
 .dashboard.block .nav {
@@ -13,11 +13,18 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid white;
+    flex-wrap: wrap;
+    padding-block: 32px;
+    gap: 16px;
+}
+
+.dashboard.block .content {
+    padding-block: 32px;
+    min-height: calc(100vh - 200px);
 }
 
 .dashboard.block .filter {
     width: 100%;
-    box-sizing: border-box;
     border: none;
     font-size: 16px;
     background-color: white;
@@ -28,10 +35,12 @@
     padding: 12px 20px 12px 40px;
     font-weight: 300;
     font-family: var(--font-family);
+    color: var(--secondary-color);
 }
 
 .dashboard.block h1 {
     font-size: 30px;
+    padding: 0;
 }
 
 .dashboard.block h2 {
@@ -51,7 +60,7 @@
 .dashboard.block li a {
     display: block;
     max-width: 300px;
-    background: transparent;
+    background: white;
     padding: 32px;
     text-decoration: none;
     border: 1px solid var(--primary-color);
@@ -66,7 +75,6 @@
 }
 
 .dashboard.block .content > p:only-child {
-    min-height: calc(100vh - 200px);
     display: grid;
     place-items: center;
 }

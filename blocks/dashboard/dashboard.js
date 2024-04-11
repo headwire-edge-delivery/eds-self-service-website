@@ -36,12 +36,12 @@ export default async function decorate(block) {
           <input type="text" placeholder="Filter sites" class="filter">
           
           <ul>
-            ${projects.map(({ name, description }) => `
+            ${projects.map(({ projectSlug, projectName }) => `
               <li>
-                <a href="/dashboard/${name}">
-                  <h2>${description}</h2>
-                  <p><strong>${name}</strong></p>
-                  <p class="date">Created on Feb 14, 2024</p>
+                <a href="/site/${projectSlug}">
+                  <h2>${projectName}</h2>
+                  <p><strong>${projectSlug}</strong></p>
+                  <p class="date">Last update on Feb 14, 2024</p>
                 </a>
               </li>
             `).join('')}
@@ -66,10 +66,4 @@ export default async function decorate(block) {
       content.innerHTML = '<p>Oops ! Something went wrong ... </p>';
     }
   });
-
-  // Check dashboard slug
-  // if slug get details
-  // list projects or list project details
-  // list: name, url, project details and og:image index
-  // project details: configure, paths, open newsletter
 }

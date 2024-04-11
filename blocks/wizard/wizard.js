@@ -96,9 +96,12 @@ export default async function decorate(block) {
 
   const createStep = block.querySelector(':scope > div:has(a[href="#create"])');
   const input = document.createElement('input');
-  input.placeholder = 'SITE NAME';
+  input.placeholder = 'Name';
+  const textarea = document.createElement('textarea');
+  textarea.placeholder = 'Description';
   if (createStep) {
     createStep.querySelector('h2').after(input);
+    input.after(textarea);
     const createButton = createStep.querySelector('a[href="#create"]');
     createButton.classList.add('is-disabled');
 
@@ -131,7 +134,8 @@ export default async function decorate(block) {
         body: JSON.stringify({
           userEmail: user.email,
           inputProjectName: input.value,
-          templateId: template,
+          inputProjectDescription: textarea.value,
+          template,
         }),
         method: 'POST',
       });
@@ -193,7 +197,7 @@ export default async function decorate(block) {
                   openDashboard.setAttribute('href', `${openDashboard.getAttribute('href')}/${projectSlug}`);
                 }
               } else {
-                statusEl.insertAdjacentHTML('beforeend', '<a class="button" href="/">Try again</a>');
+                statusEl.insertAdjacentHTML('beforeend', '<br/><br/><a class="button" href="/">Try again</a>');
               }
             } else {
               statusEl.innerHTML = `<ul>

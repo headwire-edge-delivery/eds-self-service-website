@@ -35,8 +35,6 @@ body {
 header, footer {
   height: var(--header-height);
   padding-inline: 16px;
-  border-bottom: 1px solid var(--secondary-color);
-  border-top: 1px solid var(--secondary-color);
 }
 
 header {
@@ -46,6 +44,7 @@ header {
   right: 0;
   background-color: var(--primary-color);
   z-index: 10;
+  box-shadow: 0 2px 5px rgb(213 213 213);
 }
 
 main {
