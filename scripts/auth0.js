@@ -3,6 +3,7 @@ window.auth0.createAuth0Client({
   clientId: 'uu61j8YM6RirVCEyy6M39vdNQUx8hlW9',
   authorizationParams: {
     redirect_uri: window.location.origin,
+    audience: 'https://dev-ao71660qsmfxenrv.us.auth0.com/api/v2/',
   },
 }).then(async (auth0Client) => {
   window.auth0Client = auth0Client;
