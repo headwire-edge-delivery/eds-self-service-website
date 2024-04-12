@@ -1,5 +1,8 @@
 .header.block {
     height: 100%;
+    max-width: var(--layout-width);
+    margin: auto;
+    padding-inline: 16px;
 }
 
 .header.block nav {
