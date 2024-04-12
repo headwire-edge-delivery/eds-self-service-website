@@ -1,4 +1,4 @@
-import { API } from '../../scripts/scripts.js';
+import { SCRIPT_API } from '../../scripts/scripts.js';
 
 /**
  * decorates the header, mainly the nav
@@ -126,7 +126,7 @@ export default async function decorate(block) {
       const token = await window.auth0Client.getTokenSilently();
       const template = block.querySelector('.template.is-selected').id;
 
-      const reqCreate = await fetch(`${API}/create`, {
+      const reqCreate = await fetch(`${SCRIPT_API}/create`, {
         headers: {
           'content-type': 'application/json',
           authorization: `bearer ${token}`,
@@ -148,7 +148,7 @@ export default async function decorate(block) {
         const { jobId } = await reqCreate.json();
 
         const statusInterval = setInterval(async () => {
-          const reqStatus = await fetch(`${API}/jobs/${jobId}`);
+          const reqStatus = await fetch(`${SCRIPT_API}/jobs/${jobId}`);
           if (reqStatus.ok) {
             const {
               projectSlug,

@@ -14,10 +14,10 @@ import {
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
-export const API = 'https://eds-self-service-scripts.onrender.com';
-// export const API = 'http://localhost:4000';
+export const SCRIPT_API = 'https://eds-self-service-scripts.onrender.com';
+export const WORKER_API = 'https://emails.headwire.workers.dev';
 
-export const oops = 'Oops ! Something went wrong …';
+export const OOPS = 'Oops ! Something went wrong …';
 
 export function onAuthenticated(cb) {
   if (document.body.classList.contains('is-authenticated')) {

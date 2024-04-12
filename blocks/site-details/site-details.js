@@ -1,4 +1,6 @@
-import { API, onAuthenticated, oops } from '../../scripts/scripts.js';
+import {
+  SCRIPT_API, onAuthenticated, OOPS, WORKER_API,
+} from '../../scripts/scripts.js';
 
 /**
  * @param {Element} block
@@ -25,7 +27,7 @@ export default async function decorate(block) {
         </div>
       </div>`;
 
-    const reqDetails = await fetch(`${API}/list/${id}?email=${user.email}`, {
+    const reqDetails = await fetch(`${SCRIPT_API}/list/${id}?email=${user.email}`, {
       headers: {
         authorization: `bearer ${token}`,
       },
@@ -135,13 +137,13 @@ export default async function decorate(block) {
       block.querySelector('.delete').onclick = async () => {
         block.classList.add('is-deleting');
         if (window.confirm('Are you sure ?')) {
-          const reqDelete = await fetch(`${API}/delete/${project.projectSlug}`, {
+          const reqDelete = await fetch(`${SCRIPT_API}/delete/${project.projectSlug}`, {
             method: 'DELETE',
           });
           if (reqDelete.ok) {
             window.location.href = '/dashboard';
           } else {
-            alert(oops);
+            alert(OOPS);
             block.classList.remove('is-deleting');
           }
         } else {
@@ -149,7 +151,7 @@ export default async function decorate(block) {
         }
       };
 
-      fetch(`${API}/sheet?url=${project.liveUrl}/query-index.json`).then((res) => {
+      fetch(`${WORKER_API}/proxy?url=${project.liveUrl}/query-index.json`).then((res) => {
         if (res.ok) {
           return res.json();
         }
@@ -162,6 +164,8 @@ export default async function decorate(block) {
             .map(({ lastModified }) => toDate(lastModified)));
           block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
+          const rootId = project.driveUrl.split('/').pop();
+
           block.querySelector('.emails tbody').innerHTML = filtered.data.filter(({ path }) => path.startsWith('/emails/')).map((item) => {
             const title = document.createElement('div');
             title.innerHTML = item.title;
@@ -171,10 +175,10 @@ export default async function decorate(block) {
 
             return `
               <tr>
-                  <td>${title.textContent}</td>
+                  <td><a href="https://drive.google.com/drive/search?q=${title}%20type:document%20parent:${rootId}" target="_blank">${title.textContent}</a></td>
                   <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>          
                   <td>${toDate(item.lastModified).toLocaleString()}</td>
-                  <td><a class="button secondary" href="/email-composer?url=${project.liveUrl}${item.path}" target="_blank">Edit</a></td>
+                  <td><a class="button secondary" href="/email-composer?id=${project.projectSlug}&url=${project.liveUrl}${item.path}" target="_blank">Edit</a></td>
               </tr>
             `;
           }).join('');
@@ -188,7 +192,7 @@ export default async function decorate(block) {
 
             return `
               <tr>
-                  <td>${title.textContent}</td>
+                  <td><a href="https://drive.google.com/drive/search?q=${title}%20type:document%20parent:${rootId}" target="_blank">${title.textContent}</a></td>
                   <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
                   <td><a target="_blank" href="${project.liveUrl}${item.path}">${item.path}</a></td>          
                   <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
@@ -200,7 +204,7 @@ export default async function decorate(block) {
           console.log(error);
         });
 
-      fetch(`${API}/blocks/${project.projectSlug}`).then((res) => {
+      fetch(`${SCRIPT_API}/blocks/${project.projectSlug}`).then((res) => {
         if (res.ok) {
           return res.json();
         }
@@ -214,7 +218,7 @@ export default async function decorate(block) {
           console.log(error);
         });
 
-      fetch(`${API}/icons/${project.projectSlug}`).then((res) => {
+      fetch(`${SCRIPT_API}/icons/${project.projectSlug}`).then((res) => {
         if (res.ok) {
           return res.json();
         }
@@ -228,7 +232,7 @@ export default async function decorate(block) {
           console.log(error);
         });
     } else {
-      block.querySelector('.content p').textContent = oops;
+      block.querySelector('.content p').textContent = OOPS;
     }
   });
 }

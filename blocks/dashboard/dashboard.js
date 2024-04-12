@@ -1,4 +1,4 @@
-import { API, onAuthenticated, oops } from '../../scripts/scripts.js';
+import { SCRIPT_API, onAuthenticated, OOPS } from '../../scripts/scripts.js';
 
 /**
  * @param {Element} block
@@ -22,7 +22,7 @@ export default async function decorate(block) {
 
     const content = block.querySelector('.content');
 
-    const reqList = await fetch(`${API}/list?email=${user.email}`, {
+    const reqList = await fetch(`${SCRIPT_API}/list?email=${user.email}`, {
       headers: {
         'content-type': 'application/json',
         authorization: `bearer ${token}`,
@@ -65,7 +65,7 @@ export default async function decorate(block) {
         };
       }
     } else {
-      content.querySelector('.content p').textContent = oops;
+      content.querySelector('.content p').textContent = OOPS;
     }
   });
 }

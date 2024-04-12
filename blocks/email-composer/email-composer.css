@@ -1,3 +1,134 @@
 .email-composer:empty {
     height: 100vh;
 }
+
+.email-composer.block {
+    max-width: var(--layout-width);
+    margin: auto;
+    padding: 16px;
+}
+
+.email-composer.block .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-block: 32px;
+}
+
+.email-composer.block .breadcrumbs {
+    font-size: 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    line-height: 16px;
+}
+
+.email-composer.block .breadcrumbs h1 {
+    font-size: 16px;
+    line-height: 16px;
+    padding: 0;
+}
+
+.email-composer.block .actions {
+    display: flex;
+    gap: 8px;
+}
+
+.email-composer.block .details {
+    flex: 1;
+}
+
+.email-composer.block .content {
+    border-top: 1px solid white;
+    display: flex;
+    gap: 64px;
+    padding-block: 32px
+}
+
+.email-composer.block .content:has(> p:only-child) {
+    display: block;
+    padding: 0;
+}
+
+.email-composer.block .content > p:only-child {
+    min-height: calc(100vh - 200px);
+    display: grid;
+    place-items: center;
+}
+
+.email-composer.block aside {
+    max-width: 50%;
+    min-width: 50%;
+}
+
+.email-composer.block aside ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.email-composer.block h2 {
+    font-size: 16px;
+    margin-top: 16px;
+}
+
+.email-composer.block h2:first-child {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.email-composer.block .preview {
+    flex: 1;
+    background: white;
+}
+
+.email-composer.block .preview iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.email-composer input {
+    background-color: white;
+    border: none;
+    font-family: var(--font-family);
+    font-size: 16px;
+    padding: 16px;
+    color: var(--secondary-color);
+    margin-bottom: 32px;
+    display: block;
+    width: 100%;
+}
+
+.email-composer .kv {
+    display: flex;
+    gap: 16px;
+}
+
+.email-composer label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.email-composer .styles + div {
+    margin-bottom: 32px;
+}
+
+@media (width < 768px) {
+    .email-composer.block .content {
+        flex-direction: column;
+    }
+
+    .email-composer.block .preview iframe {
+        height: 100vh;
+    }
+
+    .email-composer.block aside {
+        max-width: 100%;
+    }
+}
