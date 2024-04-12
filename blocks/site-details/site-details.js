@@ -41,7 +41,7 @@ export default async function decorate(block) {
               ${user.given_name}'s Sites
             </a>
             <span>&rsaquo;</span>
-            <a href="/dashboard" aria-current="page">
+            <a href="/site/${project.projectSlug}" aria-current="page">
               <h1>${project.projectName}</h1>
             </a>
           </div>
@@ -93,22 +93,12 @@ export default async function decorate(block) {
                 <div class="config">
                     <div>
                       <label>Available Blocks</label>
-                      <ul>
-                        <li>Cards</li>
-                        <li>Columns</li>
-                        <li>Hero</li>
-                        <li>Embed</li>
-                        <li>Carousel</li>
-                      </ul>
+                      <ul class="blocks"></ul>
                     </div>
                     
                     <div>
                       <label>SVG Icons</label>
-                      <ul>
-                        <li>error.svg</li>
-                        <li>success.svg</li>
-                        <li>edit.svg</li>
-                      </ul>
+                      <ul class="icons"></ul>
                     </div>
                 </div>   
                 
@@ -152,54 +142,91 @@ export default async function decorate(block) {
             window.location.href = '/dashboard';
           } else {
             alert(oops);
+            block.classList.remove('is-deleting');
           }
+        } else {
+          block.classList.remove('is-deleting');
         }
-        block.classList.remove('is-deleting');
       };
 
-      const reqIndex = await fetch(`${API}/sheet?url=${project.liveUrl}/query-index.json`);
-      if (reqIndex.ok) {
-        const { filtered } = await reqIndex.json();
+      fetch(`${API}/sheet?url=${project.liveUrl}/query-index.json`).then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
 
-        const toDate = (lastModified) => new Date(Number(lastModified) * 1000);
-        const lastUpdate = Math.max(...filtered.data
-          .map(({ lastModified }) => toDate(lastModified)));
-        block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
+        throw new Error(res.status);
+      })
+        .then(({ filtered }) => {
+          const toDate = (lastModified) => new Date(Number(lastModified) * 1000);
+          const lastUpdate = Math.max(...filtered.data
+            .map(({ lastModified }) => toDate(lastModified)));
+          block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
-        block.querySelector('.emails tbody').innerHTML = filtered.data.filter(({ path }) => path.startsWith('/emails/')).map((item) => {
-          const title = document.createElement('div');
-          title.innerHTML = item.title;
+          block.querySelector('.emails tbody').innerHTML = filtered.data.filter(({ path }) => path.startsWith('/emails/')).map((item) => {
+            const title = document.createElement('div');
+            title.innerHTML = item.title;
 
-          const description = document.createElement('div');
-          description.innerHTML = item.description;
+            const description = document.createElement('div');
+            description.innerHTML = item.description;
 
-          return `
-            <tr>
-                <td>${title.textContent}</td>
-                <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>          
-                <td>${toDate(item.lastModified).toLocaleString()}</td>
-                <td><a class="button secondary" href="/email-composer?url=${project.liveUrl}${item.path}">Edit</a></td>
-            </tr>
-        `;
-        }).join('');
+            return `
+              <tr>
+                  <td>${title.textContent}</td>
+                  <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>          
+                  <td>${toDate(item.lastModified).toLocaleString()}</td>
+                  <td><a class="button secondary" href="/email-composer?url=${project.liveUrl}${item.path}" target="_blank">Edit</a></td>
+              </tr>
+            `;
+          }).join('');
 
-        block.querySelector('.pages tbody').innerHTML = filtered.data.filter(({ path }) => !path.startsWith('/emails/')).map((item) => {
-          const title = document.createElement('div');
-          title.innerHTML = item.title;
+          block.querySelector('.pages tbody').innerHTML = filtered.data.filter(({ path }) => !path.startsWith('/emails/')).map((item) => {
+            const title = document.createElement('div');
+            title.innerHTML = item.title;
 
-          const description = document.createElement('div');
-          description.innerHTML = item.description;
+            const description = document.createElement('div');
+            description.innerHTML = item.description;
 
-          return `
-            <tr>
-                <td>${title.textContent}</td>
-                <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
-                <td><a href="${project.liveUrl}${item.path}">${item.path}</a></td>          
-                <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
-            </tr>
-        `;
-        }).join('');
-      }
+            return `
+              <tr>
+                  <td>${title.textContent}</td>
+                  <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
+                  <td><a target="_blank" href="${project.liveUrl}${item.path}">${item.path}</a></td>          
+                  <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
+              </tr>
+            `;
+          }).join('');
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
+      fetch(`${API}/blocks/${project.projectSlug}`).then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+
+        throw new Error(res.status);
+      })
+        .then((blocks) => {
+          block.querySelector('.blocks').innerHTML = blocks.map(({ name }) => `<li>${name}</li>`).join('');
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
+      fetch(`${API}/icons/${project.projectSlug}`).then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+
+        throw new Error(res.status);
+      })
+        .then((icons) => {
+          block.querySelector('.icons').innerHTML = icons.map(({ name }) => `<li>${name}</li>`).join('');
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     } else {
       block.querySelector('.content p').textContent = oops;
     }
