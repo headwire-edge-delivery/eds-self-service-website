@@ -21,6 +21,7 @@ export default async function decorate(block) {
 
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();
+    let editor;
 
     block.innerHTML = `
         <div class="nav">
@@ -73,8 +74,11 @@ export default async function decorate(block) {
                 <h2>Recipients</h2>
                 
                 <div>
-                    <input placeholder="Emails sheet URL">
-                    <button class="button is-disabled">Send</button>
+                    <input readonly value="${meta.recipients}">
+                    <ul class="recipients"></ul>
+                    <div class="button-container">
+                        <button class="button is-disabled send">Send</button>
+                    </div>
                 </div>
                 
                 <h2>Variables</h2>
@@ -85,22 +89,60 @@ export default async function decorate(block) {
                   </div>
                 `).join('')}
                 
-                <button class="button secondary add-variable">Save variables</button>
+                <button class="button secondary save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
                 
                 <h2>Styles (Developer)</h2>
                 <div>
                     <label>Source</label>
-                    <input class="source" value="${meta.styles}" />
+                    <input readonly value="${meta.styles}" />
+                </div>
+                <div>
                     <label>Code</label>
                     <textarea class="styles"></textarea>
-                    <button class="button secondary save-styles is-disabled">Save styles</button>
+                    <button class="button secondary save-styles">Save custom styles</button>
                 </div>
             </aside>
         </div>
       `;
 
-      block.querySelector('.add-variable').onclick = () => {
+      block.querySelector('.save-styles').onclick = async () => {
+        const req = await fetch(`${WORKER_API}/save`, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            styles: editor.getValue(),
+          }),
+        });
 
+        if (req.ok) {
+          const iframe = block.querySelector('.preview iframe');
+          const source = new URL(iframe.src);
+          source.searchParams.set('styles', await req.text());
+          iframe.src = source.toString();
+        }
+      };
+
+      block.querySelector('.save-variables').onclick = () => {
+        const customVariables = {};
+        block.querySelectorAll('.kv input:first-child').forEach((input) => {
+          const key = input.value;
+          const { value } = input.nextElementSibling;
+          if (value) {
+            customVariables[key] = value;
+          }
+        });
+
+        const keys = Object.keys(customVariables);
+        if (keys.length) {
+          const iframe = block.querySelector('.preview iframe');
+          const source = new URL(iframe.src);
+          keys.forEach((key) => {
+            source.searchParams.set(key, customVariables[key]);
+          });
+          iframe.src = source.toString();
+        }
       };
 
       fetch(`${SCRIPT_API}/list/${id}?email=${user.email}`, {
@@ -122,6 +164,30 @@ export default async function decorate(block) {
           console.log(error);
         });
 
+
+      fetch(`${WORKER_API}/proxy?url=${meta.recipients}`)
+        .then((res) => {
+          if (res.ok) {
+            return res.json();
+          }
+
+          return { data: [] };
+        })
+        .then(({ data }) => {
+          const recipients = block.querySelector('.recipients');
+          recipients.innerHTML = data.map(({ email }) => {
+            if (email) {
+              return `<li>${email}</li>`;
+            }
+
+            return '';
+          }).join('');
+
+          if (recipients.childElementCount) {
+            block.querySelector('.send').classList.remove('is-disabled');
+          }
+        });
+
       loadCSS('/libs/codemirror/codemirror.css');
       await import('../../libs/codemirror/codemirror.js');
       await import('../../libs/codemirror/css.js');
@@ -136,11 +202,7 @@ export default async function decorate(block) {
         .then((css) => {
           const styles = block.querySelector('.styles');
           styles.value = css;
-
-          const editor = window.CodeMirror.fromTextArea(styles);
-          block.querySelector('.save-styles').onclick = () => {
-            console.log(editor.getValue());
-          };
+          editor = window.CodeMirror.fromTextArea(styles);
         });
     }
   });

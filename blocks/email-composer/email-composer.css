@@ -62,15 +62,6 @@
     min-width: 50%;
 }
 
-.email-composer.block aside ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
 .email-composer.block h2 {
     font-size: 16px;
     margin-top: 16px;
@@ -117,6 +108,28 @@
 
 .email-composer .styles + div {
     margin-bottom: 32px;
+}
+
+.email-composer .button-container {
+    justify-content: flex-start;
+}
+
+.email-composer .recipients {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: -16px;
+    margin-bottom: 32px;
+}
+
+.email-composer .recipients li {
+    padding: 8px;
+    background: white;
+    font-size: 14px;
+    font-weight: 700;
 }
 
 @media (width < 768px) {
