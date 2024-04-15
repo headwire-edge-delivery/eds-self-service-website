@@ -164,7 +164,6 @@ export default async function decorate(block) {
           console.log(error);
         });
 
-
       fetch(`${WORKER_API}/proxy?url=${meta.recipients}`)
         .then((res) => {
           if (res.ok) {
