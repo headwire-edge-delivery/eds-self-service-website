@@ -1,13 +1,215 @@
 import { API, onAuthenticated, oops } from '../../scripts/scripts.js';
 
+
+const protectedBlocks = {
+  search: true,
+  header: true,
+  footer: true,
+  schedule: true,
+}
+
 /**
- * @param {Element} block
- */
+* @param {Element} block
+*/
 export default async function decorate(block) {
+  
   onAuthenticated(async () => {
     const id = window.location.pathname.split('/').pop();
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();
+    const headers = { authorization: `bearer ${token}` };
+
+    function openDialogForIcon(listElement) {
+      const dialog = block.querySelector('.display-dialog')
+      dialog.className = 'display-dialog displaying-icon';
+      dialog.innerHTML = `
+      <div class="dialog-content">
+        <h3>${listElement.innerText}</h3>
+        <img src="${listElement.dataset.iconDownloadUrl}" alt="icon display" />
+        <div class="button-container">
+          <button class="button close">Close</button>
+          <button class="button delete">Delete</button>
+        </div>
+      </div>
+      `
+      
+      dialog.querySelector('.delete').onclick = async () => {
+        if (window.confirm('Are you sure ?')) {
+          dialog.classList.add('is-deleting');
+          const reqDelete = await fetch(`${API}/icons/${id}/${listElement.dataset.iconName}`, {
+            method: 'DELETE',
+            headers,
+          });
+          if (reqDelete.ok) {
+            dialog.innerHTML = `<div class="dialog-content"><h3>${listElement.dataset.iconName} deleted</h3><div class="button-container"><button class="button close">Close</button></div>`;
+            block.querySelector(`li[data-icon-name="${listElement.dataset.iconName}"]`).remove();
+          } else {
+            alert(oops);
+          }
+          dialog.classList.remove('is-deleting');
+        }
+      }
+  
+      dialog.showModal()
+    }
+
+    function openDialogAddIcon() {
+      const dialog = block.querySelector('.display-dialog')
+      dialog.className = 'display-dialog add-icon';
+      dialog.innerHTML = `
+      <div class="dialog-content">
+        <h3>Add icon</h3>
+        <input type="file" accept="image/svg+xml" />
+        <div class="preview"></div>
+        <div class="button-container">
+          <button class="button close">Close</button>
+          <button class="button add">Add</button>
+        </div>
+      </div>`
+
+      dialog.querySelector('input[type="file"]').onchange = (event) => {
+        const file = event.target.files[0];
+        const preview = dialog.querySelector('.preview');
+        if (file && file.type === 'image/svg+xml') {
+          const reader = new FileReader();
+          reader.onload = e => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = file.name;
+            preview.innerHTML = '';
+            preview.appendChild(img);
+          }
+          reader.readAsDataURL(file);
+        } else {
+          preview.innerHTML = 'Please select an SVG file';
+        }
+      }
+
+      dialog.querySelector('.button.add').onclick = async () => {
+        const file = dialog.querySelector('input[type="file"]').files[0];
+        if (!file) {
+          alert('Please select an SVG file');
+          return;
+        }
+        const formData = new FormData();
+        formData.append('icon', file);
+        dialog.classList.add('is-adding');
+        const addRequest = await fetch(`${API}/icons/${id}`, {
+          method: 'POST',
+          body: formData,
+          headers,
+        });
+        if (addRequest.ok) {
+          dialog.innerHTML = `<div class="dialog-content"><h3>Icon added</h3><div class="button-container"><button class="button close">Close</button></div>`;
+
+        } else {
+          alert(oops);
+        }
+        dialog.classList.remove('is-adding');
+      }
+
+      dialog.showModal()
+    }
+
+    function openDialogForBlock(listElement) {
+      const dialog = block.querySelector('.display-dialog')
+      dialog.className = 'display-dialog displaying-block';
+      dialog.innerHTML = `
+      <div class="dialog-content">
+        <h3>${listElement.innerText} Block</h3>
+        <div class="button-container">
+          <button class="button close">Close</button>
+          <button class="button delete">Delete</button>
+        </div>
+      </div>
+      `
+      const deleteButton = dialog.querySelector('.delete');
+
+      if (protectedBlocks[listElement.dataset.blockName]) {
+        deleteButton.disabled = true;
+      } else {
+        deleteButton.onclick = async () => {
+          if (window.confirm('Are you sure ?')) {
+            dialog.classList.add('is-deleting');
+            const reqDelete = await fetch(`${API}/blocks/${id}/${listElement.dataset.blockName}`, {
+              method: 'DELETE',
+              headers,
+            });
+            if (reqDelete.ok) {
+              dialog.innerHTML = `<div class="dialog-content"><h3>${listElement.dataset.blockName} deleted</h3><div class="button-container"><button class="button close">Close</button></div>`;
+              block.querySelector(`li[data-block-name="${listElement.dataset.blockName}"]`).remove();
+            } else {
+              alert(oops);
+            }
+            dialog.classList.remove('is-deleting');
+          }
+        }
+      }
+
+      dialog.showModal()
+    }
+
+    function openDialogAddBlock() {
+      const dialog = block.querySelector('.display-dialog')
+      dialog.className = 'display-dialog add-block';
+      dialog.innerHTML = `
+      <div class="dialog-content">
+        <h3>Loading available blocks...</h3>
+      </div>`
+
+      Promise.all([
+        fetch(`${API}/compatibleBlocks/${id}`, {headers}).then(res => res.json()),
+        fetch(`${API}/blocks/${id}`, {headers}).then(res => res.json()),
+      ]).then(([compatibleBlocks, currentBlocks]) => {
+        const data = compatibleBlocks.filter(item => !currentBlocks.some(currentBlocksItem => currentBlocksItem.name === item.name))
+        if (data.length === 0) {
+          dialog.innerHTML = `<div class="dialog-content"><h3>No new blocks available</h3><div class="button-container"><button class="button close">Close</button></div>`;
+          return
+        }
+        dialog.innerHTML = `
+        <div class="dialog-content">
+          <h3>Add block</h3>
+          <select>
+            ${data.map(block => {
+              return `<option value="${block.name}">${block.name}</option>`
+            }).join('')}
+          </select>
+          <div class="button-container">
+            <button class="button close">Close</button>
+            <button class="button add">Add Block</button>
+          </div>
+        </div>`
+
+        dialog.querySelector('.button.add').onclick = async () => {
+          const select = dialog.querySelector('select');
+          if (!select.value) {
+            alert('Please select a block');
+            return;
+          }
+          dialog.classList.add('is-adding');
+          const addRequest = await fetch(`${API}/blocks/${id}/${select.value}`, {
+            method: 'POST',
+            headers,
+          });
+          if (addRequest.ok) {
+            dialog.innerHTML = `<div class="dialog-content"><h3>${select.value} block added</h3><div class="button-container"><button class="button close">Close</button></div>`;
+          } else {
+            alert(oops);
+          }
+          dialog.classList.remove('is-adding');
+        }
+      }).catch(() => {
+        dialog.innerHTML = `
+        <div class="dialog-content">
+          <h3>Could not load available blocks</h3>
+          <div class="button-container">
+            <button class="button close">Close</button>
+          </div>
+        </div>`
+      })
+
+      dialog.showModal()
+    }
 
     block.innerHTML = `
         <div class="nav">
@@ -26,9 +228,7 @@ export default async function decorate(block) {
       </div>`;
 
     const reqDetails = await fetch(`${API}/list/${id}?email=${user.email}`, {
-      headers: {
-        authorization: `bearer ${token}`,
-      },
+      headers,
     });
 
     if (reqDetails.ok) {
@@ -52,6 +252,7 @@ export default async function decorate(block) {
         </div>
         
         <div class="content">
+            <dialog class="display-dialog"></dialog>
             <aside>
                 <ul>
                     <li>
@@ -132,6 +333,13 @@ export default async function decorate(block) {
         </div>
     `;
 
+      block.querySelector('.display-dialog').onclick = (event) => {
+        const dialog = event.currentTarget;
+        if (event.target.isEqualNode(dialog) || event.target.className === 'button close') {
+          dialog.close();
+        }
+      }
+
       block.querySelector('.delete').onclick = async () => {
         block.classList.add('is-deleting');
         if (window.confirm('Are you sure ?')) {
@@ -149,58 +357,58 @@ export default async function decorate(block) {
         }
       };
 
-      fetch(`${API}/sheet?url=${project.liveUrl}/query-index.json`).then((res) => {
-        if (res.ok) {
-          return res.json();
-        }
+      // fetch(`${API}/sheet?url=${project.liveUrl}/query-index.json`).then((res) => {
+      //   if (res.ok) {
+      //     return res.json();
+      //   }
 
-        throw new Error(res.status);
-      })
-        .then(({ filtered }) => {
-          const toDate = (lastModified) => new Date(Number(lastModified) * 1000);
-          const lastUpdate = Math.max(...filtered.data
-            .map(({ lastModified }) => toDate(lastModified)));
-          block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
+      //   throw new Error(res.status);
+      // })
+      //   .then(({ filtered }) => {
+      //     const toDate = (lastModified) => new Date(Number(lastModified) * 1000);
+      //     const lastUpdate = Math.max(...filtered.data
+      //       .map(({ lastModified }) => toDate(lastModified)));
+      //     block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
-          block.querySelector('.emails tbody').innerHTML = filtered.data.filter(({ path }) => path.startsWith('/emails/')).map((item) => {
-            const title = document.createElement('div');
-            title.innerHTML = item.title;
+      //     block.querySelector('.emails tbody').innerHTML = filtered.data.filter(({ path }) => path.startsWith('/emails/')).map((item) => {
+      //       const title = document.createElement('div');
+      //       title.innerHTML = item.title;
 
-            const description = document.createElement('div');
-            description.innerHTML = item.description;
+      //       const description = document.createElement('div');
+      //       description.innerHTML = item.description;
 
-            return `
-              <tr>
-                  <td>${title.textContent}</td>
-                  <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>          
-                  <td>${toDate(item.lastModified).toLocaleString()}</td>
-                  <td><a class="button secondary" href="/email-composer?url=${project.liveUrl}${item.path}" target="_blank">Edit</a></td>
-              </tr>
-            `;
-          }).join('');
+      //       return `
+      //         <tr>
+      //             <td>${title.textContent}</td>
+      //             <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>          
+      //             <td>${toDate(item.lastModified).toLocaleString()}</td>
+      //             <td><a class="button secondary" href="/email-composer?url=${project.liveUrl}${item.path}" target="_blank">Edit</a></td>
+      //         </tr>
+      //       `;
+      //     }).join('');
 
-          block.querySelector('.pages tbody').innerHTML = filtered.data.filter(({ path }) => !path.startsWith('/emails/')).map((item) => {
-            const title = document.createElement('div');
-            title.innerHTML = item.title;
+      //     block.querySelector('.pages tbody').innerHTML = filtered.data.filter(({ path }) => !path.startsWith('/emails/')).map((item) => {
+      //       const title = document.createElement('div');
+      //       title.innerHTML = item.title;
 
-            const description = document.createElement('div');
-            description.innerHTML = item.description;
+      //       const description = document.createElement('div');
+      //       description.innerHTML = item.description;
 
-            return `
-              <tr>
-                  <td>${title.textContent}</td>
-                  <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
-                  <td><a target="_blank" href="${project.liveUrl}${item.path}">${item.path}</a></td>          
-                  <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
-              </tr>
-            `;
-          }).join('');
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      //       return `
+      //         <tr>
+      //             <td>${title.textContent}</td>
+      //             <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
+      //             <td><a target="_blank" href="${project.liveUrl}${item.path}">${item.path}</a></td>          
+      //             <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
+      //         </tr>
+      //       `;
+      //     }).join('');
+      //   })
+      //   .catch((error) => {
+      //     console.log(error);
+      //   });
 
-      fetch(`${API}/blocks/${project.projectSlug}`).then((res) => {
+      fetch(`${API}/blocks/${project.projectSlug}`, {headers}).then((res) => {
         if (res.ok) {
           return res.json();
         }
@@ -208,13 +416,24 @@ export default async function decorate(block) {
         throw new Error(res.status);
       })
         .then((blocks) => {
-          block.querySelector('.blocks').innerHTML = blocks.map(({ name }) => `<li>${name}</li>`).join('');
+          const blocksList = block.querySelector('.blocks')
+          blocks.forEach(({ name }) => {
+            const li = document.createElement('li');
+            li.innerText = name;
+            li.dataset.blockName = name;
+            li.onclick = () => openDialogForBlock(li)
+            blocksList.appendChild(li);
+          });
+          const addBlock = document.createElement('li')
+          addBlock.innerText = '+'
+          addBlock.onclick = openDialogAddBlock
+          blocksList.appendChild(addBlock);
         })
         .catch((error) => {
           console.log(error);
         });
 
-      fetch(`${API}/icons/${project.projectSlug}`).then((res) => {
+      fetch(`${API}/icons/${project.projectSlug}`, {headers}).then((res) => {
         if (res.ok) {
           return res.json();
         }
@@ -222,7 +441,19 @@ export default async function decorate(block) {
         throw new Error(res.status);
       })
         .then((icons) => {
-          block.querySelector('.icons').innerHTML = icons.map(({ name }) => `<li>${name}</li>`).join('');
+          const iconsList = block.querySelector('.icons')
+          icons.forEach(({ name, download_url }) => {
+            const li = document.createElement('li');
+            li.dataset.iconName = name;
+            li.dataset.iconDownloadUrl = download_url;
+            li.innerText = name;
+            li.onclick = () => openDialogForIcon(li)
+            iconsList.appendChild(li);
+          })
+          const addIcon = document.createElement('li')
+          addIcon.innerText = '+'
+          addIcon.onclick = openDialogAddIcon
+          iconsList.appendChild(addIcon);
         })
         .catch((error) => {
           console.log(error);

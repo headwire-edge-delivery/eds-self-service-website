@@ -7,6 +7,7 @@
   --animation-duration: 300ms;
   --font-family: system-ui, sans-serif;
   --header-height: 64px;
+  --body-font-size: 16px;
 
   font-synthesis: none;
   text-rendering: optimizelegibility;
@@ -69,7 +70,7 @@ h1, h2, h3 {
 }
 
 p {
-  font-size: 18px;
+  font-size: var(--body-font-size);
   line-height: 22px;
 }
 
@@ -140,6 +141,14 @@ a:hover {
   background-color: var(--secondary-color);
   text-decoration: none;
   color: white;
+}
+
+.button:disabled,
+.button:disabled:hover {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  cursor: not-allowed;
+  opacity: .4;
 }
 
 .button.secondary {

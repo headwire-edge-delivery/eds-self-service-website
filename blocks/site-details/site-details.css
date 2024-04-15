@@ -127,6 +127,7 @@
     background: white;
     font-size: 14px;
     font-weight: 700;
+    cursor: pointer;
 }
 
 .site-details.block table {
@@ -166,4 +167,39 @@
         overflow-x: auto;
         display: block;
     }
+}
+
+.site-details.block .display-dialog.displaying-block h3 {
+}
+
+.site-details.block .display-dialog img {
+    -webkit-filter: drop-shadow(0 0 5px #000);
+    filter: drop-shadow(0 0 5px #000);
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: contain;
+    padding: 20px;
+    max-width: 400px;
+}
+
+.site-details.block .display-dialog.is-deleting {
+    pointer-events: none;
+}
+
+.site-details.block .display-dialog.is-adding::before,
+.site-details.block .display-dialog.is-deleting::before {
+    content: "Deleting...";
+    font-size: 24px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-color: rgba(128, 128, 128, 0.8);
+}
+
+.site-details.block .display-dialog.is-adding::before {
+    content: "Adding...";
 }
