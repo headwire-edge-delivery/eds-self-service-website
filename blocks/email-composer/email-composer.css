@@ -81,6 +81,12 @@
     width: 100%;
     height: 100%;
     border: none;
+    transition: all var(--animation-duration);
+}
+
+.email-composer.block .preview iframe.is-loading {
+    opacity: .5;
+    filter: blur(5px);
 }
 
 .email-composer input {
@@ -130,6 +136,20 @@
     background: white;
     font-size: 14px;
     font-weight: 700;
+    border: 1px solid transparent;
+    transition: all var(--animation-duration);
+}
+
+.email-composer .recipients li:hover {
+    border-color: white;
+}
+
+.email-composer .recipients li.is-selected {
+    border-color: var(--primary-color);
+}
+
+.email-composer .enable-styles ~ * {
+    display: none;
 }
 
 @media (width < 768px) {

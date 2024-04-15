@@ -77,6 +77,7 @@ export default async function decorate(block) {
                     <input readonly value="${meta.recipients}">
                     <ul class="recipients"></ul>
                     <div class="button-container">
+                        <button class="button secondary is-disabled select-all">Select all</button>
                         <button class="button is-disabled send">Send</button>
                     </div>
                 </div>
@@ -92,6 +93,8 @@ export default async function decorate(block) {
                 <button class="button secondary save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
                 
                 <h2>Styles (Developer)</h2>
+                
+                <button class="button secondary enable-styles">Edit styles (developer mode)</button>
                 <div>
                     <label>Source</label>
                     <input readonly value="${meta.styles}" />
@@ -105,6 +108,16 @@ export default async function decorate(block) {
         </div>
       `;
 
+      const iframe = block.querySelector('.preview iframe');
+      iframe.onload = () => {
+        iframe.classList.remove('is-loading');
+      };
+
+      block.querySelector('.enable-styles').onclick = (event) => {
+        event.target.remove();
+        editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
+      };
+
       block.querySelector('.save-styles').onclick = async () => {
         const req = await fetch(`${WORKER_API}/save`, {
           method: 'POST',
@@ -117,9 +130,9 @@ export default async function decorate(block) {
         });
 
         if (req.ok) {
-          const iframe = block.querySelector('.preview iframe');
           const source = new URL(iframe.src);
           source.searchParams.set('styles', await req.text());
+          iframe.classList.add('is-loading');
           iframe.src = source.toString();
         }
       };
@@ -129,18 +142,16 @@ export default async function decorate(block) {
         block.querySelectorAll('.kv input:first-child').forEach((input) => {
           const key = input.value;
           const { value } = input.nextElementSibling;
-          if (value) {
-            customVariables[key] = value;
-          }
+          customVariables[key] = value;
         });
 
         const keys = Object.keys(customVariables);
         if (keys.length) {
-          const iframe = block.querySelector('.preview iframe');
           const source = new URL(iframe.src);
           keys.forEach((key) => {
             source.searchParams.set(key, customVariables[key]);
           });
+          iframe.classList.add('is-loading');
           iframe.src = source.toString();
         }
       };
@@ -174,16 +185,37 @@ export default async function decorate(block) {
         })
         .then(({ data }) => {
           const recipients = block.querySelector('.recipients');
-          recipients.innerHTML = data.map(({ email }) => {
+          recipients.innerHTML = data.map(({ email }, i) => {
             if (email) {
-              return `<li>${email}</li>`;
+              return `<li class="${i === 0 ? 'is-selected' : ''}">${email}</li>`;
             }
 
             return '';
           }).join('');
 
           if (recipients.childElementCount) {
-            block.querySelector('.send').classList.remove('is-disabled');
+            const send = block.querySelector('.send');
+            const selectAll = block.querySelector('.select-all');
+
+            send.classList.remove('is-disabled');
+            selectAll.classList.remove('is-disabled');
+            const emails = recipients.querySelectorAll('li');
+
+            selectAll.onclick = () => {
+              emails.forEach((el) => {
+                el.classList.add('is-selected');
+              });
+            };
+
+            emails.forEach((el) => {
+              el.onclick = () => {
+                el.classList.toggle('is-selected', !el.classList.contains('is-selected'));
+              };
+            });
+
+            send.onclick = () => {
+              alert('todo');
+            };
           }
         });
 
@@ -201,7 +233,6 @@ export default async function decorate(block) {
         .then((css) => {
           const styles = block.querySelector('.styles');
           styles.value = css;
-          editor = window.CodeMirror.fromTextArea(styles);
         });
     }
   });
