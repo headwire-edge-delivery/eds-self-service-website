@@ -138,6 +138,7 @@
     font-weight: 700;
     border: 1px solid transparent;
     transition: all var(--animation-duration);
+    cursor: pointer;
 }
 
 .email-composer .recipients li:hover {

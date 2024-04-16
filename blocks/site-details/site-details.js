@@ -134,6 +134,7 @@ export default async function decorate(block) {
         </div>
     `;
 
+      // Delete site and redirect to dashboard
       block.querySelector('.delete').onclick = async () => {
         block.classList.add('is-deleting');
         if (window.confirm('Are you sure ?')) {
@@ -151,6 +152,7 @@ export default async function decorate(block) {
         }
       };
 
+      // Load index to list pages
       fetch(`${WORKER_API}/proxy?url=${project.liveUrl}/query-index.json`).then((res) => {
         if (res.ok) {
           return res.json();
@@ -166,6 +168,7 @@ export default async function decorate(block) {
 
           const rootId = project.driveUrl.split('/').pop();
 
+          // Emails only
           block.querySelector('.emails tbody').innerHTML = filtered.data.filter(({ path }) => path.startsWith('/emails/')).map((item) => {
             const title = document.createElement('div');
             title.innerHTML = item.title;
@@ -183,6 +186,7 @@ export default async function decorate(block) {
             `;
           }).join('');
 
+          // Rest of the pages
           block.querySelector('.pages tbody').innerHTML = filtered.data.filter(({ path }) => !path.startsWith('/emails/')).map((item) => {
             const title = document.createElement('div');
             title.innerHTML = item.title;
@@ -204,6 +208,7 @@ export default async function decorate(block) {
           console.log(error);
         });
 
+      // Load site blocks
       fetch(`${SCRIPT_API}/blocks/${project.projectSlug}`).then((res) => {
         if (res.ok) {
           return res.json();
@@ -218,6 +223,7 @@ export default async function decorate(block) {
           console.log(error);
         });
 
+      // Load site icons
       fetch(`${SCRIPT_API}/icons/${project.projectSlug}`).then((res) => {
         if (res.ok) {
           return res.json();

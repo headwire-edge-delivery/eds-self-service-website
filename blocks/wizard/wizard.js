@@ -43,12 +43,14 @@ export default async function decorate(block) {
     }
   };
 
+  // Wizard prev and next action
   block.addEventListener('click', (event) => {
     if ((event.target.matches('.next') || event.target.matches('.prev')) && document.body.classList.contains('is-authenticated')) {
       selectStep(event);
     }
   });
 
+  // TODO replace templates json with endpoint ?
   const templates = block.querySelector('a[href="/templates.json"]');
   if (templates) {
     const templateContainer = document.createElement('div');
@@ -117,6 +119,7 @@ export default async function decorate(block) {
     });
   }
 
+  // Handle link identifiers with # (#start, #create etc.)
   block.addEventListener('click', async (event) => {
     const identifier = event.target.getAttribute('href');
     if (identifier === '#start' && document.body.classList.contains('is-anonymous')) {

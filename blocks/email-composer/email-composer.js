@@ -21,7 +21,11 @@ export default async function decorate(block) {
 
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();
+
     let editor;
+    let recipientsData = [];
+    // replace variables
+    const regExp = /(?<=\{).+?(?=\})/g;
 
     block.innerHTML = `
         <div class="nav">
@@ -109,15 +113,18 @@ export default async function decorate(block) {
       `;
 
       const iframe = block.querySelector('.preview iframe');
+      // Setup preview loading animations
       iframe.onload = () => {
         iframe.classList.remove('is-loading');
       };
 
+      // Render codemirror
       block.querySelector('.enable-styles').onclick = (event) => {
         event.target.remove();
         editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
       };
 
+      // Render preview with custom styles
       block.querySelector('.save-styles').onclick = async () => {
         const req = await fetch(`${WORKER_API}/save`, {
           method: 'POST',
@@ -137,6 +144,7 @@ export default async function decorate(block) {
         }
       };
 
+      // Render preview with custom variables
       block.querySelector('.save-variables').onclick = () => {
         const customVariables = {};
         block.querySelectorAll('.kv input:first-child').forEach((input) => {
@@ -149,13 +157,28 @@ export default async function decorate(block) {
         if (keys.length) {
           const source = new URL(iframe.src);
           keys.forEach((key) => {
-            source.searchParams.set(key, customVariables[key]);
+            let value = customVariables[key];
+
+            // Find variable in first selected recipient columns
+            const matches = value.match(regExp);
+            if (matches) {
+              const selectedEmail = block.querySelector('.recipients li.is-selected').textContent;
+              const selectedRecipient = recipientsData.find(({ email }) => email === selectedEmail);
+              matches.forEach((match) => {
+                const matchingCol = Object.keys(selectedRecipient).find((col) => col === match);
+                const newValue = selectedRecipient[matchingCol];
+                value = value.replace(`{${match}}`, newValue ?? '');
+              });
+            }
+
+            source.searchParams.set(key, value);
           });
           iframe.classList.add('is-loading');
           iframe.src = source.toString();
         }
       };
 
+      // Load site to retrieve drive id
       fetch(`${SCRIPT_API}/list/${id}?email=${user.email}`, {
         headers: {
           authorization: `bearer ${token}`,
@@ -175,6 +198,7 @@ export default async function decorate(block) {
           console.log(error);
         });
 
+      // Load email metadata
       fetch(`${WORKER_API}/proxy?url=${meta.recipients}`)
         .then((res) => {
           if (res.ok) {
@@ -184,6 +208,8 @@ export default async function decorate(block) {
           return { data: [] };
         })
         .then(({ data }) => {
+          recipientsData = data;
+
           const recipients = block.querySelector('.recipients');
           recipients.innerHTML = data.map(({ email }, i) => {
             if (email) {
@@ -209,7 +235,18 @@ export default async function decorate(block) {
 
             emails.forEach((el) => {
               el.onclick = () => {
+                // Always keep 1 selected at least
+                if (recipients.querySelectorAll('li.is-selected').length === 1
+                  && recipients.querySelector('li.is-selected') === el) {
+                  return;
+                }
+
                 el.classList.toggle('is-selected', !el.classList.contains('is-selected'));
+
+                if (recipients.querySelectorAll('li.is-selected').length === 1) {
+                  // Re-render preview with newly selected recipient
+                  block.querySelector('.save-variables').click();
+                }
               };
             });
 
@@ -219,6 +256,7 @@ export default async function decorate(block) {
           }
         });
 
+      // Load codemirror to edit styles
       loadCSS('/libs/codemirror/codemirror.css');
       await import('../../libs/codemirror/codemirror.js');
       await import('../../libs/codemirror/css.js');
