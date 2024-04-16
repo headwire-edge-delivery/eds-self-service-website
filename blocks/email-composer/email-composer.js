@@ -78,11 +78,10 @@ export default async function decorate(block) {
             </div>
             <aside>
                 <h2>From</h2>
-                <input value="" placeholder="user@domain.com">
+                <input type="email" value="" placeholder="user@domain.com" class="from">
                 
                 <h2>Subject</h2>
-                <input class="subject" value="${meta.subject}">
-                <button class="button secondary save-subject">Save subject</button>
+                <input readonly value="${meta.subject}">
                 
                 <h2>Recipients</h2>
                 
@@ -122,6 +121,8 @@ export default async function decorate(block) {
       `;
 
       const iframe = block.querySelector('.preview iframe');
+      const customVariables = {};
+
       // Setup preview loading animations
       iframe.onload = () => {
         iframe.classList.remove('is-loading');
@@ -141,13 +142,6 @@ export default async function decorate(block) {
         }
 
         return newValue;
-      };
-
-      block.querySelector('.save-subject').onclick = () => {
-        const { value } = block.querySelector('.subject');
-        if (value) {
-          block.querySelector('h1').textContent = replaceMatches(value);
-        }
       };
 
       // Render codemirror
@@ -178,7 +172,6 @@ export default async function decorate(block) {
 
       // Render preview with custom variables
       block.querySelector('.save-variables').onclick = () => {
-        const customVariables = {};
         block.querySelectorAll('.kv input:first-child').forEach((input) => {
           const key = input.value;
           const { value } = input.nextElementSibling;
@@ -265,7 +258,7 @@ export default async function decorate(block) {
                 if (recipients.querySelectorAll('li.is-selected').length === 1) {
                   // Re-render preview with newly selected recipient
                   block.querySelector('.save-variables').click();
-                  block.querySelector('.save-subject').click();
+                  block.querySelector('h1').textContent = replaceMatches(meta.subject);
                 }
               };
             });
@@ -275,14 +268,19 @@ export default async function decorate(block) {
 
               if (window.confirm(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
                 send.classList.add('is-disabled');
-                // TODO
-                const req = await fetch(`${WORKER_API}/send${new URL(iframe.src).search}`, {
+
+                const previewSource = new URL(iframe.src);
+                const req = await fetch(`${WORKER_API}/send`, {
                   headers: {
                     'content-type': 'application/json',
                   },
                   body: JSON.stringify({
-                    subject: block.querySelector('.subject').value,
-                    to: selectedRecipients.map((el) => el.textContent),
+                    styles: previewSource.searchParams.get('styles'),
+                    content: previewSource.searchParams.get('content'),
+                    from: block.querySelector('.from').value,
+                    variables: customVariables,
+                    to: recipientsData.filter(({ email }) => selectedRecipients
+                      .find((el) => el.textContent === email)),
                   }),
                   method: 'POST',
                 });
