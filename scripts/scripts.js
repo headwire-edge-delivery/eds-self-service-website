@@ -73,6 +73,7 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+  document.head.querySelector('link[rel="icon"]').href = '/icons/headwire.svg';
 
   sampleRUM('lazy');
   sampleRUM.observe(main.querySelectorAll('div[data-block-name]'));
