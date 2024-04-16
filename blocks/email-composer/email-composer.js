@@ -1,4 +1,6 @@
-import { SCRIPT_API, onAuthenticated, WORKER_API } from '../../scripts/scripts.js';
+import {
+  SCRIPT_API, onAuthenticated, WORKER_API, OOPS,
+} from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
 /**
@@ -250,8 +252,30 @@ export default async function decorate(block) {
               };
             });
 
-            send.onclick = () => {
-              alert('todo');
+            send.onclick = async () => {
+              const selectedRecipients = [...recipients.querySelectorAll('li.is-selected')];
+
+              if (window.confirm(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
+                send.classList.add('is-disabled');
+                const req = await fetch(`${WORKER_API}/send${new URL(iframe.src).search}`, {
+                  headers: {
+                    'content-type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    subject: meta.title,
+                    to: selectedRecipients.map((el) => el.textContent),
+                  }),
+                  method: 'POST',
+                });
+
+                if (req.ok) {
+                  alert('Email delivered successfully!');
+                } else {
+                  alert(OOPS);
+                }
+
+                send.classList.remove('is-disabled');
+              }
             };
           }
         });
