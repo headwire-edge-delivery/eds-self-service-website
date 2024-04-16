@@ -125,7 +125,6 @@ export default async function decorate(block) {
     if (identifier === '#start' && document.body.classList.contains('is-anonymous')) {
       window.auth0Client.loginWithRedirect();
     } else if (identifier === '#create') {
-      const user = await window.auth0Client.getUser();
       const token = await window.auth0Client.getTokenSilently();
       const template = block.querySelector('.template.is-selected').id;
 
@@ -135,7 +134,6 @@ export default async function decorate(block) {
           authorization: `bearer ${token}`,
         },
         body: JSON.stringify({
-          userEmail: user.email,
           inputProjectName: input.value,
           inputProjectDescription: textarea.value,
           template,

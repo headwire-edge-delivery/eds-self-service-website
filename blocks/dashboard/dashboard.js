@@ -23,7 +23,7 @@ export default async function decorate(block) {
     const content = block.querySelector('.content');
 
     // List all sites
-    const reqList = await fetch(`${SCRIPT_API}/list?email=${user.email}`, {
+    const reqList = await fetch(`${SCRIPT_API}/list`, {
       headers: {
         'content-type': 'application/json',
         authorization: `bearer ${token}`,

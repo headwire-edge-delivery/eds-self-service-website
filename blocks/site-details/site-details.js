@@ -27,7 +27,7 @@ export default async function decorate(block) {
         </div>
       </div>`;
 
-    const reqDetails = await fetch(`${SCRIPT_API}/list/${id}?email=${user.email}`, {
+    const reqDetails = await fetch(`${SCRIPT_API}/list/${id}`, {
       headers: {
         authorization: `bearer ${token}`,
       },

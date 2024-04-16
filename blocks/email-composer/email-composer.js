@@ -181,7 +181,7 @@ export default async function decorate(block) {
       };
 
       // Load site to retrieve drive id
-      fetch(`${SCRIPT_API}/list/${id}?email=${user.email}`, {
+      fetch(`${SCRIPT_API}/list/${id}`, {
         headers: {
           authorization: `bearer ${token}`,
         },
