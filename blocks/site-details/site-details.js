@@ -163,7 +163,7 @@ export default async function decorate(block) {
         .then(([compatibleBlocks, currentBlocks]) => {
           const data = compatibleBlocks.filter(
             (item) => !currentBlocks.some(
-              (currentBlocksItem) => currentBlocksItem.name === item.name
+              (currentBlocksItem) => currentBlocksItem.name === item.name,
             ),
           );
           if (data.length === 0) {

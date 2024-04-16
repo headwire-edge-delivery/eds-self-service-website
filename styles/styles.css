@@ -143,19 +143,21 @@ input[type="file"]::file-selector-button,
   font-style: normal;
 }
 
+input[type="file"] {
+  margin: 20px 0;
+  border: 1px solid var(--secondary-color);
+  width: 100%;
+}
+
+input[type="file"]::file-selector-button {
+  border-width: 0 1px 0 0;
+}
+
 input[type="file"]::file-selector-button:hover,
 .button:hover {
   background-color: var(--secondary-color);
   text-decoration: none;
   color: white;
-}
-
-.button:disabled,
-.button:disabled:hover {
-  background-color: var(--primary-color);
-  color: var(--secondary-color);
-  cursor: not-allowed;
-  opacity: 0.4;
 }
 
 .button.secondary {
@@ -167,20 +169,16 @@ input[type="file"]::file-selector-button:hover,
   background-color: var(--primary-color);
 }
 
-.button.is-disabled {
+.button.is-disabled,
+.button:disabled,
+.button:disabled:hover {
   pointer-events: none;
-  opacity: 0.3;
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  cursor: not-allowed;
+  opacity: 0.4;
 }
 
-input[type="file"] {
-  margin: 20px 0;
-  border: 1px solid var(--secondary-color);
-  width: 100%;
-}
-
-input[type="file"]::file-selector-button {
-  border-width: 0 1px 0 0;
-}
 
 dialog {
   border: 2px solid var(--primary-color);

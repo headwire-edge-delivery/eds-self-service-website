@@ -14,10 +14,20 @@ import {
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
-// export const API = 'https://eds-self-service-scripts.onrender.com';
-export const API = 'http://localhost:4000';
+export const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:4000' : 'https://eds-self-service-scripts.onrender.com';
 
 export const oops = 'Oops ! Something went wrong …';
+
+export const defaultBranch = 'main';
+export const projectRepo = 'headwire-self-service';
+export const templateRepo = 'headwire-self-service-templates';
+
+// extra four, for separators
+export const slugMaxLength = 63
+  - defaultBranch.length
+  - projectRepo.length
+  - 4;
 
 export function onAuthenticated(cb) {
   if (document.body.classList.contains('is-authenticated')) {
@@ -27,6 +37,16 @@ export function onAuthenticated(cb) {
       cb();
     });
   }
+}
+
+export function slugify(str) {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/([^\w]+|\s+)/g, '-')
+    .replace(/--+/g, '-')
+    // .replace(/(^-+|-+$)/g, "")
+    .toLowerCase();
 }
 
 /**

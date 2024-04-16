@@ -178,9 +178,7 @@
 }
 
 .site-details.block .display-dialog img {
-    -webkit-filter: drop-shadow(0 0 5px #000);
     filter: drop-shadow(0 0 5px #000);
-    /* width: 100%; */
     width: 300px;
     aspect-ratio: 1/1;
     object-fit: contain;
@@ -203,7 +201,7 @@
     position: absolute;
     inset: 0;
     z-index: 1;
-    background-color: rgba(128, 128, 128, 0.8);
+    background-color: rgba(128 128 128 / 80%);
 }
 
 .site-details.block .display-dialog.is-adding::before {

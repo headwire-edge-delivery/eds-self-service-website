@@ -88,7 +88,16 @@
     background-color: var(--secondary-color);
 }
 
-.wizard.block :is(input, textarea) {
+.wizard.block input,
+.wizard.block textarea,
+.wizard.block #slug-input-wrapper {
+    width: 300px;
+    display: block;
+    margin: 16px auto auto;
+}
+
+.wizard.block input,
+.wizard.block textarea {
     background-color: white;
     border: none;
     font-family: var(--font-family);
@@ -96,9 +105,32 @@
     padding: 16px;
     color: var(--secondary-color);
     margin-block: 32px;
-    display: block;
-    width: 300px;
-    margin: 16px auto auto;
+    text-overflow: ellipsis;
+}
+
+.wizard.block textarea {
+    resize: vertical;
+    min-height: 74px;
+}
+
+.wizard.block #slug-input-wrapper {
+    position: relative;
+}
+
+.wizard.block #slug-input-wrapper input {
+    padding-right: 40px;
+}
+
+.wizard.block #slug-input-wrapper::after {
+    content: '(' attr(data-leftover-chars) ')';
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 40px;
+    position: absolute;
 }
 
 .wizard.block .button-container:has(a[href="#start"]) {
