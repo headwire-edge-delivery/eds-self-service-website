@@ -14,10 +14,11 @@ import {
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
-export const API = window.location.hostname === 'localhost'
+export const SCRIPT_API = window.location.hostname === 'localhost'
   ? 'http://localhost:4000' : 'https://eds-self-service-scripts.onrender.com';
+export const WORKER_API = 'https://emails.headwire.workers.dev';
 
-export const oops = 'Oops ! Something went wrong …';
+export const OOPS = 'Oops ! Something went wrong …';
 
 export const defaultBranch = 'main';
 export const projectRepo = 'headwire-self-service';
@@ -93,6 +94,7 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+  document.head.querySelector('link[rel="icon"]').href = '/icons/headwire.svg';
 
   sampleRUM('lazy');
   sampleRUM.observe(main.querySelectorAll('div[data-block-name]'));

@@ -1,4 +1,4 @@
-import { API, slugMaxLength, slugify } from '../../scripts/scripts.js';
+import { slugMaxLength, slugify, SCRIPT_API } from '../../scripts/scripts.js';
 
 /**
  * decorates the header, mainly the nav
@@ -43,6 +43,7 @@ export default async function decorate(block) {
     }
   };
 
+  // Wizard prev and next action
   block.addEventListener('click', (event) => {
     if (
       (event.target.matches('.next') || event.target.matches('.prev'))
@@ -52,6 +53,7 @@ export default async function decorate(block) {
     }
   });
 
+  // TODO replace templates json with endpoint ?
   const templates = block.querySelector('a[href="/templates.json"]');
   if (templates) {
     const templateContainer = document.createElement('div');
@@ -164,22 +166,21 @@ export default async function decorate(block) {
     });
   }
 
+  // Handle link identifiers with # (#start, #create etc.)
   block.addEventListener('click', async (event) => {
     const identifier = event.target.getAttribute('href');
     if (identifier === '#start' && document.body.classList.contains('is-anonymous')) {
       window.auth0Client.loginWithRedirect();
     } else if (identifier === '#create') {
-      const user = await window.auth0Client.getUser();
       const token = await window.auth0Client.getTokenSilently();
       const template = block.querySelector('.template.is-selected').id;
 
-      const reqCreate = await fetch(`${API}/create`, {
+      const reqCreate = await fetch(`${SCRIPT_API}/create`, {
         headers: {
           'content-type': 'application/json',
           authorization: `bearer ${token}`,
         },
         body: JSON.stringify({
-          userEmail: user.email,
           inputProjectName: input.value,
           inputProjectSlug: slugInput.value,
           inputProjectDescription: textarea.value,
@@ -196,7 +197,7 @@ export default async function decorate(block) {
         const { jobId } = await reqCreate.json();
 
         const statusInterval = setInterval(async () => {
-          const reqStatus = await fetch(`${API}/jobs/${jobId}`);
+          const reqStatus = await fetch(`${SCRIPT_API}/jobs/${jobId}`);
           if (reqStatus.ok) {
             const {
               projectSlug, progress, finished, liveUrl, driveUrl, sidekickSetupUrl, calendarUrl,

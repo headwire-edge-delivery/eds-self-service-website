@@ -36,7 +36,6 @@ body {
 header,
 footer {
   height: var(--header-height);
-  padding-inline: 16px;
 }
 
 header {
