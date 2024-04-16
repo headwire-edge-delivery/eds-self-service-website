@@ -169,17 +169,23 @@
     }
 }
 
-.site-details.block .display-dialog.displaying-block h3 {
+.site-details.block .display-dialog select {
+    width: 100%;
+    padding: 4px 0;
+    margin: 20px 0;
+    font-size: var(--body-font-size);
+    font-weight: 600;
 }
 
 .site-details.block .display-dialog img {
     -webkit-filter: drop-shadow(0 0 5px #000);
     filter: drop-shadow(0 0 5px #000);
-    width: 100%;
+    /* width: 100%; */
+    width: 300px;
     aspect-ratio: 1/1;
     object-fit: contain;
     padding: 20px;
-    max-width: 400px;
+    max-width: 100%;
 }
 
 .site-details.block .display-dialog.is-deleting {
