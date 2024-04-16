@@ -65,7 +65,7 @@ export default async function decorate(block) {
             </a>
             <span>&rsaquo;</span>
             <a href="/email-composer?url=${url}" aria-current="page">
-              <h1>${meta.title}</h1>
+              <h1>${meta.subject}</h1>
             </a>
           </div>
           
@@ -77,6 +77,13 @@ export default async function decorate(block) {
                 <iframe src="${WORKER_API}?content=${url}"></iframe>
             </div>
             <aside>
+                <h2>From</h2>
+                <input value="" placeholder="user@domain.com">
+                
+                <h2>Subject</h2>
+                <input class="subject" value="${meta.subject}">
+                <button class="button secondary save-subject">Save subject</button>
+                
                 <h2>Recipients</h2>
                 
                 <div>
@@ -120,6 +127,29 @@ export default async function decorate(block) {
         iframe.classList.remove('is-loading');
       };
 
+      // Find variable in first selected recipient columns
+      const replaceMatches = (value) => {
+        let newValue = value;
+        const matches = value.match(regExp);
+        if (matches) {
+          const selectedEmail = block.querySelector('.recipients li.is-selected').textContent;
+          const selectedRecipient = recipientsData.find(({ email }) => email === selectedEmail);
+          matches.forEach((match) => {
+            const matchingCol = Object.keys(selectedRecipient).find((col) => col === match);
+            newValue = value.replace(`{${match}}`, selectedRecipient[matchingCol] ?? '');
+          });
+        }
+
+        return newValue;
+      };
+
+      block.querySelector('.save-subject').onclick = () => {
+        const { value } = block.querySelector('.subject');
+        if (value) {
+          block.querySelector('h1').textContent = replaceMatches(value);
+        }
+      };
+
       // Render codemirror
       block.querySelector('.enable-styles').onclick = (event) => {
         event.target.remove();
@@ -159,21 +189,8 @@ export default async function decorate(block) {
         if (keys.length) {
           const source = new URL(iframe.src);
           keys.forEach((key) => {
-            let value = customVariables[key];
-
-            // Find variable in first selected recipient columns
-            const matches = value.match(regExp);
-            if (matches) {
-              const selectedEmail = block.querySelector('.recipients li.is-selected').textContent;
-              const selectedRecipient = recipientsData.find(({ email }) => email === selectedEmail);
-              matches.forEach((match) => {
-                const matchingCol = Object.keys(selectedRecipient).find((col) => col === match);
-                const newValue = selectedRecipient[matchingCol];
-                value = value.replace(`{${match}}`, newValue ?? '');
-              });
-            }
-
-            source.searchParams.set(key, value);
+            const newValue = replaceMatches(customVariables[key]);
+            source.searchParams.set(key, newValue);
           });
           iframe.classList.add('is-loading');
           iframe.src = source.toString();
@@ -194,7 +211,7 @@ export default async function decorate(block) {
       })
         .then(({ project }) => {
           const rootId = project.driveUrl.split('/').pop();
-          block.querySelector('.actions').innerHTML = `<a href="https://drive.google.com/drive/search?q=${meta.title}%20type:document%20parent:${rootId}" target="_blank" className="button secondary className>Edit email</a>`;
+          block.querySelector('.actions').innerHTML = `<a href="https://drive.google.com/drive/search?q=${meta.subject}%20type:document%20parent:${rootId}" target="_blank" className="button secondary className>Edit email</a>`;
         })
         .catch((error) => {
           console.log(error);
@@ -248,6 +265,7 @@ export default async function decorate(block) {
                 if (recipients.querySelectorAll('li.is-selected').length === 1) {
                   // Re-render preview with newly selected recipient
                   block.querySelector('.save-variables').click();
+                  block.querySelector('.save-subject').click();
                 }
               };
             });
@@ -257,12 +275,13 @@ export default async function decorate(block) {
 
               if (window.confirm(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
                 send.classList.add('is-disabled');
+                // TODO
                 const req = await fetch(`${WORKER_API}/send${new URL(iframe.src).search}`, {
                   headers: {
                     'content-type': 'application/json',
                   },
                   body: JSON.stringify({
-                    subject: meta.title,
+                    subject: block.querySelector('.subject').value,
                     to: selectedRecipients.map((el) => el.textContent),
                   }),
                   method: 'POST',
