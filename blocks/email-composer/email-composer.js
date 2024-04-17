@@ -156,6 +156,7 @@ export default async function decorate(block) {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
+            authorization: `bearer ${token}`,
           },
           body: JSON.stringify({
             styles: editor.getValue(),
@@ -273,6 +274,7 @@ export default async function decorate(block) {
                 const req = await fetch(`${WORKER_API}/send`, {
                   headers: {
                     'content-type': 'application/json',
+                    authorization: `bearer ${token}`,
                   },
                   body: JSON.stringify({
                     styles: previewSource.searchParams.get('styles'),
