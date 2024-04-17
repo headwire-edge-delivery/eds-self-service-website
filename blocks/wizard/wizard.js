@@ -1,4 +1,4 @@
-import { SCRIPT_API } from '../../scripts/scripts.js';
+import { slugMaxLength, slugify, SCRIPT_API } from '../../scripts/scripts.js';
 
 /**
  * decorates the header, mainly the nav
@@ -45,7 +45,10 @@ export default async function decorate(block) {
 
   // Wizard prev and next action
   block.addEventListener('click', (event) => {
-    if ((event.target.matches('.next') || event.target.matches('.prev')) && document.body.classList.contains('is-authenticated')) {
+    if (
+      (event.target.matches('.next') || event.target.matches('.prev'))
+      && document.body.classList.contains('is-authenticated')
+    ) {
       selectStep(event);
     }
   });
@@ -57,8 +60,12 @@ export default async function decorate(block) {
     templateContainer.className = 'template-container';
     templates.parentElement.replaceWith(templateContainer);
 
-    fetch(templates.href).then((req) => req.json()).then(({ data }) => {
-      templateContainer.innerHTML = data.map(({ id, name, description }, i) => `
+    fetch(templates.href)
+      .then((req) => req.json())
+      .then(({ data }) => {
+        templateContainer.innerHTML = data
+          .map(
+            ({ id, name, description }, i) => `
           <div id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
             <p>${description}</p>
@@ -75,40 +82,80 @@ export default async function decorate(block) {
                 </div>
             </div>
           </div>
-        `).join('');
+        `,
+          )
+          .join('');
 
-      templateContainer.addEventListener('click', (event) => {
-        if (event.target.matches('.dot:not(.is-selected)')) {
-          const dots = event.target.parentElement;
-          const index = [...dots.children].indexOf(event.target) + 1;
-          const template = event.target.closest('.template');
+        templateContainer.addEventListener('click', (event) => {
+          if (event.target.matches('.dot:not(.is-selected)')) {
+            const dots = event.target.parentElement;
+            const index = [...dots.children].indexOf(event.target) + 1;
+            const template = event.target.closest('.template');
 
-          template.querySelector('img.is-selected').classList.remove('is-selected');
-          template.querySelector(`img:nth-child(${index})`).classList.add('is-selected');
+            template.querySelector('img.is-selected').classList.remove('is-selected');
+            template.querySelector(`img:nth-child(${index})`).classList.add('is-selected');
 
-          dots.querySelector('.is-selected').classList.remove('is-selected');
-          event.target.classList.add('is-selected');
-        } else if (event.target.closest('.template:not(.is-selected)')) {
-          templateContainer.querySelector('.template.is-selected').classList.remove('is-selected');
-          event.target.closest('.template').classList.add('is-selected');
-        }
+            dots.querySelector('.is-selected').classList.remove('is-selected');
+            event.target.classList.add('is-selected');
+          } else if (event.target.closest('.template:not(.is-selected)')) {
+            templateContainer.querySelector('.template.is-selected').classList.remove('is-selected');
+            event.target.closest('.template').classList.add('is-selected');
+          }
+        });
       });
-    });
   }
 
   const createStep = block.querySelector(':scope > div:has(a[href="#create"])');
   const input = document.createElement('input');
-  input.placeholder = 'Name';
+  input.placeholder = 'My Site';
+
+  const slugInputWrapper = document.createElement('label');
+  const slugInput = document.createElement('input');
+  slugInputWrapper.id = 'slug-input-wrapper';
+  slugInputWrapper.append(slugInput);
+  slugInput.placeholder = 'my-site';
+  slugInputWrapper.dataset.leftoverChars = slugMaxLength;
+
+  slugInput.dataset.copyName = true;
+
+  const createButton = createStep.querySelector('a[href="#create"]');
+  createButton.classList.add('is-disabled');
+  function updateCreateButton() {
+    createButton.classList.toggle('is-disabled', input.value.length < 2 || slugInput.value.length < 2);
+  }
   const textarea = document.createElement('textarea');
   textarea.placeholder = 'Description';
   if (createStep) {
     createStep.querySelector('h2').after(input);
-    input.after(textarea);
-    const createButton = createStep.querySelector('a[href="#create"]');
-    createButton.classList.add('is-disabled');
+    input.after(slugInputWrapper);
+    slugInputWrapper.after(textarea);
+
+    slugInput.oninput = (event) => {
+      slugInput.value = slugify(slugInput.value);
+      if (slugInput.value.length > slugMaxLength) {
+        slugInput.value = slugInput.value.slice(0, slugMaxLength);
+      }
+      slugInputWrapper.dataset.leftoverChars = slugMaxLength - slugInput.value.length;
+      if (event) {
+        slugInput.dataset.copyName = '';
+      }
+      if (!slugInput.value) {
+        slugInput.dataset.copyName = true;
+      }
+      updateCreateButton();
+    };
+    slugInput.onchange = () => {
+      slugInput.value = slugInput.value
+        .replace(/(^-+|-+$)/g, '');
+    };
 
     input.oninput = () => {
-      createButton.classList.toggle('is-disabled', input.value.length < 2);
+      if (slugInput.dataset.copyName) {
+        slugInput.value = input.value;
+        slugInput.oninput();
+        slugInput.onchange();
+      }
+      updateCreateButton();
     };
   }
 
@@ -135,6 +182,7 @@ export default async function decorate(block) {
         },
         body: JSON.stringify({
           inputProjectName: input.value,
+          inputProjectSlug: slugInput.value,
           inputProjectDescription: textarea.value,
           template,
         }),
@@ -152,13 +200,7 @@ export default async function decorate(block) {
           const reqStatus = await fetch(`${SCRIPT_API}/jobs/${jobId}`);
           if (reqStatus.ok) {
             const {
-              projectSlug,
-              progress,
-              finished,
-              liveUrl,
-              driveUrl,
-              sidekickSetupUrl,
-              calendarUrl,
+              projectSlug, progress, finished, liveUrl, driveUrl, sidekickSetupUrl, calendarUrl,
             } = await reqStatus.json();
 
             if (finished) {

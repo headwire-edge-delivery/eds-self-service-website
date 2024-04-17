@@ -7,6 +7,7 @@
   --animation-duration: 300ms;
   --font-family: system-ui, sans-serif;
   --header-height: 64px;
+  --body-font-size: 16px;
 
   font-synthesis: none;
   text-rendering: optimizelegibility;
@@ -32,7 +33,8 @@ body {
 }
 
 /* Layout */
-header, footer {
+header,
+footer {
   height: var(--header-height);
 }
 
@@ -51,15 +53,17 @@ main {
 }
 
 footer {
-  display: none
+  display: none;
 }
 
-main:has(> [data-section-status="loaded"]) +  footer {
+main:has(> [data-section-status="loaded"]) + footer {
   display: block;
 }
 
 /* Default styles */
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   color: var(--secondary-color);
   font-weight: 900;
   text-transform: uppercase;
@@ -68,11 +72,12 @@ h1, h2, h3 {
 }
 
 p {
-  font-size: 18px;
+  font-size: var(--body-font-size);
   line-height: 22px;
 }
 
-ul, ol {
+ul,
+ol {
   margin-block: 16px;
 }
 
@@ -114,8 +119,10 @@ a:hover {
   gap: 16px;
   justify-content: center;
   align-items: center;
+  flex-wrap: wrap;
 }
 
+input[type="file"]::file-selector-button,
 .button {
   display: inline-flex;
   align-items: center;
@@ -135,6 +142,17 @@ a:hover {
   font-style: normal;
 }
 
+input[type="file"] {
+  margin: 20px 0;
+  border: 1px solid var(--secondary-color);
+  width: 100%;
+}
+
+input[type="file"]::file-selector-button {
+  border-width: 0 1px 0 0;
+}
+
+input[type="file"]::file-selector-button:hover,
 .button:hover {
   background-color: var(--secondary-color);
   text-decoration: none;
@@ -150,9 +168,25 @@ a:hover {
   background-color: var(--primary-color);
 }
 
-.button.is-disabled {
+.button.is-disabled,
+.button:disabled,
+.button:disabled:hover {
   pointer-events: none;
-  opacity: .3;
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+
+dialog {
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 0 20px 5px var(--secondary-color);
+}
+
+::backdrop {
+  background: rgba(0 0 0 / 20%);
+  backdrop-filter: blur(2px);
 }
 
 .icon {
