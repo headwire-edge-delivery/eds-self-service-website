@@ -2,7 +2,7 @@
   "name": "eds-self-service-website",
   "private": true,
   "version": "1.0.0",
-  "description": "EDS Self Service Website",
+  "description": "Fast Sites",
   "scripts": {
     "lint:js": "eslint .",
     "lint:css": "stylelint blocks/**/*.css styles/*.css",

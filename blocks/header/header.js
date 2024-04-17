@@ -21,7 +21,7 @@ export default async function decorate(block) {
   }
 
   if (window.location.pathname !== '/') {
-    home.insertAdjacentHTML('beforeend', '<span>Self Service</span>');
+    home.insertAdjacentHTML('beforeend', '<span>Fast Sites</span>');
   }
 
   block.addEventListener('click', async (event) => {
