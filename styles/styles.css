@@ -200,7 +200,7 @@ dialog {
   width: 100%;
 }
 
-img[src="/icons/loader.svg"] {
+img[src="/icons/loading.svg"] {
   width: 124px;
   height: 124px;
 }
