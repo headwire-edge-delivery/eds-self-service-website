@@ -22,7 +22,6 @@ export const OOPS = 'Oops ! Something went wrong …';
 
 export const defaultBranch = 'main';
 export const projectRepo = 'headwire-self-service';
-export const templateRepo = 'headwire-self-service-templates';
 
 // extra four, for separators
 export const slugMaxLength = 63
