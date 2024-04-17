@@ -44,7 +44,7 @@ export default async function decorate(block) {
         
         <div class="content">
             <p>
-                <img class="loading" src="/icons/loading.svg" alt="loading" loading="lazy"/>
+                <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
             </p>
         </div>
       </div>`;
