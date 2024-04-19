@@ -25,7 +25,7 @@ export default async function decorate(block) {
     const user = await window.auth0Client.getUser();
 
     let editor;
-    let recipientsData = [];
+    const recipientsData = [];
     // replace variables
     const regExp = /(?<=\{).+?(?=\})/g;
 
@@ -107,10 +107,6 @@ export default async function decorate(block) {
                 <h2>Styles (Developer)</h2>
                 
                 <button class="button secondary enable-styles">Edit styles (developer mode)</button>
-                <div>
-                    <label>Source</label>
-                    <input readonly value="${meta.styles}" />
-                </div>
                 <div>
                     <label>Code</label>
                     <textarea class="styles"></textarea>
@@ -212,90 +208,103 @@ export default async function decorate(block) {
         });
 
       // Load email metadata
-      fetch(`${WORKER_API}/proxy?url=${meta.recipients}`)
+      fetch(`${SCRIPT_API}/sheet/${meta.recipients.split('/')[5]}/recipients`, {
+        headers: {
+          authorization: `bearer ${token}`,
+        },
+      })
         .then((res) => {
           if (res.ok) {
             return res.json();
           }
 
-          return { data: [] };
+          return { values: [] };
         })
-        .then(({ data }) => {
-          recipientsData = data;
-
-          const recipients = block.querySelector('.recipients');
-          recipients.innerHTML = data.map(({ email }, i) => {
-            if (email) {
-              return `<li class="${i === 0 ? 'is-selected' : ''}">${email}</li>`;
+        .then(({ values }) => {
+          if (values.length) {
+            for (let i = 1; i < values.length; i += 1) {
+              const row = values[i];
+              const item = {};
+              values[0].forEach((col) => {
+                item[col] = row[values[0].indexOf(col)];
+              });
+              recipientsData.push(item);
             }
 
-            return '';
-          }).join('');
+            const recipients = block.querySelector('.recipients');
+            recipients.innerHTML = recipientsData.map(({ email }, i) => {
+              if (email) {
+                return `<li class="${i === 0 ? 'is-selected' : ''}">${email}</li>`;
+              }
 
-          if (recipients.childElementCount) {
-            const send = block.querySelector('.send');
-            const selectAll = block.querySelector('.select-all');
+              return '';
+            }).join('');
 
-            send.classList.remove('is-disabled');
-            selectAll.classList.remove('is-disabled');
-            const emails = recipients.querySelectorAll('li');
+            if (recipients.childElementCount) {
+              const send = block.querySelector('.send');
+              const selectAll = block.querySelector('.select-all');
 
-            selectAll.onclick = () => {
+              send.classList.remove('is-disabled');
+              selectAll.classList.remove('is-disabled');
+              const emails = recipients.querySelectorAll('li');
+
+              selectAll.onclick = () => {
+                emails.forEach((el) => {
+                  el.classList.add('is-selected');
+                });
+              };
+
               emails.forEach((el) => {
-                el.classList.add('is-selected');
+                el.onclick = () => {
+                  // Always keep 1 selected at least
+                  if (recipients.querySelectorAll('li.is-selected').length === 1
+                    && recipients.querySelector('li.is-selected') === el) {
+                    return;
+                  }
+
+                  el.classList.toggle('is-selected', !el.classList.contains('is-selected'));
+
+                  if (recipients.querySelectorAll('li.is-selected').length === 1) {
+                    // Re-render preview with newly selected recipient
+                    block.querySelector('.save-variables').click();
+                    block.querySelector('h1').textContent = replaceMatches(meta.subject);
+                  }
+                };
               });
-            };
 
-            emails.forEach((el) => {
-              el.onclick = () => {
-                // Always keep 1 selected at least
-                if (recipients.querySelectorAll('li.is-selected').length === 1
-                  && recipients.querySelector('li.is-selected') === el) {
-                  return;
-                }
+              send.onclick = async () => {
+                const selectedRecipients = [...recipients.querySelectorAll('li.is-selected')];
 
-                el.classList.toggle('is-selected', !el.classList.contains('is-selected'));
+                if (window.confirm(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
+                  send.classList.add('is-disabled');
 
-                if (recipients.querySelectorAll('li.is-selected').length === 1) {
-                  // Re-render preview with newly selected recipient
-                  block.querySelector('.save-variables').click();
-                  block.querySelector('h1').textContent = replaceMatches(meta.subject);
+                  const previewSource = new URL(iframe.src);
+                  const req = await fetch(`${WORKER_API}/send`, {
+                    headers: {
+                      'content-type': 'application/json',
+                      authorization: `bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                      styles: previewSource.searchParams.get('styles'),
+                      content: previewSource.searchParams.get('content'),
+                      from: block.querySelector('.from').value,
+                      variables: customVariables,
+                      to: recipientsData.filter(({ email }) => selectedRecipients
+                        .find((el) => el.textContent === email)),
+                    }),
+                    method: 'POST',
+                  });
+
+                  if (req.ok) {
+                    alert('Email delivered successfully!');
+                  } else {
+                    alert(OOPS);
+                  }
+
+                  send.classList.remove('is-disabled');
                 }
               };
-            });
-
-            send.onclick = async () => {
-              const selectedRecipients = [...recipients.querySelectorAll('li.is-selected')];
-
-              if (window.confirm(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
-                send.classList.add('is-disabled');
-
-                const previewSource = new URL(iframe.src);
-                const req = await fetch(`${WORKER_API}/send`, {
-                  headers: {
-                    'content-type': 'application/json',
-                    authorization: `bearer ${token}`,
-                  },
-                  body: JSON.stringify({
-                    styles: previewSource.searchParams.get('styles'),
-                    content: previewSource.searchParams.get('content'),
-                    from: block.querySelector('.from').value,
-                    variables: customVariables,
-                    to: recipientsData.filter(({ email }) => selectedRecipients
-                      .find((el) => el.textContent === email)),
-                  }),
-                  method: 'POST',
-                });
-
-                if (req.ok) {
-                  alert('Email delivered successfully!');
-                } else {
-                  alert(OOPS);
-                }
-
-                send.classList.remove('is-disabled');
-              }
-            };
+            }
           }
         });
 
