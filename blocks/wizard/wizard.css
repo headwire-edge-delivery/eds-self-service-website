@@ -45,6 +45,7 @@
     max-width: 600px;
     width: 100%;
     margin: auto;
+    cursor: pointer;
 }
 
 .wizard.block .template.is-selected {

@@ -214,30 +214,23 @@ export default async function decorate(block) {
                 const openDrive = block.querySelector('a[href="#open-drive"]');
                 const installSidekick = block.querySelector('a[href="#install-sidekick"]');
                 const openCalendar = block.querySelector('a[href="#open-calendar"]');
-                const openDashboard = block.querySelector('a[href="/dashboard"]');
+                const openSiteDetails = block.querySelector('a[href="#site-details"]');
+                const makeReady = (linkEl, url) => {
+                  if (linkEl && url) {
+                    linkEl.href = url;
+                    linkEl.classList.add('is-ready');
+                    linkEl.target = '_blank';
+                  }
+                };
 
-                if (openSite && liveUrl) {
-                  openSite.href = liveUrl;
-                  openSite.classList.add('is-ready');
-                }
+                makeReady(openSite, liveUrl);
+                makeReady(openDrive, driveUrl);
+                makeReady(installSidekick, sidekickSetupUrl);
+                makeReady(openCalendar, calendarUrl);
 
-                if (openDrive && driveUrl) {
-                  openDrive.href = driveUrl;
-                  openDrive.classList.add('is-ready');
-                }
-
-                if (installSidekick && sidekickSetupUrl) {
-                  installSidekick.href = sidekickSetupUrl;
-                  installSidekick.classList.add('is-ready');
-                }
-
-                if (openCalendar && calendarUrl) {
-                  openCalendar.href = calendarUrl;
-                  openCalendar.classList.add('is-ready');
-                }
-
-                if (openDashboard) {
-                  openDashboard.setAttribute('href', `${openDashboard.getAttribute('href')}/${projectSlug}`);
+                if (openSiteDetails) {
+                  openSiteDetails.classList.remove('.next');
+                  openSiteDetails.href = `/site/${projectSlug}`;
                 }
               } else {
                 statusEl.insertAdjacentHTML('beforeend', '<br/><br/><a class="button" href="/">Try again</a>');
