@@ -229,7 +229,7 @@ export default async function decorate(block) {
                 makeReady(openCalendar, calendarUrl);
 
                 if (openSiteDetails) {
-                  openSiteDetails.classList.remove('.next');
+                  openSiteDetails.classList.remove('next');
                   openSiteDetails.href = `/site/${projectSlug}`;
                 }
               } else {
