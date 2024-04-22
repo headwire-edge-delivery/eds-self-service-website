@@ -304,8 +304,8 @@ export default async function decorate(block) {
                     </div>
                 </div>   
                 
-                <h2>Emails</h2>
-                <table class="emails">
+                <h2>Pages</h2>
+                <table class="pages">
                     <thead>
                       <tr>
                         <th>Title</th>
@@ -318,14 +318,26 @@ export default async function decorate(block) {
                     <tbody></tbody>
                 </table>
                 
-                <h2>Pages</h2>
-                <table class="pages">
+                <h2>Fragments</h2>
+                <table class="fragments">
+                    <thead>
+                      <tr>
+                        <th>Path</th>
+                        <th>Last update</th>
+                        <th></th>
+                      </tr>  
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                
+                <h2>Emails</h2>
+                <table class="emails">
                     <thead>
                       <tr>
                         <th>Title</th>
                         <th>Description</th>
-                        <th>Path</th>
                         <th>Last update</th>
+                        <th></th>
                       </tr>  
                     </thead>
                     <tbody></tbody>
@@ -372,18 +384,33 @@ export default async function decorate(block) {
 
           throw new Error(res.status);
         })
-        .then(({ filtered }) => {
+        // Assuming all templates have the all sheet
+        .then(({ all }) => {
+          if (!all?.data.length) {
+            return;
+          }
+
           const toDate = (lastModified) => new Date(Number(lastModified) * 1000);
           const lastUpdate = Math.max(
-            ...filtered.data.map(({ lastModified }) => toDate(lastModified)),
+            ...all.data.map(({ lastModified }) => toDate(lastModified)),
           );
           block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
-          const rootId = project.driveUrl.split('/').pop();
+          // Fragments only
+          block.querySelector('.fragments tbody').innerHTML = all.data
+            .filter(({ robots, template }) => robots.includes('noindex') && !template.includes('email'))
+            .map((item) => `
+              <tr>
+                  <td>${item.path}</td>          
+                  <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
+                  <td><a class="button secondary" href="${project.liveUrl}${item.path}" target="_blank">Open</a></td>
+              </tr>
+            `)
+            .join('');
 
           // Emails only
-          block.querySelector('.emails tbody').innerHTML = filtered.data
-            .filter(({ path }) => path.startsWith('/emails/'))
+          block.querySelector('.emails tbody').innerHTML = all.data
+            .filter(({ template }) => template.includes('email'))
             .map((item) => {
               const title = document.createElement('div');
               title.innerHTML = item.title;
@@ -393,24 +420,21 @@ export default async function decorate(block) {
 
               return `
               <tr>
-                  <td><a href="https://drive.google.com/drive/search?q=${title}%20type:document%20parent:${rootId}" target="_blank">${
-  title.textContent
-}</a></td>
-                  <td>${
-  description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''
-}</td>          
+                  <td>${title.textContent}</td>
+                  <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>          
                   <td>${toDate(item.lastModified).toLocaleString()}</td>
-                  <td><a class="button secondary" href="/email-composer?id=${project.projectSlug}&url=${
-  project.liveUrl
-}${item.path}" target="_blank">Edit</a></td>
+                  <td>
+                    <a class="button secondary" href="${project.liveUrl}${item.path}" target="_blank">Open</a>
+                    <a class="button secondary" href="/email-composer?id=${project.projectSlug}&url=${project.liveUrl}${item.path}" target="_blank">Send</a>
+                  </td>
               </tr>
             `;
             })
             .join('');
 
           // Rest of the pages
-          block.querySelector('.pages tbody').innerHTML = filtered.data
-            .filter(({ path }) => !path.startsWith('/emails/'))
+          block.querySelector('.pages tbody').innerHTML = all.data
+            .filter(({ template, robots }) => !template.includes('email') && !robots.includes('noindex'))
             .map((item) => {
               const title = document.createElement('div');
               title.innerHTML = item.title;
@@ -420,12 +444,11 @@ export default async function decorate(block) {
 
               return `
               <tr>
-                  <td><a href="https://drive.google.com/drive/search?q=${title}%20type:document%20parent:${rootId}" target="_blank">${
-  title.textContent
-}</a></td>
+                  <td>${title.textContent}</td>
                   <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
-                  <td><a target="_blank" href="${project.liveUrl}${item.path}">${item.path}</a></td>          
+                  <td>${item.path}</td>          
                   <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
+                  <td><a class="button secondary" href="${project.liveUrl}${item.path}" target="_blank">Open</a></td>
               </tr>
             `;
             })

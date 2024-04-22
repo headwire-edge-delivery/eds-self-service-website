@@ -156,6 +156,10 @@
     background: white;
 }
 
+.site-details.block table tbody td:last-child {
+    text-align: right;
+}
+
 @media (width < 768px) {
     .site-details.block .cards {
         flex-direction: column;
