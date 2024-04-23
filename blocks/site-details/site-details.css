@@ -157,7 +157,9 @@
 }
 
 .site-details.block table tbody td:last-child {
-    text-align: right;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
 }
 
 @media (width < 768px) {

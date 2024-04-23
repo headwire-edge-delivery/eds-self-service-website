@@ -86,7 +86,6 @@ export default async function decorate(block) {
                 <h2>Recipients</h2>
                 
                 <div>
-                    <input readonly value="${meta.recipients}">
                     <ul class="recipients"></ul>
                     <div class="button-container">
                         <button class="button secondary is-disabled select-all">Select all</button>
@@ -208,7 +207,7 @@ export default async function decorate(block) {
         });
 
       // Load email metadata
-      fetch(`${SCRIPT_API}/sheet/${meta.recipients.split('/')[5]}/recipients`, {
+      fetch(`${SCRIPT_API}/recipients/${id}`, {
         headers: {
           authorization: `bearer ${token}`,
         },
