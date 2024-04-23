@@ -198,9 +198,25 @@ export default async function decorate(block) {
 
         throw new Error(res.status);
       })
-        .then(({ project }) => {
-          const rootId = project.driveUrl.split('/').pop();
-          block.querySelector('.actions').innerHTML = `<a href="https://drive.google.com/drive/search?q=${meta.subject}%20type:document%20parent:${rootId}" target="_blank" className="button secondary className>Edit email</a>`;
+        .then(async ({ project }) => {
+          block.querySelector('.actions').innerHTML = `<a href="${project.driveUrl}" target="_blank" class="button secondary">Edit email</a>`;
+
+          // Load codemirror to edit styles
+          loadCSS('/libs/codemirror/codemirror.css');
+          await import('../../libs/codemirror/codemirror.js');
+          await import('../../libs/codemirror/css.js');
+
+          fetch(`${WORKER_API}/proxy?url=${project.liveUrl}${meta.styles}`)
+            .then((res) => {
+              if (res.ok) {
+                return res.text();
+              }
+              return '';
+            })
+            .then((css) => {
+              const styles = block.querySelector('.styles');
+              styles.value = css;
+            });
         })
         .catch((error) => {
           console.log(error);
@@ -305,23 +321,6 @@ export default async function decorate(block) {
               };
             }
           }
-        });
-
-      // Load codemirror to edit styles
-      loadCSS('/libs/codemirror/codemirror.css');
-      await import('../../libs/codemirror/codemirror.js');
-      await import('../../libs/codemirror/css.js');
-
-      fetch(`${WORKER_API}/proxy?url=${meta.styles}`)
-        .then((res) => {
-          if (res.ok) {
-            return res.text();
-          }
-          return '';
-        })
-        .then((css) => {
-          const styles = block.querySelector('.styles');
-          styles.value = css;
         });
     }
   });
