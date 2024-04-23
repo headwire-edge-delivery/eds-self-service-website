@@ -119,4 +119,6 @@ async function loadPage() {
 loadPage();
 
 // wake up script
-fetch(`${SCRIPT_API}/wakeup`);
+if (window.location.pathname === '/') {
+  fetch(`${SCRIPT_API}/wakeup`);
+}
