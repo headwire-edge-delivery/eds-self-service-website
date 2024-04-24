@@ -65,9 +65,11 @@ export default async function decorate(block) {
       .then(({ data }) => {
         templateContainer.innerHTML = data
           .map(
-            ({ id, name, description, enabled }, i) => {
+            ({
+              id, name, description, enabled,
+            }, i) => {
               if (enabled.toLowerCase() === 'false') {
-                return ''
+                return '';
               }
               return `
           <div id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
@@ -86,7 +88,8 @@ export default async function decorate(block) {
                 </div>
             </div>
           </div>
-        `},
+        `;
+            },
           )
           .join('');
 

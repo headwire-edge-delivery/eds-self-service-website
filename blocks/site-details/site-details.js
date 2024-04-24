@@ -267,7 +267,7 @@ export default async function decorate(block) {
                     </li>
                     ${project.authoringGuideUrl ? `<li>
                         <a href="${project.authoringGuideUrl}" class="button secondary" target="_blank">Open Docs</a>
-                    </li>`:''}
+                    </li>` : ''}
                 </ul>
             </aside>
 
