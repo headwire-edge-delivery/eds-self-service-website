@@ -265,9 +265,9 @@ export default async function decorate(block) {
                     <li>
                         <a href="${project.sidekickSetupUrl}" class="button secondary" target="_blank">Install Sidekick</a>
                     </li>
-                    <li>
-                        <a href="${project.liveUrl}/tools/sidekick/library.html?plugin=blocks&path=/tools/sidekick/authoring-guides/authoring-guides&index=0" class="button secondary" target="_blank">Open Docs</a>
-                    </li>
+                    ${project.authoringGuideUrl ? `<li>
+                        <a href="${project.authoringGuideUrl}" class="button secondary" target="_blank">Open Docs</a>
+                    </li>`:''}
                 </ul>
             </aside>
 
