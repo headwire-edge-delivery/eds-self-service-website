@@ -1,0 +1,50 @@
+.plans-dialog {
+    overflow: visible;
+}
+
+.plans-dialog-wrapper {
+    display: flex;
+    gap: 32px;
+    padding: 32px;
+    flex-wrap: wrap;
+}
+
+.plans-dialog-wrapper > div {
+    width: 300px;
+    border: 1px solid var(--primary-color);
+    padding: 16px;
+}
+
+.plans-dialog-wrapper :is(p, ul) {
+    font-weight: 300;
+}
+
+.plans-dialog-wrapper ul {
+    list-style: none;
+    padding: 0;
+}
+
+.plans-dialog-wrapper ul li {
+    border-bottom: 1px solid var(--primary-color);
+    padding-block: 8px;
+    font-size: 14px;
+}
+
+.plans-dialog-wrapper ul li:last-child {
+    border-bottom: none;
+}
+
+.plans-dialog-wrapper .button-container {
+    justify-content: flex-start;
+    margin-block: 32px;
+}
+
+.plans-dialog-wrapper .close {
+    position: absolute;
+    top: -16px;
+    right: -16px;
+    border-radius: 50%;
+    height: 36px;
+    width: 36px;
+}
+

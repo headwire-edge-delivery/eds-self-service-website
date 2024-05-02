@@ -25,6 +25,9 @@ export default async function decorate(block) {
     }
   });
 
+  block.querySelector('a[href="#edit"]').classList.add('is-disabled');
+  block.querySelector('a[href="#template"]').classList.remove('next');
+
   const selectStep = (event) => {
     event.preventDefault();
 
@@ -167,8 +170,6 @@ export default async function decorate(block) {
       });
   }
 
-  block.querySelector('a[href="#edit"]').classList.add('is-disabled');
-
   const createStep = block.querySelector(':scope > div:has(a[href="#create"])');
   const input = document.createElement('input');
   input.placeholder = 'My Site';
@@ -232,9 +233,19 @@ export default async function decorate(block) {
 
   // Handle link identifiers with # (#create etc.)
   block.addEventListener('click', async (event) => {
-    const identifier = event.target.getAttribute('href');
-    if (identifier === '#template' && document.body.classList.contains('is-anonymous')) {
-      window.auth0Client.loginWithRedirect();
+    const action = event.target.closest('a[href]');
+    if (!action) {
+      return;
+    }
+
+    const identifier = action.getAttribute('href');
+    if (identifier === '#template') {
+      if (document.body.classList.contains('is-anonymous')) {
+        document.querySelector('.plans-dialog').showModal();
+      } else {
+        action.classList.add('next');
+        action.click();
+      }
     } else if (identifier === '#create') {
       const token = await window.auth0Client.getTokenSilently();
       const template = block.querySelector('.template.is-selected').id;
