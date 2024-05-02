@@ -1,9 +1,26 @@
+.wizard-container {
+    padding-top: 64px;
+}
+
+.hero-container.wizard-container .hero-wrapper {
+    display: none;
+}
+
+.hero-container.wizard-container:has(.wizard.block > div:first-child.is-selected) .hero-wrapper {
+    display: block;
+}
+
 .wizard.block {
     display: flex;
     overflow: hidden;
     border-top: 1px solid white;
     padding-block: 32px;
     min-height: 50vh;
+}
+
+.wizard.block hr {
+    border: 0.5px solid white;
+    margin-block: 48px;
 }
 
 .wizard.block > div {
@@ -36,20 +53,60 @@
     margin-top: 32px;
 }
 
+.wizard.block .button-container:last-child {
+    position: fixed;
+    top: 64px;
+    width: 100%;
+    background: var(--primary-color);
+    margin: 0;
+    padding: 16px;
+    z-index: 10;
+    box-shadow: var(--box-shadow);
+    border-top: 1px solid white;
+    display: none;
+}
+
+.wizard.block .button-container:has(a[href="#edit"]) {
+    display: none;
+}
+
+.is-template-previewing .wizard.block .button-container:last-child {
+    display: none !important;
+}
+
+.wizard.block:has(.template.is-selected) .button-container:last-child {
+    display: flex;
+}
+
 .wizard.block .template-container {
-    margin-block: 32px;
+    max-width: 600px;
+    margin: auto;
 }
 
 .wizard.block .template {
     padding: 32px;
-    max-width: 600px;
-    width: 100%;
-    margin: auto;
-    cursor: pointer;
+    border: 2px solid white;
+    margin: auto auto 32px;
 }
 
 .wizard.block .template.is-selected {
     background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.wizard.block .template .preview {
+    display: none;
+}
+
+.wizard.block .template .preview.is-visible {
+    display: block;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    width: 100vw;
+    border: none;
 }
 
 .wizard.block .template h3 + p {
@@ -63,7 +120,8 @@
 
 .wizard.block .carousel img {
     background-color: var(--secondary-color);
-    object-fit: cover;
+    object-fit: contain;
+    height: 260px;
 }
 
 .wizard.block .carousel img:not(.is-selected) {
@@ -133,14 +191,6 @@
     position: absolute;
 }
 
-.wizard.block .button-container:has(a[href="#start"]) {
-    display: none;
-}
-
-.wizard.block .button-container:has(a[href="#edit"]) {
-    display: none;
-}
-
 .wizard.block .button-container:has(a[href="#edit"]).is-ready {
     display: flex;
 }
@@ -171,8 +221,4 @@
 
 .wizard.block > div:has(a[href="#edit"]) ul li.timeout::before {
     content: "⏰";
-}
-
-:is(.is-authenticated, .is-anonymous) .wizard.block .button-container:has(a[href="#start"]) {
-    display: flex;
 }

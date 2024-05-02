@@ -46,6 +46,10 @@
     text-decoration: none;
 }
 
+.header.block :is(a[href="#select-template"], a[href="#back"]) {
+    display: none;
+}
+
 .header.block a[href="/dashboard"] {
     border: none;
 }
@@ -79,4 +83,16 @@
     .header.block .section {
         min-width: auto;
     }
+}
+
+.is-template-previewing .header.block a:is([href="/"], [href="/dashboard"], [href="#signout"]) {
+    display: none;
+}
+
+.is-template-previewing .header.block :is(a[href="#select-template"], a[href="#back"]) {
+    display: inherit;
+}
+
+.header.block br {
+    display: none;
 }

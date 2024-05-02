@@ -28,7 +28,7 @@ export default async function decorate(block) {
   const selectStep = (event) => {
     event.preventDefault();
 
-    const isNext = event.target.classList.contains('next');
+    const isNext = event.target.closest('.next');
     const selectedStep = block.querySelector(':scope > div.is-selected');
     const siblingStep = selectedStep[isNext ? 'nextElementSibling' : 'previousElementSibling'];
     if (siblingStep) {
@@ -46,7 +46,7 @@ export default async function decorate(block) {
   // Wizard prev and next action
   block.addEventListener('click', (event) => {
     if (
-      (event.target.matches('.next') || event.target.matches('.prev'))
+      (event.target.closest('.next') || event.target.closest('.prev'))
       && document.body.classList.contains('is-authenticated')
     ) {
       selectStep(event);
@@ -66,7 +66,7 @@ export default async function decorate(block) {
         templateContainer.innerHTML = data
           .map(
             ({
-              id, name, description, enabled,
+              id, name, description, enabled, demo,
             }, i) => {
               if (enabled.toLowerCase() === 'false') {
                 return '';
@@ -74,6 +74,10 @@ export default async function decorate(block) {
               return `
           <div id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
+            <div class="button-container">
+                <button class="button select-template">Select Template</button>
+                <button class="button demo">Open Demo</button>
+            </div>
             <p>${description}</p>
             <div class="carousel">
                 <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
@@ -87,14 +91,27 @@ export default async function decorate(block) {
                     <div class="dot"></div>
                 </div>
             </div>
+            <iframe class="preview" src="${demo}" loading="lazy"></iframe>
           </div>
         `;
             },
           )
           .join('');
 
+        const renderTemplateName = () => {
+          const next = block.querySelector('a[href="#template"]');
+          let nextName = next.querySelector('span');
+          if (!nextName) {
+            nextName = document.createElement('span');
+            next.append(nextName);
+          }
+          nextName.textContent = ` with ${block.querySelector('.template.is-selected').querySelector('h3').textContent}`;
+        };
+
+        renderTemplateName();
+
         templateContainer.addEventListener('click', (event) => {
-          if (event.target.matches('.dot:not(.is-selected)')) {
+          if (event.target.closest('.dot:not(.is-selected)')) {
             const dots = event.target.parentElement;
             const index = [...dots.children].indexOf(event.target) + 1;
             const template = event.target.closest('.template');
@@ -104,13 +121,42 @@ export default async function decorate(block) {
 
             dots.querySelector('.is-selected').classList.remove('is-selected');
             event.target.classList.add('is-selected');
-          } else if (event.target.closest('.template:not(.is-selected)')) {
+          } else if (event.target.closest('.select-template')) {
             templateContainer.querySelector('.template.is-selected').classList.remove('is-selected');
-            event.target.closest('.template').classList.add('is-selected');
+            const template = event.target.closest('.template');
+            template.classList.add('is-selected');
+
+            renderTemplateName();
+          } else if (event.target.closest('.demo')) {
+            const template = event.target.closest('.template');
+            const back = document.querySelector('header a[href="#back"]');
+
+            document.body.classList.add('is-template-previewing');
+            template.querySelector('.preview').classList.add('is-visible');
+
+            const selectTemplate = document.querySelector('header a[href="#select-template"]');
+            let selectTemplateName = selectTemplate.querySelector('span');
+            if (!selectTemplateName) {
+              selectTemplateName = document.createElement('span');
+              selectTemplate.append(selectTemplateName);
+            }
+            selectTemplateName.textContent = template.querySelector('h3').textContent;
+
+            selectTemplate.addEventListener('click', () => {
+              template.querySelector('.select-template').click();
+              back.click();
+            }, { once: true });
+
+            document.querySelector('header a[href="#back"]').addEventListener('click', () => {
+              document.body.classList.remove('is-template-previewing');
+              block.querySelector('.preview.is-visible').classList.remove('is-visible');
+            }, { once: true });
           }
         });
       });
   }
+
+  block.querySelector('a[href="#edit"]').classList.add('is-disabled');
 
   const createStep = block.querySelector(':scope > div:has(a[href="#create"])');
   const input = document.createElement('input');
@@ -173,10 +219,10 @@ export default async function decorate(block) {
     });
   }
 
-  // Handle link identifiers with # (#start, #create etc.)
+  // Handle link identifiers with # (#create etc.)
   block.addEventListener('click', async (event) => {
     const identifier = event.target.getAttribute('href');
-    if (identifier === '#start' && document.body.classList.contains('is-anonymous')) {
+    if (identifier === '#template' && document.body.classList.contains('is-anonymous')) {
       window.auth0Client.loginWithRedirect();
     } else if (identifier === '#create') {
       const token = await window.auth0Client.getTokenSilently();
@@ -239,6 +285,8 @@ export default async function decorate(block) {
                   openSiteDetails.classList.remove('next');
                   openSiteDetails.href = `/site/${projectSlug}`;
                 }
+
+                block.querySelector('a[href="#edit"]').classList.remove('is-disabled');
               } else {
                 statusEl.insertAdjacentHTML('beforeend', '<br/><br/><a class="button" href="/">Try again</a>');
               }

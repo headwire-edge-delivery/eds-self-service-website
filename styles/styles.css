@@ -8,6 +8,7 @@
   --font-family: system-ui, sans-serif;
   --header-height: 64px;
   --body-font-size: 16px;
+  --box-shadow: 0 2px 5px rgb(213 213 213);
 
   font-synthesis: none;
   text-rendering: optimizelegibility;
@@ -32,6 +33,10 @@ body {
   overflow-x: hidden;
 }
 
+body.is-template-previewing {
+  overflow: hidden;
+}
+
 /* Layout */
 header,
 footer {
@@ -45,7 +50,7 @@ header {
   right: 0;
   background-color: var(--primary-color);
   z-index: 10;
-  box-shadow: 0 2px 5px rgb(213 213 213);
+  box-shadow: var(--box-shadow);
 }
 
 main {
