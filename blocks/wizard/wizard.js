@@ -98,6 +98,17 @@ export default async function decorate(block) {
           )
           .join('');
 
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              block.classList.add('show-buttons');
+              observer.disconnect();
+            }
+          });
+        });
+
+        observer.observe(templateContainer);
+
         const renderTemplateName = () => {
           const next = block.querySelector('a[href="#template"]');
           let nextName = next.querySelector('span');

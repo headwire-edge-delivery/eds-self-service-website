@@ -55,19 +55,24 @@
 
 .wizard.block .button-container:last-child {
     position: fixed;
-    top: 64px;
+    top: 0;
     width: 100%;
     background: var(--primary-color);
     margin: 0;
     padding: 16px;
-    z-index: 10;
     box-shadow: var(--box-shadow);
     border-top: 1px solid white;
     display: none;
+    transition: top 500ms;
 }
 
 .wizard.block .button-container:has(a[href="#edit"]) {
     display: none;
+}
+
+.wizard.block.show-buttons .button-container:last-child {
+    top: 64px;
+    z-index: 10;
 }
 
 .is-template-previewing .wizard.block .button-container:last-child {
