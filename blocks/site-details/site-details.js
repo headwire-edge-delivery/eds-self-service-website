@@ -3,11 +3,234 @@ import {
 } from '../../scripts/scripts.js';
 
 const protectedBlocks = {
-  search: true,
   header: true,
   footer: true,
-  schedule: true,
 };
+
+const iconBase64Prefix = 'data:image/svg+xml;base64,';
+
+function dialogSetup({
+  name, deleteWarning, project, headers, isIcon = false, iconBase64,
+}) {
+  const dialogContent = document.createElement('div');
+  dialogContent.innerHTML = `
+    <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>
+    <p>${deleteWarning || ''}</p>
+    ${iconBase64 ? `<img class="icon-display" src="${iconBase64}" alt="icon display" />` : ''}
+  `;
+
+  const deleteButton = document.createElement('button');
+  deleteButton.innerText = 'Delete';
+  deleteButton.onclick = async (event) => {
+    const dialogParent = event.target.closest('dialog');
+    deleteButton.disabled = true;
+    dialogParent.classList.add('loading');
+    dialogParent.dataset.loadingText = 'Deleting...';
+    const delResponse = await fetch(`${SCRIPT_API}/${isIcon ? 'icons' : 'blocks'}/${project.projectSlug}/${name}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (delResponse.ok) {
+      console.log('\x1b[34mDELETED\x1b[0m');
+      dialogContent.innerHTML = `
+      <h3>${name} deleted</h3>
+      `;
+      deleteButton.remove();
+      document.querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`).forEach((item) => item.remove());
+    } else {
+      alert(OOPS);
+    }
+    deleteButton.disabled = null;
+    dialogParent.classList.remove('loading');
+  };
+
+  window.createDialog(dialogContent, [deleteButton]);
+}
+
+function addBlockDialogSetup({ id, headers, itemList }) {
+  const dialogContent = document.createElement('div');
+  dialogContent.innerHTML = '<h3>Loading available blocks...</h3>';
+  const dialog = window.createDialog(dialogContent);
+
+  Promise.all([
+    fetch(`${SCRIPT_API}/compatibleBlocks/${id}`, { headers }).then((res) => res.json()),
+    fetch(`${SCRIPT_API}/blocks/${id}`, { headers }).then((res) => res.json()),
+  ]).then(([compatibleBlocks, currentBlocks]) => {
+    const data = compatibleBlocks.filter(
+      (item) => !currentBlocks.some((currentBlocksItem) => currentBlocksItem.name === item.name),
+    );
+
+    if (data.length === 0) {
+      dialog.renderDialog('<h3>No new blocks available</h3>');
+      return;
+    }
+
+    const content = document.createElement('div');
+    content.innerHTML = `
+        <h3>Add block</h3>
+        <select>
+          ${data.map((blockOption) => `<option value="${blockOption.name}">${blockOption.name}</option>`).join('')}
+        </select>`;
+
+    const addButton = document.createElement('button');
+    addButton.innerText = 'Add';
+
+    addButton.onclick = async () => {
+      const select = content.querySelector('select');
+      if (!select.value) {
+        alert('Please select a block');
+        return;
+      }
+      dialog.classList.add('loading');
+      dialog.dataset.loadingText = 'Adding Block...';
+      const addRequest = await fetch(`${SCRIPT_API}/blocks/${id}/${select.value}`, {
+        method: 'POST',
+        headers,
+      });
+      if (addRequest.ok) {
+        dialog.renderDialog(`<h3>${select.value} block added</h3>`);
+        itemList.addItem({ name: select.value });
+      } else {
+        alert(OOPS);
+      }
+      dialog.classList.remove('loading');
+    };
+    dialog.renderDialog(content, [addButton]);
+  });
+}
+
+function renderBlocksList(blocksList, { project, headers, id }) {
+  blocksList.innerHTML = '';
+  blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
+    const li = document.createElement('li');
+    li.innerText = name;
+    li.dataset.blockName = name;
+    li.dataset.createInfo = createInfo || '';
+    li.dataset.deleteWarning = deleteWarning || '';
+    li.onclick = () => dialogSetup({
+      name,
+      deleteWarning,
+      project,
+      headers,
+    });
+    blocksList.appendChild(li);
+  };
+
+  fetch(`${SCRIPT_API}/blocks/${project.projectSlug}`, { headers })
+    .then((res) => {
+      if (res.ok) {
+        return res.json();
+      }
+
+      throw new Error(res.status);
+    })
+    .then((blocks) => {
+      blocks.forEach((item) => blocksList.addItem(item));
+      const addBlock = document.createElement('li');
+      addBlock.innerText = '+';
+      addBlock.classList.add('add-item');
+      addBlock.onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
+      blocksList.appendChild(addBlock);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
+
+function addIconDialogSetup({ headers, id, itemList }) {
+  const dialogContent = document.createElement('div');
+  dialogContent.innerHTML = `
+    <h3>Add icon</h3>
+    <input type="file" accept="image/svg+xml" />
+    <div class="preview"></div>`;
+
+  const preview = document.createElement('div');
+  preview.classList.add('preview');
+  dialogContent.append(preview);
+
+  let file = null;
+  let fileAsBase64 = null;
+  dialogContent.querySelector('input[type="file"]').onchange = (event) => {
+    [file] = event.target.files;
+    if (file && file.type === 'image/svg+xml') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.createElement('img');
+        fileAsBase64 = e.target.result;
+        img.src = fileAsBase64;
+        img.alt = file.name;
+        preview.innerHTML = '';
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.innerHTML = 'Please select an SVG file';
+    }
+  };
+
+  const addButton = document.createElement('button');
+  addButton.innerText = 'Add';
+  const dialog = window.createDialog(dialogContent, [addButton]);
+  addButton.onclick = async () => {
+    if (!file) {
+      alert('Please select an SVG file');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('icon', file);
+    dialog.classList.add('loading');
+    dialog.dataset.loadingText = 'Adding Icon...';
+    const addRequest = await fetch(`${SCRIPT_API}/icons/${id}`, {
+      method: 'POST',
+      body: formData,
+      headers,
+    });
+    if (addRequest.ok) {
+      dialog.renderDialog('<h3>Icon added</h3>');
+      itemList.addItem({ name: file.name, base64: fileAsBase64 });
+    } else {
+      alert(OOPS);
+    }
+    dialog.classList.remove('loading');
+  };
+}
+
+function renderIconsList(iconsList, { project, headers, id }) {
+  iconsList.innerHTML = '';
+  iconsList.addItem = ({ name, base64 }) => {
+    const li = document.createElement('li');
+    li.dataset.iconName = name;
+    li.innerText = name;
+    li.onclick = () => dialogSetup({
+      name,
+      project,
+      headers,
+      isIcon: true,
+      iconBase64: base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64,
+    });
+    iconsList.append(li);
+  };
+
+  fetch(`${SCRIPT_API}/icons/${project.projectSlug}`, { headers })
+    .then((res) => {
+      if (res.ok) {
+        return res.json();
+      }
+
+      throw new Error(res.status);
+    })
+    .then((icons) => {
+      icons.forEach((item) => iconsList.addItem(item));
+      const addIcon = document.createElement('li');
+      addIcon.innerText = '+';
+      addIcon.classList.add('add-item');
+      addIcon.onclick = () => addIconDialogSetup({ id, headers, itemList: iconsList });
+      iconsList.append(addIcon);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
 
 /**
  * @param {Element} block
@@ -18,199 +241,6 @@ export default async function decorate(block) {
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();
     const headers = { authorization: `bearer ${token}` };
-
-    function openDialogForIcon(listElement) {
-      const dialog = block.querySelector('.display-dialog');
-      dialog.className = 'display-dialog displaying-icon';
-      dialog.innerHTML = `
-      <div class="dialog-content">
-        <h3>${listElement.innerText}</h3>
-        <img src="${listElement.dataset.iconBase64}" alt="icon display" />
-        <div class="button-container">
-          <button class="button close">Close</button>
-          <button class="button delete">Delete</button>
-        </div>
-      </div>
-      `;
-
-      dialog.querySelector('.delete').onclick = async () => {
-        if (window.confirm('Are you sure ?')) {
-          dialog.classList.add('is-deleting');
-          const reqDelete = await fetch(`${SCRIPT_API}/icons/${id}/${listElement.dataset.iconName}`, {
-            method: 'DELETE',
-            headers,
-          });
-          if (reqDelete.ok) {
-            dialog.innerHTML = `<div class="dialog-content"><h3>${listElement.dataset.iconName} deleted</h3><div class="button-container"><button class="button close">Close</button></div>`;
-            block.querySelector(`li[data-icon-name="${listElement.dataset.iconName}"]`).remove();
-          } else {
-            alert(OOPS);
-          }
-          dialog.classList.remove('is-deleting');
-        }
-      };
-
-      dialog.showModal();
-    }
-
-    function openDialogAddIcon() {
-      const dialog = block.querySelector('.display-dialog');
-      dialog.className = 'display-dialog add-icon';
-      dialog.innerHTML = `
-      <div class="dialog-content">
-        <h3>Add icon</h3>
-        <input type="file" accept="image/svg+xml" />
-        <div class="preview"></div>
-        <div class="button-container">
-          <button class="button close">Close</button>
-          <button class="button add">Add</button>
-        </div>
-      </div>`;
-
-      dialog.querySelector('input[type="file"]').onchange = (event) => {
-        const file = event.target.files[0];
-        const preview = dialog.querySelector('.preview');
-        if (file && file.type === 'image/svg+xml') {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.alt = file.name;
-            preview.innerHTML = '';
-            preview.appendChild(img);
-          };
-          reader.readAsDataURL(file);
-        } else {
-          preview.innerHTML = 'Please select an SVG file';
-        }
-      };
-
-      dialog.querySelector('.button.add').onclick = async () => {
-        const file = dialog.querySelector('input[type="file"]').files[0];
-        if (!file) {
-          alert('Please select an SVG file');
-          return;
-        }
-        const formData = new FormData();
-        formData.append('icon', file);
-        dialog.classList.add('is-adding');
-        const addRequest = await fetch(`${SCRIPT_API}/icons/${id}`, {
-          method: 'POST',
-          body: formData,
-          headers,
-        });
-        if (addRequest.ok) {
-          dialog.innerHTML = '<div class="dialog-content"><h3>Icon added</h3><div class="button-container"><button class="button close">Close</button></div>';
-        } else {
-          alert(OOPS);
-        }
-        dialog.classList.remove('is-adding');
-      };
-
-      dialog.showModal();
-    }
-
-    function openDialogForBlock(listElement) {
-      const dialog = block.querySelector('.display-dialog');
-      dialog.className = 'display-dialog displaying-block';
-      dialog.innerHTML = `
-      <div class="dialog-content">
-        <h3>${listElement.innerText} Block</h3>
-        <div class="button-container">
-          <button class="button close">Close</button>
-          <button class="button delete">Delete</button>
-        </div>
-      </div>
-      `;
-      const deleteButton = dialog.querySelector('.delete');
-
-      if (protectedBlocks[listElement.dataset.blockName]) {
-        deleteButton.disabled = true;
-      } else {
-        deleteButton.onclick = async () => {
-          if (window.confirm('Are you sure ?')) {
-            dialog.classList.add('is-deleting');
-            const reqDelete = await fetch(`${SCRIPT_API}/blocks/${id}/${listElement.dataset.blockName}`, {
-              method: 'DELETE',
-              headers,
-            });
-            if (reqDelete.ok) {
-              dialog.innerHTML = `<div class="dialog-content"><h3>${listElement.dataset.blockName} deleted</h3><div class="button-container"><button class="button close">Close</button></div>`;
-              block.querySelector(`li[data-block-name="${listElement.dataset.blockName}"]`).remove();
-            } else {
-              alert(OOPS);
-            }
-            dialog.classList.remove('is-deleting');
-          }
-        };
-      }
-
-      dialog.showModal();
-    }
-
-    function openDialogAddBlock() {
-      const dialog = block.querySelector('.display-dialog');
-      dialog.className = 'display-dialog add-block';
-      dialog.innerHTML = `
-      <div class="dialog-content">
-        <h3>Loading available blocks...</h3>
-      </div>`;
-
-      Promise.all([
-        fetch(`${SCRIPT_API}/compatibleBlocks/${id}`, { headers }).then((res) => res.json()),
-        fetch(`${SCRIPT_API}/blocks/${id}`, { headers }).then((res) => res.json()),
-      ])
-        .then(([compatibleBlocks, currentBlocks]) => {
-          const data = compatibleBlocks.filter((item) => !currentBlocks
-            .some((currentBlocksItem) => currentBlocksItem.name === item.name));
-
-          if (data.length === 0) {
-            dialog.innerHTML = '<div class="dialog-content"><h3>No new blocks available</h3><div class="button-container"><button class="button close">Close</button></div>';
-            return;
-          }
-          dialog.innerHTML = `
-        <div class="dialog-content">
-          <h3>Add block</h3>
-          <select>
-            ${data.map((blockOption) => `<option value="${blockOption.name}">${blockOption.name}</option>`).join('')}
-          </select>
-          <div class="button-container">
-            <button class="button close">Close</button>
-            <button class="button add">Add Block</button>
-          </div>
-        </div>`;
-
-          dialog.querySelector('.button.add').onclick = async () => {
-            const select = dialog.querySelector('select');
-            if (!select.value) {
-              alert('Please select a block');
-              return;
-            }
-            dialog.classList.add('is-adding');
-            const addRequest = await fetch(`${SCRIPT_API}/blocks/${id}/${select.value}`, {
-              method: 'POST',
-              headers,
-            });
-            if (addRequest.ok) {
-              dialog.innerHTML = `<div class="dialog-content"><h3>${select.value} block added</h3><div class="button-container"><button class="button close">Close</button></div>`;
-            } else {
-              alert(OOPS);
-            }
-            dialog.classList.remove('is-adding');
-          };
-        })
-        .catch(() => {
-          dialog.innerHTML = `
-        <div class="dialog-content">
-          <h3>Could not load available blocks</h3>
-          <div class="button-container">
-            <button class="button close">Close</button>
-          </div>
-        </div>`;
-        });
-
-      dialog.showModal();
-    }
 
     block.innerHTML = `
         <div class="nav">
@@ -263,11 +293,17 @@ export default async function decorate(block) {
                         <a href="${project.driveUrl}" class="button secondary" target="_blank">Open Google Drive</a>
                     </li>
                     <li>
-                        <a href="${project.sidekickSetupUrl}" class="button secondary" target="_blank">Install Sidekick</a>
+                        <a href="${
+  project.sidekickSetupUrl
+}" class="button secondary" target="_blank">Install Sidekick</a>
                     </li>
-                    ${project.authoringGuideUrl ? `<li>
+                    ${
+  project.authoringGuideUrl
+    ? `<li>
                         <a href="${project.authoringGuideUrl}" class="button secondary" target="_blank">Open Docs</a>
-                    </li>` : ''}
+                    </li>`
+    : ''
+}
                 </ul>
             </aside>
 
@@ -346,13 +382,6 @@ export default async function decorate(block) {
         </div>
     `;
 
-      block.querySelector('.display-dialog').onclick = (event) => {
-        const dialog = event.currentTarget;
-        if (event.target.isEqualNode(dialog) || event.target.className === 'button close') {
-          dialog.close();
-        }
-      };
-
       // Delete site and redirect to dashboard
       block.querySelector('.delete').onclick = async () => {
         block.classList.add('is-deleting');
@@ -391,21 +420,21 @@ export default async function decorate(block) {
           }
 
           const toDate = (lastModified) => new Date(Number(lastModified) * 1000);
-          const lastUpdate = Math.max(
-            ...all.data.map(({ lastModified }) => toDate(lastModified)),
-          );
+          const lastUpdate = Math.max(...all.data.map(({ lastModified }) => toDate(lastModified)));
           block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
           // Fragments only
           block.querySelector('.fragments tbody').innerHTML = all.data
             .filter(({ robots, template }) => robots.includes('noindex') && !template.includes('email'))
-            .map((item) => `
+            .map(
+              (item) => `
               <tr>
                   <td>${item.path}</td>          
                   <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
                   <td><a class="button secondary" href="${project.liveUrl}${item.path}" target="_blank">Open</a></td>
               </tr>
-            `)
+            `,
+            )
             .join('');
 
           // Emails only
@@ -421,11 +450,15 @@ export default async function decorate(block) {
               return `
               <tr>
                   <td>${title.textContent}</td>
-                  <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>          
+                  <td>${
+  description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''
+}</td>          
                   <td>${toDate(item.lastModified).toLocaleString()}</td>
                   <td>
                     <a class="button secondary" href="${project.liveUrl}${item.path}" target="_blank">Open</a>
-                    <a class="button secondary" href="/email-composer?id=${project.projectSlug}&url=${project.liveUrl}${item.path}" target="_blank">Send</a>
+                    <a class="button secondary" href="/email-composer?id=${project.projectSlug}&url=${project.liveUrl}${
+  item.path
+}" target="_blank">Send</a>
                   </td>
               </tr>
             `;
@@ -459,60 +492,10 @@ export default async function decorate(block) {
         });
 
       // Load site blocks
-      fetch(`${SCRIPT_API}/blocks/${project.projectSlug}`, { headers })
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
-          }
-
-          throw new Error(res.status);
-        })
-        .then((blocks) => {
-          const blocksList = block.querySelector('.blocks');
-          blocks.forEach(({ name }) => {
-            const li = document.createElement('li');
-            li.innerText = name;
-            li.dataset.blockName = name;
-            li.onclick = () => openDialogForBlock(li);
-            blocksList.appendChild(li);
-          });
-          const addBlock = document.createElement('li');
-          addBlock.innerText = '+';
-          addBlock.onclick = openDialogAddBlock;
-          blocksList.appendChild(addBlock);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      renderBlocksList(block.querySelector('.blocks'), { project, headers, id });
 
       // Load site icons
-      fetch(`${SCRIPT_API}/icons/${project.projectSlug}`, { headers })
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
-          }
-
-          throw new Error(res.status);
-        })
-        .then((icons) => {
-          const iconsList = block.querySelector('.icons');
-          icons.forEach(({ name, base64 }) => {
-            const li = document.createElement('li');
-            li.dataset.iconName = name;
-            // li.dataset.iconDownloadUrl = download_url;
-            li.dataset.iconBase64 = `data:image/svg+xml;base64,${base64}`;
-            li.innerText = name;
-            li.onclick = () => openDialogForIcon(li);
-            iconsList.appendChild(li);
-          });
-          const addIcon = document.createElement('li');
-          addIcon.innerText = '+';
-          addIcon.onclick = openDialogAddIcon;
-          iconsList.appendChild(addIcon);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      renderIconsList(block.querySelector('.icons'), { project, headers, id });
     } else {
       block.querySelector('.content p').textContent = OOPS;
     }
