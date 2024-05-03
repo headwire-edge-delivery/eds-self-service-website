@@ -21,6 +21,9 @@ function dialogSetup({
 
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
+  if (protectedBlocks[name]) {
+    deleteButton.disabled = true;
+  }
   deleteButton.onclick = async (event) => {
     const dialogParent = event.target.closest('dialog');
     deleteButton.disabled = true;

@@ -130,21 +130,21 @@ window.createDialog = (contentDiv, buttons, { open, onCloseFn } = { open: true }
   dialogContent.classList.add('dialog-content');
   dialog.append(dialogContent);
 
-  dialog.renderDialog = (contentDiv, buttons) => {
+  dialog.renderDialog = (content, buttonsArray) => {
     // reset
     dialogContent.innerHTML = '';
     dialog.dataset.loadingText = 'Loading...';
 
-    if (typeof contentDiv === 'string') {
-      dialogContent.innerHTML = contentDiv;
+    if (typeof content === 'string') {
+      dialogContent.innerHTML = content;
     } else {
-      dialogContent.append(contentDiv);
+      dialogContent.append(content);
     }
 
     const buttonWrapper = document.createElement('div');
     buttonWrapper.classList.add('dialog-button-container');
-    if (Array.isArray(buttons)) {
-      buttons.forEach((button) => {
+    if (Array.isArray(buttonsArray)) {
+      buttonsArray.forEach((button) => {
         buttonWrapper.append(button);
         button.classList.add('button');
       });
