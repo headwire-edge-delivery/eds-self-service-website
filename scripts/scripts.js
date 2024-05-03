@@ -14,8 +14,7 @@ import {
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
-export const SCRIPT_API = window.location.hostname === 'localhost'
-  ? 'http://localhost:4000' : 'https://eds-self-service-scripts.onrender.com';
+export const SCRIPT_API = 'https://eds-self-service-scripts.onrender.com';
 export const WORKER_API = 'https://emails.headwire.workers.dev';
 
 export const OOPS = 'Oops ! Something went wrong …';
