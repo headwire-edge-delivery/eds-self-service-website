@@ -24,4 +24,6 @@ export default async function decorate(block) {
   dialog.querySelector('a[href="#signin"]').onclick = () => {
     window.auth0Client.loginWithRedirect();
   };
+
+  document.dispatchEvent(new CustomEvent('block-plans:ready'));
 }

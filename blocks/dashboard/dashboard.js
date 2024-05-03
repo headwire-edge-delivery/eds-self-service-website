@@ -10,17 +10,95 @@ export default async function decorate(block) {
 
     block.innerHTML = `
         <div class="nav">
-          <h1>${user.given_name}'s Sites</h1>
-          <a href="/" class="button">Create new site</a>
+          <h1>Dashboard</h1>
+          <a href="/" class="button nav-sites">Create new site</a>
+          <a href="https://myaccount.google.com/" class="button nav-account">Edit account</a>
         </div>
         <div class="content">
-            <p>
-                <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
-            </p>
+            <aside>
+                <ul>
+                    <li>
+                      <a href="#sites" class="button secondary is-selected">
+                          <span class="icon icon-web">
+                            <img alt src="/icons/web.svg" loading="lazy">  
+                          </span>
+                          Sites
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#account" class="button secondary">
+                          <span class="icon icon-user">
+                            <img alt src="/icons/user.svg" loading="lazy">
+                          </span>
+                          Account
+                      </a>
+                    </li>
+                </ul>
+            </aside>
+            <div class="details">
+              <div class="account">
+                <div class="account-details">
+                  <div>
+                      <strong>Name</strong>
+                      <span>${user.name}</span>
+                  </div>
+                  <div>
+                      <strong>Email</strong>
+                      <span>${user.email}</span>
+                  </div>
+                  <div>
+                      <strong>Last update</strong>
+                      <span>${new Date(user.updated_at).toLocaleDateString()}</span>
+                  </div>
+                  <div>
+                      <strong>Plan</strong>
+                      <span>Free</span>
+                  </div>
+                </div>
+              </div>
+              <div class="sites is-selected">
+                <p>
+                    <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+                </p> 
+              </div>
+            </div>
         </div>
     `;
 
-    const content = block.querySelector('.content');
+    const details = block.querySelector('.details');
+    const aside = block.querySelector('aside');
+    const account = block.querySelector('.account');
+    const sites = block.querySelector('.sites');
+
+    aside.addEventListener('click', (event) => {
+      if (event.target.closest('[href="#sites"]')) {
+        event.preventDefault();
+
+        aside.querySelector('.is-selected').classList.remove('is-selected');
+        details.querySelector('.is-selected').classList.remove('is-selected');
+
+        event.target.closest('[href="#sites"]').classList.add('is-selected');
+        sites.classList.add('is-selected');
+      } else if (event.target.closest('[href="#account"]')) {
+        event.preventDefault();
+
+        aside.querySelector('.is-selected').classList.remove('is-selected');
+        details.querySelector('.is-selected').classList.remove('is-selected');
+
+        event.target.closest('[href="#account"]').classList.add('is-selected');
+        account.classList.add('is-selected');
+      }
+    });
+
+    // Add plans
+    const plans = document.querySelector('.plans-dialog-wrapper');
+    if (!plans) {
+      document.addEventListener('block-plans:ready', () => {
+        account.append(document.querySelector('.plans-dialog-wrapper'));
+      });
+    } else {
+      account.append(plans);
+    }
 
     // List all sites
     const reqList = await fetch(`${SCRIPT_API}/list`, {
@@ -33,9 +111,9 @@ export default async function decorate(block) {
     if (reqList.ok) {
       const { projects } = await reqList.json();
       if (!projects.length) {
-        content.innerHTML = '<p>No Sites found</p>';
+        sites.innerHTML = '<p>No Sites found</p>';
       } else {
-        content.innerHTML = `
+        sites.innerHTML = `
           <input type="text" placeholder="Filter sites" class="filter">
           
           <ul>
@@ -51,22 +129,22 @@ export default async function decorate(block) {
           </ul>
       `;
 
-        const filter = content.querySelector('.filter');
+        const filter = sites.querySelector('.filter');
         filter.oninput = () => {
           if (filter.value.length) {
-            content.querySelectorAll('h2')
+            sites.querySelectorAll('h2')
               .forEach((el) => {
                 el.closest('li').hidden = !el.textContent.toLowerCase().includes(filter.value.toLowerCase().trim());
               });
           } else {
-            content.querySelectorAll('li[hidden]').forEach((el) => {
+            sites.querySelectorAll('li[hidden]').forEach((el) => {
               el.hidden = false;
             });
           }
         };
       }
     } else {
-      content.querySelector('.content p').textContent = OOPS;
+      sites.querySelector('.content p').textContent = OOPS;
     }
   });
 }

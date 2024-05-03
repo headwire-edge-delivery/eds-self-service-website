@@ -31,7 +31,6 @@ function dialogSetup({
       headers,
     });
     if (delResponse.ok) {
-      console.log('\x1b[34mDELETED\x1b[0m');
       dialogContent.innerHTML = `
       <h3>${name} deleted</h3>
       `;
@@ -354,18 +353,6 @@ export default async function decorate(block) {
                     <tbody></tbody>
                 </table>
                 
-                <h2>Fragments</h2>
-                <table class="fragments">
-                    <thead>
-                      <tr>
-                        <th>Path</th>
-                        <th>Last update</th>
-                        <th></th>
-                      </tr>  
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                
                 <h2>Emails</h2>
                 <table class="emails">
                     <thead>
@@ -405,7 +392,7 @@ export default async function decorate(block) {
       };
 
       // Load index to list pages
-      fetch(`${WORKER_API}/proxy?url=${project.liveUrl}/query-index.json`)
+      fetch(`${WORKER_API}/proxy?url=${project.liveUrl}/query-index.json?sheet=all`)
         .then((res) => {
           if (res.ok) {
             return res.json();
@@ -414,31 +401,19 @@ export default async function decorate(block) {
           throw new Error(res.status);
         })
         // Assuming all templates have the all sheet
-        .then(({ all }) => {
-          if (!all?.data.length) {
+        .then(({ data }) => {
+          if (!data.length) {
             return;
           }
 
           const toDate = (lastModified) => new Date(Number(lastModified) * 1000);
-          const lastUpdate = Math.max(...all.data.map(({ lastModified }) => toDate(lastModified)));
+          const lastUpdate = Math.max(
+            ...data.map(({ lastModified }) => toDate(lastModified)),
+          );
           block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
-          // Fragments only
-          block.querySelector('.fragments tbody').innerHTML = all.data
-            .filter(({ robots, template }) => robots.includes('noindex') && !template.includes('email'))
-            .map(
-              (item) => `
-              <tr>
-                  <td>${item.path}</td>          
-                  <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
-                  <td><a class="button secondary" href="${project.liveUrl}${item.path}" target="_blank">Open</a></td>
-              </tr>
-            `,
-            )
-            .join('');
-
           // Emails only
-          block.querySelector('.emails tbody').innerHTML = all.data
+          block.querySelector('.emails tbody').innerHTML = data
             .filter(({ template }) => template.includes('email'))
             .map((item) => {
               const title = document.createElement('div');
@@ -466,7 +441,7 @@ export default async function decorate(block) {
             .join('');
 
           // Rest of the pages
-          block.querySelector('.pages tbody').innerHTML = all.data
+          block.querySelector('.pages tbody').innerHTML = data
             .filter(({ template, robots }) => !template.includes('email') && !robots.includes('noindex'))
             .map((item) => {
               const title = document.createElement('div');
