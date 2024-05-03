@@ -242,7 +242,7 @@ export default async function decorate(block) {
     if (identifier === '#template') {
       if (document.body.classList.contains('is-anonymous')) {
         document.querySelector('.plans-dialog').showModal();
-      } else {
+      } else if (!action.classList.contains('next')) {
         action.classList.add('next');
         action.click();
       }
