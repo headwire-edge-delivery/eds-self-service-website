@@ -85,7 +85,7 @@
     }
 }
 
-.is-template-previewing .header.block a:is([href="/"], [href="/dashboard"], [href="#signout"]) {
+.is-template-previewing .header.block a:is([href="/"], [href="/dashboard"], [href="#signout"], [href="#signin"]) {
     display: none;
 }
 
