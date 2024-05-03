@@ -6,6 +6,7 @@ import { slugMaxLength, slugify, SCRIPT_API } from '../../scripts/scripts.js';
  */
 export default async function decorate(block) {
   const steps = block.querySelectorAll(':scope > div');
+  steps.forEach((div) => div.classList.add('step'));
 
   const prevTemplate = document.createElement('button');
   prevTemplate.className = 'button prev secondary';
@@ -44,6 +45,8 @@ export default async function decorate(block) {
         img.removeAttribute('loading');
       });
     }
+
+    window.scrollTo(0, 0);
   };
 
   // Wizard prev and next action
@@ -101,6 +104,13 @@ export default async function decorate(block) {
           )
           .join('');
 
+        const step = templateContainer.closest('.step');
+        const nextStep = step.nextElementSibling;
+        const templateImage = document.createElement('div');
+        templateImage.className = 'template-image';
+        nextStep.append(templateImage);
+        templateImage.append(templateContainer.querySelector('.template.is-selected img').cloneNode(true));
+
         const observer = new IntersectionObserver((entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
@@ -139,6 +149,9 @@ export default async function decorate(block) {
             templateContainer.querySelector('.template.is-selected').classList.remove('is-selected');
             const template = event.target.closest('.template');
             template.classList.add('is-selected');
+
+            templateImage.innerHTML = '';
+            templateImage.append(template.querySelector('img').cloneNode(true));
 
             renderTemplateName();
           } else if (event.target.closest('.demo')) {

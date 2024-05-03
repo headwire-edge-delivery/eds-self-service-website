@@ -6,7 +6,7 @@
     display: none;
 }
 
-.hero-container.wizard-container:has(.wizard.block > div:first-child.is-selected) .hero-wrapper {
+.hero-container.wizard-container:has(.wizard.block > .step:first-child.is-selected) .hero-wrapper {
     display: block;
 }
 
@@ -23,12 +23,12 @@
     margin-block: 48px;
 }
 
-.wizard.block > div {
+.wizard.block > .step {
     min-width: 100vw;
     text-align: center;
 }
 
-.wizard.block > div:not(.is-selected) {
+.wizard.block > .step:not(.is-selected) {
     display: none;
 }
 
@@ -120,6 +120,12 @@
     text-align: justify;
 }
 
+.wizard.block .template-image {
+    max-width: var(--layout-width);
+    width: 100%;
+    margin: 64px auto auto;
+}
+
 .wizard.block .carousel {
     padding-block: 16px;
 }
@@ -201,30 +207,30 @@
     display: flex;
 }
 
-.wizard.block > div:last-child a[href^="#"]:not(.is-ready) {
+.wizard.block > .step:last-child a[href^="#"]:not(.is-ready) {
     display: none;
 }
 
-.wizard.block > div:has(a[href="#edit"]) ul li .icon {
+.wizard.block > .step:has(a[href="#edit"]) ul li .icon {
     display: none;
 }
 
-.wizard.block > div:has(a[href="#edit"]) ul li.loading::before {
+.wizard.block > .step:has(a[href="#edit"]) ul li.loading::before {
     content: "💫";
 }
 
-.wizard.block > div:has(a[href="#edit"]) ul li.success::before {
+.wizard.block > .step:has(a[href="#edit"]) ul li.success::before {
     content: "✅";
 }
 
-.wizard.block > div:has(a[href="#edit"]) ul li.info::before {
+.wizard.block > .step:has(a[href="#edit"]) ul li.info::before {
     content: "ℹ️";
 }
 
-.wizard.block > div:has(a[href="#edit"]) ul li.failed::before {
+.wizard.block > .step:has(a[href="#edit"]) ul li.failed::before {
     content: "❌";
 }
 
-.wizard.block > div:has(a[href="#edit"]) ul li.timeout::before {
+.wizard.block > .step:has(a[href="#edit"]) ul li.timeout::before {
     content: "⏰";
 }
