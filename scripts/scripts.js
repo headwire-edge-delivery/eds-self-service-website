@@ -122,3 +122,58 @@ loadPage();
 if (window.location.pathname === '/') {
   fetch(`${SCRIPT_API}/wakeup`);
 }
+
+window.createDialog = (contentDiv, buttons, { open, onCloseFn } = { open: true }) => {
+  const dialog = document.createElement('dialog');
+  dialog.classList.add('display-dialog');
+  const dialogContent = document.createElement('div');
+  dialogContent.classList.add('dialog-content');
+  dialog.append(dialogContent);
+
+  dialog.renderDialog = (content, buttonsArray) => {
+    // reset
+    dialogContent.innerHTML = '';
+    dialog.dataset.loadingText = 'Loading...';
+
+    if (typeof content === 'string') {
+      dialogContent.innerHTML = content;
+    } else {
+      dialogContent.append(content);
+    }
+
+    const buttonWrapper = document.createElement('div');
+    buttonWrapper.classList.add('dialog-button-container');
+    if (Array.isArray(buttonsArray)) {
+      buttonsArray.forEach((button) => {
+        buttonWrapper.append(button);
+        button.classList.add('button');
+      });
+    }
+    const closeButton = document.createElement('button');
+    closeButton.classList.add('button', 'close');
+    closeButton.innerText = 'Close';
+    closeButton.onclick = () => {
+      dialog.close();
+    };
+    buttonWrapper.prepend(closeButton);
+    dialogContent.append(buttonWrapper);
+  };
+  dialog.renderDialog(contentDiv, buttons);
+
+  dialog.onclick = (event) => {
+    if (dialog.isEqualNode(event.target)) {
+      dialog.close();
+    }
+  };
+  dialog.onclose = () => {
+    dialog.remove();
+    if (typeof onCloseFn === 'function') {
+      onCloseFn();
+    }
+  };
+  document.body.append(dialog);
+  if (open) {
+    dialog.showModal();
+  }
+  return dialog;
+};
