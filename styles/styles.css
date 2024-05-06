@@ -163,6 +163,16 @@ input[type="file"]::file-selector-button:hover,
   color: white;
 }
 
+.button.primary {
+  background-color: var(--secondary-color);
+  color: white;
+  border-color: var(--secondary-color);
+}
+
+.button.primary:hover {
+  color: var(--primary-color);
+}
+
 .button.secondary {
   background-color: transparent;
 }
