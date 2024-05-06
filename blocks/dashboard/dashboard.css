@@ -19,7 +19,6 @@
 }
 
 .dashboard.block .content {
-    border-top: 1px solid white;
     display: flex;
     flex-wrap: wrap;
     gap: 64px;
@@ -88,6 +87,7 @@
 .dashboard.block .content aside {
     background: white;
     padding: 16px;
+    height: max-content;
 }
 
 .dashboard.block .content aside ul {

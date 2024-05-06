@@ -1,6 +1,7 @@
 import {
   SCRIPT_API, onAuthenticated, OOPS, WORKER_API,
 } from '../../scripts/scripts.js';
+import { loadCSS } from '../../scripts/aem.js';
 
 const protectedBlocks = {
   header: true,
@@ -101,7 +102,10 @@ function addBlockDialogSetup({ id, headers, itemList }) {
   });
 }
 
-function renderBlocksList(blocksList, { project, headers, id }) {
+function renderBlocksList(blocksList, actions, { project, headers, id }) {
+  actions.querySelector('.blocks-actions').innerHTML = '<button class="button add-block">Add Block</button>';
+  actions.querySelector('.add-block').onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
+
   blocksList.innerHTML = '';
   blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
     const li = document.createElement('li');
@@ -128,11 +132,6 @@ function renderBlocksList(blocksList, { project, headers, id }) {
     })
     .then((blocks) => {
       blocks.forEach((item) => blocksList.addItem(item));
-      const addBlock = document.createElement('li');
-      addBlock.innerText = '+';
-      addBlock.classList.add('add-item');
-      addBlock.onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
-      blocksList.appendChild(addBlock);
     })
     .catch((error) => {
       console.log(error);
@@ -197,7 +196,10 @@ function addIconDialogSetup({ headers, id, itemList }) {
   };
 }
 
-function renderIconsList(iconsList, { project, headers, id }) {
+function renderIconsList(iconsList, actions, { project, headers, id }) {
+  actions.querySelector('.icons-actions').innerHTML = '<button class="button add-icon">Add Icon</button>';
+  actions.querySelector('.add-icon').onclick = () => addIconDialogSetup({ id, headers, itemList: iconsList });
+
   iconsList.innerHTML = '';
   iconsList.addItem = ({ name, base64 }) => {
     const li = document.createElement('li');
@@ -223,11 +225,6 @@ function renderIconsList(iconsList, { project, headers, id }) {
     })
     .then((icons) => {
       icons.forEach((item) => iconsList.addItem(item));
-      const addIcon = document.createElement('li');
-      addIcon.innerText = '+';
-      addIcon.classList.add('add-item');
-      addIcon.onclick = () => addIconDialogSetup({ id, headers, itemList: iconsList });
-      iconsList.append(addIcon);
     })
     .catch((error) => {
       console.log(error);
@@ -243,6 +240,10 @@ export default async function decorate(block) {
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();
     const headers = { authorization: `bearer ${token}` };
+
+    let editor = {
+      refresh: () => {},
+    };
 
     block.innerHTML = `
         <div class="nav">
@@ -280,7 +281,14 @@ export default async function decorate(block) {
           </div>
           
           <div class="actions">
-            <button class="button secondary delete">Delete site</button>
+            <div class="overview-actions button-container is-selected">
+                <button class="button secondary delete">Delete</button>
+            </div>
+            <div class="pages-actions button-container"></div>
+            <div class="blocks-actions button-container"></div>
+            <div class="icons-actions button-container"></div>
+            <div class="emails-actions button-container"></div>
+            <div class="theme-actions button-container"></div>
           </div>
         </div>
         
@@ -289,88 +297,219 @@ export default async function decorate(block) {
             <aside>
                 <ul>
                     <li>
-                        <a href="${project.liveUrl}" class="button" target="_blank">Open site</a>
+                        <a href="#overview" class="button secondary is-selected" target="_blank">
+                          <span class="icon icon-template">
+                            <img alt src="/icons/template.svg" loading="lazy">  
+                          </span>
+                          Overview
+                        </a>
                     </li>
                     <li>
-                        <a href="${project.driveUrl}" class="button secondary" target="_blank">Open Google Drive</a>
+                        <a href="#pages" class="button secondary" target="_blank">
+                          <span class="icon icon-web">
+                            <img alt src="/icons/web.svg" loading="lazy">  
+                          </span>
+                          Pages
+                        </a>
                     </li>
                     <li>
-                        <a href="${
-  project.sidekickSetupUrl
-}" class="button secondary" target="_blank">Install Sidekick</a>
+                        <a href="#blocks" class="button secondary" target="_blank">
+                          <span class="icon icon-blocks">
+                            <img alt src="/icons/blocks.svg" loading="lazy">  
+                          </span>
+                          Blocks
+                        </a>
                     </li>
-                    ${
-  project.authoringGuideUrl
-    ? `<li>
-                        <a href="${project.authoringGuideUrl}" class="button secondary" target="_blank">Open Docs</a>
-                    </li>`
-    : ''
-}
+                    <li>
+                        <a href="#icons" class="button secondary" target="_blank">
+                          <span class="icon icon-icons">
+                            <img alt src="/icons/icons.svg" loading="lazy">  
+                          </span>
+                          Icons
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#emails" class="button secondary" target="_blank">
+                          <span class="icon icon-email">
+                            <img alt src="/icons/email.svg" loading="lazy">  
+                          </span>
+                          Emails
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#theme" class="button secondary" target="_blank">
+                          <span class="icon icon-palette">
+                            <img alt src="/icons/palette.svg" loading="lazy">  
+                          </span>
+                          Theme
+                        </a>
+                    </li>
                 </ul>
             </aside>
 
             <div class="details">
-                <div class="cards">
-                    <div>
-                      <strong>Site id</strong>
-                      <span>${project.projectSlug}</span>
-                  </div>
-                  <div>
-                      <strong>Site description</strong>
-                      <span>${project.projectDescription}</span>
-                  </div>
-                  <div>
-                      <strong>Last update</strong>
-                      <span class="last-update"></span>
-                  </div>
-                  <div>
-                      <strong>Site template</strong>
-                      <span>${project.templateName}</span>
-                  </div>
+                <div class="overview-panel is-selected">
+                    <div class="container">
+                        <div class="cards">
+                            <div>
+                              <strong>Site id</strong>
+                              <span>${project.projectSlug}</span>
+                          </div>
+                          <div>
+                              <strong>Site description</strong>
+                              <span>${project.projectDescription}</span>
+                          </div>
+                          <div>
+                              <strong>Last update</strong>
+                              <span class="last-update"></span>
+                          </div>
+                          <div>
+                              <strong>Site template</strong>
+                              <span>${project.templateName}</span>
+                          </div>
+                        </div>
+                    </div>
+
+                    <div class="docs">
+                      <h2>
+                        <span class="icon icon-info">
+                          <img alt src="/icons/info.svg" loading="lazy">  
+                        </span>
+                        Information
+                      </h2>
+                      <p>
+                      Overview serves as your centralized control hub, offering quick access to essential information and actions about your site to help you to stay organized and productive with ease.  
+                      </p>
+                    </div>
                 </div>
                 
-                <h2>Configuration</h2>
-                <div class="config">
-                    <div>
-                      <label>Available Blocks</label>
-                      <ul class="blocks"></ul>
+                <div class="pages-panel">
+                    <div class="container">
+                        <table class="pages">
+                            <thead>
+                              <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Path</th>
+                                <th>Last update</th>
+                                <th></th>
+                              </tr>  
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    
-                    <div>
-                      <label>SVG Icons</label>
-                      <ul class="icons"></ul>
+                    <div class="docs">
+                      <h2>
+                        <span class="icon icon-info">
+                          <img alt src="/icons/info.svg" loading="lazy">  
+                        </span>
+                        Information
+                      </h2>
+                      <p>
+                      Pages lists all published pages to serve as a comprehensive directory of your website's content. It provides a convenient overview of all accessible pages, enabling easy navigation and exploration of your site.    
+                      </p>
                     </div>
-                </div>   
+                </div>
                 
-                <h2>Pages</h2>
-                <table class="pages">
-                    <thead>
-                      <tr>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Path</th>
-                        <th>Last update</th>
-                        <th></th>
-                      </tr>  
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="blocks-panel">
+                    <ul class="blocks list"></ul>
+                    <div class="docs">
+                      <h2>
+                        <span class="icon icon-info">
+                          <img alt src="/icons/info.svg" loading="lazy">  
+                        </span>
+                        Information
+                      </h2>
+                      <p>Blocks acts as a repository of building blocks for your website. Here, you can explore and select from a variety of available blocks to enhance your web pages.</p>
+                    </div>
+                </div>
                 
-                <h2>Emails</h2>
-                <table class="emails">
-                    <thead>
-                      <tr>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Last update</th>
-                        <th></th>
-                      </tr>  
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="icons-panel">
+                    <ul class="icons list"></ul>
+                    <div class="docs">
+                      <h2>
+                        <span class="icon icon-info">
+                          <img alt src="/icons/info.svg" loading="lazy">  
+                        </span>
+                        Information
+                      </h2>
+                      <p>Icons is your go-to resource for web assets that add visual flair and functionality to your website. Here, you'll find a curated collection of icons suitable for various purposes, from navigation to social media integration.</p>
+                    </div>
+                </div>
+                
+                <div class="emails-panel">
+                    <div class="container">
+                        <table class="emails">
+                            <thead>
+                              <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Last update</th>
+                                <th></th>
+                              </tr>  
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="docs">
+                      <h2>
+                        <span class="icon icon-info">
+                          <img alt src="/icons/info.svg" loading="lazy">  
+                        </span>
+                        Information
+                      </h2>
+                      <p>Emails serves as your toolkit for crafting impactful communication in your online endeavors tailored for various purposes, from newsletters to promotional campaigns streamlining your email creation process.</p>
+                    </div>
+                </div>
+                
+                <div class="theme-panel">
+                    <div class="container">
+                        <textarea class="vars"></textarea>
+                    </div>
+                    <div class="docs">
+                      <h2>
+                        <span class="icon icon-info">
+                          <img alt src="/icons/info.svg" loading="lazy">  
+                        </span>
+                        Information
+                      </h2>
+                      <p>Theme is your gateway to tailor your website's visual identity to align perfectly with your brand. Here, you have the power to customize colors, ensuring consistency and harmony throughout your site.</p>
+                    </div>
+                </div>
             </div>
         </div>
     `;
+
+      const actions = block.querySelector('.actions');
+      actions.querySelector('.overview-actions').insertAdjacentHTML('beforeend', `
+        <a href="${project.sidekickSetupUrl}" class="button secondary" target="_blank">Install
+        Sidekick</a>
+        ${project.authoringGuideUrl ? `<a href="${project.authoringGuideUrl}" class="button secondary" target="_blank">Docs</a>` : ''}
+        <a href="${project.driveUrl}" class="button secondary" target="_blank">Edit</a>
+        <a href="${project.liveUrl}" class="button" target="_blank">Open</a>
+      `);
+
+      const aside = block.querySelector('aside');
+      aside.addEventListener('click', (event) => {
+        event.preventDefault();
+
+        const link = event.target.closest('a');
+        if (link && !link.classList.contains('is-selected')) {
+          const identifier = link.getAttribute('href').slice(1);
+
+          aside.querySelector('.is-selected').classList.remove('is-selected');
+          block.querySelector('.details > .is-selected').classList.remove('is-selected');
+          block.querySelector('.actions > .is-selected').classList.remove('is-selected');
+
+          block.querySelector(`.details .${identifier}-panel`).classList.add('is-selected');
+          block.querySelector(`.actions .${identifier}-actions`).classList.add('is-selected');
+          link.classList.add('is-selected');
+
+          if (identifier === 'theme') {
+            editor.refresh();
+          }
+        }
+      });
 
       // Delete site and redirect to dashboard
       block.querySelector('.delete').onclick = async () => {
@@ -470,10 +609,33 @@ export default async function decorate(block) {
         });
 
       // Load site blocks
-      renderBlocksList(block.querySelector('.blocks'), { project, headers, id });
+      renderBlocksList(block.querySelector('.blocks'), actions, { project, headers, id });
 
       // Load site icons
-      renderIconsList(block.querySelector('.icons'), { project, headers, id });
+      renderIconsList(block.querySelector('.icons'), actions, { project, headers, id });
+
+      // Load site theme
+      fetch(`${WORKER_API}/proxy?url=${project.liveUrl}/styles/vars.css`)
+        .then((res) => {
+          if (res.ok) {
+            return res.text();
+          }
+          throw new Error(res.status);
+        })
+        .then(async (css) => {
+          // Load codemirror to edit styles
+          loadCSS('/libs/codemirror/codemirror.css');
+          await import('../../libs/codemirror/codemirror.js');
+          await import('../../libs/codemirror/css.js');
+
+          const vars = block.querySelector('.vars');
+          vars.value = css;
+
+          editor = window.CodeMirror.fromTextArea(vars);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     } else {
       block.querySelector('.content p').textContent = OOPS;
     }
