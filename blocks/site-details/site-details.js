@@ -562,6 +562,11 @@ export default async function decorate(block) {
           event.preventDefault();
           dialog.setLoading(true, 'Adding Author...');
           const email = event.target.email.value;
+          if (!email.includes('@')) {
+            alert('Please enter a valid email or domain');
+            dialog.setLoading(false);
+            return;
+          }
           const response = await fetch(`${SCRIPT_API}/authors/${id}/${email}`, {
             method: 'POST',
             headers,
