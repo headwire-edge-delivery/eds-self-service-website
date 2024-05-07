@@ -330,6 +330,8 @@ export default async function decorate(block) {
                 ${progress.map(({ status, statusText }) => `<li class="${status}">${statusText}</li>`).join('')}
               </ul>`;
             }
+
+            window.scrollTo(0, document.body.scrollHeight);
           }
         }, 2000);
       } else {
