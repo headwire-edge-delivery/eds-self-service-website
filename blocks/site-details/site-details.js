@@ -69,23 +69,30 @@ function addBlockDialogSetup({ id, headers, itemList }) {
     }
 
     const content = document.createElement('div');
-    content.innerHTML = `
-        <h3>Add block</h3>
-        <select>
-          ${data.map((blockOption) => `<option value="${blockOption.name}">${blockOption.name}</option>`).join('')}
-        </select>`;
+    content.innerHTML = '<h3>Add block</h3>';
+
+    const select = document.createElement('select');
+    select.innerHTML = data.map((blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${blockOption.name}</option>`).join('');
+
+    const blockInfo = document.createElement('p');
+    blockInfo.style.width = '100%';
+    blockInfo.innerText = select.querySelector(`option[value="${select.value}"]`).dataset.blockCreateInfo;
+
+    select.onchange = () => {
+      blockInfo.innerText = select.querySelector(`option[value="${select.value}"]`).dataset.blockCreateInfo;
+    };
+
+    content.append(select, blockInfo);
 
     const addButton = document.createElement('button');
     addButton.innerText = 'Add';
 
     addButton.onclick = async () => {
-      const select = content.querySelector('select');
       if (!select.value) {
         alert('Please select a block');
         return;
       }
-      dialog.classList.add('loading');
-      dialog.dataset.loadingText = 'Adding Block...';
+      dialog.setLoading(true, 'Adding Block...');
       const addRequest = await fetch(`${SCRIPT_API}/blocks/${id}/${select.value}`, {
         method: 'POST',
         headers,
@@ -96,14 +103,15 @@ function addBlockDialogSetup({ id, headers, itemList }) {
       } else {
         alert(OOPS);
       }
-      dialog.classList.remove('loading');
+      dialog.setLoading(false);
     };
     dialog.renderDialog(content, [addButton]);
   });
 }
 
 function renderBlocksList(blocksList, actions, { project, headers, id }) {
-  actions.querySelector('.blocks-actions').innerHTML = '<button class="button add-block">Add Block</button>';
+  const blockActions = actions.querySelector('.blocks-actions');
+  blockActions.insertAdjacentHTML('beforeend', '<button class="button add-block">Add Block</button>');
   actions.querySelector('.add-block').onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
 
   blocksList.innerHTML = '';
@@ -113,6 +121,7 @@ function renderBlocksList(blocksList, actions, { project, headers, id }) {
     li.dataset.blockName = name;
     li.dataset.createInfo = createInfo || '';
     li.dataset.deleteWarning = deleteWarning || '';
+    li.tabIndex = 0;
     li.onclick = () => dialogSetup({
       name,
       deleteWarning,
@@ -179,8 +188,7 @@ function addIconDialogSetup({ headers, id, itemList }) {
     }
     const formData = new FormData();
     formData.append('icon', file);
-    dialog.classList.add('loading');
-    dialog.dataset.loadingText = 'Adding Icon...';
+    dialog.setLoading(true, 'Adding Icon...');
     const addRequest = await fetch(`${SCRIPT_API}/icons/${id}`, {
       method: 'POST',
       body: formData,
@@ -192,7 +200,7 @@ function addIconDialogSetup({ headers, id, itemList }) {
     } else {
       alert(OOPS);
     }
-    dialog.classList.remove('loading');
+    dialog.setLoading(false);
   };
 }
 
@@ -204,6 +212,7 @@ function renderIconsList(iconsList, actions, { project, headers, id }) {
   iconsList.addItem = ({ name, base64 }) => {
     const li = document.createElement('li');
     li.dataset.iconName = name;
+    li.tabIndex = 0;
     li.innerText = name;
     li.onclick = () => dialogSetup({
       name,
@@ -486,8 +495,136 @@ export default async function decorate(block) {
         Sidekick</a>
         ${project.authoringGuideUrl ? `<a href="${project.authoringGuideUrl}" class="button secondary" target="_blank">Docs</a>` : ''}
         <a href="${project.driveUrl}" class="button secondary" target="_blank">Edit</a>
+        <button class="share"></button>
         <a href="${project.liveUrl}" class="button" target="_blank">Open</a>
       `);
+
+      // MARK: Share dialog
+      const shareButton = actions.querySelector('button.share');
+      shareButton.classList.add('button', 'secondary');
+      shareButton.innerText = 'Project Authors';
+      shareButton.onclick = async () => {
+        const dialog = window.createDialog('<div><h3>Getting Authors...</h3></div>');
+        const authors = await fetch(`${SCRIPT_API}/authors/${id}`, { headers }).then((r) => r.json()).catch(() => []);
+        const populatedContent = document.createElement('div');
+        const title = document.createElement('h3');
+        title.innerText = 'Project Authors';
+        const authorList = document.createElement('ul');
+        authorList.classList.add('author-list');
+
+        // author list
+        const addAuthorListItem = (author) => {
+          const listItem = document.createElement('li');
+          listItem.classList.add('author');
+          const authorEmail = author.email || `@${author.domain}`;
+          listItem.dataset.authorEmail = authorEmail;
+          const span = document.createElement('span');
+          span.innerText = authorEmail;
+          const revoke = document.createElement('button');
+          revoke.classList.add('revoke-button', 'button');
+          revoke.onclick = async () => {
+            if (window.confirm('Are you sure ?')) {
+              dialog.setLoading(true, `Removing ${authorEmail}...`);
+              const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
+                method: 'DELETE',
+                headers,
+              });
+              if (revokeResponse.ok) {
+                dialog.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
+              } else {
+                alert(OOPS);
+              }
+              dialog.setLoading(false);
+            }
+          };
+
+          listItem.append(revoke, span);
+          authorList.append(listItem);
+        };
+        authors.forEach(addAuthorListItem);
+
+        // add new authors
+        const addAuthorSection = document.createElement('div');
+        addAuthorSection.classList.add('add-author-section');
+        addAuthorSection.innerHTML = `
+          <h4>Add an Author:</h4>
+          <form>
+            <input name="email" type="email" placeholder="person@example.com" />
+            <button class="button" type="submit">Add</button>
+          </form>
+          <span>
+            * You can add an entire domain by submitting it with an "@" at the start! (eg: "@example.com")
+            This will allow anyone with an email ending in that domain, to edit the website.
+          </span>
+        `;
+        const addAuthorForm = addAuthorSection.querySelector('form');
+        addAuthorForm.onsubmit = async (event) => {
+          event.preventDefault();
+          dialog.setLoading(true, 'Adding Author...');
+          const email = event.target.email.value;
+          const response = await fetch(`${SCRIPT_API}/authors/${id}/${email}`, {
+            method: 'POST',
+            headers,
+          });
+          if (response.ok) {
+            if (email.startsWith('@')) {
+              addAuthorListItem({ domain: email });
+            } else {
+              addAuthorListItem({ email });
+            }
+          } else {
+            alert(OOPS);
+          }
+          dialog.setLoading(false);
+        };
+
+        populatedContent.append(title, authorList, addAuthorSection);
+        dialog.renderDialog(populatedContent);
+      };
+
+      // MARK: Contact Email dialog
+      const changeContactButton = document.createElement('button');
+      actions.querySelector('.blocks-actions.button-container').prepend(changeContactButton);
+      changeContactButton.classList.add('button', 'secondary');
+      changeContactButton.innerText = 'Change contact email';
+      changeContactButton.onclick = () => {
+        const title = document.createElement('h3');
+        title.innerText = 'Change contact email';
+
+        const input = document.createElement('input');
+        input.value = project.contactEmail || project.ownerEmail || '';
+        input.type = 'email';
+        input.placeholder = 'contact@email.com';
+
+        const paragraph = document.createElement('p');
+        paragraph.innerText = 'This defines which email the contact form submits to.';
+
+        const dialogContent = document.createElement('div');
+        dialogContent.append(title, input, paragraph);
+
+        const submitButton = document.createElement('button');
+
+        const dialog = window.createDialog(dialogContent, [submitButton]);
+
+        submitButton.classList.add('button');
+        submitButton.innerText = 'Submit';
+        submitButton.onclick = async () => {
+          if (!input.value) return;
+          dialog.setLoading(true, 'Updating Contact Email...');
+          const response = await fetch(`${SCRIPT_API}/updateContact/${project.projectSlug}`, {
+            headers: { ...headers, 'content-type': 'application/json' },
+            method: 'POST',
+            body: JSON.stringify({ contactEmail: input.value }),
+          });
+          if (response.ok) {
+            dialog.renderDialog('<h3>Email Updated</h3>');
+            project.contactEmail = input.value;
+          } else {
+            alert(OOPS);
+          }
+          dialog.setLoading(false);
+        };
+      };
 
       const aside = block.querySelector('aside');
       aside.addEventListener('click', (event) => {
