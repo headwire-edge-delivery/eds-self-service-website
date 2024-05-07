@@ -238,7 +238,6 @@ export default async function decorate(block) {
   onAuthenticated(async () => {
     const id = window.location.pathname.split('/').pop();
     const token = await window.auth0Client.getTokenSilently();
-    const user = await window.auth0Client.getUser();
     const headers = { authorization: `bearer ${token}` };
 
     let editor = {
@@ -249,7 +248,7 @@ export default async function decorate(block) {
         <div class="nav">
           <div class="breadcrumbs">
             <a href="/dashboard">
-              ${user.given_name}'s Sites
+              Dashboard
             </a>
           </div>
         </div>
@@ -272,7 +271,7 @@ export default async function decorate(block) {
         <div class="nav">
           <div class="breadcrumbs">
             <a href="/dashboard">
-              ${user.given_name}'s Sites
+              Dashboard
             </a>
             <span>&rsaquo;</span>
             <a href="/site/${project.projectSlug}" aria-current="page">
@@ -357,7 +356,7 @@ export default async function decorate(block) {
                           </div>
                           <div>
                               <strong>Site description</strong>
-                              <span>${project.projectDescription}</span>
+                              <span>${project.projectDescription ?? ''}</span>
                           </div>
                           <div>
                               <strong>Last update</strong>
@@ -465,6 +464,7 @@ export default async function decorate(block) {
                 <div class="theme-panel">
                     <div class="container">
                         <textarea class="vars"></textarea>
+                        <iframe src="${project.liveUrl}" class="vars-preview" loading="lazy"></iframe>
                     </div>
                     <div class="docs">
                       <h2>
@@ -629,9 +629,23 @@ export default async function decorate(block) {
           await import('../../libs/codemirror/css.js');
 
           const vars = block.querySelector('.vars');
+          const varsPreview = block.querySelector('.vars-preview');
+
           vars.value = css;
 
+          actions.querySelector('.theme-actions').innerHTML = `
+            <button class="button publish-theme">Publish</button>
+          `;
+
+          actions.querySelector('.publish-theme').onclick = () => {
+            // TODO push to github
+          };
+
           editor = window.CodeMirror.fromTextArea(vars);
+
+          editor.on('change', () => {
+            varsPreview.contentWindow.postMessage(encodeURIComponent(editor.getValue()), '*');
+          });
         })
         .catch((error) => {
           console.log(error);
