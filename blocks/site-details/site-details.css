@@ -226,6 +226,16 @@
     background: white;
 }
 
+.site-details.block .theme-actions .publish-theme {
+    order: 1;
+}
+
+.site-details.block .theme-actions select {
+    text-transform: none;
+    order: 0;
+    position: relative;
+    padding-block: 6px;
+}
 
 @media (width < 768px) {
     .site-details.block aside {

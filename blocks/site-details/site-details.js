@@ -725,16 +725,17 @@ export default async function decorate(block) {
             .join('');
 
           // Rest of the pages
-          block.querySelector('.pages tbody').innerHTML = data
-            .filter(({ template, robots }) => !template.includes('email') && !robots.includes('noindex'))
-            .map((item) => {
-              const title = document.createElement('div');
-              title.innerHTML = item.title;
+          const pages = data
+            .filter(({ template, robots }) => !template.includes('email') && !robots.includes('noindex'));
 
-              const description = document.createElement('div');
-              description.innerHTML = item.description;
+          block.querySelector('.pages tbody').innerHTML = pages.map((item) => {
+            const title = document.createElement('div');
+            title.innerHTML = item.title;
 
-              return `
+            const description = document.createElement('div');
+            description.innerHTML = item.description;
+
+            return `
               <tr>
                   <td>${title.textContent}</td>
                   <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
@@ -743,8 +744,26 @@ export default async function decorate(block) {
                   <td><a class="button secondary" href="${project.liveUrl}${item.path}" target="_blank">Open</a></td>
               </tr>
             `;
-            })
+          })
             .join('');
+
+          // Theme pages
+          block.querySelector('.theme-actions').insertAdjacentHTML('beforeend', `
+            <select class="button secondary">
+                ${pages.map(({ path }) => `<option value="${path}">Path: ${path}</option>`).join('')}
+            </select>
+          `);
+
+          const select = block.querySelector('.theme-actions select');
+          select.onchange = () => {
+            const varsPreview = block.querySelector('.vars-preview');
+            if (new URL(varsPreview.src).pathname !== select.value) {
+              varsPreview.src = `${project.liveUrl}${select.value}`;
+              varsPreview.addEventListener('load', () => {
+                varsPreview.contentWindow.postMessage(encodeURIComponent(editor.getValue()), '*');
+              }, { once: true });
+            }
+          };
         })
         .catch((error) => {
           console.log(error);
@@ -775,9 +794,9 @@ export default async function decorate(block) {
 
           vars.value = css;
 
-          actions.querySelector('.theme-actions').innerHTML = `
+          actions.querySelector('.theme-actions').insertAdjacentHTML('beforeend', `
             <button class="button publish-theme">Publish</button>
-          `;
+          `);
 
           actions.querySelector('.publish-theme').onclick = () => {
             // TODO push to github
