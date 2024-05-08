@@ -130,7 +130,7 @@ window.createDialog = (contentDiv, buttons, { open, onCloseFn } = { open: true }
   dialogContent.classList.add('dialog-content');
   dialog.append(dialogContent);
 
-  dialog.renderDialog = (content, buttonsArray) => {
+  dialog.renderDialog = (content, buttonsArray = []) => {
     // reset
     dialogContent.innerHTML = '';
     dialog.dataset.loadingText = 'Loading...';
@@ -159,6 +159,15 @@ window.createDialog = (contentDiv, buttons, { open, onCloseFn } = { open: true }
     dialogContent.append(buttonWrapper);
   };
   dialog.renderDialog(contentDiv, buttons);
+
+  dialog.setLoading = (toggleOn = true, customLoadingText = 'Loading...') => {
+    if (toggleOn) {
+      dialog.classList.add('loading');
+    } else {
+      dialog.classList.remove('loading');
+    }
+    dialog.dataset.loadingText = customLoadingText;
+  };
 
   dialog.onclick = (event) => {
     if (dialog.isEqualNode(event.target)) {

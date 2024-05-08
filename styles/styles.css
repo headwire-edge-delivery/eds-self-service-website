@@ -126,6 +126,22 @@ a:hover {
   flex-wrap: wrap;
 }
 
+input[type="text"],
+input[type="email"],
+input[type="file"],
+input[type="password"] {
+  font-family: var(--font-family);
+  color: var(--secondary-color);
+  font-style: normal;
+  font-size: 14px;
+  line-height: 14px;
+  padding: 8px 16px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  border: 1px solid var(--secondary-color);
+  width: 100%;
+}
+
 input[type="file"]::file-selector-button,
 .button {
   display: inline-flex;
@@ -144,12 +160,14 @@ input[type="file"]::file-selector-button,
   cursor: pointer;
   color: var(--secondary-color);
   font-style: normal;
+  font-family: var(--font-family);
 }
 
 input[type="file"] {
   margin: 20px 0;
   border: 1px solid var(--secondary-color);
   width: 100%;
+  padding: 0;
 }
 
 input[type="file"]::file-selector-button {
@@ -196,11 +214,20 @@ dialog {
   padding: 0;
   border: none;
   box-shadow: 0 0 20px 5px var(--secondary-color);
+  width: 800px;
+  max-width: 80%;
+  max-height: 80%;
 }
 
 dialog .dialog-content {
   padding: 16px;
   border: 2px solid var(--primary-color);
+  height: 100%;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: auto;
 }
 
 dialog select {
@@ -213,11 +240,11 @@ dialog select {
 
 dialog .icon-display {
   filter: drop-shadow(0 0 5px #000);
-  width: 300px;
-  aspect-ratio: 1/1;
+  height: 300px;
   object-fit: contain;
   padding: 20px;
-  max-width: 100%;
+  width: 100%;
+
 }
 
 dialog.loading {
@@ -235,6 +262,24 @@ dialog.loading::before {
   inset: 0;
   z-index: 1;
   background-color: rgba(128 128 128 / 80%);
+}
+
+dialog .dialog-button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+dialog .dialog-button-container > *{
+  flex: 1;
+}
+
+@media (width < 768px) {
+  dialog {
+    min-width: none;
+    max-width: none;
+    width: calc(100% - 32px);
+  }
 }
 
 
@@ -259,4 +304,45 @@ img[src="/icons/loading.svg"] {
   height: 124px;
 }
 
+
+ul.author-list {
+  list-style: none;
+  margin: 20px 0;
+  padding: 0;
+
+}
+
+ul.author-list .author {
+  margin-bottom: 10px;
+  width: 100%;
+  display: flex;
+  gap: 6px;
+}
+
+ul.author-list:empty::after {
+  content: "No authors yet";
+}
+
+ul.author-list .author .revoke-button {
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: url('/icons/remove-circle.svg') no-repeat center / contain;
+}
+
+.add-author-section {
+  border-top: 1px solid var(--secondary-color);
+  margin-bottom: 24px;
+}
+
+.add-author-section h4 {
+  margin: 6px 0;
+}
+
+.add-author-section form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
 
