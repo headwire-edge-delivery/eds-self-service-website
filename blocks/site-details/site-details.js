@@ -514,15 +514,19 @@ export default async function decorate(block) {
 
         // author list
         const addAuthorListItem = (author) => {
+          if (!author.email) return;
           const listItem = document.createElement('li');
           listItem.classList.add('author');
-          const authorEmail = author.email || `@${author.domain}`;
+          const authorEmail = author.email;
+          const isOwner = author.owner;
           listItem.dataset.authorEmail = authorEmail;
           const span = document.createElement('span');
           span.innerText = authorEmail;
           const revoke = document.createElement('button');
           revoke.classList.add('revoke-button', 'button');
+          if (isOwner) revoke.disabled = true;
           revoke.onclick = async () => {
+            if (isOwner) return;
             if (window.confirm('Are you sure ?')) {
               dialog.setLoading(true, `Removing ${authorEmail}...`);
               const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
@@ -552,18 +556,15 @@ export default async function decorate(block) {
             <input name="email" type="email" placeholder="person@example.com" />
             <button class="button" type="submit">Add</button>
           </form>
-          <span>
-            * You can add an entire domain by submitting it with an "@" at the start! (eg: "@example.com")
-            This will allow anyone with an email ending in that domain, to edit the website.
-          </span>
         `;
         const addAuthorForm = addAuthorSection.querySelector('form');
         addAuthorForm.onsubmit = async (event) => {
           event.preventDefault();
           dialog.setLoading(true, 'Adding Author...');
           const email = event.target.email.value;
-          if (!email.includes('@')) {
-            alert('Please enter a valid email or domain');
+          const isValid = /^(?!@).*@.*(?<!@)$/.test(email);
+          if (!isValid) {
+            alert('Please enter a valid email.');
             dialog.setLoading(false);
             return;
           }
@@ -572,11 +573,8 @@ export default async function decorate(block) {
             headers,
           });
           if (response.ok) {
-            if (email.startsWith('@')) {
-              addAuthorListItem({ domain: email });
-            } else {
-              addAuthorListItem({ email });
-            }
+            addAuthorListItem({ email });
+            event.target.email.value = '';
           } else {
             alert(OOPS);
           }
