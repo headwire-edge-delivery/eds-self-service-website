@@ -20,6 +20,10 @@
     height: 100%;
 }
 
+dialog .plans-dialog-wrapper {
+    justify-content: center;
+}
+
 .plans-dialog-wrapper .close {
     position: absolute;
     top: -16px;

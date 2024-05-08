@@ -214,6 +214,9 @@ dialog {
   padding: 0;
   border: none;
   box-shadow: 0 0 20px 5px var(--secondary-color);
+}
+
+dialog:has(.dialog-content) {
   width: 800px;
   max-width: 80%;
   max-height: 80%;
