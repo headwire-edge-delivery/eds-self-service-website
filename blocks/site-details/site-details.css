@@ -263,3 +263,24 @@
         align-items: flex-start;
     }
 }
+
+/* stylelint-disable-next-line selector-class-pattern */
+.site-details.block .CodeMirror.sending {
+    pointer-events: none;
+}
+
+
+/* stylelint-disable-next-line selector-class-pattern */
+.site-details.block .CodeMirror.sending::after {
+    inset: 0;
+    position: absolute;
+    content: 'Updating...';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0 0 0 / 20%);
+    backdrop-filter: blur(2px);
+    font-size: 24px;
+    font-family: var(--font-family);
+    font-weight: 600;
+}

@@ -793,20 +793,28 @@ export default async function decorate(block) {
           const varsPreview = block.querySelector('.vars-preview');
 
           vars.value = css;
-
-          actions.querySelector('.theme-actions').insertAdjacentHTML('beforeend', `
-            <button class="button publish-theme">Publish</button>
-          `);
-
-          actions.querySelector('.publish-theme').onclick = () => {
-            // TODO push to github
-          };
-
           editor = window.CodeMirror.fromTextArea(vars);
 
           editor.on('change', () => {
             varsPreview.contentWindow.postMessage(encodeURIComponent(editor.getValue()), '*');
           });
+
+          actions.querySelector('.theme-actions').insertAdjacentHTML('beforeend', `
+            <button class="button publish-theme">Publish</button>
+          `);
+
+          actions.querySelector('.publish-theme').onclick = async () => {
+            editor.display.wrapper.classList.add('sending');
+            editor.setOption('readOnly', true);
+            const response = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {
+              method: 'POST',
+              headers: { ...headers, 'content-type': 'application/json' },
+              body: JSON.stringify({ css: btoa(editor.getValue()) }),
+            });
+            window.alert(response.ok ? 'Variables successfully updated!' : OOPS);
+            editor.display.wrapper.classList.remove('sending');
+            editor.setOption('readOnly', false);
+          };
         })
         .catch((error) => {
           console.log(error);
