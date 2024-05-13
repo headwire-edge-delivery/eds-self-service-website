@@ -241,14 +241,30 @@ dialog select {
   font-weight: 600;
 }
 
-dialog .icon-display {
-  filter: drop-shadow(0 0 5px #000);
-  height: 300px;
-  object-fit: contain;
+dialog .preview {
+  --preview-max-height: 300px;
+
+  height: auto;
+  max-height: var(--preview-max-height);
+  max-width: 100%;
+  overflow: hidden;
+}
+
+dialog .preview:empty {
+  display: none;
+}
+
+dialog .preview img {
+  display: block;
   padding: 20px;
   width: 100%;
-
+  height: auto;
+  max-height: var(--preview-max-height);
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 0 5px #000);
 }
+
 
 dialog.loading {
   pointer-events: none;
@@ -273,8 +289,15 @@ dialog .dialog-button-container {
   gap: 16px;
 }
 
-dialog .dialog-button-container > *{
+dialog .dialog-button-container > * {
   flex: 1;
+}
+
+dialog .centered-info {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (width < 768px) {
@@ -284,7 +307,6 @@ dialog .dialog-button-container > *{
     width: calc(100% - 32px);
   }
 }
-
 
 ::backdrop {
   background: rgba(0 0 0 / 20%);
@@ -307,12 +329,10 @@ img[src="/icons/loading.svg"] {
   height: 124px;
 }
 
-
 ul.author-list {
   list-style: none;
   margin: 20px 0;
   padding: 0;
-
 }
 
 ul.author-list .author {
@@ -331,7 +351,7 @@ ul.author-list .author .revoke-button {
   width: 28px;
   height: 28px;
   border: none;
-  background: url('/icons/remove-circle.svg') no-repeat center / contain;
+  background: url("/icons/remove-circle.svg") no-repeat center / contain;
 }
 
 .add-author-section {
@@ -348,4 +368,3 @@ ul.author-list .author .revoke-button {
   gap: 10px;
   margin-bottom: 8px;
 }
-
