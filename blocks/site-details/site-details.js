@@ -238,9 +238,31 @@ function renderIconsList(iconsList, actions, { project, headers, id }) {
   iconsList.addItem = ({ name, base64 }) => {
     const li = document.createElement('li');
     li.dataset.iconName = name;
-    li.tabIndex = 0;
-    li.innerText = name;
-    li.onclick = () => dialogSetup({
+    const iconName = document.createElement('span');
+    iconName.innerText = name;
+    li.append(iconName);
+
+    if (base64) {
+      const iconImage = document.createElement('img');
+      iconImage.src = base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64;
+      iconImage.classList.add('icon-preview');
+      li.prepend(iconImage);
+    }
+
+    const settingsButton = document.createElement('button');
+    settingsButton.classList.add('button', 'secondary', 'icon-settings');
+    settingsButton.innerText = 'Settings';
+
+    const copyButton = document.createElement('button');
+    copyButton.classList.add('button', 'copy-button');
+    copyButton.innerText = 'Copy';
+
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.classList.add('buttons-container');
+    buttonsContainer.append(settingsButton, copyButton);
+    li.append(buttonsContainer);
+
+    settingsButton.onclick = () => dialogSetup({
       name,
       project,
       headers,
@@ -248,6 +270,11 @@ function renderIconsList(iconsList, actions, { project, headers, id }) {
       iconBase64: base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64,
     });
     iconsList.append(li);
+
+    copyButton.onclick = () => {
+      // copy icon as doc compatible string (without .svg)
+      navigator.clipboard.writeText(`:${name.replace(/\.[^/.]+$/, '')}:`);
+    };
   };
 
   fetch(`${SCRIPT_API}/icons/${project.projectSlug}`, { headers })

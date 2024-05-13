@@ -9,6 +9,7 @@
   --header-height: 64px;
   --body-font-size: 16px;
   --box-shadow: 0 2px 5px rgb(213 213 213);
+  --icon-drop-shadow: drop-shadow(0 0 5px #000);
 
   font-synthesis: none;
   text-rendering: optimizelegibility;
