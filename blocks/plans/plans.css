@@ -22,6 +22,7 @@
 
 dialog .plans-dialog-wrapper {
     justify-content: center;
+    align-items: center;
 }
 
 .plans-dialog-wrapper .close {
@@ -41,25 +42,6 @@ dialog .plans-dialog-wrapper {
 
 .is-authenticated .plans-dialog-wrapper > div:first-child {
     display: none;
-}
-
-.plans-dialog-wrapper :is(p, ul) {
-    font-weight: 300;
-}
-
-.plans-dialog-wrapper ul {
-    list-style: none;
-    padding: 0;
-}
-
-.plans-dialog-wrapper ul li {
-    border-bottom: 1px solid var(--primary-color);
-    padding-block: 8px;
-    font-size: 14px;
-}
-
-.plans-dialog-wrapper ul li:last-child {
-    border-bottom: none;
 }
 
 .plans-dialog-wrapper .button-container {
