@@ -88,6 +88,7 @@
     gap: 64px;
     overflow: auto;
     padding-left: calc((100vw - var(--layout-width)) / 2 - 16px);
+    padding-right: 16px;
     margin: 32px auto auto 16px;
 }
 
