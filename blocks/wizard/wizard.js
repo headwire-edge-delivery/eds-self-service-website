@@ -10,7 +10,7 @@ export default async function decorate(block) {
 
   const prevTemplate = document.createElement('button');
   prevTemplate.className = 'button prev secondary';
-  prevTemplate.textContent = 'Previous';
+  prevTemplate.textContent = 'Back';
 
   steps.forEach((step, i) => {
     const buttonContainer = step.querySelector('.button-container:last-child');
@@ -27,7 +27,6 @@ export default async function decorate(block) {
   });
 
   block.querySelector('a[href="#edit"]').classList.add('is-disabled');
-  block.querySelector('a[href="#template"]').classList.remove('next');
 
   const selectStep = (event) => {
     event.preventDefault();
@@ -44,6 +43,10 @@ export default async function decorate(block) {
       siblingStep.querySelectorAll('img[loading="lazy"]').forEach((img) => {
         img.removeAttribute('loading');
       });
+    }
+
+    if (siblingStep.querySelector('a[href="#template"]')) {
+      block.classList.remove('show-buttons');
     }
 
     window.scrollTo(0, 0);
@@ -81,8 +84,7 @@ export default async function decorate(block) {
           <div id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
             <div class="button-container">
-                <button class="button select-template">Select Template</button>
-                <button class="button demo">Open Demo</button>
+                <button class="button demo">Select template</button>
             </div>
             <p>${description}</p>
             <div class="carousel">
@@ -111,29 +113,6 @@ export default async function decorate(block) {
         nextStep.append(templateImage);
         templateImage.append(templateContainer.querySelector('.template.is-selected img').cloneNode(true));
 
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              block.classList.add('show-buttons');
-              observer.disconnect();
-            }
-          });
-        });
-
-        observer.observe(templateContainer);
-
-        const renderTemplateName = () => {
-          const next = block.querySelector('a[href="#template"]');
-          let nextName = next.querySelector('span');
-          if (!nextName) {
-            nextName = document.createElement('span');
-            next.append(nextName);
-          }
-          nextName.textContent = ` with ${block.querySelector('.template.is-selected').querySelector('h3').textContent}`;
-        };
-
-        renderTemplateName();
-
         templateContainer.addEventListener('click', (event) => {
           if (event.target.closest('.dot:not(.is-selected)')) {
             const dots = event.target.parentElement;
@@ -145,18 +124,10 @@ export default async function decorate(block) {
 
             dots.querySelector('.is-selected').classList.remove('is-selected');
             event.target.classList.add('is-selected');
-          } else if (event.target.closest('.select-template')) {
-            templateContainer.querySelector('.template.is-selected').classList.remove('is-selected');
-            const template = event.target.closest('.template');
-            template.classList.add('is-selected');
-
-            templateImage.innerHTML = '';
-            templateImage.append(template.querySelector('img').cloneNode(true));
-
-            renderTemplateName();
           } else if (event.target.closest('.demo')) {
             const template = event.target.closest('.template');
-            const back = document.querySelector('header a[href="#back"]');
+            block.querySelector('.template.is-selected').classList.remove('is-selected');
+            template.classList.add('is-selected');
 
             document.body.classList.add('is-template-previewing');
             template.querySelector('.preview').classList.add('is-visible');
@@ -169,15 +140,35 @@ export default async function decorate(block) {
             }
             selectTemplateName.textContent = template.querySelector('h3').textContent;
 
-            selectTemplate.addEventListener('click', () => {
-              template.querySelector('.select-template').click();
-              back.click();
-            }, { once: true });
+            const back = document.querySelector('header a[href="#back"]');
+            const hidePreview = () => {
+              if (document.body.classList.contains('is-template-previewing')) {
+                document.body.classList.remove('is-template-previewing');
+                block.querySelector('.preview.is-visible').classList.remove('is-visible');
+                block.classList.remove('show-buttons');
+                selectTemplate.onclick = undefined;
+                back.onclick = undefined;
+              }
+            };
 
-            document.querySelector('header a[href="#back"]').addEventListener('click', () => {
-              document.body.classList.remove('is-template-previewing');
-              block.querySelector('.preview.is-visible').classList.remove('is-visible');
-            }, { once: true });
+            back.onclick = () => {
+              hidePreview();
+            };
+
+            if (document.body.classList.contains('is-anonymous')) {
+              selectTemplate.onclick = () => {
+                document.querySelector('.plans-dialog').showModal();
+              };
+            } else {
+              selectTemplate.onclick = () => {
+                hidePreview();
+                block.querySelector('a[href="#template"]').click();
+                block.classList.add('show-buttons');
+
+                templateImage.innerHTML = '';
+                templateImage.append(template.querySelector('img').cloneNode(true));
+              };
+            }
           }
         });
       });
@@ -252,14 +243,7 @@ export default async function decorate(block) {
     }
 
     const identifier = action.getAttribute('href');
-    if (identifier === '#template') {
-      if (document.body.classList.contains('is-anonymous')) {
-        document.querySelector('.plans-dialog').showModal();
-      } else if (!action.classList.contains('next')) {
-        action.classList.add('next');
-        action.click();
-      }
-    } else if (identifier === '#create') {
+    if (identifier === '#create') {
       const token = await window.auth0Client.getTokenSilently();
       const template = block.querySelector('.template.is-selected').id;
 

@@ -1,4 +1,4 @@
-.wizard-container {
+.wizard-container:has(.show-buttons) {
     padding-top: 64px;
 }
 
@@ -92,15 +92,6 @@
     padding: 32px;
     border: 2px solid white;
     margin: auto auto 32px;
-}
-
-.wizard.block .template.is-selected {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.wizard.block .template.is-selected .select-template {
-    display: none;
 }
 
 .wizard.block .template .preview {

@@ -37,6 +37,7 @@
 .header.block p:not(.button-container) {
     font-weight: 700;
     text-transform: uppercase;
+    width: min-content;
 }
 
 .header.block a[href="/"] {
