@@ -1,4 +1,4 @@
-.wizard-container {
+.wizard-container:has(.show-buttons) {
     padding-top: 64px;
 }
 
@@ -84,23 +84,32 @@
 }
 
 .wizard.block .template-container {
-    max-width: 600px;
-    margin: auto;
+    display: flex;
+    gap: 64px;
+    overflow: auto;
+    padding-left: calc((100vw - var(--layout-width)) / 2 - 16px);
+    padding-right: 16px;
+    margin: 32px auto auto 16px;
 }
 
 .wizard.block .template {
     padding: 32px;
-    border: 2px solid white;
+    border: 2px solid var(--primary-color);
     margin: auto auto 32px;
+    min-width: calc(var(--layout-width) / 2.5);
 }
 
-.wizard.block .template.is-selected {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
+@media (width < 768px) {
+    .wizard.block .template-container {
+        flex-direction: column;
+        padding-inline: 16px;
+        margin-left: 0;
+        gap: 32px;
+    }
 
-.wizard.block .template.is-selected .select-template {
-    display: none;
+    .wizard.block .template {
+        min-width: calc(100vw - 32px);
+    }
 }
 
 .wizard.block .template .preview {
