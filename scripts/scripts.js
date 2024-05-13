@@ -10,6 +10,7 @@ import {
   waitForLCP,
   loadBlocks,
   loadCSS,
+  fetchPlaceholders,
 } from './aem.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
@@ -37,6 +38,31 @@ export function onAuthenticated(cb) {
       cb();
     });
   }
+}
+
+/**
+ * Get placeholders for current language.
+ * Using this function will only ever fetch once.
+ * @param {String} return value for this key, if 'falsy' will return whole object.
+ */
+export const getPlaceholder = async (str) => {
+  const placeholderLanguage = document.documentElement.lang === 'en'
+    ? 'default'
+    : `/${document.documentElement.lang}`;
+  if (!window.placeholders) {
+    await fetchPlaceholders(placeholderLanguage);
+  }
+  // property is created in fetchPlaceholders
+  const placeholderObj = await window.placeholders[placeholderLanguage];
+  return str ? placeholderObj[str] : placeholderObj;
+};
+
+if (window.localStorage.getItem('darkMode') === 'true') {
+  document.documentElement.classList.add('dark-mode');
+} else if (window.localStorage.getItem('darkMode') === 'false') {
+  document.documentElement.classList.remove('dark-mode');
+} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.documentElement.classList.add('dark-mode');
 }
 
 export function slugify(str) {
