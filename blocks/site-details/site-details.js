@@ -36,7 +36,7 @@ function dialogSetup({
     });
     if (delResponse.ok) {
       dialogContent.innerHTML = `
-      <h3>${name} deleted</h3>
+      <h3 class="centered-info" >${name} deleted</h3>
       `;
       deleteButton.remove();
       document
@@ -54,7 +54,7 @@ function dialogSetup({
 
 function addBlockDialogSetup({ id, headers, itemList }) {
   const dialogContent = document.createElement('div');
-  dialogContent.innerHTML = '<h3>Loading available blocks...</h3>';
+  dialogContent.innerHTML = '<h3 class="centered-info" >Loading available blocks...</h3>';
   const dialog = window.createDialog(dialogContent);
 
   Promise.all([
@@ -179,7 +179,11 @@ function addIconDialogSetup({
   let fileAsBase64 = null;
   input.onchange = (event) => {
     [file] = event.target.files;
-    if (file && file.type === fileAccept) {
+    if (file) {
+      if (file.type !== fileAccept) {
+        preview.innerHTML = 'Please select a valid file!';
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = document.createElement('img');
@@ -201,6 +205,10 @@ function addIconDialogSetup({
   addButton.onclick = async () => {
     if (!file) {
       alert('Please select a file');
+      return;
+    }
+    if (file.type !== fileAccept) {
+      alert('Please select a valid file!');
       return;
     }
     const formData = new FormData();

@@ -294,6 +294,7 @@ dialog .dialog-button-container > * {
   flex: 1;
 }
 
+dialog .dialog-content > div:has(> .centered-info),
 dialog .centered-info {
   display: flex;
   flex: 1;
