@@ -118,11 +118,6 @@ async function loadPage() {
 
 loadPage();
 
-// wake up script
-if (window.location.pathname === '/') {
-  fetch(`${SCRIPT_API}/wakeup`);
-}
-
 window.createDialog = (contentDiv, buttons, { open, onCloseFn } = { open: true }) => {
   const dialog = document.createElement('dialog');
   dialog.classList.add('display-dialog');
