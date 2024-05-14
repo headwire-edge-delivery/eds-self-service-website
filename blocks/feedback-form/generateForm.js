@@ -13,9 +13,7 @@ function generateFieldId(fieldData, suffix = '') {
 function createLabel(field, fieldData, placeholders) {
   const label = document.createElement('label');
   label.id = generateFieldId(fieldData, '-label');
-  const labelContent = placeholders?.[toCamelCase(fieldData['label-placeholder'])]
-    || fieldData['label-placeholder']
-    || fieldData.name;
+  const labelContent = placeholders?.[toCamelCase(fieldData['label-placeholder'])] || fieldData['label-placeholder'] || fieldData.name;
   label.innerHTML = `<span class="label-text">${labelContent}</span>`;
   label.dataset.requiredField = fieldData?.required?.toLowerCase() === 'true';
   if (fieldData.labelFor) {
@@ -94,9 +92,7 @@ const createToggle = (fieldData) => {
 const createCheckbox = (fieldData, placeholders) => {
   const field = createInput(fieldData);
   if (fieldData['default-value']) field.checked = true;
-  field.value = placeholders[toCamelCase(fieldData['label-placeholder'])]
-    || fieldData['label-placeholder']
-    || fieldData.name;
+  field.value = placeholders[toCamelCase(fieldData['label-placeholder'])] || fieldData['label-placeholder'] || fieldData.name;
 
   return field;
 };
@@ -175,25 +171,27 @@ async function createField(fieldData, form, placeholders, index) {
   return label;
 }
 
-function toggleFields(form, disable = true) {
-  form.querySelectorAll('input, textarea, select, button').forEach((field) => {
-    field.disabled = disable;
-  });
-}
+// function toggleFields(form, disable = true) {
+//   form.querySelectorAll('input, textarea, select, button').forEach((field) => {
+//     field.disabled = disable;
+//   });
+// }
 
 // async function formSubmit(event, block, placeholders) {
 //   event.preventDefault();
 
-//   const formOverlay = document.createElement('div');
-//   formOverlay.classList.add('form-overlay', 'show');
-//   formOverlay.innerHTML = `<div class="content"><span>${placeholders.formSubmitting}</span></div>`;
+//   const formOverlay = document.createElement("div");
+//   formOverlay.classList.add("form-overlay", "show");
+//   formOverlay.innerHTML = `<div class="content">
+//      <span>${placeholders.formSubmitting}</span>
+//    </div>`;
 
 //   block.append(formOverlay);
-//   block.classList.add('overlay-open');
+//   block.classList.add("overlay-open");
 
-//   const server = window.location.href.startsWith('http://localhost')
-//     ? 'http://localhost:4000/'
-//     : 'https://eds-self-service-scripts.onrender.com/';
+//   const server = window.location.href.startsWith("http://localhost")
+//     ? "http://localhost:4000/"
+//     : "https://eds-self-service-scripts.onrender.com/";
 
 //   const data = new FormData(event.target);
 //   const formObj = {};
@@ -206,28 +204,30 @@ function toggleFields(form, disable = true) {
 //   toggleFields(event.target, true);
 
 //   const response = await fetch(`${server}form/${window.projectSlug}`, {
-//     method: 'POST',
-//     headers: { 'Content-Type': 'application/json' },
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
 //     body: JSON.stringify(formObj),
 //   });
 
 //   if (response.ok) {
-//     formOverlay.innerHTML = `<div class="content"><span>${response.status === 208 ? await response.text() : placeholders.formSuccess}</span></div>`;
+//     formOverlay.innerHTML = `<div class="content"><span>${
+//       response.status === 208 ? await response.text() : placeholders.formSuccess
+//     }</span></div>`;
 //   } else {
-//     formOverlay.innerHTML = `<div class="content"><span>${placeholders.formFail}</span><button class="button submit">${placeholders.formButtonRetry || 'Retry'}</button></div>`;
+//     formOverlay.innerHTML = `<div class="content"><span>${placeholders.formFail}</span>
+//         <button class="button submit">${
+//       placeholders.formButtonRetry || "Retry"
+//     }</button></div>`;
 //     formOverlay.onclick = (e) => {
 //       e.currentTarget.remove();
-//       block.classList.remove('overlay-open');
+//       block.classList.remove("overlay-open");
 //       toggleFields(event.target, false);
 //     };
 //   }
 // }
 
 export default async function createForm(formConfigPath, block, onSubmit) {
-  const [resp, placeholders] = await Promise.all([
-    fetch(formConfigPath),
-    getPlaceholder(null),
-  ]);
+  const [resp, placeholders] = await Promise.all([fetch(formConfigPath), getPlaceholder(null)]);
   const json = await resp.json();
 
   const form = document.createElement('form');
