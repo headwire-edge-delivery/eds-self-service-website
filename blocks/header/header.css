@@ -38,6 +38,7 @@
     font-weight: 700;
     text-transform: uppercase;
     width: min-content;
+    white-space: nowrap;
 }
 
 .header.block a[href="/"] {
