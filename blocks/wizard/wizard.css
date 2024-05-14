@@ -66,10 +66,6 @@
     transition: top 500ms;
 }
 
-.wizard.block .button-container:has(a[href="#edit"]) {
-    display: none;
-}
-
 .wizard.block.show-buttons .button-container:last-child {
     top: 64px;
     z-index: 10;
@@ -216,34 +212,40 @@
     position: absolute;
 }
 
-.wizard.block .button-container:has(a[href="#edit"]).is-ready {
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.wizard.block .step:has(a[href="#edit"]) .loader {
+    border: 2px solid white;
+    animation: spin 1s linear infinite;
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: none;
+    align-items: center;
+    font-weight: bold;
+}
+
+.wizard.block .step:has(a[href="#edit"]) li {
+    opacity: .5;
+}
+
+.wizard.block .step:has(a[href="#edit"]) li.is-loading {
+    opacity: 1;
+}
+
+.wizard.block .step:has(a[href="#edit"]) li.is-loading .loader {
     display: flex;
+}
+
+.wizard.block .step:has(a[href="#edit"]) li.is-loading .loader.success {
+    border: none;
+    animation: none;
 }
 
 .wizard.block > .step:last-child a[href^="#"]:not(.is-ready) {
     display: none;
-}
-
-.wizard.block > .step:has(a[href="#edit"]) ul li .icon {
-    display: none;
-}
-
-.wizard.block > .step:has(a[href="#edit"]) ul li.loading::before {
-    content: "💫";
-}
-
-.wizard.block > .step:has(a[href="#edit"]) ul li.success::before {
-    content: "✅";
-}
-
-.wizard.block > .step:has(a[href="#edit"]) ul li.info::before {
-    content: "ℹ️";
-}
-
-.wizard.block > .step:has(a[href="#edit"]) ul li.failed::before {
-    content: "❌";
-}
-
-.wizard.block > .step:has(a[href="#edit"]) ul li.timeout::before {
-    content: "⏰";
 }

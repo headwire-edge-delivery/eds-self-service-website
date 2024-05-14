@@ -1,4 +1,6 @@
-import { slugMaxLength, slugify, SCRIPT_API } from '../../scripts/scripts.js';
+import {
+  slugMaxLength, slugify, SCRIPT_API, OOPS,
+} from '../../scripts/scripts.js';
 
 /**
  * decorates the header, mainly the nav
@@ -27,6 +29,15 @@ export default async function decorate(block) {
   });
 
   block.querySelector('a[href="#edit"]').classList.add('is-disabled');
+
+  const loader = document.createElement('div');
+  loader.className = 'loader';
+  block.querySelectorAll('.step:has(a[href="#edit"]) li').forEach((el, i) => {
+    if (i === 0) {
+      el.classList.add('is-loading');
+    }
+    el.prepend(loader.cloneNode(true));
+  });
 
   const selectStep = (event) => {
     event.preventDefault();
@@ -106,12 +117,17 @@ export default async function decorate(block) {
           )
           .join('');
 
-        const step = templateContainer.closest('.step');
-        const nextStep = step.nextElementSibling;
         const templateImage = document.createElement('div');
         templateImage.className = 'template-image';
-        nextStep.append(templateImage);
         templateImage.append(templateContainer.querySelector('.template.is-selected img').cloneNode(true));
+
+        // Add template image to all steps
+        const step = templateContainer.closest('.step');
+        let nextStep = step.nextElementSibling;
+        while (nextStep) {
+          nextStep.append(templateImage.cloneNode(true));
+          nextStep = nextStep.nextElementSibling;
+        }
 
         templateContainer.addEventListener('click', (event) => {
           if (event.target.closest('.dot:not(.is-selected)')) {
@@ -165,8 +181,10 @@ export default async function decorate(block) {
                 block.querySelector('a[href="#template"]').click();
                 block.classList.add('show-buttons');
 
-                templateImage.innerHTML = '';
-                templateImage.append(template.querySelector('img').cloneNode(true));
+                block.querySelectorAll('.template-image').forEach((el) => {
+                  el.innerHTML = '';
+                  el.append(template.querySelector('img').cloneNode(true));
+                });
               };
             }
           }
@@ -261,12 +279,25 @@ export default async function decorate(block) {
         method: 'POST',
       });
 
-      const statusEl = document.createElement('div');
-      const container = block.querySelector('.button-container:has(a[href="#edit"])');
-      container.before(statusEl);
+      const step = block.querySelector('.step:has(a[href="#edit"])');
+      const statusList = step.querySelector('ul');
+
+      const error = () => {
+        statusList.remove();
+        step.querySelector('h2 + p').textContent = `${OOPS} Please try again in a few minutes.`;
+      };
 
       if (reqCreate.ok) {
         const { jobId } = await reqCreate.json();
+
+        const addSuccess = (el) => {
+          const loaderEl = el.querySelector('.loader');
+          loaderEl.classList.add('success');
+          loaderEl.textContent = '✓';
+          if (el.nextElementSibling) {
+            el.nextElementSibling.classList.add('is-loading');
+          }
+        };
 
         const statusInterval = setInterval(async () => {
           const reqStatus = await fetch(`${SCRIPT_API}/jobs/${jobId}`);
@@ -280,7 +311,7 @@ export default async function decorate(block) {
 
               // Success
               if (!progress.find(({ status }) => status === 'failed')) {
-                container.classList.add('is-ready');
+                addSuccess(statusList.children[3]);
 
                 const openSite = block.querySelector('a[href="#open-site"]');
                 const openDrive = block.querySelector('a[href="#open-drive"]');
@@ -305,21 +336,27 @@ export default async function decorate(block) {
                   openSiteDetails.href = `/site/${projectSlug}`;
                 }
 
-                block.querySelector('a[href="#edit"]').classList.remove('is-disabled');
+                const edit = step.querySelector('a[href="#edit"]');
+                edit.classList.remove('is-disabled');
+                edit.click();
               } else {
-                statusEl.insertAdjacentHTML('beforeend', '<br/><br/><a class="button" href="/">Try again</a>');
+                error();
               }
             } else {
-              statusEl.innerHTML = `<ul>
-                ${progress.map(({ status, statusText }) => `<li class="${status}">${statusText}</li>`).join('')}
-              </ul>`;
+              progress.filter(({ status }) => status === 'success').forEach(({ statusText }) => {
+                if (statusText === 'Project Name reserved') {
+                  addSuccess(statusList.children[0]);
+                } else if (statusText === 'Github setup done') {
+                  addSuccess(statusList.children[1]);
+                } else if (statusText === 'Drive copy done') {
+                  addSuccess(statusList.children[2]);
+                }
+              });
             }
-
-            window.scrollTo(0, document.body.scrollHeight);
           }
         }, 2000);
       } else {
-        statusEl.innerHTML = 'Sorry something went wrong ... <br/><br/><a class="button" href="/">Try again</a>';
+        error();
       }
     } else if (identifier === '#new') {
       window.location.reload();
