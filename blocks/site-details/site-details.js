@@ -17,7 +17,7 @@ function dialogSetup({
   dialogContent.innerHTML = `
     <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>
     <p>${deleteWarning || ''}</p>
-    ${iconBase64 ? `<img class="icon-display" src="${iconBase64}" alt="icon display" />` : ''}
+    ${iconBase64 ? `<div class="preview"><img class="icon-display" src="${iconBase64}" alt="icon display" /></div>` : ''}
   `;
 
   const deleteButton = document.createElement('button');
@@ -36,10 +36,12 @@ function dialogSetup({
     });
     if (delResponse.ok) {
       dialogContent.innerHTML = `
-      <h3>${name} deleted</h3>
+      <h3 class="centered-info" >${name} deleted</h3>
       `;
       deleteButton.remove();
-      document.querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`).forEach((item) => item.remove());
+      document
+        .querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`)
+        .forEach((item) => item.remove());
     } else {
       alert(OOPS);
     }
@@ -52,7 +54,7 @@ function dialogSetup({
 
 function addBlockDialogSetup({ id, headers, itemList }) {
   const dialogContent = document.createElement('div');
-  dialogContent.innerHTML = '<h3>Loading available blocks...</h3>';
+  dialogContent.innerHTML = '<h3 class="centered-info" >Loading available blocks...</h3>';
   const dialog = window.createDialog(dialogContent);
 
   Promise.all([
@@ -64,7 +66,7 @@ function addBlockDialogSetup({ id, headers, itemList }) {
     );
 
     if (data.length === 0) {
-      dialog.renderDialog('<h3>No new blocks available</h3>');
+      dialog.renderDialog('<h3 class="centered-info" >No new blocks available</h3>');
       return;
     }
 
@@ -72,7 +74,13 @@ function addBlockDialogSetup({ id, headers, itemList }) {
     content.innerHTML = '<h3>Add block</h3>';
 
     const select = document.createElement('select');
-    select.innerHTML = data.map((blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${blockOption.name}</option>`).join('');
+    select.innerHTML = data
+      .map(
+        (blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${
+          blockOption.name
+        }</option>`,
+      )
+      .join('');
 
     const blockInfo = document.createElement('p');
     blockInfo.style.width = '100%';
@@ -98,7 +106,7 @@ function addBlockDialogSetup({ id, headers, itemList }) {
         headers,
       });
       if (addRequest.ok) {
-        dialog.renderDialog(`<h3>${select.value} block added</h3>`);
+        dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`);
         itemList.addItem({ name: select.value });
       } else {
         alert(OOPS);
@@ -147,22 +155,35 @@ function renderBlocksList(blocksList, actions, { project, headers, id }) {
     });
 }
 
-function addIconDialogSetup({ headers, id, itemList }) {
+// MARK: Icon dialog
+function addIconDialogSetup({
+  headers, id, itemList, fileAccept = 'image/svg+xml', titleText = 'Add icon',
+  extraHtml = '', uploadEndpoint = `${SCRIPT_API}/icons/${id}`,
+}) {
   const dialogContent = document.createElement('div');
-  dialogContent.innerHTML = `
-    <h3>Add icon</h3>
-    <input type="file" accept="image/svg+xml" />
-    <div class="preview"></div>`;
 
+  const title = document.createElement('h3');
+  title.innerText = titleText;
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = fileAccept;
   const preview = document.createElement('div');
   preview.classList.add('preview');
-  dialogContent.append(preview);
+
+  dialogContent.append(title, input, preview);
+  if (extraHtml) {
+    dialogContent.insertAdjacentHTML('beforeend', extraHtml);
+  }
 
   let file = null;
   let fileAsBase64 = null;
-  dialogContent.querySelector('input[type="file"]').onchange = (event) => {
+  input.onchange = (event) => {
     [file] = event.target.files;
-    if (file && file.type === 'image/svg+xml') {
+    if (file) {
+      if (file.type !== fileAccept) {
+        preview.innerHTML = 'Please select a valid file!';
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = document.createElement('img');
@@ -174,7 +195,7 @@ function addIconDialogSetup({ headers, id, itemList }) {
       };
       reader.readAsDataURL(file);
     } else {
-      preview.innerHTML = 'Please select an SVG file';
+      preview.innerHTML = 'Please select a file';
     }
   };
 
@@ -183,20 +204,24 @@ function addIconDialogSetup({ headers, id, itemList }) {
   const dialog = window.createDialog(dialogContent, [addButton]);
   addButton.onclick = async () => {
     if (!file) {
-      alert('Please select an SVG file');
+      alert('Please select a file');
+      return;
+    }
+    if (file.type !== fileAccept) {
+      alert('Please select a valid file!');
       return;
     }
     const formData = new FormData();
-    formData.append('icon', file);
+    formData.append('file', file);
     dialog.setLoading(true, 'Adding Icon...');
-    const addRequest = await fetch(`${SCRIPT_API}/icons/${id}`, {
+    const addRequest = await fetch(uploadEndpoint, {
       method: 'POST',
       body: formData,
       headers,
     });
     if (addRequest.ok) {
-      dialog.renderDialog('<h3>Icon added</h3>');
-      itemList.addItem({ name: file.name, base64: fileAsBase64 });
+      dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
+      itemList?.addItem({ name: file.name, base64: fileAsBase64 });
     } else {
       alert(OOPS);
     }
@@ -204,17 +229,48 @@ function addIconDialogSetup({ headers, id, itemList }) {
   };
 }
 
+// MARK: Icon list
 function renderIconsList(iconsList, actions, { project, headers, id }) {
-  actions.querySelector('.icons-actions').innerHTML = '<button class="button add-icon">Add Icon</button>';
+  actions.querySelector('.icons-actions').innerHTML = '<button class="button secondary change-favicon">Change Favicon</button><button class="button add-icon">Add Icon</button>';
   actions.querySelector('.add-icon').onclick = () => addIconDialogSetup({ id, headers, itemList: iconsList });
+  actions.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
+    id,
+    headers,
+    titleText: 'Favicon',
+    fileAccept: 'image/x-icon',
+    extraHtml: '<p>The favicon is the icon that appears in the browser tab.</p><p>You can change it here, but it must be a .ico file.</p>',
+    uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
+  });
 
   iconsList.innerHTML = '';
   iconsList.addItem = ({ name, base64 }) => {
     const li = document.createElement('li');
     li.dataset.iconName = name;
-    li.tabIndex = 0;
-    li.innerText = name;
-    li.onclick = () => dialogSetup({
+    const iconName = document.createElement('span');
+    iconName.innerText = name;
+    li.append(iconName);
+
+    if (base64) {
+      const iconImage = document.createElement('img');
+      iconImage.src = base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64;
+      iconImage.classList.add('icon-preview');
+      li.prepend(iconImage);
+    }
+
+    const settingsButton = document.createElement('button');
+    settingsButton.classList.add('button', 'secondary', 'icon-settings');
+    settingsButton.innerText = 'Settings';
+
+    const copyButton = document.createElement('button');
+    copyButton.classList.add('button', 'copy-button');
+    copyButton.innerText = 'Copy';
+
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.classList.add('buttons-container');
+    buttonsContainer.append(settingsButton, copyButton);
+    li.append(buttonsContainer);
+
+    settingsButton.onclick = () => dialogSetup({
       name,
       project,
       headers,
@@ -222,6 +278,11 @@ function renderIconsList(iconsList, actions, { project, headers, id }) {
       iconBase64: base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64,
     });
     iconsList.append(li);
+
+    copyButton.onclick = () => {
+      // copy icon as doc compatible string (without .svg)
+      navigator.clipboard.writeText(`:${name.replace(/\.[^/.]+$/, '')}:`);
+    };
   };
 
   fetch(`${SCRIPT_API}/icons/${project.projectSlug}`, { headers })
@@ -490,14 +551,21 @@ export default async function decorate(block) {
     `;
 
       const actions = block.querySelector('.actions');
-      actions.querySelector('.overview-actions').insertAdjacentHTML('beforeend', `
+      actions.querySelector('.overview-actions').insertAdjacentHTML(
+        'beforeend',
+        `
         <a href="${project.sidekickSetupUrl}" class="button secondary" target="_blank">Install
         Sidekick</a>
-        ${project.authoringGuideUrl ? `<a href="${project.authoringGuideUrl}" class="button secondary" target="_blank">Docs</a>` : ''}
+        ${
+  project.authoringGuideUrl
+    ? `<a href="${project.authoringGuideUrl}" class="button secondary" target="_blank">Docs</a>`
+    : ''
+}
         <a href="${project.driveUrl}" class="button secondary" target="_blank">Edit</a>
         <button class="share"></button>
         <a href="${project.liveUrl}" class="button" target="_blank">Open</a>
-      `);
+      `,
+      );
 
       // MARK: Share dialog
       const shareButton = actions.querySelector('button.share');
@@ -505,7 +573,9 @@ export default async function decorate(block) {
       shareButton.innerText = 'Project Authors';
       shareButton.onclick = async () => {
         const dialog = window.createDialog('<div><h3>Getting Authors...</h3></div>');
-        const authors = await fetch(`${SCRIPT_API}/authors/${id}`, { headers }).then((r) => r.json()).catch(() => []);
+        const authors = await fetch(`${SCRIPT_API}/authors/${id}`, { headers })
+          .then((r) => r.json())
+          .catch(() => []);
         const populatedContent = document.createElement('div');
         const title = document.createElement('h3');
         title.innerText = 'Project Authors';
@@ -620,7 +690,7 @@ export default async function decorate(block) {
             body: JSON.stringify({ contactEmail: input.value }),
           });
           if (response.ok) {
-            dialog.renderDialog('<h3>Email Updated</h3>');
+            dialog.renderDialog('<h3 class="centered-info" >Email Updated</h3>');
             project.contactEmail = input.value;
           } else {
             alert(OOPS);
@@ -689,9 +759,7 @@ export default async function decorate(block) {
           }
 
           const toDate = (lastModified) => new Date(Number(lastModified) * 1000);
-          const lastUpdate = Math.max(
-            ...data.map(({ lastModified }) => toDate(lastModified)),
-          );
+          const lastUpdate = Math.max(...data.map(({ lastModified }) => toDate(lastModified)));
           block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
           // Emails only
@@ -723,17 +791,19 @@ export default async function decorate(block) {
             .join('');
 
           // Rest of the pages
-          const pages = data
-            .filter(({ template, robots }) => !template.includes('email') && !robots.includes('noindex'));
+          const pages = data.filter(
+            ({ template, robots }) => !template.includes('email') && !robots.includes('noindex'),
+          );
 
-          block.querySelector('.pages tbody').innerHTML = pages.map((item) => {
-            const title = document.createElement('div');
-            title.innerHTML = item.title;
+          block.querySelector('.pages tbody').innerHTML = pages
+            .map((item) => {
+              const title = document.createElement('div');
+              title.innerHTML = item.title;
 
-            const description = document.createElement('div');
-            description.innerHTML = item.description;
+              const description = document.createElement('div');
+              description.innerHTML = item.description;
 
-            return `
+              return `
               <tr>
                   <td>${title.textContent}</td>
                   <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
@@ -742,24 +812,31 @@ export default async function decorate(block) {
                   <td><a class="button secondary" href="${project.liveUrl}${item.path}" target="_blank">Open</a></td>
               </tr>
             `;
-          })
+            })
             .join('');
 
           // Theme pages
-          block.querySelector('.theme-actions').insertAdjacentHTML('beforeend', `
+          block.querySelector('.theme-actions').insertAdjacentHTML(
+            'beforeend',
+            `
             <select class="button secondary">
                 ${pages.map(({ path }) => `<option value="${path}">Path: ${path}</option>`).join('')}
             </select>
-          `);
+          `,
+          );
 
           const select = block.querySelector('.theme-actions select');
           select.onchange = () => {
             const varsPreview = block.querySelector('.vars-preview');
             if (new URL(varsPreview.src).pathname !== select.value) {
               varsPreview.src = `${project.liveUrl}${select.value}`;
-              varsPreview.addEventListener('load', () => {
-                varsPreview.contentWindow.postMessage(encodeURIComponent(editor.getValue()), '*');
-              }, { once: true });
+              varsPreview.addEventListener(
+                'load',
+                () => {
+                  varsPreview.contentWindow.postMessage(encodeURIComponent(editor.getValue()), '*');
+                },
+                { once: true },
+              );
             }
           };
         })
@@ -797,9 +874,12 @@ export default async function decorate(block) {
             varsPreview.contentWindow.postMessage(encodeURIComponent(editor.getValue()), '*');
           });
 
-          actions.querySelector('.theme-actions').insertAdjacentHTML('beforeend', `
+          actions.querySelector('.theme-actions').insertAdjacentHTML(
+            'beforeend',
+            `
             <button class="button publish-theme">Publish</button>
-          `);
+          `,
+          );
 
           actions.querySelector('.publish-theme').onclick = async () => {
             editor.display.wrapper.classList.add('sending');
