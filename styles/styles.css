@@ -176,6 +176,7 @@ input[type="checkbox"]:checked {
 input[type="file"]::file-selector-button,
 .button {
   display: inline-flex;
+  text-decoration: none;
   align-items: center;
   justify-content: center;
   gap: 8px;
