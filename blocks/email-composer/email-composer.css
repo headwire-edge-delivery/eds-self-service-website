@@ -95,7 +95,7 @@
     font-family: var(--font-family);
     font-size: 16px;
     padding: 16px;
-    color: var(--secondary-color);
+    color: var(--text-secondary-color);
     margin-bottom: 32px;
     display: block;
     width: 100%;
@@ -146,7 +146,7 @@
 }
 
 .email-composer .recipients li.is-selected {
-    border-color: var(--primary-color);
+    border-color: var(--border-primary-color);
 }
 
 .email-composer .enable-styles ~ * {

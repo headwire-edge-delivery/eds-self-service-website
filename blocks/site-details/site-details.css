@@ -90,10 +90,15 @@
     width: 100%;
     justify-content: flex-start;
     border-color: transparent;
+    color: var(--text-primary-color);
+}
+
+.site-details.block .content aside .button:hover {
+background-color: var(--bg-secondary-color);
 }
 
 .site-details.block .content aside .button.is-selected {
-    border-color: var(--primary-color);
+    border-color: var(--border-primary-color);
 }
 
 .site-details.block .details > :not(.is-selected),

@@ -38,7 +38,7 @@
     padding: 12px 20px 12px 40px;
     font-weight: 300;
     font-family: var(--font-family);
-    color: var(--secondary-color);
+    color: var(--text-secondary-color);
 }
 
 .dashboard.block h1 {
@@ -66,11 +66,11 @@
     background: white;
     padding: 32px;
     text-decoration: none;
-    border: 1px solid var(--primary-color);
+    border: 1px solid var(--bg-primary-color);
 }
 
 .dashboard.block .sites li a:hover {
-    background: var(--primary-color);
+    background: var(--bg-primary-color);
 }
 
 .dashboard.block .sites ul a p {
@@ -105,10 +105,16 @@
     width: 100%;
     justify-content: flex-start;
     border-color: transparent;
+    color: var(--text-primary-color);
+
+}
+
+.dashboard.block .content aside .button:hover {
+    background-color: var(--bg-secondary-color);
 }
 
 .dashboard.block .content aside .button.is-selected {
-    border-color: var(--primary-color);
+    border-color: var(--border-primary-color);
 }
 
 .dashboard.block .details {

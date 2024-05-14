@@ -56,7 +56,7 @@
 
 .header.block a[href="/dashboard"]:hover {
     background: transparent;
-    color: var(--secondary-color);
+    color: var(--text-secondary-color);
 }
 
 .header.block a[href="/dashboard"] img {

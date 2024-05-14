@@ -57,7 +57,7 @@
     position: fixed;
     top: 0;
     width: 100%;
-    background: var(--primary-color);
+    background: var(--bg-primary-color);
     margin: 0;
     padding: 16px;
     box-shadow: var(--box-shadow);
@@ -95,8 +95,14 @@
 }
 
 .wizard.block .template.is-selected {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: var(--bg-primary-color);
+    border-color: var(--border-primary-color);
+}
+
+.wizard.block .template.is-selected p,
+.wizard.block .template.is-selected h3
+{
+    color: white;
 }
 
 .wizard.block .template.is-selected .select-template {
@@ -135,7 +141,7 @@
 }
 
 .wizard.block .carousel img {
-    background-color: var(--secondary-color);
+    background-color: var(--text-secondary-color);
     object-fit: contain;
     height: 260px;
 }
@@ -153,13 +159,13 @@
 
 .wizard.block .carousel .dot {
     border-radius: 50%;
-    border: 1px solid var(--secondary-color);
+    border: 1px solid var(--text-secondary-color);
     padding: 4px;
     cursor: pointer;
 }
 
 .wizard.block .carousel .dot.is-selected {
-    background-color: var(--secondary-color);
+    background-color: var(--text-secondary-color);
 }
 
 .wizard.block input,
@@ -177,7 +183,6 @@
     font-family: var(--font-family);
     font-size: 16px;
     padding: 16px;
-    color: var(--secondary-color);
     margin-block: 32px;
     text-overflow: ellipsis;
 }
