@@ -15,6 +15,7 @@ async function onFormSubmit(event) {
   event.preventDefault();
   const form = event.target;
   const data = new FormData(form);
+  data.append('timestamp', Date.now());
 
   disableForm(form, true);
 
