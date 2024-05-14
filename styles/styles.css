@@ -1,19 +1,13 @@
 /* Global */
 :root {
-  /* colors */
   --bg-primary-color: #1a202c;
   --bg-secondary-color: rgb(230 230 230);
-
   --text-primary-color: #2d3748;
   --text-secondary-color: #edf2f7;
-
   --border-primary-color: #1a202c;
   --border-secondary-color: #edf2f7;
-
   --link-primary-color: var(--text-primary-color);
   --link-primary-color-hover: rgb(230 230 230);
-
-
   --layout-width: 1280px;
   --animation-duration: 300ms;
   --font-family: system-ui, sans-serif;
@@ -21,8 +15,6 @@
   --body-font-size: 16px;
   --box-shadow: 0 2px 5px rgb(213 213 213);
 
-  /* headwire wwww */
-    /* --bg-primary-color: rgb(0 73 144); */
 
   font-synthesis: none;
   text-rendering: optimizelegibility;

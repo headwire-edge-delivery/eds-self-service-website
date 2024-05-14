@@ -99,6 +99,12 @@
     border-color: var(--border-primary-color);
 }
 
+.wizard.block .template h3 + p {
+    font-weight: 200;
+    text-align: justify;
+}
+
+
 .wizard.block .template.is-selected p,
 .wizard.block .template.is-selected h3
 {
@@ -123,11 +129,6 @@
     width: 100vw;
     border: none;
     background-color: white;
-}
-
-.wizard.block .template h3 + p {
-    font-weight: 200;
-    text-align: justify;
 }
 
 .wizard.block .template-image {
