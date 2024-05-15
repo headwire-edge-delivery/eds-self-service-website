@@ -2,19 +2,26 @@ import {
   slugMaxLength, slugify, SCRIPT_API, OOPS,
 } from '../../scripts/scripts.js';
 
+const progressSteps = [
+  'name',
+  'drive',
+  'code',
+  'publish',
+];
+
 /**
  * decorates the header, mainly the nav
  * @param {Element} block The header block element
  */
 export default async function decorate(block) {
-  const steps = block.querySelectorAll(':scope > div');
-  steps.forEach((div) => div.classList.add('step'));
+  const creationSteps = block.querySelectorAll(':scope > div');
+  creationSteps.forEach((div) => div.classList.add('step'));
 
   const prevTemplate = document.createElement('button');
   prevTemplate.className = 'button prev secondary';
   prevTemplate.textContent = 'Back';
 
-  steps.forEach((step, i) => {
+  creationSteps.forEach((step, i) => {
     const buttonContainer = step.querySelector('.button-container:last-child');
     if (buttonContainer) {
       const button = buttonContainer.querySelector('a');
@@ -207,8 +214,26 @@ export default async function decorate(block) {
 
   const createButton = createStep.querySelector('a[href="#create"]');
   createButton.classList.add('is-disabled');
+
+  // MARK: Valid slug check
+  let createButtonTimer;
   function updateCreateButton() {
-    createButton.classList.toggle('is-disabled', input.value.length < 2 || slugInput.value.length < 2);
+    clearTimeout(createButtonTimer);
+    createButton.classList.add('is-disabled');
+    if (input.value.length < 2 || slugInput.value.length < 2) {
+      return;
+    }
+
+    createButtonTimer = setTimeout(async () => {
+      const res = await fetch(`${SCRIPT_API}/checkAvailability/${slugInput.value}`);
+      if (res.ok) {
+        createButton.classList.remove('is-disabled');
+        slugInputWrapper.classList.remove('slug-taken');
+      } else {
+        createButton.classList.add('is-disabled');
+        slugInputWrapper.classList.add('slug-taken');
+      }
+    }, 300);
   }
   const textarea = document.createElement('textarea');
   textarea.placeholder = 'Description';
@@ -261,6 +286,8 @@ export default async function decorate(block) {
     }
 
     const identifier = action.getAttribute('href');
+
+    // MARK: site creation
     if (identifier === '#create') {
       const token = await window.auth0Client.getTokenSilently();
       const template = block.querySelector('.template.is-selected').id;
@@ -279,44 +306,41 @@ export default async function decorate(block) {
         method: 'POST',
       });
 
-      const step = block.querySelector('.step:has(a[href="#edit"])');
-      const statusList = step.querySelector('ul');
+      const editStep = block.querySelector('.step:has(a[href="#edit"])');
+      const statusList = editStep.querySelector('ul');
 
       const error = () => {
         statusList.remove();
-        step.querySelector('h2 + p').textContent = `${OOPS} Please try again in a few minutes.`;
+        editStep.querySelector('h2 + p').textContent = `${OOPS} Please try again in a few minutes.`;
       };
+
+      const renderStatusList = (stepsObj) => {
+        const listItems = statusList.querySelectorAll('li');
+        progressSteps.forEach((step, index) => {
+          if (stepsObj[step]) {
+            listItems[index].className = stepsObj[step].status;
+          }
+        });
+      };
+      renderStatusList({});
 
       if (reqCreate.ok) {
         const { jobId } = await reqCreate.json();
-
-        const addSuccess = (el) => {
-          const loaderEl = el.querySelector('.loader');
-          loaderEl.classList.add('success');
-          loaderEl.textContent = '✓';
-          if (el.nextElementSibling) {
-            el.nextElementSibling.classList.add('is-loading');
-          }
-        };
 
         const statusInterval = setInterval(async () => {
           const reqStatus = await fetch(`${SCRIPT_API}/jobs/${jobId}`);
           if (reqStatus.ok) {
             const {
-              projectSlug, progress, finished, liveUrl, driveUrl, sidekickSetupUrl, calendarUrl,
+              steps, finished, success, failed, driveUrl, sidekickSetupUrl, liveUrl, projectSlug,
             } = await reqStatus.json();
 
+            renderStatusList(steps);
+
             if (finished) {
-              clearInterval(statusInterval);
-
-              // Success
-              if (!progress.find(({ status }) => status === 'failed')) {
-                addSuccess(statusList.children[3]);
-
+              if (success) {
                 const openSite = block.querySelector('a[href="#open-site"]');
                 const openDrive = block.querySelector('a[href="#open-drive"]');
                 const installSidekick = block.querySelector('a[href="#install-sidekick"]');
-                const openCalendar = block.querySelector('a[href="#open-calendar"]');
                 const openSiteDetails = block.querySelector('a[href="#site-details"]');
                 const makeReady = (linkEl, url) => {
                   if (linkEl && url) {
@@ -329,29 +353,22 @@ export default async function decorate(block) {
                 makeReady(openSite, liveUrl);
                 makeReady(openDrive, driveUrl);
                 makeReady(installSidekick, sidekickSetupUrl);
-                makeReady(openCalendar, calendarUrl);
 
                 if (openSiteDetails) {
                   openSiteDetails.classList.remove('next');
                   openSiteDetails.href = `/site/${projectSlug}`;
                 }
 
-                const edit = step.querySelector('a[href="#edit"]');
+                const edit = editStep.querySelector('a[href="#edit"]');
                 edit.classList.remove('is-disabled');
                 edit.click();
-              } else {
+              } else if (failed) {
                 error();
+              } else {
+                // don't clear interval
+                return;
               }
-            } else {
-              progress.filter(({ status }) => status === 'success').forEach(({ statusText }) => {
-                if (statusText === 'Project Name reserved') {
-                  addSuccess(statusList.children[0]);
-                } else if (statusText === 'Github setup done') {
-                  addSuccess(statusList.children[1]);
-                } else if (statusText === 'Drive copy done') {
-                  addSuccess(statusList.children[2]);
-                }
-              });
+              clearInterval(statusInterval);
             }
           }
         }, 2000);
