@@ -1,3 +1,8 @@
+const unauthenticatedAllowedPaths = {
+  '/': true,
+  '/feedback': true,
+};
+
 window.auth0.createAuth0Client({
   domain: 'dev-ao71660qsmfxenrv.us.auth0.com',
   clientId: 'uu61j8YM6RirVCEyy6M39vdNQUx8hlW9',
@@ -20,7 +25,7 @@ window.auth0.createAuth0Client({
 
   if (isAuthenticated) {
     document.dispatchEvent(new CustomEvent('auth0:authenticated'));
-  } else if (window.location.pathname !== '/') {
+  } else if (!unauthenticatedAllowedPaths[window.location.pathname]) {
     window.location.href = '/';
   }
 });

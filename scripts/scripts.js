@@ -57,14 +57,6 @@ export const getPlaceholder = async (str) => {
   return str ? placeholderObj[str] : placeholderObj;
 };
 
-if (window.localStorage.getItem('darkMode') === 'true') {
-  document.documentElement.classList.add('dark-mode');
-} else if (window.localStorage.getItem('darkMode') === 'false') {
-  document.documentElement.classList.remove('dark-mode');
-} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-  document.documentElement.classList.add('dark-mode');
-}
-
 export function slugify(str) {
   return str
     .normalize('NFD')
