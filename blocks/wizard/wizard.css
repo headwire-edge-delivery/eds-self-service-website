@@ -178,6 +178,15 @@
     margin: 16px auto auto;
 }
 
+.wizard.block #slug-input-wrapper.slug-taken::before {
+    display: block;
+    content: 'Slug already taken!';
+    color: red;
+    position: absolute;
+    bottom: -20px;
+    left: 16px;
+}
+
 .wizard.block input,
 .wizard.block textarea {
     font-size: 16px;
@@ -223,7 +232,7 @@
     border-radius: 50%;
     width: 20px;
     height: 20px;
-    display: none;
+    opacity: 0;
     align-items: center;
     font-weight: bold;
 }
@@ -232,17 +241,41 @@
     opacity: .5;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.is-loading {
+.wizard.block .step:has(a[href="#edit"]) li.success,
+.wizard.block .step:has(a[href="#edit"]) li.loading {
     opacity: 1;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.is-loading .loader {
+.wizard.block .step:has(a[href="#edit"]) li.success .loader,
+.wizard.block .step:has(a[href="#edit"]) li.loading .loader {
     display: flex;
+    opacity: 1;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.is-loading .loader.success {
+.wizard.block .step:has(a[href="#edit"]) li.success .loader {
     border: none;
     animation: none;
+    position: relative;
+    transform: rotate(45deg) translate(-30%, 0);
+}
+
+.wizard.block .step:has(a[href="#edit"]) li.success .loader::before,
+.wizard.block .step:has(a[href="#edit"]) li.success .loader::after {
+    display: block;
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background-color: var(--primary-color);
+    top: 0;
+    right: 0;
+}
+
+.wizard.block .step:has(a[href="#edit"]) li.success .loader::after {
+    width: 50%;
+    height: 2px;
+    bottom: 0;
+    top: unset;
 }
 
 .wizard.block > .step:last-child a[href^="#"]:not(.is-ready) {

@@ -10,6 +10,7 @@ import {
   waitForLCP,
   loadBlocks,
   loadCSS,
+  fetchPlaceholders,
 } from './aem.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
@@ -38,6 +39,23 @@ export function onAuthenticated(cb) {
     });
   }
 }
+
+/**
+ * Get placeholders for current language.
+ * Using this function will only ever fetch once.
+ * @param {String} return value for this key, if 'falsy' will return whole object.
+ */
+export const getPlaceholder = async (str) => {
+  const placeholderLanguage = document.documentElement.lang === 'en'
+    ? 'default'
+    : `/${document.documentElement.lang}`;
+  if (!window.placeholders) {
+    await fetchPlaceholders(placeholderLanguage);
+  }
+  // property is created in fetchPlaceholders
+  const placeholderObj = await window.placeholders[placeholderLanguage];
+  return str ? placeholderObj[str] : placeholderObj;
+};
 
 export function slugify(str) {
   return str
