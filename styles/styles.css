@@ -361,6 +361,7 @@ dialog .centered-info {
 img[src="/icons/loading.svg"] {
   width: 124px;
   height: 124px;
+  filter: invert(1);
 }
 
 ul.author-list {
