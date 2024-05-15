@@ -9,6 +9,7 @@
   --header-height: 64px;
   --body-font-size: 16px;
   --box-shadow: 0 2px 5px rgb(213 213 213);
+  --loading-backdrop: rgba(128 128 128 / 80%);
   --icon-drop-shadow: drop-shadow(0 0 5px #000);
 
   font-synthesis: none;
@@ -31,6 +32,9 @@ html {
 body {
   margin: 0;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 body.is-template-previewing {
@@ -59,6 +63,7 @@ main {
 
 footer {
   display: none;
+  margin-top: auto;
 }
 
 main:has(> [data-section-status="loaded"]) + footer {
@@ -110,7 +115,6 @@ img {
 }
 
 a {
-  text-decoration: none;
   transition: all var(--animation-duration);
   color: var(--secondary-color);
 }
@@ -127,6 +131,15 @@ a:hover {
   flex-wrap: wrap;
 }
 
+textarea {
+  resize: vertical;
+}
+
+
+
+textarea,
+select,
+select option,
 input[type="text"],
 input[type="email"],
 input[type="file"],
@@ -143,9 +156,27 @@ input[type="password"] {
   width: 100%;
 }
 
+input[type="checkbox"] {
+  display: inline-block;
+  width: calc(var(--body-font-size) + 2px);
+  height: calc(var(--body-font-size) + 2px);
+  position: relative;
+  border: 1px solid var(--secondary-color);
+  background: white;
+  margin: 0 6px;
+  cursor: pointer;
+  appearance: none;
+}
+
+input[type="checkbox"]:checked {
+  background: url('/icons/check-mark.svg') no-repeat center / 90%, var(--primary-color);
+}
+
+
 input[type="file"]::file-selector-button,
 .button {
   display: inline-flex;
+  text-decoration: none;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -281,7 +312,7 @@ dialog.loading::before {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background-color: rgba(128 128 128 / 80%);
+  background-color: var(--loading-backdrop);
 }
 
 dialog .dialog-button-container {
