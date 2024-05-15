@@ -266,7 +266,7 @@
     position: absolute;
     width: 2px;
     height: 100%;
-    background-color: var(--primary-color);
+    background-color: var(--black);
     top: 0;
     right: 0;
 }
