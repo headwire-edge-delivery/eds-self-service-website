@@ -11,7 +11,7 @@ export default async function decorate(block) {
   steps.forEach((div) => div.classList.add('step'));
 
   const prevTemplate = document.createElement('button');
-  prevTemplate.className = 'button prev secondary';
+  prevTemplate.className = 'button prev';
   prevTemplate.textContent = 'Back';
 
   steps.forEach((step, i) => {
@@ -92,11 +92,8 @@ export default async function decorate(block) {
                 return '';
               }
               return `
-          <div id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
+          <a href="#" id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
-            <div class="button-container">
-                <button class="button demo">Select template</button>
-            </div>
             <p>${description}</p>
             <div class="carousel">
                 <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
@@ -111,7 +108,7 @@ export default async function decorate(block) {
                 </div>
             </div>
             <iframe class="preview" src="${demo}" loading="lazy"></iframe>
-          </div>
+          </a>
         `;
             },
           )
@@ -131,6 +128,7 @@ export default async function decorate(block) {
 
         templateContainer.addEventListener('click', (event) => {
           if (event.target.closest('.dot:not(.is-selected)')) {
+            event.preventDefault();
             const dots = event.target.parentElement;
             const index = [...dots.children].indexOf(event.target) + 1;
             const template = event.target.closest('.template');
@@ -140,7 +138,8 @@ export default async function decorate(block) {
 
             dots.querySelector('.is-selected').classList.remove('is-selected');
             event.target.classList.add('is-selected');
-          } else if (event.target.closest('.demo')) {
+          } else if (event.target.closest('.template')) {
+            event.preventDefault();
             const template = event.target.closest('.template');
             block.querySelector('.template.is-selected').classList.remove('is-selected');
             template.classList.add('is-selected');

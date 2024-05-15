@@ -12,7 +12,7 @@ export default async function decorate(block) {
   const nav = document.createElement('nav');
   while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
 
-  nav.querySelector('a[href="#back"]').classList.add('button', 'secondary');
+  nav.querySelector('a[href="#back"]').classList.add('button');
   nav.querySelector('a[href="#select-template"]').classList.add('primary');
 
   block.innerHTML = '';

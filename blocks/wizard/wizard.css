@@ -13,14 +13,8 @@
 .wizard.block {
     display: flex;
     overflow: hidden;
-    border-top: 1px solid white;
     padding-block: 32px;
     min-height: 50vh;
-}
-
-.wizard.block hr {
-    border: 0.5px solid white;
-    margin-block: 48px;
 }
 
 .wizard.block > .step {
@@ -57,11 +51,9 @@
     position: fixed;
     top: 0;
     width: 100%;
-    background: var(--primary-color);
+    background: var(--blue);
     margin: 0;
     padding: 16px;
-    box-shadow: var(--box-shadow);
-    border-top: 1px solid white;
     display: none;
     transition: top 500ms;
 }
@@ -85,14 +77,26 @@
     overflow: auto;
     padding-left: calc((100vw - var(--layout-width)) / 2 - 16px);
     padding-right: 16px;
-    margin: 32px auto auto 16px;
+    margin: 48px auto auto 16px;
 }
 
 .wizard.block .template {
     padding: 32px;
-    border: 2px solid var(--primary-color);
     margin: auto auto 32px;
     min-width: calc(var(--layout-width) / 2.5);
+    border-radius: var(--border-radius);
+    background-color: var(--dark-blue);
+    color: var(--white);
+    text-decoration: none;
+    transition: all var(--animation-duration);
+}
+
+.wizard.block .template:hover {
+    background-color: var(--light-blue);
+}
+
+.wizard.block .template h3 {
+    color: var(--white)
 }
 
 @media (width < 768px) {
@@ -121,7 +125,6 @@
     height: 100vh;
     width: 100vw;
     border: none;
-    background-color: white;
 }
 
 .wizard.block .template h3 + p {
@@ -140,7 +143,7 @@
 }
 
 .wizard.block .carousel img {
-    background-color: var(--secondary-color);
+    background-color: var(--gray);
     object-fit: contain;
     height: 260px;
 }
@@ -158,13 +161,13 @@
 
 .wizard.block .carousel .dot {
     border-radius: 50%;
-    border: 1px solid var(--secondary-color);
+    border: 1px solid var(--white);
     padding: 4px;
     cursor: pointer;
 }
 
 .wizard.block .carousel .dot.is-selected {
-    background-color: var(--secondary-color);
+    background-color: var(--white);
 }
 
 .wizard.block input,
@@ -177,12 +180,8 @@
 
 .wizard.block input,
 .wizard.block textarea {
-    background-color: white;
-    border: none;
-    font-family: var(--font-family);
     font-size: 16px;
     padding: 16px;
-    color: var(--secondary-color);
     margin-block: 32px;
     text-overflow: ellipsis;
 }
@@ -218,9 +217,9 @@
 }
 
 .wizard.block .step:has(a[href="#edit"]) .loader {
-    border: 2px solid white;
+    border: 2px solid var(--gray);
     animation: spin 1s linear infinite;
-    border-top: 2px solid var(--primary-color);
+    border-top: 2px solid var(--black);
     border-radius: 50%;
     width: 20px;
     height: 20px;

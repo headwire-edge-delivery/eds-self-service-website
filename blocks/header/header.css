@@ -25,9 +25,10 @@
     display: flex;
 }
 
-.header.block img {
-    height: 32px;
-    width: 32px;
+.header.block .section:first-child img {
+    height: calc(var(--header-height) + 32px);
+    width: auto;
+    margin-top: 32px;
 }
 
 .header.block p {
@@ -46,6 +47,12 @@
     align-items: center;
     gap: 8px;
     text-decoration: none;
+    color: var(--white);
+    font-weight: 300;
+}
+
+.header.block a[href="/"]:hover {
+    color: var(--gray);
 }
 
 .header.block :is(a[href="#select-template"], a[href="#back"]) {
@@ -58,11 +65,13 @@
 
 .header.block a[href="/dashboard"]:hover {
     background: transparent;
-    color: var(--secondary-color);
+    color: var(--gray);
 }
 
 .header.block a[href="/dashboard"] img {
     border-radius: 50%;
+    height: 32px;
+    width: 32px;
 }
 
 .header.block .button-container:has(a[href="#signin"]),

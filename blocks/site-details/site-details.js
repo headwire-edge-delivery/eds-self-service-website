@@ -119,7 +119,7 @@ function addBlockDialogSetup({ id, headers, itemList }) {
 
 function renderBlocksList(blocksList, actions, { project, headers, id }) {
   const blockActions = actions.querySelector('.blocks-actions');
-  blockActions.insertAdjacentHTML('beforeend', '<button class="button add-block">Add Block</button>');
+  blockActions.insertAdjacentHTML('beforeend', '<button class="button primary add-block">Add Block</button>');
   actions.querySelector('.add-block').onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
 
   blocksList.innerHTML = '';
@@ -231,7 +231,7 @@ function addIconDialogSetup({
 
 // MARK: Icon list
 function renderIconsList(iconsList, actions, { project, headers, id }) {
-  actions.querySelector('.icons-actions').innerHTML = '<button class="button secondary change-favicon">Change Favicon</button><button class="button add-icon">Add Icon</button>';
+  actions.querySelector('.icons-actions').innerHTML = '<button class="button secondary change-favicon">Change Favicon</button><button class="button primary add-icon">Add Icon</button>';
   actions.querySelector('.add-icon').onclick = () => addIconDialogSetup({ id, headers, itemList: iconsList });
   actions.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
     id,
@@ -262,7 +262,7 @@ function renderIconsList(iconsList, actions, { project, headers, id }) {
     settingsButton.innerText = 'Settings';
 
     const copyButton = document.createElement('button');
-    copyButton.classList.add('button', 'copy-button');
+    copyButton.classList.add('button', 'secondary', 'copy-button');
     copyButton.innerText = 'Copy';
 
     const buttonsContainer = document.createElement('div');
@@ -563,7 +563,7 @@ export default async function decorate(block) {
 }
         <a href="${project.driveUrl}" class="button secondary" target="_blank">Edit</a>
         <button class="share"></button>
-        <a href="${project.liveUrl}" class="button" target="_blank">Open</a>
+        <a href="${project.liveUrl}" class="button primary" target="_blank">Open</a>
       `,
       );
 
@@ -877,7 +877,7 @@ export default async function decorate(block) {
           actions.querySelector('.theme-actions').insertAdjacentHTML(
             'beforeend',
             `
-            <button class="button publish-theme">Publish</button>
+            <button class="button primary publish-theme">Publish</button>
           `,
           );
 

@@ -11,8 +11,8 @@ export default async function decorate(block) {
     block.innerHTML = `
         <div class="nav">
           <h1>Dashboard</h1>
-          <a href="/" class="button nav-sites">Create new site</a>
-          <a href="https://myaccount.google.com/" class="button nav-account">Edit account</a>
+          <a href="/" class="button primary nav-sites">Create new site</a>
+          <a href="https://myaccount.google.com/" class="button nav-account primary">Edit account</a>
         </div>
         <div class="content">
             <aside>

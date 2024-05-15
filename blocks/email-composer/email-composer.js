@@ -89,7 +89,7 @@ export default async function decorate(block) {
                     <ul class="recipients"></ul>
                     <div class="button-container">
                         <button class="button secondary is-disabled select-all">Select all</button>
-                        <button class="button is-disabled send">Send</button>
+                        <button class="button primary is-disabled send">Send</button>
                     </div>
                 </div>
                 

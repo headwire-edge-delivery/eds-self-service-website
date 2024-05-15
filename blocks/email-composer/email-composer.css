@@ -22,6 +22,7 @@
     gap: 8px;
     align-items: center;
     line-height: 16px;
+    text-transform: uppercase;
 }
 
 .email-composer.block .breadcrumbs h1 {
@@ -40,7 +41,6 @@
 }
 
 .email-composer.block .content {
-    border-top: 1px solid white;
     display: flex;
     gap: 64px;
     padding-block: 32px
@@ -74,7 +74,6 @@
 
 .email-composer.block .preview {
     flex: 1;
-    background: white;
 }
 
 .email-composer.block .preview iframe {
@@ -90,12 +89,6 @@
 }
 
 .email-composer input {
-    background-color: white;
-    border: none;
-    font-family: var(--font-family);
-    font-size: 16px;
-    padding: 16px;
-    color: var(--secondary-color);
     margin-bottom: 32px;
     display: block;
     width: 100%;
@@ -133,7 +126,6 @@
 
 .email-composer .recipients li {
     padding: 8px;
-    background: white;
     font-size: 14px;
     font-weight: 700;
     border: 1px solid transparent;
@@ -142,11 +134,11 @@
 }
 
 .email-composer .recipients li:hover {
-    border-color: white;
+    border-color: var(--gray);
 }
 
 .email-composer .recipients li.is-selected {
-    border-color: var(--primary-color);
+    border-color: var(--light-blue);
 }
 
 .email-composer .enable-styles ~ * {

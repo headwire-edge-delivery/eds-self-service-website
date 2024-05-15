@@ -1,10 +1,16 @@
 .hero.block {
   text-align: center;
   padding: 32px;
+  background-color: var(--blue);
+  color: var(--white);
 }
 
 .hero.block h1 ~ p {
   font-size: 22px;
   line-height: 32px;
   font-weight: 200;
+}
+
+.hero.block :is(h1, strong) {
+  color: var(--white);
 }

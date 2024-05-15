@@ -1,15 +1,19 @@
 /* Global */
 :root {
   --layout-width: 1280px;
-  --gray-color: rgb(230 230 230);
-  --primary-color: rgb(147 231 129);
-  --secondary-color: rgb(34 34 34);
+  --blue: #004990;
+  --dark-blue: rgb(63 92 133);
+  --light-blue: rgb(80 146 188);
+  --orange: rgb(218 123 64);
+  --gray: #bbb;
+  --white: #fff;
+  --black: #000;
   --animation-duration: 300ms;
   --font-family: system-ui, sans-serif;
   --header-height: 64px;
   --body-font-size: 16px;
-  --box-shadow: 0 2px 5px rgb(213 213 213);
   --icon-drop-shadow: drop-shadow(0 0 5px #000);
+  --border-radius: 15px;
 
   font-synthesis: none;
   text-rendering: optimizelegibility;
@@ -20,8 +24,8 @@
 
 html {
   font-family: var(--font-family);
-  background: linear-gradient(90deg, var(--gray-color), white);
-  color: var(--secondary-color);
+  background-color: var(--white);
+  color: var(--black);
 }
 
 * {
@@ -48,9 +52,9 @@ header {
   top: 0;
   left: 0;
   right: 0;
-  background-color: var(--primary-color);
+  background-color: var(--blue);
+  color: var(--white);
   z-index: 10;
-  box-shadow: var(--box-shadow);
 }
 
 main {
@@ -69,11 +73,15 @@ main:has(> [data-section-status="loaded"]) + footer {
 h1,
 h2,
 h3 {
-  color: var(--secondary-color);
+  color: var(--black);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.05em;
   margin: 0;
+}
+
+strong {
+  color: var(--black);
 }
 
 p {
@@ -90,6 +98,8 @@ h1 {
   padding-block: 32px;
   font-size: 42px;
   line-height: 52px;
+  letter-spacing: 0.05em;
+  font-weight: 300;
 }
 
 h2 {
@@ -111,8 +121,7 @@ img {
 
 a {
   text-decoration: none;
-  transition: all var(--animation-duration);
-  color: var(--secondary-color);
+  color: var(--blue);
 }
 
 a:hover {
@@ -127,19 +136,17 @@ a:hover {
   flex-wrap: wrap;
 }
 
-input[type="text"],
-input[type="email"],
-input[type="file"],
-input[type="password"] {
+input, textarea {
   font-family: var(--font-family);
-  color: var(--secondary-color);
+  color: var(--black);
   font-style: normal;
   font-size: 14px;
   line-height: 14px;
   padding: 8px 16px;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.1em;
-  border: 1px solid var(--secondary-color);
+  border: 1px solid var(--gray);
+  border-radius: calc(var(--border-radius) / 2);
   width: 100%;
 }
 
@@ -149,8 +156,9 @@ input[type="file"]::file-selector-button,
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid var(--secondary-color);
-  background-color: var(--primary-color);
+  border: 1px solid var(--white);
+  background-color: var(--blue);
+  border-radius: var(--border-radius);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -159,14 +167,14 @@ input[type="file"]::file-selector-button,
   line-height: 14px;
   padding: 8px 16px;
   cursor: pointer;
-  color: var(--secondary-color);
+  color: var(--white);
   font-style: normal;
   font-family: var(--font-family);
 }
 
 input[type="file"] {
   margin: 20px 0;
-  border: 1px solid var(--secondary-color);
+  border: 1px solid var(--gray);
   width: 100%;
   padding: 0;
 }
@@ -177,44 +185,44 @@ input[type="file"]::file-selector-button {
 
 input[type="file"]::file-selector-button:hover,
 .button:hover {
-  background-color: var(--secondary-color);
+  background-color: var(--gray);
   text-decoration: none;
-  color: white;
+  color: var(--black);
 }
 
 .button.primary {
-  background-color: var(--secondary-color);
-  color: white;
-  border-color: var(--secondary-color);
+  background-color: var(--black);
+  color: var(--white);
+  border-color: var(--white);
 }
 
 .button.primary:hover {
-  color: var(--primary-color);
+  background-color: var(--gray);
+  color: var(--black);
 }
 
 .button.secondary {
-  background-color: transparent;
+  background-color: var(--white);
+  color: var(--black);
+  border-color: var(--black);
 }
 
 .button.secondary:hover {
-  color: var(--secondary-color);
-  background-color: var(--primary-color);
+  background-color: var(--gray);
 }
 
 .button.is-disabled,
 .button:disabled,
 .button:disabled:hover {
   pointer-events: none;
-  background-color: var(--primary-color);
-  color: var(--secondary-color);
   cursor: not-allowed;
-  opacity: 0.4;
+  opacity: 0.2;
 }
 
 dialog {
   padding: 0;
   border: none;
-  box-shadow: 0 0 20px 5px var(--secondary-color);
+  box-shadow: 0 0 20px 5px var(--gray);
 }
 
 dialog:has(.dialog-content) {
@@ -225,7 +233,7 @@ dialog:has(.dialog-content) {
 
 dialog .dialog-content {
   padding: 16px;
-  border: 2px solid var(--primary-color);
+  border: 2px solid var(--orange);
   height: 100%;
   min-height: 400px;
   display: flex;
@@ -304,7 +312,7 @@ dialog .centered-info {
 
 @media (width < 768px) {
   dialog {
-    min-width: none;
+    min-width: unset;
     max-width: none;
     width: calc(100% - 32px);
   }
@@ -357,7 +365,7 @@ ul.author-list .author .revoke-button {
 }
 
 .add-author-section {
-  border-top: 1px solid var(--secondary-color);
+  border-top: 1px solid var(--gray);
   margin-bottom: 24px;
 }
 

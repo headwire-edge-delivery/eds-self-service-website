@@ -21,7 +21,6 @@
     flex-wrap: wrap;
     padding-block: 32px;
     gap: 16px;
-    border-bottom: 1px solid white;
 }
 
 .site-details.block .breadcrumbs {
@@ -30,6 +29,7 @@
     gap: 8px;
     align-items: center;
     line-height: 32px;
+    text-transform: uppercase;
 }
 
 .site-details.block .breadcrumbs h1 {
@@ -72,8 +72,6 @@
 }
 
 .site-details.block .content aside {
-    background: white;
-    padding: 16px;
     height: max-content;
 }
 
@@ -90,10 +88,22 @@
     width: 100%;
     justify-content: flex-start;
     border-color: transparent;
+    color: var(--black);
+}
+
+.site-details.block .content aside .button:hover {
+    border-color: var(--light-blue);
+    background-color: var(--white);
 }
 
 .site-details.block .content aside .button.is-selected {
-    border-color: var(--primary-color);
+    border-color: var(--light-blue);
+    background-color: var(--light-blue);
+    color: var(--white);
+}
+
+.site-details.block .content aside .button.is-selected img {
+    filter: invert(1);
 }
 
 .site-details.block .details > :not(.is-selected),
@@ -107,9 +117,11 @@
 }
 
 .site-details.block .docs {
-    background: white;
     padding: 16px;
     margin-top: 64px;
+    border-radius: var(--border-radius);
+    background-color: var(--dark-blue);
+    color: var(--white);
 }
 
 .site-details.block .docs h2 {
@@ -118,6 +130,11 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    color: var(--white);
+}
+
+.site-details.block .docs .icon {
+    filter: invert(1);
 }
 
 .site-details.block .cards {
@@ -160,7 +177,6 @@
 
 .site-details.block .list li {
     padding: 8px;
-    background: white;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
@@ -186,10 +202,6 @@
 
 .site-details.block table td:first-child {
     font-weight: 500;
-}
-
-.site-details.block table tbody {
-    background: white;
 }
 
 .site-details.block table tbody td:last-child {
@@ -219,11 +231,11 @@
     min-height: 500px;
     height: calc(100vh - 128px - 64px - 32px);
     flex: 1;
+    border: 1px solid var(--gray);
 }
 
 .site-details.block .vars-preview {
     border: none;
-    background: white;
 }
 
 .site-details.block .theme-actions .publish-theme {
@@ -241,22 +253,22 @@
     .site-details.block aside {
         width: 100%;
     }
-    
+
     .site-details.block .theme-panel .container {
         flex-direction: column;
     }
-    
+
     .site-details.block .cards {
         flex-direction: column;
     }
-    
+
     .site-details.block table {
         padding: 0;
         width: calc(100vw - 32px);
         overflow-x: auto;
         display: block;
     }
-    
+
     .site-details.block .nav,
     .site-details.block .button-container {
         flex-direction: column;

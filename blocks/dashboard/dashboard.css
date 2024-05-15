@@ -12,7 +12,6 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid white;
     flex-wrap: wrap;
     padding-block: 32px;
     gap: 16px;
@@ -28,22 +27,18 @@
 
 .dashboard.block .filter {
     width: 100%;
-    border: none;
     font-size: 16px;
-    background-color: white;
     background-image: url("/icons/search.svg");
     background-position: 12px 12px;
     background-size: 20px;
     background-repeat: no-repeat;
     padding: 12px 20px 12px 40px;
-    font-weight: 300;
-    font-family: var(--font-family);
-    color: var(--secondary-color);
 }
 
 .dashboard.block h1 {
-    font-size: 30px;
+    font-size: 16px;
     padding: 0;
+    line-height: 16px;
 }
 
 .dashboard.block h2 {
@@ -56,26 +51,32 @@
     padding: 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, 286px);
-    gap: 24px;
+    gap: 48px;
     margin-top: 48px;
 }
 
 .dashboard.block .sites li a {
     display: block;
     max-width: 300px;
-    background: white;
     padding: 32px;
     text-decoration: none;
-    border: 1px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    background-color: var(--dark-blue);
+    color: var(--white);
+    transition: all var(--animation-duration);
 }
 
 .dashboard.block .sites li a:hover {
-    background: var(--primary-color);
+    background-color: var(--light-blue);
 }
 
 .dashboard.block .sites ul a p {
     font-size: 16px;
     font-weight: 300;
+}
+
+.dashboard.block .sites ul a :is(h2, strong, p) {
+    color: var(--white);
 }
 
 .dashboard.block .sites > p:only-child {
@@ -85,8 +86,6 @@
 }
 
 .dashboard.block .content aside {
-    background: white;
-    padding: 16px;
     height: max-content;
 }
 
@@ -105,10 +104,22 @@
     width: 100%;
     justify-content: flex-start;
     border-color: transparent;
+    color: var(--black);
+}
+
+.dashboard.block .content aside .button:hover {
+    border-color: var(--light-blue);
+    background-color: var(--white);
 }
 
 .dashboard.block .content aside .button.is-selected {
-    border-color: var(--primary-color);
+    border-color: var(--light-blue);
+    background-color: var(--light-blue);
+    color: var(--white);
+}
+
+.dashboard.block .content aside .button.is-selected img {
+    filter: invert(1);
 }
 
 .dashboard.block .details {
