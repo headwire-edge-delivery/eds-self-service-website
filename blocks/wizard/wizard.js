@@ -22,7 +22,7 @@ export default async function decorate(block) {
 
       if (i === 0) {
         step.classList.add('is-selected');
-      } else if (i < 3) {
+      } else if (i < 2) {
         buttonContainer.prepend(prevTemplate.cloneNode(true));
       }
     }
