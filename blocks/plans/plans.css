@@ -38,6 +38,13 @@ dialog .plans-dialog-wrapper {
     width: 300px;
     border: 1px solid var(--gray);
     padding: 16px;
+    border-radius: var(--border-radius);
+    background-color: var(--dark-blue);
+    color: var(--white);
+}
+
+.plans-dialog-wrapper > div :is(h2, strong) {
+    color: var(--white);
 }
 
 .is-authenticated .plans-dialog-wrapper > div:first-child {

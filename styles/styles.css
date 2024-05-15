@@ -59,7 +59,7 @@ header {
   right: 0;
   background-color: var(--blue);
   color: var(--white);
-  z-index: 10;
+  z-index: 100;
 }
 
 main {
