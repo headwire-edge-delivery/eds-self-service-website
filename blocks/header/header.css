@@ -26,9 +26,8 @@
 }
 
 .header.block .section:first-child img {
-    height: calc(var(--header-height) + 32px);
+    height: var(--header-height);
     width: auto;
-    margin-top: 32px;
 }
 
 .header.block p {
