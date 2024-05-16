@@ -344,7 +344,7 @@ export default async function decorate(block) {
                 const makeReady = (linkEl, url) => {
                   if (linkEl && url) {
                     linkEl.href = url;
-                    linkEl.classList.add('is-ready');
+                    linkEl.classList.add('action', 'secondary', 'is-ready');
                     linkEl.target = '_blank';
                   }
                 };
