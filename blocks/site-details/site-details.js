@@ -52,7 +52,7 @@ function dialogSetup({
         .querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`)
         .forEach((item) => item.remove());
     } else {
-      alert(OOPS);
+      await window.alertDialog(OOPS);
     }
     deleteButton.disabled = null;
     dialogParent.classList.remove('loading');
@@ -107,7 +107,7 @@ function addBlockDialogSetup({ id, headers, itemList }) {
 
     addButton.onclick = async () => {
       if (!select.value) {
-        alert('Please select a block');
+        await window.alertDialog('Please select a block');
         return;
       }
       dialog.setLoading(true, 'Adding Block...');
@@ -131,7 +131,7 @@ function addBlockDialogSetup({ id, headers, itemList }) {
         dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`, buttons);
         itemList.addItem({ name: select.value });
       } else {
-        alert(OOPS);
+        await window.alertDialog(OOPS);
       }
       dialog.setLoading(false);
     };
@@ -225,11 +225,11 @@ function addIconDialogSetup({
   const dialog = window.createDialog(dialogContent, [addButton]);
   addButton.onclick = async () => {
     if (!file) {
-      alert('Please select a file');
+      await window.alertDialog('Please select a file');
       return;
     }
     if (file.type !== fileAccept) {
-      alert('Please select a valid file!');
+      await window.alertDialog('Please select a valid file!');
       return;
     }
     const formData = new FormData();
@@ -244,7 +244,7 @@ function addIconDialogSetup({
       dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
       itemList?.addItem({ name: file.name, base64: fileAsBase64 });
     } else {
-      alert(OOPS);
+      await window.alertDialog(OOPS);
     }
     dialog.setLoading(false);
   };
@@ -593,7 +593,7 @@ export default async function decorate(block) {
           if (isOwner) revoke.disabled = true;
           revoke.onclick = async () => {
             if (isOwner) return;
-            if (window.confirm('Are you sure ?')) {
+            if (await window.confirmDialog('Are you sure ?')) {
               dialog.setLoading(true, `Removing ${authorEmail}...`);
               const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
                 method: 'DELETE',
@@ -602,7 +602,7 @@ export default async function decorate(block) {
               if (revokeResponse.ok) {
                 dialog.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
               } else {
-                alert(OOPS);
+                await window.alertDialog(OOPS);
               }
               dialog.setLoading(false);
             }
@@ -630,7 +630,7 @@ export default async function decorate(block) {
           const email = event.target.email.value;
           const isValid = /^(?!@).*@.*(?<!@)$/.test(email);
           if (!isValid) {
-            alert('Please enter a valid email.');
+            await window.alertDialog('Please enter a valid email.');
             dialog.setLoading(false);
             return;
           }
@@ -642,7 +642,7 @@ export default async function decorate(block) {
             addAuthorListItem({ email });
             event.target.email.value = '';
           } else {
-            alert(OOPS);
+            await window.alertDialog(OOPS);
           }
           dialog.setLoading(false);
         };
@@ -689,7 +689,7 @@ export default async function decorate(block) {
             dialog.renderDialog('<h3 class="centered-info" >Email Updated</h3>');
             project.contactEmail = input.value;
           } else {
-            alert(OOPS);
+            await window.alertDialog(OOPS);
           }
           dialog.setLoading(false);
         };
@@ -720,7 +720,7 @@ export default async function decorate(block) {
       // Delete site and redirect to dashboard
       block.querySelector('.delete').onclick = async () => {
         block.classList.add('is-deleting');
-        if (window.confirm('Are you sure ?')) {
+        if (await window.confirmDialog('Are you sure ?')) {
           const reqDelete = await fetch(`${SCRIPT_API}/delete/${project.projectSlug}`, {
             method: 'DELETE',
             headers,
@@ -731,7 +731,7 @@ export default async function decorate(block) {
               window.location.href = '/dashboard';
             }, 2000);
           } else {
-            alert(OOPS);
+            await window.alertDialog(OOPS);
             block.classList.remove('is-deleting');
           }
         } else {
@@ -876,7 +876,7 @@ export default async function decorate(block) {
               headers: { ...headers, 'content-type': 'application/json' },
               body: JSON.stringify({ css: btoa(editor.getValue()) }),
             });
-            window.alert(response.ok ? 'Variables successfully updated!' : OOPS);
+            await window.alertDialog(response.ok ? 'Variables successfully updated!' : OOPS);
             editor.display.wrapper.classList.remove('sending');
             editor.setOption('readOnly', false);
           };

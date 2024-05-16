@@ -32,7 +32,7 @@ async function onFormSubmit(event) {
       disableForm(form, false);
     }, { once: true });
   } else {
-    alert(OOPS);
+    await window.alertDialog(OOPS);
     disableForm(form, false);
   }
   form.classList.remove('loading');

@@ -289,7 +289,7 @@ export default async function decorate(block) {
               send.onclick = async () => {
                 const selectedRecipients = [...recipients.querySelectorAll('li.is-selected')];
 
-                if (window.confirm(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
+                if (await window.createPromiseDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
                   send.classList.add('is-disabled');
 
                   const previewSource = new URL(iframe.src);
@@ -310,9 +310,9 @@ export default async function decorate(block) {
                   });
 
                   if (req.ok) {
-                    alert('Email delivered successfully!');
+                    await window.alertDialog('Email delivered successfully!');
                   } else {
-                    alert(OOPS);
+                    await window.alertDialog(OOPS);
                   }
 
                   send.classList.remove('is-disabled');

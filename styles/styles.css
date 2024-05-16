@@ -255,6 +255,7 @@ input[type="file"]::file-selector-button:hover,
   text-transform: none;
 }
 
+/* MARK: Dialogs */
 dialog {
   padding: 0;
   border: none;
@@ -362,11 +363,25 @@ dialog .close {
   width: 36px;
 }
 
+dialog.alert-dialog {
+  width: 400px;
+}
+
+dialog.alert-dialog button {
+  flex: 1;
+}
+
+dialog.alert-dialog .dialog-content {
+  min-height: 200px;
+}
+
 ::backdrop {
   background: rgba(0 0 0 / 20%);
   backdrop-filter: blur(2px);
 }
 
+
+/* MARK: Icons */
 .icon {
   display: inline-block;
   height: 24px;
@@ -384,6 +399,7 @@ img[src="/icons/loading.svg"] {
   filter: invert(1);
 }
 
+/* MARK: Author list */
 ul.author-list {
   list-style: none;
   margin: 20px 0;
