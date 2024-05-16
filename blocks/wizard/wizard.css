@@ -13,6 +13,10 @@
     min-height: 50vh;
 }
 
+.wizard.block .button-container:has(a[href="#template"]) {
+    display: none !important;
+}
+
 .wizard.block > .step {
     min-width: 100vw;
     text-align: center;
@@ -122,7 +126,7 @@
 .wizard.block .template-image {
     max-width: var(--layout-width);
     width: 100%;
-    margin: 64px auto auto;
+    margin: 32px auto auto;
 }
 
 .wizard.block .carousel {
