@@ -13,7 +13,9 @@ function generateFieldId(fieldData, suffix = '') {
 function createLabel(field, fieldData, placeholders) {
   const label = document.createElement('label');
   label.id = generateFieldId(fieldData, '-label');
-  const labelContent = placeholders?.[toCamelCase(fieldData['label-placeholder'])] || fieldData['label-placeholder'] || fieldData.name;
+  const labelContent = placeholders?.[toCamelCase(fieldData['label-placeholder'])]
+    || fieldData['label-placeholder']
+    || fieldData.name;
   label.innerHTML = `<span class="label-text">${labelContent}</span>`;
   label.dataset.requiredField = fieldData?.required?.toLowerCase() === 'true';
   if (fieldData.labelFor) {
@@ -59,6 +61,12 @@ const createTextArea = (fieldData) => {
   const field = document.createElement('textarea');
   field.value = fieldData['default-value'] || '';
 
+  field.oninput = () => {
+    if (field.dataset.disableAutoResize) return;
+    // + 2 for the border
+    field.style.height = `${field.scrollHeight + 2}px`;
+  };
+
   return field;
 };
 
@@ -93,7 +101,9 @@ const createToggle = (fieldData) => {
 const createCheckbox = (fieldData, placeholders) => {
   const field = createInput(fieldData);
   if (fieldData['default-value']) field.checked = true;
-  field.value = placeholders[toCamelCase(fieldData['label-placeholder'])] || fieldData['label-placeholder'] || fieldData.name;
+  field.value = placeholders[toCamelCase(fieldData['label-placeholder'])]
+    || fieldData['label-placeholder']
+    || fieldData.name;
 
   return field;
 };
@@ -145,6 +155,13 @@ const createNumber = (fieldData) => {
   return field;
 };
 
+const createGroup = (fieldData) => {
+  const group = document.createElement('div');
+  group.classList.add('group');
+  if (fieldData.name) group.classList.add(fieldData.name);
+  return group;
+};
+
 const FIELD_CREATOR_FUNCTIONS = {
   number: createNumber,
   'phone number': createPhoneNumber,
@@ -153,6 +170,7 @@ const FIELD_CREATOR_FUNCTIONS = {
   toggle: createToggle,
   checkbox: createCheckbox,
   radio: createRadio,
+  group: createGroup,
 };
 
 async function createField(fieldData, form, placeholders, index) {
@@ -167,68 +185,18 @@ async function createField(fieldData, form, placeholders, index) {
   }
   const field = await createFieldFunc(fieldData, placeholders, index);
   setCommonAttributes(field, fieldData, placeholders, index);
-  const label = createLabel(field, fieldData, placeholders);
-
-  return label;
+  if (type !== 'group') {
+    const label = createLabel(field, fieldData, placeholders);
+    return label;
+  }
+  return field;
 }
 
-// function toggleFields(form, disable = true) {
-//   form.querySelectorAll('input, textarea, select, button').forEach((field) => {
-//     field.disabled = disable;
-//   });
-// }
-
-// async function formSubmit(event, block, placeholders) {
-//   event.preventDefault();
-
-//   const formOverlay = document.createElement("div");
-//   formOverlay.classList.add("form-overlay", "show");
-//   formOverlay.innerHTML = `<div class="content">
-//      <span>${placeholders.formSubmitting}</span>
-//    </div>`;
-
-//   block.append(formOverlay);
-//   block.classList.add("overlay-open");
-
-//   const server = window.location.href.startsWith("http://localhost")
-//     ? "http://localhost:4000/"
-//     : "https://eds-self-service-scripts.onrender.com/";
-
-//   const data = new FormData(event.target);
-//   const formObj = {};
-//   // eslint-disable-next-line no-restricted-syntax
-//   for (const pair of data.entries()) {
-//     // eslint-disable-next-line prefer-destructuring
-//     formObj[pair[0]] = pair[1];
-//   }
-//   // disable fields after reading, to prevent double submits
-//   toggleFields(event.target, true);
-
-//   const response = await fetch(`${server}form/${window.projectSlug}`, {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify(formObj),
-//   });
-
-//   if (response.ok) {
-//     formOverlay.innerHTML = `<div class="content"><span>${
-//       response.status === 208 ? await response.text() : placeholders.formSuccess
-//     }</span></div>`;
-//   } else {
-//     formOverlay.innerHTML = `<div class="content"><span>${placeholders.formFail}</span>
-//         <button class="button submit">${
-//       placeholders.formButtonRetry || "Retry"
-//     }</button></div>`;
-//     formOverlay.onclick = (e) => {
-//       e.currentTarget.remove();
-//       block.classList.remove("overlay-open");
-//       toggleFields(event.target, false);
-//     };
-//   }
-// }
-
-export default async function createForm(formConfigPath, block, onSubmit) {
-  const [resp, placeholders] = await Promise.all([fetch(formConfigPath), getPlaceholder(null)]);
+export default async function createForm(formConfigPath, onSubmit) {
+  const [resp, placeholders] = await Promise.all([
+    fetch(formConfigPath),
+    getPlaceholder(null),
+  ]);
   const json = await resp.json();
 
   const form = document.createElement('form');
@@ -236,21 +204,35 @@ export default async function createForm(formConfigPath, block, onSubmit) {
   const fields = await Promise.all(
     json.data.map((fieldData, index) => createField(fieldData, form, placeholders, index)),
   );
-  fields.forEach((field) => {
-    if (field) {
-      form.append(field);
+
+  fields.forEach((field, index) => {
+    if (form.contains(field)) {
+      // already in group
+      return;
     }
+    // when we find a group, place items below it, inside it.
+    // Stop when finding another group or end of list
+    if (field.classList.contains('group')) {
+      for (let i = index + 1; i < fields.length; i += 1) {
+        const nextItem = fields[i];
+        if (nextItem.classList.contains('group')) {
+          break;
+        }
+        field.append(nextItem);
+      }
+    }
+    form.append(field);
   });
 
   form.insertAdjacentHTML(
     'beforeend',
-    `<button class="button" type="submit">${placeholders.formButtonSubmit || 'Send'}</button>`,
+    `<button class="button" type="submit">${
+      placeholders.formButtonSubmit || 'Send'
+    }</button>`,
   );
 
   if (onSubmit) {
     form.onsubmit = onSubmit;
-  } else {
-    // form.onsubmit = (event) => formSubmit(event, block, placeholders);
   }
 
   return form;

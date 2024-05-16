@@ -146,7 +146,7 @@ a:hover {
   gap: 12px;
 }
 
-input, textarea {
+input, textarea, select {
   font-family: var(--font-family);
   color: var(--black);
   font-style: normal;

@@ -41,7 +41,6 @@ async function onFormSubmit(event) {
 async function generateFeedbackForm(block) {
   const form = await createForm(
     '/feedback-form-setup.json',
-    block,
     onFormSubmit,
   );
   block.append(form);
