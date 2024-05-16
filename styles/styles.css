@@ -266,6 +266,7 @@ dialog:has(.dialog-content) {
   width: 800px;
   max-width: 80%;
   max-height: 80%;
+  overflow: visible;
 }
 
 dialog .dialog-content {
@@ -280,10 +281,7 @@ dialog .dialog-content {
 
 dialog select {
   width: 100%;
-  padding: 4px 0;
   margin: 20px 0;
-  font-size: var(--body-font-size);
-  font-weight: 600;
 }
 
 dialog .preview {
@@ -307,7 +305,7 @@ dialog .preview img {
   max-height: var(--preview-max-height);
   object-fit: contain;
   object-position: center;
-  filter: drop-shadow(0 0 5px #000);
+  filter: var(--icon-drop-shadow);
 }
 
 
@@ -332,10 +330,11 @@ dialog .dialog-button-container {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
+  justify-content: flex-end;
 }
 
 dialog .dialog-button-container > * {
-  flex: 1;
+  align-items: flex-start;
 }
 
 dialog .dialog-content > div:has(> .centered-info),
@@ -352,6 +351,15 @@ dialog .centered-info {
     max-width: none;
     width: calc(100% - 32px);
   }
+}
+
+dialog .close {
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  border-radius: 50%;
+  height: 36px;
+  width: 36px;
 }
 
 ::backdrop {

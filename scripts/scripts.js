@@ -159,17 +159,20 @@ window.createDialog = (contentDiv, buttons, { open, onCloseFn } = { open: true }
     if (Array.isArray(buttonsArray)) {
       buttonsArray.forEach((button) => {
         buttonWrapper.append(button);
-        button.classList.add('button');
+        button.classList.add('button', 'secondary');
       });
     }
-    const closeButton = document.createElement('button');
-    closeButton.classList.add('button', 'close');
-    closeButton.innerText = 'Close';
-    closeButton.onclick = () => {
+
+    dialogContent.append(buttonWrapper);
+
+    const close = document.createElement('button');
+    close.className = 'button close';
+    close.innerHTML = '&#x2715;';
+    close.ariaLabel = 'close';
+    close.onclick = () => {
       dialog.close();
     };
-    buttonWrapper.prepend(closeButton);
-    dialogContent.append(buttonWrapper);
+    dialogContent.append(close);
   };
   dialog.renderDialog(contentDiv, buttons);
 

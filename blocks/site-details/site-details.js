@@ -74,6 +74,7 @@ function addBlockDialogSetup({ id, headers, itemList }) {
     content.innerHTML = '<h3>Add block</h3>';
 
     const select = document.createElement('select');
+    select.className = 'button secondary action';
     select.innerHTML = data
       .map(
         (blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${
@@ -598,7 +599,7 @@ export default async function decorate(block) {
           <h4>Add an Author:</h4>
           <form>
             <input name="email" type="email" placeholder="person@example.com" />
-            <button class="button" type="submit">Add</button>
+            <button class="button secondary action" type="submit">Add</button>
           </form>
         `;
         const addAuthorForm = addAuthorSection.querySelector('form');
