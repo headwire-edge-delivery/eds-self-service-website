@@ -402,7 +402,7 @@ export default async function decorate(block) {
                           <span class="icon icon-email">
                             <img alt src="/icons/email.svg" loading="lazy">  
                           </span>
-                          Emails
+                          Campaign
                         </a>
                     </li>
                     <li>
