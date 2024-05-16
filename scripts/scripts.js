@@ -202,3 +202,48 @@ window.createDialog = (contentDiv, buttons, { open, onCloseFn } = { open: true }
   }
   return dialog;
 };
+
+function createPromiseDialog(textContent = 'Are you sure?', withConfirm = false) {
+  return new Promise((resolve) => {
+    const dialog = document.createElement('dialog');
+    dialog.classList.add('alert-dialog');
+    const dialogContent = document.createElement('div');
+    dialogContent.classList.add('dialog-content');
+    dialogContent.innerHTML = `<h3 class="centered-info" >${textContent}</h3>`;
+
+    const buttonWrapper = document.createElement('div');
+    buttonWrapper.classList.add('dialog-button-container');
+
+    function buttonPress(confirm = false) {
+      dialog.close();
+      dialog.remove();
+      resolve(confirm);
+    }
+
+    const cancelButton = document.createElement('button');
+    cancelButton.className = 'button';
+    cancelButton.innerText = 'Cancel';
+    cancelButton.onclick = () => buttonPress(false);
+    buttonWrapper.append(cancelButton);
+
+    if (withConfirm) {
+      const confirmButton = document.createElement('button');
+      confirmButton.className = 'button secondary';
+      confirmButton.innerText = 'Confirm';
+      confirmButton.onclick = () => buttonPress(true);
+      buttonWrapper.append(confirmButton);
+    }
+
+    dialogContent.append(buttonWrapper);
+    dialog.append(dialogContent);
+    // disable closing with ESC
+    dialog.oncancel = (event) => {
+      event.preventDefault();
+    };
+    document.body.append(dialog);
+    dialog.showModal();
+  });
+}
+
+window.alertDialog = (text = 'ALERT') => createPromiseDialog(text);
+window.confirmDialog = (text = 'Are you sure?') => createPromiseDialog(text, true);
