@@ -10,6 +10,15 @@ const protectedBlocks = {
 
 const iconBase64Prefix = 'data:image/svg+xml;base64,';
 
+function addGoogleCalendarLink(calendarId, actionsList) {
+  // resetting in case
+  actionsList.querySelectorAll('.google-calendar-link').forEach((link) => link.remove());
+  actionsList.insertAdjacentHTML(
+    'afterbegin',
+    `<a class="button action secondary google-calendar-link" target="_blank" href="https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
+  );
+}
+
 function dialogSetup({
   name, deleteWarning, project, headers, isIcon = false, iconBase64,
 }) {
@@ -107,7 +116,19 @@ function addBlockDialogSetup({ id, headers, itemList }) {
         headers,
       });
       if (addRequest.ok) {
-        dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`);
+        const addRequestData = await addRequest.json().catch(() => ({}));
+        const buttons = [];
+        if (addRequestData.calendarId) {
+          const calendarLink = document.createElement('a');
+          calendarLink.classList.add('button');
+          calendarLink.href = `https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}`;
+          calendarLink.target = '_blank';
+          calendarLink.innerText = 'Google Calendar';
+          buttons.push(calendarLink);
+          addGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.settings-actions'));
+        }
+
+        dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`, buttons);
         itemList.addItem({ name: select.value });
       } else {
         alert(OOPS);
@@ -817,6 +838,11 @@ export default async function decorate(block) {
 
       // Load site icons
       renderIconsList(block, { project, headers, id });
+
+      // calendar link
+      if (project.calendarId) {
+        addGoogleCalendarLink(project.calendarId, block.querySelector('.settings-actions'));
+      }
 
       // Load site theme
       fetch(`${WORKER_API}/proxy?url=${project.liveUrl}/styles/vars.css`)
