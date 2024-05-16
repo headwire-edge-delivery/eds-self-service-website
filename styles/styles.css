@@ -14,7 +14,7 @@
   --body-font-size: 16px;
   --box-shadow: 0 2px 5px rgb(213 213 213);
   --loading-backdrop: rgba(128 128 128 / 80%);
-  --icon-drop-shadow: drop-shadow(0 0 5px #000);
+  --icon-drop-shadow: drop-shadow(0 0 1px var(--black));
   --border-radius: 15px;
 
   font-synthesis: none;
@@ -142,6 +142,10 @@ a:hover {
   flex-wrap: wrap;
 }
 
+.button-container:has(.button.action) {
+  gap: 12px;
+}
+
 input, textarea {
   font-family: var(--font-family);
   color: var(--black);
@@ -241,6 +245,13 @@ input[type="file"]::file-selector-button:hover,
   pointer-events: none;
   cursor: not-allowed;
   opacity: 0.2;
+}
+
+.button.action {
+  padding: 8px;
+  font-size: 13px;
+  border-radius: calc(var(--border-radius) / 2);
+  text-transform: none;
 }
 
 dialog {

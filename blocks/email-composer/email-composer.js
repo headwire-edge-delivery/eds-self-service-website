@@ -88,8 +88,8 @@ export default async function decorate(block) {
                 <div>
                     <ul class="recipients"></ul>
                     <div class="button-container">
-                        <button class="button secondary is-disabled select-all">Select all</button>
-                        <button class="button primary is-disabled send">Send</button>
+                        <button class="button secondary action is-disabled select-all">Select all</button>
+                        <button class="button primary action is-disabled send">Send</button>
                     </div>
                 </div>
                 
@@ -101,15 +101,14 @@ export default async function decorate(block) {
                   </div>
                 `).join('')}
                 
-                <button class="button secondary save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
+                <button class="button secondary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
                 
                 <h2>Styles (Developer)</h2>
                 
-                <button class="button secondary enable-styles">Edit styles (developer mode)</button>
+                <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
                 <div>
-                    <label>Code</label>
                     <textarea class="styles"></textarea>
-                    <button class="button secondary save-styles">Save custom styles</button>
+                    <button class="button secondary action save-styles">Save custom styles</button>
                 </div>
             </aside>
         </div>
@@ -199,7 +198,7 @@ export default async function decorate(block) {
         throw new Error(res.status);
       })
         .then(async ({ project }) => {
-          block.querySelector('.actions').innerHTML = `<a href="${project.driveUrl}" target="_blank" class="button secondary">Edit email</a>`;
+          block.querySelector('.actions').innerHTML = `<a href="${project.driveUrl}" target="_blank" class="button secondary action">Edit email</a>`;
 
           // Load codemirror to edit styles
           loadCSS('/libs/codemirror/codemirror.css');

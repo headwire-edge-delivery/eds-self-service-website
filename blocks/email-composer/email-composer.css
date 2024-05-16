@@ -65,6 +65,7 @@
 .email-composer.block h2 {
     font-size: 16px;
     margin-top: 16px;
+    padding-block: 16px;
 }
 
 .email-composer.block h2:first-child {
@@ -107,6 +108,7 @@
 
 .email-composer .styles + div {
     margin-bottom: 32px;
+    border: 1px solid var(--gray);
 }
 
 .email-composer .button-container {
