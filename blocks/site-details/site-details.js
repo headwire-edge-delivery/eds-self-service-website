@@ -117,11 +117,10 @@ function addBlockDialogSetup({ id, headers, itemList }) {
   });
 }
 
-function renderBlocksList(blocksList, actions, { project, headers, id }) {
-  const blockActions = actions.querySelector('.settings-actions');
-  blockActions.insertAdjacentHTML('beforeend', '<button class="button secondary action add-block">Add Block</button>');
-  actions.querySelector('.add-block').onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
+function renderBlocksList(block, { project, headers, id }) {
+  block.querySelector('.add-block').onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
 
+  const blocksList = block.querySelector('.blocks');
   blocksList.innerHTML = '';
   blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
     const li = document.createElement('li');
@@ -230,10 +229,10 @@ function addIconDialogSetup({
 }
 
 // MARK: Icon list
-function renderIconsList(iconsList, actions, { project, headers, id }) {
-  actions.querySelector('.settings-actions').insertAdjacentHTML('beforeend', '<button class="button secondary action change-favicon">Change Favicon</button><button class="button action secondary add-icon">Add Icon</button>');
-  actions.querySelector('.add-icon').onclick = () => addIconDialogSetup({ id, headers, itemList: iconsList });
-  actions.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
+function renderIconsList(block, { project, headers, id }) {
+  block.querySelector('.settings-actions').insertAdjacentHTML('beforeend', '<button class="button secondary action change-favicon">Change Favicon</button>');
+  block.querySelector('.add-icon').onclick = () => addIconDialogSetup({ id, headers, itemList: iconsList });
+  block.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
     id,
     headers,
     titleText: 'Favicon',
@@ -242,6 +241,7 @@ function renderIconsList(iconsList, actions, { project, headers, id }) {
     uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
   });
 
+  const iconsList = block.querySelector('.icons');
   iconsList.innerHTML = '';
   iconsList.addItem = ({ name, base64 }) => {
     const li = document.createElement('li');
@@ -355,7 +355,9 @@ export default async function decorate(block) {
             </div>
             <div class="pages-actions button-container"></div>
             <div class="emails-actions button-container"></div>
-            <div class="settings-actions button-container"></div>
+            <div class="settings-actions button-container">
+                <button class="button action secondary share">Project Authors</button>
+            </div>
           </div>
         </div>
         
@@ -503,12 +505,19 @@ export default async function decorate(block) {
                     
                     <div class="container">
                         <h2>Blocks</h2>
+                        <button class="button secondary action add-block">Add block</button>
                         <ul class="blocks list"></ul>
                         
                         <h2>Icons</h2>
+                        <button class="button action secondary add-icon">Add icon</button>
                         <ul class="icons list"></ul>
                         
                         <h2>Theme</h2>
+                        <div class="button-container">
+                            <select class="button action secondary publish-theme-selector"></select>
+                            <button class="button action secondary publish-theme">Publish</button>
+                        </div>
+                        
                         <div class="theme-container">
                           <textarea class="vars"></textarea>
                           <iframe src="${project.liveUrl}" class="vars-preview" loading="lazy"></iframe>
@@ -523,15 +532,13 @@ export default async function decorate(block) {
       actions.querySelector('.overview-actions').insertAdjacentHTML(
         'beforeend',
         `
-        <a href="${project.sidekickSetupUrl}" class="button action secondary" target="_blank">Install
-        Sidekick</a>
+        <a href="${project.sidekickSetupUrl}" class="button action secondary" target="_blank">Install sidekick</a>
         ${
   project.authoringGuideUrl
-    ? `<a href="${project.authoringGuideUrl}" class="button action secondary" target="_blank">Docs</a>`
+    ? `<a href="${project.authoringGuideUrl}" class="button action secondary" target="_blank">Guides</a>`
     : ''
 }
         <a href="${project.driveUrl}" class="button action secondary" target="_blank">Edit</a>
-        <button class="button action secondary share">Project Authors</button>
         <a href="${project.liveUrl}" class="button primary action" target="_blank">Open</a>
       `,
       );
@@ -545,7 +552,7 @@ export default async function decorate(block) {
           .catch(() => []);
         const populatedContent = document.createElement('div');
         const title = document.createElement('h3');
-        title.innerText = 'Project Authors';
+        title.innerText = 'Project authors';
         const authorList = document.createElement('ul');
         authorList.classList.add('author-list');
 
@@ -783,16 +790,9 @@ export default async function decorate(block) {
             .join('');
 
           // Theme pages
-          block.querySelector('.settings-actions').insertAdjacentHTML(
-            'beforeend',
-            `
-            <select class="button action secondary publish-theme-selector">
-                ${pages.map(({ path }) => `<option value="${path}">Theme: ${path}</option>`).join('')}
-            </select>
-          `,
-          );
+          block.querySelector('.publish-theme-selector').innerHTML = `${pages.map(({ path }) => `<option value="${path}">Theme: ${path}</option>`).join('')}`;
 
-          const select = block.querySelector('.settings-actions select');
+          const select = block.querySelector('.publish-theme-selector');
           select.onchange = () => {
             const varsPreview = block.querySelector('.vars-preview');
             if (new URL(varsPreview.src).pathname !== select.value) {
@@ -812,10 +812,10 @@ export default async function decorate(block) {
         });
 
       // Load site blocks
-      renderBlocksList(block.querySelector('.blocks'), actions, { project, headers, id });
+      renderBlocksList(block, { project, headers, id });
 
       // Load site icons
-      renderIconsList(block.querySelector('.icons'), actions, { project, headers, id });
+      renderIconsList(block, { project, headers, id });
 
       // Load site theme
       fetch(`${WORKER_API}/proxy?url=${project.liveUrl}/styles/vars.css`)
@@ -841,14 +841,7 @@ export default async function decorate(block) {
             varsPreview.contentWindow.postMessage(encodeURIComponent(editor.getValue()), '*');
           });
 
-          actions.querySelector('.settings-actions').insertAdjacentHTML(
-            'beforeend',
-            `
-            <button class="button action secondary publish-theme">Publish</button>
-          `,
-          );
-
-          actions.querySelector('.publish-theme').onclick = async () => {
+          block.querySelector('.publish-theme').onclick = async () => {
             editor.display.wrapper.classList.add('sending');
             editor.setOption('readOnly', true);
             const response = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {

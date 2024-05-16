@@ -177,7 +177,7 @@
 }
 
 .site-details.block .list:empty {
-    display: none;
+    display: none !important;
 }
 
 .site-details.block .list li {
@@ -330,15 +330,20 @@
     flex: 1;
 }
 
-.site-details .actions:has(.publish-theme) .publish-theme-selector {
+.site-details .button-container:has(.publish-theme) {
+    justify-content: flex-start;
+    margin-bottom: 32px;
+}
+
+.site-details .publish-theme {
+    margin-left: -12px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.site-details .publish-theme-selector {
     padding-block: 6.5px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     border-right: none;
-}
-
-.site-details .actions .publish-theme {
-    margin-left: -12px;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
 }
