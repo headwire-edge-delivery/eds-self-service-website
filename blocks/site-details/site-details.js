@@ -118,9 +118,9 @@ function addBlockDialogSetup({ id, headers, itemList }) {
 }
 
 function renderBlocksList(block, { project, headers, id }) {
+  const blocksList = block.querySelector('.blocks');
   block.querySelector('.add-block').onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
 
-  const blocksList = block.querySelector('.blocks');
   blocksList.innerHTML = '';
   blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
     const li = document.createElement('li');
@@ -230,6 +230,7 @@ function addIconDialogSetup({
 
 // MARK: Icon list
 function renderIconsList(block, { project, headers, id }) {
+  const iconsList = block.querySelector('.icons');
   block.querySelector('.settings-actions').insertAdjacentHTML('beforeend', '<button class="button secondary action change-favicon">Change Favicon</button>');
   block.querySelector('.add-icon').onclick = () => addIconDialogSetup({ id, headers, itemList: iconsList });
   block.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
@@ -241,7 +242,6 @@ function renderIconsList(block, { project, headers, id }) {
     uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
   });
 
-  const iconsList = block.querySelector('.icons');
   iconsList.innerHTML = '';
   iconsList.addItem = ({ name, base64 }) => {
     const li = document.createElement('li');
