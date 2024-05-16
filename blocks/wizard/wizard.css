@@ -1,7 +1,3 @@
-.wizard-container:has(.show-buttons) {
-    padding-top: 64px;
-}
-
 .hero-container.wizard-container .hero-wrapper {
     display: none;
 }
@@ -48,19 +44,10 @@
 }
 
 .wizard.block .button-container:last-child {
-    position: fixed;
-    top: 0;
     width: 100%;
-    background: var(--blue);
     margin: 0;
     padding: 16px;
     display: none;
-    transition: top 500ms;
-}
-
-.wizard.block.show-buttons .button-container:last-child {
-    top: 64px;
-    z-index: 10;
 }
 
 .is-template-previewing .wizard.block .button-container:last-child {

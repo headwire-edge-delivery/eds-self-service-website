@@ -18,7 +18,7 @@ export default async function decorate(block) {
   creationSteps.forEach((div) => div.classList.add('step'));
 
   const prevTemplate = document.createElement('button');
-  prevTemplate.className = 'button prev';
+  prevTemplate.className = 'button secondary prev';
   prevTemplate.textContent = 'Back';
 
   creationSteps.forEach((step, i) => {
