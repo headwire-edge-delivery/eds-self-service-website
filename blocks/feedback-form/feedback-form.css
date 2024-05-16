@@ -1,5 +1,11 @@
-.feedback-form.block {
+.feedback-form-container {
+  max-width: calc(var(--layout-width) / 2);
+  width: 100%;
+  margin: 32px auto auto;
   padding: 16px;
+}
+
+.feedback-form.block {
   max-width: var(--layout-width);
   position: relative;
 }
@@ -26,10 +32,6 @@
   background-color: var(--loading-backdrop);
 }
 
-.feedback-form.block input[type="checkbox"] {
-  margin-left: 18px;
-}
-
 .feedback-form.block form.success > * {
   opacity: 0;
 }
@@ -43,4 +45,13 @@
   justify-content: center;
   font-size: 34px;
   font-weight: 600;
+}
+
+.feedback-form.block .label-text {
+  padding-block: 16px;
+  display: block;
+}
+
+.feedback-form.block button[type="submit"] {
+  align-self: flex-start;
 }

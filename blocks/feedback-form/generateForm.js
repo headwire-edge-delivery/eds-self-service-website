@@ -37,6 +37,7 @@ function setCommonAttributes(field, fieldData, placeholders, index) {
 
 const createSelect = async (fieldData) => {
   const select = document.createElement('select');
+  select.className = 'button secondary action';
 
   const options = fieldData.options.split(',').map((option) => option.trim());
 

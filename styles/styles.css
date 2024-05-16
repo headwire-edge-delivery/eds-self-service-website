@@ -162,18 +162,19 @@ input, textarea {
 
 input[type="checkbox"] {
   display: inline-block;
-  width: calc(var(--body-font-size) + 2px);
-  height: calc(var(--body-font-size) + 2px);
+  width: 24px;
+  height: 24px;
   position: relative;
   border: 1px solid var(--gray);
   background: white;
   margin: 0 6px;
+  padding: 8px;
   cursor: pointer;
   appearance: none;
 }
 
 input[type="checkbox"]:checked {
-  background: url('/icons/check-mark.svg') no-repeat center / 90%, var(--primary-color);
+  background: url('/icons/check-mark.svg') no-repeat center / 80%, var(--white);
 }
 
 
@@ -258,6 +259,7 @@ dialog {
   padding: 0;
   border: none;
   box-shadow: 0 0 20px 5px var(--gray);
+  border-radius: var(--border-radius);
 }
 
 dialog:has(.dialog-content) {
@@ -268,7 +270,6 @@ dialog:has(.dialog-content) {
 
 dialog .dialog-content {
   padding: 16px;
-  border: 2px solid var(--orange);
   height: 100%;
   min-height: 400px;
   display: flex;
