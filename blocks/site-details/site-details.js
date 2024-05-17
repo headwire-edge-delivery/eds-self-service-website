@@ -822,7 +822,7 @@ export default async function decorate(block) {
               varsPreview.addEventListener(
                 'load',
                 () => {
-                  varsPreview.contentWindow.postMessage(encodeURIComponent(editor.getValue()), '*');
+                  varsPreview.contentWindow.postMessage({ type: 'css-vars', cssVars: encodeURIComponent(editor.getValue()) }, '*');
                 },
                 { once: true },
               );
@@ -865,7 +865,7 @@ export default async function decorate(block) {
           editor = window.CodeMirror.fromTextArea(vars);
 
           editor.on('change', () => {
-            varsPreview.contentWindow.postMessage(encodeURIComponent(editor.getValue()), '*');
+            varsPreview.contentWindow.postMessage({ type: 'css-vars', cssVars: encodeURIComponent(editor.getValue()) }, '*');
           });
 
           block.querySelector('.publish-theme').onclick = async () => {

@@ -22,6 +22,10 @@
   gap: 6px;
 }
 
+.feedback-form.block label[data-required-field="true"] span::after {
+  content: " *";
+}
+
 .feedback-form.block form.loading::after {
   content: "Sending...";
   position: absolute;
