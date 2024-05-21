@@ -333,6 +333,7 @@
 .site-details .button-container:has(.publish-theme) {
     justify-content: flex-start;
     margin-bottom: 32px;
+    flex-direction: row;
 }
 
 .site-details .publish-theme {
@@ -346,4 +347,5 @@
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     border-right: none;
+    width: auto;
 }

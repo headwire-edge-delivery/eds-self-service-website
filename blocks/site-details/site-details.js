@@ -1,5 +1,5 @@
 import {
-  SCRIPT_API, onAuthenticated, OOPS, WORKER_API,
+  SCRIPT_API, onAuthenticated, OOPS, toKestrel1URL,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -542,7 +542,7 @@ export default async function decorate(block) {
                         
                         <div class="theme-container">
                           <textarea class="vars"></textarea>
-                          <iframe src="${project.liveUrl}" class="vars-preview" loading="lazy"></iframe>
+                          <iframe src="${toKestrel1URL(project.liveUrl)}" class="vars-preview" loading="lazy"></iframe>
                         </div>
                     </div> 
                 </div>
@@ -561,7 +561,7 @@ export default async function decorate(block) {
     : ''
 }
         <a href="${project.driveUrl}" class="button action secondary" target="_blank">Edit</a>
-        <a href="${project.liveUrl}" class="button primary action" target="_blank">Open</a>
+        <a href="${toKestrel1URL(project.liveUrl)}" class="button primary action" target="_blank">Open</a>
       `,
       );
 
@@ -740,7 +740,7 @@ export default async function decorate(block) {
       };
 
       // Load index to list pages
-      fetch(`${WORKER_API}/proxy?url=${project.liveUrl}/query-index.json?sheet=all`)
+      fetch(`${toKestrel1URL(project.liveUrl)}/query-index.json?sheet=all`)
         .then((res) => {
           if (res.ok) {
             return res.json();
@@ -776,8 +776,8 @@ export default async function decorate(block) {
 }</td>          
                   <td>${toDate(item.lastModified).toLocaleString()}</td>
                   <td>
-                    <a class="button action secondary" href="${project.liveUrl}${item.path}" target="_blank">Open</a>
-                    <a class="button action secondary" href="/email-composer?id=${project.projectSlug}&url=${project.liveUrl}${
+                    <a class="button action secondary" href="${toKestrel1URL(project.liveUrl)}${item.path}" target="_blank">Open</a>
+                    <a class="button action secondary" href="/email-composer?id=${project.projectSlug}&url=${toKestrel1URL(project.liveUrl)}${
   item.path
 }" target="_blank">Edit</a>
                   </td>
@@ -805,7 +805,7 @@ export default async function decorate(block) {
                   <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
                   <td>${item.path}</td>          
                   <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
-                  <td><a class="button action secondary" href="${project.liveUrl}${item.path}" target="_blank">Open</a></td>
+                  <td><a class="button action secondary" href="${toKestrel1URL(project.liveUrl)}${item.path}" target="_blank">Open</a></td>
               </tr>
             `;
             })
@@ -818,7 +818,7 @@ export default async function decorate(block) {
           select.onchange = () => {
             const varsPreview = block.querySelector('.vars-preview');
             if (new URL(varsPreview.src).pathname !== select.value) {
-              varsPreview.src = `${project.liveUrl}${select.value}`;
+              varsPreview.src = `${toKestrel1URL(project.liveUrl)}${select.value}`;
               varsPreview.addEventListener(
                 'load',
                 () => {
@@ -845,7 +845,7 @@ export default async function decorate(block) {
       }
 
       // Load site theme
-      fetch(`${WORKER_API}/proxy?url=${project.liveUrl}/styles/vars.css`)
+      fetch(`${toKestrel1URL(project.liveUrl)}/styles/vars.css`)
         .then((res) => {
           if (res.ok) {
             return res.text();

@@ -1,5 +1,5 @@
 import {
-  SCRIPT_API, onAuthenticated, WORKER_API, OOPS,
+  SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, toKestrel1URL,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -49,7 +49,7 @@ export default async function decorate(block) {
         </div>
       </div>`;
 
-    const reqEmail = await fetch(`${WORKER_API}/meta?content=${url}`);
+    const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta?content=${url}`);
     if (reqEmail.ok) {
       const { meta, variables } = await reqEmail.json();
 
@@ -74,7 +74,7 @@ export default async function decorate(block) {
         
         <div class="content">
             <div class="preview">
-                <iframe src="${WORKER_API}?content=${url}"></iframe>
+                <iframe src="${EMAIL_WORKER_API}?content=${url}"></iframe>
             </div>
             <aside>
                 <h2>From</h2>
@@ -146,7 +146,7 @@ export default async function decorate(block) {
 
       // Render preview with custom styles
       block.querySelector('.save-styles').onclick = async () => {
-        const req = await fetch(`${WORKER_API}/save`, {
+        const req = await fetch(`${EMAIL_WORKER_API}/save`, {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
@@ -205,7 +205,7 @@ export default async function decorate(block) {
           await import('../../libs/codemirror/codemirror.js');
           await import('../../libs/codemirror/css.js');
 
-          fetch(`${WORKER_API}/proxy?url=${project.liveUrl}${meta.styles}`)
+          fetch(`${toKestrel1URL(project.liveUrl)}${meta.styles}`)
             .then((res) => {
               if (res.ok) {
                 return res.text();
@@ -293,7 +293,7 @@ export default async function decorate(block) {
                   send.classList.add('is-disabled');
 
                   const previewSource = new URL(iframe.src);
-                  const req = await fetch(`${WORKER_API}/send`, {
+                  const req = await fetch(`${EMAIL_WORKER_API}/send`, {
                     headers: {
                       'content-type': 'application/json',
                       authorization: `bearer ${token}`,

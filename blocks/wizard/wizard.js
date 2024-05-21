@@ -1,5 +1,5 @@
 import {
-  slugMaxLength, slugify, SCRIPT_API, OOPS,
+  slugMaxLength, slugify, SCRIPT_API, OOPS, toKestrel1URL,
 } from '../../scripts/scripts.js';
 
 const progressSteps = [
@@ -349,7 +349,7 @@ export default async function decorate(block) {
                   }
                 };
 
-                makeReady(openSite, liveUrl);
+                makeReady(openSite, toKestrel1URL(liveUrl));
                 makeReady(openDrive, driveUrl);
                 makeReady(installSidekick, sidekickSetupUrl);
 
