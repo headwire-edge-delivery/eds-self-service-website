@@ -9,6 +9,7 @@ window.auth0.createAuth0Client({
   authorizationParams: {
     redirect_uri: window.location.origin,
     audience: 'https://dev-ao71660qsmfxenrv.us.auth0.com/api/v2/',
+    prompt: 'login',
   },
 }).then(async (auth0Client) => {
   window.auth0Client = auth0Client;
