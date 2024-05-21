@@ -34,7 +34,7 @@ export default async function decorate(block) {
       window.auth0Client.loginWithRedirect();
     } else if (identifier === '#signout') {
       event.preventDefault();
-      window.auth0Client.logout();
+      window.auth0Client.logout({ logoutParams: { returnTo: window.location.origin } });
     }
   });
 
