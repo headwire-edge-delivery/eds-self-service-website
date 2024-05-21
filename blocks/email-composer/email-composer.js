@@ -45,7 +45,7 @@ export default async function decorate(block) {
         </div>
       </div>`;
 
-    const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta?content=${url}`);
+    const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta?url=${url}`);
     if (reqEmail.ok) {
       const { meta, variables } = await reqEmail.json();
 
@@ -70,7 +70,7 @@ export default async function decorate(block) {
         
         <div class="content">
             <div class="preview">
-                <iframe src="${EMAIL_WORKER_API}?content=${url}"></iframe>
+                <iframe src="${EMAIL_WORKER_API}?url=${url}"></iframe>
             </div>
             <aside>
                 <h2>From</h2>

@@ -1,5 +1,5 @@
 import {
-  SCRIPT_API, onAuthenticated, OOPS, toKestrel1URL,
+  SCRIPT_API, onAuthenticated, OOPS, toKestrel1URL, EMAIL_WORKER_API,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -776,7 +776,7 @@ export default async function decorate(block) {
 }</td>          
                   <td>${toDate(item.lastModified).toLocaleString()}</td>
                   <td>
-                    <a class="button action secondary" href="${toKestrel1URL(project.liveUrl)}${item.path}" target="_blank">Open</a>
+                    <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${toKestrel1URL(project.liveUrl)}${item.path}" target="_blank">Open</a>
                     <a class="button action secondary" href="/email-composer?url=${toKestrel1URL(project.liveUrl)}${
   item.path
 }" target="_blank">Edit</a>
