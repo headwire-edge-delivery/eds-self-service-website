@@ -6,6 +6,8 @@ const unauthenticatedAllowedPaths = {
 window.auth0.createAuth0Client({
   domain: 'dev-ao71660qsmfxenrv.us.auth0.com',
   clientId: 'uu61j8YM6RirVCEyy6M39vdNQUx8hlW9',
+  useRefreshTokens: true,
+  cacheLocation: 'localstorage',
   authorizationParams: {
     redirect_uri: window.location.origin,
     audience: 'https://dev-ao71660qsmfxenrv.us.auth0.com/api/v2/',
