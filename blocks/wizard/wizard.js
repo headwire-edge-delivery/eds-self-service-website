@@ -83,9 +83,58 @@ export default async function decorate(block) {
   // TODO replace templates json with endpoint ?
   const templates = block.querySelector('a[href="/templates.json"]');
   if (templates) {
+    const templateWrapper = document.createElement('div');
+    templateWrapper.className = 'template-wrapper';
     const templateContainer = document.createElement('div');
     templateContainer.className = 'template-container';
-    templates.parentElement.replaceWith(templateContainer);
+    templateWrapper.append(templateContainer);
+
+    const controlsWrapper = document.createElement('div');
+    controlsWrapper.className = 'controls-wrapper';
+    const leftButton = document.createElement('button');
+    leftButton.className = 'button secondary prev scroll-button';
+    leftButton.onclick = (e) => {
+      e.stopPropagation();
+      const containerBox = templateContainer.getBoundingClientRect();
+      templateContainer.scrollBy({ behavior: 'smooth', left: -containerBox.width });
+    };
+    const rightButton = document.createElement('button');
+    rightButton.className = 'button secondary next scroll-button';
+    rightButton.onclick = (e) => {
+      e.stopPropagation();
+      const containerBox = templateContainer.getBoundingClientRect();
+      templateContainer.scrollBy({ behavior: 'smooth', left: containerBox.width });
+    };
+
+    templateContainer.onscrollend = () => {
+      if (templateContainer.scrollLeft === 0) {
+        leftButton.classList.add('is-disabled');
+      } else {
+        leftButton.classList.remove('is-disabled');
+      }
+      if (templateContainer.scrollLeft + templateContainer.offsetWidth
+        >= templateContainer.scrollWidth) {
+        rightButton.classList.add('is-disabled');
+      } else {
+        rightButton.classList.remove('is-disabled');
+      }
+    };
+
+    // debounced button refresh on resize
+    let templateResizeListener;
+    window.addEventListener('resize', () => {
+      clearTimeout(templateResizeListener);
+      templateResizeListener = setTimeout(() => {
+        templateContainer.onscrollend();
+      }, 300);
+    });
+
+    leftButton.classList.add('is-disabled');
+
+    controlsWrapper.append(leftButton, rightButton);
+    templateWrapper.append(controlsWrapper);
+
+    templates.parentElement.replaceWith(templateWrapper);
 
     fetch(templates.href)
       .then((req) => req.json())

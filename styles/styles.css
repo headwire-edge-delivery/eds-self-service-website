@@ -12,7 +12,8 @@
   --font-family: system-ui, sans-serif;
   --header-height: 64px;
   --body-font-size: 16px;
-  --box-shadow: 0 2px 5px rgb(213 213 213);
+  --box-shadow-color: rgb(213 213 213);
+  --box-shadow: 0 2px 5px var(--box-shadow-color);
   --loading-backdrop: rgba(128 128 128 / 80%);
   --icon-drop-shadow: drop-shadow(0 0 1px var(--black));
   --border-radius: 15px;
