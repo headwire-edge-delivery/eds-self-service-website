@@ -9,17 +9,13 @@ import { loadCSS } from '../../scripts/aem.js';
 export default async function decorate(block) {
   onAuthenticated(async () => {
     const { searchParams } = new URL(window.location.href);
-    const id = searchParams.get('id');
     const url = searchParams.get('url');
-    if (!id) {
-      window.location.href = '/dashboard';
+    if (!url) {
+      window.location.href = '/';
       return;
     }
 
-    if (!url) {
-      window.location.href = `/site/${id}`;
-      return;
-    }
+    const id = new URL(url).hostname.split('.')[0];
 
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();

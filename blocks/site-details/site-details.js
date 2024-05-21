@@ -777,7 +777,7 @@ export default async function decorate(block) {
                   <td>${toDate(item.lastModified).toLocaleString()}</td>
                   <td>
                     <a class="button action secondary" href="${toKestrel1URL(project.liveUrl)}${item.path}" target="_blank">Open</a>
-                    <a class="button action secondary" href="/email-composer?id=${project.projectSlug}&url=${toKestrel1URL(project.liveUrl)}${
+                    <a class="button action secondary" href="/email-composer?url=${toKestrel1URL(project.liveUrl)}${
   item.path
 }" target="_blank">Edit</a>
                   </td>
