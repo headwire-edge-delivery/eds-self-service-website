@@ -146,6 +146,7 @@ function renderBlocksList(block, { project, headers, id }) {
   blocksList.innerHTML = '';
   blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
     const li = document.createElement('li');
+    li.className = 'button action';
     li.innerText = name;
     li.dataset.blockName = name;
     li.dataset.createInfo = createInfo || '';
