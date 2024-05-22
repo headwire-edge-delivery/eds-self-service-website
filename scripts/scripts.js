@@ -250,3 +250,7 @@ function createPromiseDialog(textContent = 'Are you sure?', withConfirm = false)
 
 window.alertDialog = (text = 'ALERT') => createPromiseDialog(text);
 window.confirmDialog = (text = 'Are you sure?') => createPromiseDialog(text, true);
+
+if (window.location.pathname === '/' && (window.location.hash.startsWith('#templates/') || String(window.sessionStorage.hash).startsWith('#templates/'))) {
+  document.body.style.display = 'none';
+}

@@ -21,7 +21,8 @@ export default async function decorate(block) {
     dialog.close();
   };
 
-  dialog.querySelector('a[href="#signin"]').onclick = () => {
+  dialog.querySelector('a[href="#signin"]').onclick = (e) => {
+    e.preventDefault();
     window.auth0Client.loginWithRedirect();
   };
 

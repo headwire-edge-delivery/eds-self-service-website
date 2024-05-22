@@ -47,4 +47,6 @@ export default async function decorate(block) {
       `);
     }
   });
+
+  document.dispatchEvent(new CustomEvent('header:ready'));
 }
