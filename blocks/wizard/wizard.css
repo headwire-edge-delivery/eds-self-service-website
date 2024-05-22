@@ -71,6 +71,11 @@
     margin: 48px auto auto 16px;
 }
 
+/* scrollbar styles */
+.wizard.block .template-container::-webkit-scrollbar {
+    display: none;
+}
+
 .wizard.block .template-wrapper {
     position: relative;
 }
@@ -85,8 +90,10 @@
 }
 
 .wizard.block .template-wrapper .scroll-button {
-    width: 24px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    padding: 4px;
     pointer-events: all;
     position: relative;
     background: var(--white);
