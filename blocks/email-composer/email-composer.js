@@ -194,7 +194,15 @@ export default async function decorate(block) {
         throw new Error(res.status);
       })
         .then(async ({ project }) => {
-          block.querySelector('.actions').innerHTML = `<a href="${project.driveUrl}" target="_blank" class="button secondary action">Edit email</a>`;
+          block.querySelector('.actions').innerHTML = `<a href="#" target="_blank" class="button secondary action copy">Copy</a><a href="${project.driveUrl}" target="_blank" class="button action primary">Edit</a>`;
+
+          block.querySelector('.copy').onclick = (e) => {
+            e.preventDefault();
+
+            const copyUrl = new URL(iframe.src);
+            copyUrl.searchParams.set('copy', '');
+            window.open(copyUrl.toString(), '_blank');
+          };
 
           // Load codemirror to edit styles
           loadCSS('/libs/codemirror/codemirror.css');
