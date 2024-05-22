@@ -96,8 +96,10 @@
     padding: 4px;
     pointer-events: all;
     position: relative;
-    background: var(--white);
+    background: var(--orange);
     box-shadow: 0 0 5px var(--box-shadow-color);
+    border-color: var(--white);
+    margin-inline: 16px;
 }
 
 .wizard.block .template-wrapper .scroll-button::after {
@@ -106,6 +108,7 @@
     inset: 0;
     background: center / contain no-repeat url('/icons/chevron-down.svg');
     transform: rotate(90deg);
+    filter: invert(1);
 }
 
 .wizard.block .template-wrapper .scroll-button.next::after {
