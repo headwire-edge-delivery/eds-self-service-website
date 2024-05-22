@@ -21,6 +21,12 @@ window.auth0.createAuth0Client({
       || window.location.search.includes('error='))) {
     await auth0Client.handleRedirectCallback();
     window.history.replaceState({}, document.title, '/');
+
+    // Restore session hash
+    if (window.sessionStorage.hash) {
+      window.location.hash = window.sessionStorage.hash;
+      window.sessionStorage.hash = '';
+    }
   }
 
   const isAuthenticated = await auth0Client.isAuthenticated();

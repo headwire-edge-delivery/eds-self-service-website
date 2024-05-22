@@ -116,6 +116,7 @@
     height: 100vh;
     width: 100vw;
     border: none;
+    background-color: var(--white);
 }
 
 .wizard.block .template h3 + p {

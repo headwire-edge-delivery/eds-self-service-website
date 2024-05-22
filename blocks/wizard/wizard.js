@@ -46,6 +46,14 @@ export default async function decorate(block) {
     el.prepend(loader.cloneNode(true));
   });
 
+  const previewTemplate = () => {
+    const template = window.location.hash.split('/').pop();
+    const selectedTemplate = document.getElementById(template);
+    if (selectedTemplate) {
+      selectedTemplate.click();
+    }
+  };
+
   const selectStep = (event) => {
     event.preventDefault();
 
@@ -65,6 +73,10 @@ export default async function decorate(block) {
 
     if (siblingStep.querySelector('a[href="#template"]')) {
       block.classList.remove('show-buttons');
+    }
+
+    if (siblingStep.matches(':first-child') && window.location.hash.startsWith('#templates/')) {
+      previewTemplate();
     }
 
     window.scrollTo(0, 0);
@@ -90,16 +102,17 @@ export default async function decorate(block) {
     fetch(templates.href)
       .then((req) => req.json())
       .then(({ data }) => {
-        templateContainer.innerHTML = data
-          .map(
-            ({
-              id, name, description, enabled, demo,
-            }, i) => {
-              if (enabled.toLowerCase() === 'false') {
-                return '';
-              }
-              return `
-          <a href="#" id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
+        const render = () => {
+          templateContainer.innerHTML = data
+            .map(
+              ({
+                id, name, description, enabled, demo,
+              }, i) => {
+                if (enabled.toLowerCase() === 'false') {
+                  return '';
+                }
+                return `
+          <a href="#templates/${id}" id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
             <p>${description}</p>
             <div class="carousel">
@@ -117,84 +130,107 @@ export default async function decorate(block) {
             <iframe class="preview" src="${demo}" loading="lazy"></iframe>
           </a>
         `;
-            },
-          )
-          .join('');
+              },
+            )
+            .join('');
 
-        const templateImage = document.createElement('div');
-        templateImage.className = 'template-image';
-        templateImage.append(templateContainer.querySelector('.template.is-selected img').cloneNode(true));
+          const templateImage = document.createElement('div');
+          templateImage.className = 'template-image';
+          templateImage.append(templateContainer.querySelector('.template.is-selected img').cloneNode(true));
 
-        // Add template image to all steps
-        const step = templateContainer.closest('.step');
-        let nextStep = step.nextElementSibling;
-        while (nextStep) {
-          nextStep.append(templateImage.cloneNode(true));
-          nextStep = nextStep.nextElementSibling;
-        }
-
-        templateContainer.addEventListener('click', (event) => {
-          if (event.target.closest('.dot:not(.is-selected)')) {
-            event.preventDefault();
-            const dots = event.target.parentElement;
-            const index = [...dots.children].indexOf(event.target) + 1;
-            const template = event.target.closest('.template');
-
-            template.querySelector('img.is-selected').classList.remove('is-selected');
-            template.querySelector(`img:nth-child(${index})`).classList.add('is-selected');
-
-            dots.querySelector('.is-selected').classList.remove('is-selected');
-            event.target.classList.add('is-selected');
-          } else if (event.target.closest('.template')) {
-            event.preventDefault();
-            const template = event.target.closest('.template');
-            block.querySelector('.template.is-selected').classList.remove('is-selected');
-            template.classList.add('is-selected');
-
-            document.body.classList.add('is-template-previewing');
-            template.querySelector('.preview').classList.add('is-visible');
-
-            const selectTemplate = document.querySelector('header a[href="#select-template"]');
-            let selectTemplateName = selectTemplate.querySelector('span');
-            if (!selectTemplateName) {
-              selectTemplateName = document.createElement('span');
-              selectTemplate.append(selectTemplateName);
-            }
-            selectTemplateName.textContent = template.querySelector('h3').textContent;
-
-            const back = document.querySelector('header a[href="#back"]');
-            const hidePreview = () => {
-              if (document.body.classList.contains('is-template-previewing')) {
-                document.body.classList.remove('is-template-previewing');
-                block.querySelector('.preview.is-visible').classList.remove('is-visible');
-                block.classList.remove('show-buttons');
-                selectTemplate.onclick = undefined;
-                back.onclick = undefined;
-              }
-            };
-
-            back.onclick = () => {
-              hidePreview();
-            };
-
-            if (document.body.classList.contains('is-anonymous')) {
-              selectTemplate.onclick = () => {
-                document.querySelector('.plans-dialog').showModal();
-              };
-            } else {
-              selectTemplate.onclick = () => {
-                hidePreview();
-                block.querySelector('a[href="#template"]').click();
-                block.classList.add('show-buttons');
-
-                block.querySelectorAll('.template-image').forEach((el) => {
-                  el.innerHTML = '';
-                  el.append(template.querySelector('img').cloneNode(true));
-                });
-              };
-            }
+          // Add template image to all steps
+          const step = templateContainer.closest('.step');
+          let nextStep = step.nextElementSibling;
+          while (nextStep) {
+            nextStep.append(templateImage.cloneNode(true));
+            nextStep = nextStep.nextElementSibling;
           }
-        });
+
+          templateContainer.addEventListener('click', (event) => {
+            if (event.target.closest('.dot:not(.is-selected)')) {
+              event.preventDefault();
+              const dots = event.target.parentElement;
+              const index = [...dots.children].indexOf(event.target) + 1;
+              const template = event.target.closest('.template');
+
+              template.querySelector('img.is-selected').classList.remove('is-selected');
+              template.querySelector(`img:nth-child(${index})`).classList.add('is-selected');
+
+              dots.querySelector('.is-selected').classList.remove('is-selected');
+              event.target.classList.add('is-selected');
+            } else if (event.target.closest('.template')) {
+              const template = event.target.closest('.template');
+
+              block.querySelector('.template.is-selected').classList.remove('is-selected');
+              template.classList.add('is-selected');
+
+              document.body.classList.add('is-template-previewing');
+              template.querySelector('.preview').classList.add('is-visible');
+
+              const selectTemplate = document.querySelector('header a[href="#select-template"]');
+              let selectTemplateName = selectTemplate.querySelector('span');
+              if (!selectTemplateName) {
+                selectTemplateName = document.createElement('span');
+                selectTemplate.append(selectTemplateName);
+              }
+              selectTemplateName.textContent = template.querySelector('h3').textContent;
+
+              const back = document.querySelector('header a[href="#back"]');
+              const hidePreview = () => {
+                if (document.body.classList.contains('is-template-previewing')) {
+                  document.body.classList.remove('is-template-previewing');
+                  block.querySelector('.preview.is-visible').classList.remove('is-visible');
+                  block.classList.remove('show-buttons');
+                  selectTemplate.onclick = undefined;
+                  back.onclick = undefined;
+                }
+              };
+
+              back.onclick = (e) => {
+                e.preventDefault();
+                hidePreview();
+                window.location.hash = '';
+              };
+
+              if (document.body.classList.contains('is-anonymous')) {
+                selectTemplate.onclick = (e) => {
+                  e.preventDefault();
+                  document.querySelector('.plans-dialog').showModal();
+
+                  // In case of login
+                  window.sessionStorage.hash = window.location.hash;
+                };
+              } else {
+                selectTemplate.onclick = (e) => {
+                  e.preventDefault();
+                  hidePreview();
+                  block.querySelector('a[href="#template"]').click();
+                  block.classList.add('show-buttons');
+
+                  block.querySelectorAll('.template-image').forEach((el) => {
+                    el.innerHTML = '';
+                    el.append(template.querySelector('img').cloneNode(true));
+                  });
+                };
+              }
+
+              document.body.style.display = '';
+            }
+          });
+
+          // Handle path on page load
+          if (window.location.hash.startsWith('#templates/')) {
+            previewTemplate();
+          }
+        };
+
+        if (document.querySelector('.header[data-block-status="loaded"]')) {
+          render();
+        } else {
+          document.addEventListener('header:ready', () => {
+            render();
+          });
+        }
       });
   }
 
@@ -277,105 +313,95 @@ export default async function decorate(block) {
     });
   }
 
-  // Handle link identifiers with # (#create etc.)
-  block.addEventListener('click', async (event) => {
-    const action = event.target.closest('a[href]');
-    if (!action) {
-      return;
-    }
+  // Handle create action
+  createButton.onclick = async (e) => {
+    e.preventDefault();
 
-    const identifier = action.getAttribute('href');
+    const token = await window.auth0Client.getTokenSilently();
+    const template = block.querySelector('.template.is-selected').id;
 
-    // MARK: site creation
-    if (identifier === '#create') {
-      const token = await window.auth0Client.getTokenSilently();
-      const template = block.querySelector('.template.is-selected').id;
+    const reqCreate = await fetch(`${SCRIPT_API}/create`, {
+      headers: {
+        'content-type': 'application/json',
+        authorization: `bearer ${token}`,
+      },
+      body: JSON.stringify({
+        inputProjectName: input.value,
+        inputProjectSlug: slugInput.value,
+        inputProjectDescription: textarea.value,
+        template,
+      }),
+      method: 'POST',
+    });
 
-      const reqCreate = await fetch(`${SCRIPT_API}/create`, {
-        headers: {
-          'content-type': 'application/json',
-          authorization: `bearer ${token}`,
-        },
-        body: JSON.stringify({
-          inputProjectName: input.value,
-          inputProjectSlug: slugInput.value,
-          inputProjectDescription: textarea.value,
-          template,
-        }),
-        method: 'POST',
+    const editStep = block.querySelector('.step:has(a[href="#edit"])');
+    const statusList = editStep.querySelector('ul');
+
+    const error = () => {
+      statusList.remove();
+      editStep.querySelector('h2 + p').textContent = `${OOPS} Please try again in a few minutes.`;
+    };
+
+    const renderStatusList = (stepsObj) => {
+      const listItems = statusList.querySelectorAll('li');
+      progressSteps.forEach((step, index) => {
+        if (stepsObj[step]) {
+          listItems[index].className = stepsObj[step].status;
+        }
       });
+    };
+    renderStatusList({});
 
-      const editStep = block.querySelector('.step:has(a[href="#edit"])');
-      const statusList = editStep.querySelector('ul');
+    if (reqCreate.ok) {
+      const { jobId } = await reqCreate.json();
 
-      const error = () => {
-        statusList.remove();
-        editStep.querySelector('h2 + p').textContent = `${OOPS} Please try again in a few minutes.`;
-      };
+      const statusInterval = setInterval(async () => {
+        const reqStatus = await fetch(`${SCRIPT_API}/jobs/${jobId}`);
+        if (reqStatus.ok) {
+          const {
+            steps, finished, success, failed, driveUrl, sidekickSetupUrl, liveUrl, projectSlug,
+          } = await reqStatus.json();
 
-      const renderStatusList = (stepsObj) => {
-        const listItems = statusList.querySelectorAll('li');
-        progressSteps.forEach((step, index) => {
-          if (stepsObj[step]) {
-            listItems[index].className = stepsObj[step].status;
-          }
-        });
-      };
-      renderStatusList({});
+          renderStatusList(steps);
 
-      if (reqCreate.ok) {
-        const { jobId } = await reqCreate.json();
-
-        const statusInterval = setInterval(async () => {
-          const reqStatus = await fetch(`${SCRIPT_API}/jobs/${jobId}`);
-          if (reqStatus.ok) {
-            const {
-              steps, finished, success, failed, driveUrl, sidekickSetupUrl, liveUrl, projectSlug,
-            } = await reqStatus.json();
-
-            renderStatusList(steps);
-
-            if (finished) {
-              if (success) {
-                const openSite = block.querySelector('a[href="#open-site"]');
-                const openDrive = block.querySelector('a[href="#open-drive"]');
-                const installSidekick = block.querySelector('a[href="#install-sidekick"]');
-                const openSiteDetails = block.querySelector('a[href="#site-details"]');
-                const makeReady = (linkEl, url) => {
-                  if (linkEl && url) {
-                    linkEl.href = url;
-                    linkEl.classList.add('action', 'secondary', 'is-ready');
-                    linkEl.target = '_blank';
-                  }
-                };
-
-                makeReady(openSite, toKestrel1URL(liveUrl));
-                makeReady(openDrive, driveUrl);
-                makeReady(installSidekick, sidekickSetupUrl);
-
-                if (openSiteDetails) {
-                  openSiteDetails.classList.remove('next');
-                  openSiteDetails.href = `/site/${projectSlug}`;
+          if (finished) {
+            if (success) {
+              const openSite = block.querySelector('a[href="#open-site"]');
+              const openDrive = block.querySelector('a[href="#open-drive"]');
+              const installSidekick = block.querySelector('a[href="#install-sidekick"]');
+              const openSiteDetails = block.querySelector('a[href="#site-details"]');
+              const makeReady = (linkEl, url) => {
+                if (linkEl && url) {
+                  linkEl.href = url;
+                  linkEl.classList.add('action', 'secondary', 'is-ready');
+                  linkEl.target = '_blank';
                 }
+              };
 
-                const edit = editStep.querySelector('a[href="#edit"]');
-                edit.classList.remove('is-disabled');
-                edit.click();
-              } else if (failed) {
-                error();
-              } else {
-                // don't clear interval
-                return;
+              makeReady(openSite, toKestrel1URL(liveUrl));
+              makeReady(openDrive, driveUrl);
+              makeReady(installSidekick, sidekickSetupUrl);
+
+              if (openSiteDetails) {
+                openSiteDetails.classList.remove('next');
+                openSiteDetails.href = `/site/${projectSlug}`;
               }
-              clearInterval(statusInterval);
+
+              const edit = editStep.querySelector('a[href="#edit"]');
+              edit.classList.remove('is-disabled');
+              edit.click();
+            } else if (failed) {
+              error();
+            } else {
+              // don't clear interval
+              return;
             }
+            clearInterval(statusInterval);
           }
-        }, 2000);
-      } else {
-        error();
-      }
-    } else if (identifier === '#new') {
-      window.location.reload();
+        }
+      }, 2000);
+    } else {
+      error();
     }
-  });
+  };
 }

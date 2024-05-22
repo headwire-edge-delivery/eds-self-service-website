@@ -93,6 +93,15 @@
     .header.block .section {
         min-width: auto;
     }
+
+    .header.block a[href="/dashboard"],
+    .header.block a[href="#select-template"] {
+        font-size: 0;
+    }
+
+    .header.block a[href="#select-template"] span {
+        font-size: initial;
+    }
 }
 
 .is-template-previewing .header.block a:is([href="/"], [href="/dashboard"], [href="#signout"], [href="#signin"]) {
