@@ -776,10 +776,10 @@ export default async function decorate(block) {
 }</td>          
                   <td>${toDate(item.lastModified).toLocaleString()}</td>
                   <td>
-                    <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${toKestrel1URL(project.liveUrl)}${item.path}" target="_blank">Open</a>
-                    <a class="button action secondary" href="/email-composer?url=${toKestrel1URL(project.liveUrl)}${
-  item.path
-}" target="_blank">Edit</a>
+                    <div class="button-container">
+                      <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${toKestrel1URL(project.liveUrl)}${item.path}" target="_blank">Open</a>
+                      <a class="button action secondary" href="/email-composer?url=${toKestrel1URL(project.liveUrl)}${item.path}" target="_blank">Edit</a>
+                    </div>
                   </td>
               </tr>
             `;

@@ -187,36 +187,11 @@
     cursor: pointer;
 }
 
-.site-details.block table {
-    width: 100%;
-    border-collapse: collapse;
-    padding: 16px;
-}
-
-.site-details.block table :is(th, td) {
-    padding: 8px;
-    font-weight: 300;
-}
-
-.site-details.block table th {
-    text-align: left;
-    text-transform: uppercase;
-    font-size: 14px;
-    font-weight: 600;
-}
-
 .site-details.block table td:first-child {
     font-weight: 500;
 }
 
-.site-details.block table tbody td:last-child {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-}
-
-.site-details.block .vars:empty,
-.site-details.block table:has(tbody:empty) {
+.site-details.block .vars:empty {
     display: none;
 }
 
