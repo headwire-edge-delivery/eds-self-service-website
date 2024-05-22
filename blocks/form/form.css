@@ -1,33 +1,33 @@
-.feedback-form-container {
+.form-container {
   max-width: calc(var(--layout-width) / 2);
   width: 100%;
   margin: 32px auto auto;
   padding: 16px;
 }
 
-.feedback-form.block {
+.form.block {
   max-width: var(--layout-width);
   position: relative;
 }
 
-.feedback-form.block textarea {
+.form.block textarea {
   min-height: 100px;
   resize: none;
   max-height: 600px;
 }
 
-.feedback-form.block form {
+.form.block form {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.feedback-form.block label[data-required-field="true"] span::after {
+.form.block label[data-required-field="true"] span::after {
   content: " *";
 }
 
-.feedback-form.block form.loading::after {
-  content: "Sending...";
+.form.block form.loading::after {
+  content: attr(data-loading-message);
   position: absolute;
   inset: 0;
   display: flex;
@@ -38,12 +38,12 @@
   background-color: var(--loading-backdrop);
 }
 
-.feedback-form.block form.success > * {
+.form.block form.success > * {
   opacity: 0;
 }
 
-.feedback-form.block form.success::after {
-  content: "Feedback Sent!";
+.form.block form.success::after {
+  content: attr(data-success-message);
   position: absolute;
   inset: 0;
   display: flex;
@@ -53,26 +53,26 @@
   font-weight: 600;
 }
 
-.feedback-form.block .label-text {
+.form.block .label-text {
   padding-block: 16px;
   display: block;
 }
 
-.feedback-form.block button[type="submit"] {
+.form.block button[type="submit"] {
   align-self: flex-start;
 }
 
-.feedback-form.block .group {
+.form.block .group {
   display: flex;
   gap: 16px;
 }
 
-.feedback-form.block .group > * {
+.form.block .group > * {
   flex: 1;
 }
 
 @media (width < 768px) {
-  .feedback-form.block .group {
+  .form.block .group {
     display: block;
   }
 }

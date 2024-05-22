@@ -26,15 +26,16 @@ function createLabel(field, fieldData, placeholders) {
 }
 
 function setCommonAttributes(field, fieldData, placeholders, index) {
-  field.id = fieldData.id;
-  field.name = fieldData.name;
-  field.required = fieldData.required.toLowerCase() === 'true';
-  field.placeholder = placeholders?.[toCamelCase(fieldData['example-placeholder'])]
+  if (!field.id) field.id = fieldData.id;
+  if (!field.name) field.name = fieldData.name;
+  if (!field.required) field.required = fieldData.required.toLowerCase() === 'true';
+  if (!field.placeholder) {
+    field.placeholder = placeholders?.[toCamelCase(fieldData['example-placeholder'])]
     || fieldData['example-placeholder']
     || fieldData.name
     || '';
-  field.value = fieldData['default-value'] || '';
-  field.dataset.index = index;
+  }
+  if (!field.dataset.index) field.dataset.index = index;
 }
 
 const createSelect = async (fieldData) => {
@@ -98,12 +99,12 @@ const createToggle = (fieldData) => {
   return toggleSwitch;
 };
 
-const createCheckbox = (fieldData, placeholders) => {
+const createCheckbox = (fieldData) => {
   const field = createInput(fieldData);
   if (fieldData['default-value']) field.checked = true;
-  field.value = placeholders[toCamelCase(fieldData['label-placeholder'])]
-    || fieldData['label-placeholder']
-    || fieldData.name;
+
+  // string value sent when checkbox is checked.
+  field.value = 'yes';
 
   return field;
 };
@@ -192,7 +193,7 @@ async function createField(fieldData, form, placeholders, index) {
   return field;
 }
 
-export default async function createForm(formConfigPath, onSubmit) {
+export default async function createForm(formConfigPath) {
   const [resp, placeholders] = await Promise.all([
     fetch(formConfigPath),
     getPlaceholder(null),
@@ -230,10 +231,6 @@ export default async function createForm(formConfigPath, onSubmit) {
       placeholders.formButtonSubmit || 'Send'
     }</button>`,
   );
-
-  if (onSubmit) {
-    form.onsubmit = onSubmit;
-  }
 
   return form;
 }

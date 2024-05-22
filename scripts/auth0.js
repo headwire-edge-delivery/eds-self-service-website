@@ -1,6 +1,7 @@
 const unauthenticatedAllowedPaths = {
   '/': true,
   '/feedback': true,
+  '/contact-sales': true,
 };
 
 window.auth0.createAuth0Client({
