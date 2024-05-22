@@ -25,18 +25,18 @@ function createLabel(field, fieldData, placeholders) {
   return label;
 }
 
-/*
 function setCommonAttributes(field, fieldData, placeholders, index) {
-  field.id = fieldData.id;
-  field.name = fieldData.name;
-  field.required = fieldData.required.toLowerCase() === 'true';
-  field.placeholder = placeholders?.[toCamelCase(fieldData['example-placeholder'])]
+  if (!field.id) field.id = fieldData.id;
+  if (!field.name) field.name = fieldData.name;
+  if (!field.required) field.required = fieldData.required.toLowerCase() === 'true';
+  if (!field.placeholder) {
+    field.placeholder = placeholders?.[toCamelCase(fieldData['example-placeholder'])]
     || fieldData['example-placeholder']
     || fieldData.name
     || '';
-  field.dataset.index = index;
+  }
+  if (!field.dataset.index) field.dataset.index = index;
 }
-*/
 
 const createSelect = async (fieldData) => {
   const select = document.createElement('select');
@@ -102,6 +102,8 @@ const createToggle = (fieldData) => {
 const createCheckbox = (fieldData) => {
   const field = createInput(fieldData);
   if (fieldData['default-value']) field.checked = true;
+
+  // string value sent when checkbox is checked.
   field.value = 'yes';
 
   return field;

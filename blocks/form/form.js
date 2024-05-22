@@ -44,8 +44,6 @@ async function onSalesContactFormSubmit(event) {
   const data = new FormData(form);
   data.append('timestamp', Date.now());
 
-  // send checkboxes as true/false
-
   disableForm(form, true);
 
   const response = await fetch(`${SCRIPT_API}/contactSales`, {
@@ -72,12 +70,7 @@ export default async function decorate(block) {
   form.dataset.loadingMessage = 'Sending...';
   form.dataset.successMessage = contactSalesVariation ? 'Thank you for your inquiry. We will contact you soon!' : 'Thank you for your feedback.';
 
-  // form.addEventListener('submit', contactSalesVariation ? onSalesContactFormSubmit : onFeedbackFormSubmit);
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    new FormData(form).forEach((key, value, arr) => console.log(key, value, arr));
-    console.log(Object.fromEntries(new FormData(form)));
-  });
+  form.addEventListener('submit', contactSalesVariation ? onSalesContactFormSubmit : onFeedbackFormSubmit);
 
   block.innerHTML = '';
 
