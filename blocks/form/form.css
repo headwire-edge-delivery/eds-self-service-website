@@ -60,6 +60,7 @@
 
 .form.block button[type="submit"] {
   align-self: flex-start;
+  margin-top: 32px;
 }
 
 .form.block .group {
