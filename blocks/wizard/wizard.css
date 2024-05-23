@@ -158,6 +158,7 @@
 }
 
 .wizard.block .template .preview.is-visible {
+    z-index: 1;
     display: block;
     position: fixed;
     top: 64px;
