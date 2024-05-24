@@ -34,6 +34,12 @@ window.auth0.createAuth0Client({
   document.body.classList.add(isAuthenticated ? 'is-authenticated' : 'is-anonymous');
 
   if (isAuthenticated) {
+    // on root page without searchparams (for site creation point)
+    if (window.location.pathname === '/' && !window.location.search) {
+      if (!document.referrer || new URL(document.referrer).origin !== window.location.origin) {
+        window.location.replace('/dashboard');
+      }
+    }
     document.dispatchEvent(new CustomEvent('auth0:authenticated'));
   } else if (!unauthenticatedAllowedPaths[window.location.pathname]) {
     window.location.href = '/';

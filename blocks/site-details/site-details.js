@@ -181,6 +181,7 @@ function renderBlocksList(block, { project, headers, id }) {
 function addIconDialogSetup({
   headers, id, itemList, fileAccept = 'image/svg+xml', titleText = 'Add icon',
   extraHtml = '', uploadEndpoint = `${SCRIPT_API}/icons/${id}`,
+  defaultSrc,
 }) {
   const dialogContent = document.createElement('div');
 
@@ -191,6 +192,9 @@ function addIconDialogSetup({
   input.accept = fileAccept;
   const preview = document.createElement('div');
   preview.classList.add('preview');
+  if (defaultSrc) {
+    preview.innerHTML = `<img alt="favicon" src="${defaultSrc}" loading="lazy" />`;
+  }
 
   dialogContent.append(title, input, preview);
   if (extraHtml) {
@@ -263,6 +267,7 @@ function renderIconsList(block, { project, headers, id }) {
     fileAccept: 'image/x-icon',
     extraHtml: '<p>The favicon is the icon that appears in the browser tab.</p><p>You can change it here, but it must be a .ico file.</p>',
     uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
+    defaultSrc: `https://main--${id}--headwire-self-service.hlx.page/favicon.ico`,
   });
 
   iconsList.innerHTML = '';
