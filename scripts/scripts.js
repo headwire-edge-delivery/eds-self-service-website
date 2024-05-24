@@ -224,14 +224,14 @@ function createPromiseDialog(textContent = 'Are you sure?', withConfirm = false)
     }
 
     const cancelButton = document.createElement('button');
-    cancelButton.className = 'button';
+    cancelButton.className = 'button action secondary';
     cancelButton.innerText = 'Cancel';
     cancelButton.onclick = () => buttonPress(false);
     buttonWrapper.append(cancelButton);
 
     if (withConfirm) {
       const confirmButton = document.createElement('button');
-      confirmButton.className = 'button secondary';
+      confirmButton.className = 'button action primary';
       confirmButton.innerText = 'Confirm';
       confirmButton.onclick = () => buttonPress(true);
       buttonWrapper.append(confirmButton);

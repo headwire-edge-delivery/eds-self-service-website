@@ -20,6 +20,7 @@ export default async function decorate(block) {
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();
 
+    let project;
     let editor;
     let recipientsData = {
       headers: [],
@@ -76,9 +77,6 @@ export default async function decorate(block) {
                 <iframe src="${EMAIL_WORKER_API}?url=${url}"></iframe>
             </div>
             <aside>
-                <h2>From</h2>
-                <input type="email" value="" placeholder="user@domain.com" class="from">
-                
                 <h2>Subject</h2>
                 <input type="text" readonly value="${meta.subject}">
                 
@@ -200,7 +198,9 @@ export default async function decorate(block) {
 
         throw new Error(res.status);
       })
-        .then(async ({ project }) => {
+        .then(async (res) => {
+          project = res.project;
+
           block.querySelector('.actions').innerHTML = `
             <a href="#" target="_blank" class="button secondary action copy">Copy</a>
             <a href="${project.driveUrl}" target="_blank" class="button action secondary">Edit</a>
@@ -221,9 +221,9 @@ export default async function decorate(block) {
           await import('../../libs/codemirror/css.js');
 
           fetch(`${toKestrel1URL(project.liveUrl)}${meta.styles}`)
-            .then((res) => {
-              if (res.ok) {
-                return res.text();
+            .then((resStyles) => {
+              if (resStyles.ok) {
+                return resStyles.text();
               }
               return '';
             })
@@ -285,17 +285,23 @@ export default async function decorate(block) {
             `;
 
           const send = block.querySelector('.send');
-          send.classList.remove('is-disabled');
+          const toggleSendDisabled = () => {
+            send.classList.toggle('is-disabled', recipients.querySelector('tbody input[type="checkbox"]:checked') === null);
+          };
 
           recipients.querySelector('thead input[type="checkbox"]').onclick = (e) => {
             const check = e.target.checked;
             recipients.querySelectorAll('tbody input[type="checkbox"]').forEach((checkbox) => {
               checkbox.checked = check;
             });
+
+            toggleSendDisabled();
           };
 
           recipients.querySelector('tbody').onclick = (e) => {
-            if (e.target.matches('.render')) {
+            if (e.target.matches('input[type="checkbox"]')) {
+              toggleSendDisabled();
+            } else if (e.target.matches('.render')) {
               const isRendering = recipients.querySelector('.is-rendering');
               if (isRendering) {
                 isRendering.classList.remove('is-rendering');
@@ -365,9 +371,9 @@ export default async function decorate(block) {
           };
 
           send.onclick = async () => {
-            const selectedRecipients = recipients.querySelectorAll('tbody tr:has(input:checked)');
+            const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
 
-            if (await window.createPromiseDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
+            if (await window.confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
               send.classList.add('is-disabled');
 
               const previewSource = new URL(iframe.src);
@@ -378,8 +384,8 @@ export default async function decorate(block) {
                 },
                 body: JSON.stringify({
                   styles: previewSource.searchParams.get('styles'),
-                  content: previewSource.searchParams.get('content'),
-                  from: block.querySelector('.from').value,
+                  url: previewSource.searchParams.get('url'),
+                  from: project.projectName,
                   variables: customVariables,
                   to: recipientsData.data.filter(({ email }) => selectedRecipients
                     .find((el) => el.dataset.email === email)),
