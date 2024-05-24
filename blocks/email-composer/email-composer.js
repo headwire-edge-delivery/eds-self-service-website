@@ -377,7 +377,7 @@ export default async function decorate(block) {
               send.classList.add('is-disabled');
 
               const previewSource = new URL(iframe.src);
-              const req = await fetch(`${EMAIL_WORKER_API}/send`, {
+              const req = await fetch(`${SCRIPT_API}/send/${id}`, {
                 headers: {
                   'content-type': 'application/json',
                   authorization: `bearer ${token}`,
@@ -385,7 +385,6 @@ export default async function decorate(block) {
                 body: JSON.stringify({
                   styles: previewSource.searchParams.get('styles'),
                   url: previewSource.searchParams.get('url'),
-                  from: project.projectName,
                   variables: customVariables,
                   to: recipientsData.data.filter(({ email }) => selectedRecipients
                     .find((el) => el.dataset.email === email)),
