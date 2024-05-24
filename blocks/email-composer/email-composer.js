@@ -247,14 +247,17 @@ export default async function decorate(block) {
             return res.json();
           }
 
-          return recipientsData;
+          return false;
         })
         .then((data) => {
           const recipients = block.querySelector('.recipients');
-          if (data) {
-            recipientsData = data;
+
+          if (!data) {
+            recipients.textContent = 'No recipient spreadsheet found.';
+            return;
           }
 
+          recipientsData = data;
           recipients.innerHTML = `
               <thead>
                 <tr>
