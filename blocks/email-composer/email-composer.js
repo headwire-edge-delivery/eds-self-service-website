@@ -21,7 +21,6 @@ export default async function decorate(block) {
     const user = await window.auth0Client.getUser();
 
     let project;
-    let editor;
     let recipientsData = {
       headers: [],
       data: [],
@@ -74,7 +73,7 @@ export default async function decorate(block) {
         
         <div class="content">
             <div class="preview">
-                <iframe src="${EMAIL_WORKER_API}?url=${url}"></iframe>
+                <iframe name="preview" src="${EMAIL_WORKER_API}?url=${url}"></iframe>
             </div>
             <aside>
                 <h2>Subject</h2>
@@ -105,21 +104,19 @@ export default async function decorate(block) {
                 <h2>Styles (Developer)</h2>
                 
                 <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
-                <div>
-                    <textarea class="styles"></textarea>
-                    <button class="button secondary action save-styles">Save custom styles</button>
-                </div>
+                <form action="${EMAIL_WORKER_API}?url=${url}" method="POST" target="preview">
+                    <textarea name="styles" class="styles"></textarea>
+                    <div class="button-container">
+                        <button type="submit" class="button secondary action">Preview</button>
+                        <button type="button" class="button secondary action save-styles">Save styles</button>
+                    </div>
+                </form>
             </aside>
         </div>
       `;
 
       const iframe = block.querySelector('.preview iframe');
       const customVariables = {};
-
-      // Setup preview loading animations
-      iframe.onload = () => {
-        iframe.classList.remove('is-loading');
-      };
 
       // Find variable in first selected recipient columns
       const replaceMatches = (value) => {
@@ -142,28 +139,11 @@ export default async function decorate(block) {
       // Render codemirror
       block.querySelector('.enable-styles').onclick = (event) => {
         event.target.remove();
-        editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
+        window.CodeMirror.fromTextArea(block.querySelector('.styles'));
       };
 
-      // Render preview with custom styles
       block.querySelector('.save-styles').onclick = async () => {
-        const req = await fetch(`${EMAIL_WORKER_API}/save`, {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            authorization: `bearer ${token}`,
-          },
-          body: JSON.stringify({
-            styles: editor.getValue(),
-          }),
-        });
-
-        if (req.ok) {
-          const source = new URL(iframe.src);
-          source.searchParams.set('styles', await req.text());
-          iframe.classList.add('is-loading');
-          iframe.src = source.toString();
-        }
+        // TODO save styles in codebase
       };
 
       // Render preview with custom variables
@@ -181,7 +161,7 @@ export default async function decorate(block) {
             const newValue = replaceMatches(customVariables[key]);
             source.searchParams.set(key, newValue);
           });
-          iframe.classList.add('is-loading');
+
           iframe.src = source.toString();
         }
       };
@@ -386,7 +366,7 @@ export default async function decorate(block) {
                   authorization: `bearer ${token}`,
                 },
                 body: JSON.stringify({
-                  styles: previewSource.searchParams.get('styles'),
+                  styles: block.querySelector('.styles').value,
                   url: previewSource.searchParams.get('url'),
                   variables: customVariables,
                   to: recipientsData.data.filter(({ email }) => selectedRecipients

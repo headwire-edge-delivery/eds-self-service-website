@@ -84,11 +84,6 @@
     transition: all var(--animation-duration);
 }
 
-.email-composer.block .preview iframe.is-loading {
-    opacity: .5;
-    filter: blur(5px);
-}
-
 .email-composer input:is([type="text"], [type="email"]) {
     margin-bottom: 32px;
     display: block;
