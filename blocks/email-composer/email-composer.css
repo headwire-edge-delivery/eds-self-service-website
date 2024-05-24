@@ -89,7 +89,7 @@
     filter: blur(5px);
 }
 
-.email-composer input {
+.email-composer input:is([type="text"], [type="email"]) {
     margin-bottom: 32px;
     display: block;
     width: 100%;
@@ -115,32 +115,17 @@
     justify-content: flex-start;
 }
 
-.email-composer .recipients {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: -16px;
-    margin-bottom: 32px;
+.email-composer .recipients img {
+    height: 64px;
+    width: 64px;
 }
 
-.email-composer .recipients li {
-    padding: 8px;
-    font-size: 14px;
-    font-weight: 700;
-    border: 1px solid transparent;
-    transition: all var(--animation-duration);
-    cursor: pointer;
+.email-composer .recipients input[type="text"] {
+    margin-bottom: 0;
 }
 
-.email-composer .recipients li:hover {
-    border-color: var(--gray);
-}
-
-.email-composer .recipients li.is-selected {
-    border-color: var(--light-blue);
+.email-composer .recipients .button-container {
+    flex-wrap: nowrap;
 }
 
 .email-composer .enable-styles ~ * {

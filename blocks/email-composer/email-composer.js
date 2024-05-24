@@ -21,7 +21,10 @@ export default async function decorate(block) {
     const user = await window.auth0Client.getUser();
 
     let editor;
-    const recipientsData = [];
+    let recipientsData = {
+      headers: [],
+      data: [],
+    };
     // replace variables
     const regExp = /(?<=\{).+?(?=\})/g;
 
@@ -77,23 +80,25 @@ export default async function decorate(block) {
                 <input type="email" value="" placeholder="user@domain.com" class="from">
                 
                 <h2>Subject</h2>
-                <input readonly value="${meta.subject}">
+                <input type="text" readonly value="${meta.subject}">
                 
                 <h2>Recipients</h2>
                 
                 <div>
-                    <ul class="recipients"></ul>
-                    <div class="button-container">
-                        <button class="button secondary action is-disabled select-all">Select all</button>
-                        <button class="button primary action is-disabled send">Send</button>
-                    </div>
+                    <table class="recipients">
+                        <tr>
+                          <td>
+                              <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+                          </td>
+                        </tr>
+                    </table>
                 </div>
                 
                 <h2>Variables</h2>
                 ${variables.map((variable) => `
                   <div class="kv">
-                      <input placeholder="Key" value="${variable}" readonly>
-                      <input placeholder="Value">
+                      <input type="text" placeholder="Key" value="${variable}" readonly>
+                      <input type="text" placeholder="Value">
                   </div>
                 `).join('')}
                 
@@ -123,8 +128,10 @@ export default async function decorate(block) {
         let newValue = value;
         const matches = value.match(regExp);
         if (matches) {
-          const selectedEmail = block.querySelector('.recipients li.is-selected').textContent;
-          const selectedRecipient = recipientsData.find(({ email }) => email === selectedEmail);
+          const selectedEmail = block.querySelector('.recipients tbody tr.is-rendering').dataset.email;
+          const selectedRecipient = recipientsData.data
+            .find(({ email }) => email === selectedEmail);
+
           matches.forEach((match) => {
             const matchingCol = Object.keys(selectedRecipient).find((col) => col === match);
             newValue = value.replace(`{${match}}`, selectedRecipient[matchingCol] ?? '');
@@ -194,7 +201,11 @@ export default async function decorate(block) {
         throw new Error(res.status);
       })
         .then(async ({ project }) => {
-          block.querySelector('.actions').innerHTML = `<a href="#" target="_blank" class="button secondary action copy">Copy</a><a href="${project.driveUrl}" target="_blank" class="button action primary">Edit</a>`;
+          block.querySelector('.actions').innerHTML = `
+            <a href="#" target="_blank" class="button secondary action copy">Copy</a>
+            <a href="${project.driveUrl}" target="_blank" class="button action secondary">Edit</a>
+            <button class="button primary action send is-disabled">Send</button>
+          `;
 
           block.querySelector('.copy').onclick = (e) => {
             e.preventDefault();
@@ -226,7 +237,7 @@ export default async function decorate(block) {
         });
 
       // Load email metadata
-      fetch(`${SCRIPT_API}/recipients/${id}`, {
+      fetch(`${SCRIPT_API}/sheets/${id}?sheetPath=recipients`, {
         headers: {
           authorization: `bearer ${token}`,
         },
@@ -236,94 +247,155 @@ export default async function decorate(block) {
             return res.json();
           }
 
-          return { values: [] };
+          return recipientsData;
         })
-        .then(({ values }) => {
-          if (values.length) {
-            for (let i = 1; i < values.length; i += 1) {
-              const row = values[i];
-              const item = {};
-              values[0].forEach((col) => {
-                item[col] = row[values[0].indexOf(col)];
-              });
-              recipientsData.push(item);
-            }
+        .then((data) => {
+          const recipients = block.querySelector('.recipients');
+          if (data) {
+            recipientsData = data;
+          }
 
-            const recipients = block.querySelector('.recipients');
-            recipients.innerHTML = recipientsData.map(({ email }, i) => {
-              if (email) {
-                return `<li class="${i === 0 ? 'is-selected' : ''}">${email}</li>`;
+          recipients.innerHTML = `
+              <thead>
+                <tr>
+                    <th><input type="checkbox"></th>
+                    ${recipientsData.headers.map((key) => `<th>${key}</th>`).join('')}
+                    <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${recipientsData.data.map((row) => `<tr data-email="${row.email}">
+                    <td><input type="checkbox" class="select"></td>
+                    ${recipientsData.headers.map((key) => `<td>${row[key] ? row[key] : ''}</td>`).join('')}
+                    <td>
+                        <div class="button-container">
+                          <button class="button secondary action render">Preview</button>
+                          <button class="button secondary action remove">Remove</button>
+                        </div>
+                    </td>
+                </tr>`).join('')}
+                <tr>
+                    <td></td>
+                    ${recipientsData.headers.map(() => '<td><input type="text"></td>').join('')}
+                    <td>
+                        <button class="button secondary action add is-disabled">Add</button>
+                    </td>
+                </tr>
+              </tbody>
+            `;
+
+          const send = block.querySelector('.send');
+          send.classList.remove('is-disabled');
+
+          recipients.querySelector('thead input[type="checkbox"]').onclick = (e) => {
+            const check = e.target.checked;
+            recipients.querySelectorAll('tbody input[type="checkbox"]').forEach((checkbox) => {
+              checkbox.checked = check;
+            });
+          };
+
+          recipients.querySelector('tbody').onclick = (e) => {
+            if (e.target.matches('.render')) {
+              const isRendering = recipients.querySelector('.is-rendering');
+              if (isRendering) {
+                isRendering.classList.remove('is-rendering');
               }
 
-              return '';
-            }).join('');
+              e.target.closest('tr').classList.add('is-rendering');
 
-            if (recipients.childElementCount) {
-              const send = block.querySelector('.send');
-              const selectAll = block.querySelector('.select-all');
+              // Re-render preview with newly selected recipient
+              block.querySelector('.save-variables').click();
+              block.querySelector('h1').textContent = replaceMatches(meta.subject);
+            } else if (e.target.matches('.remove')) {
+              const tr = e.target.closest('tr');
+              const index = [...tr.parentElement.children].indexOf(tr);
+              tr.remove();
 
-              send.classList.remove('is-disabled');
-              selectAll.classList.remove('is-disabled');
-              const emails = recipients.querySelectorAll('li');
+              fetch(`${SCRIPT_API}/sheets/${id}?sheetPath=recipients&row=${index}`, {
+                method: 'DELETE',
+                headers: {
+                  authorization: `bearer ${token}`,
+                },
+              });
+            }
+          };
 
-              selectAll.onclick = () => {
-                emails.forEach((el) => {
-                  el.classList.add('is-selected');
-                });
-              };
+          const add = recipients.querySelector('.add');
+          const addInputs = [...recipients.querySelectorAll('tbody tr:last-child input')];
+          addInputs.forEach((input) => {
+            input.onkeydown = () => {
+              const values = addInputs.map((addInput) => addInput.value).join('');
+              add.classList.toggle('is-disabled', values.length === 0);
+            };
+          });
 
-              emails.forEach((el) => {
-                el.onclick = () => {
-                  // Always keep 1 selected at least
-                  if (recipients.querySelectorAll('li.is-selected').length === 1
-                    && recipients.querySelector('li.is-selected') === el) {
-                    return;
-                  }
+          add.onclick = () => {
+            const newRecipient = {};
+            recipientsData.headers.forEach((key, index) => {
+              newRecipient[key] = addInputs[index].value;
+            });
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="checkbox" class="select"></td>
+                ${addInputs.map((input) => `<td>${input.value}</td>`).join('')}   
+                <td>
+                    <div class="button-container">
+                        <button class="button secondary action render">Preview</button>
+                        <button class="button secondary action remove">Remove</button>
+                    </div>
+                </td>
+              `;
+            recipientsData.data.push(newRecipient);
+            tr.dataset.email = newRecipient.email;
+            add.closest('tr').before(tr);
 
-                  el.classList.toggle('is-selected', !el.classList.contains('is-selected'));
+            // Reset
+            addInputs.forEach((input) => {
+              input.value = '';
+            });
 
-                  if (recipients.querySelectorAll('li.is-selected').length === 1) {
-                    // Re-render preview with newly selected recipient
-                    block.querySelector('.save-variables').click();
-                    block.querySelector('h1').textContent = replaceMatches(meta.subject);
-                  }
-                };
+            fetch(`${SCRIPT_API}/sheets/${id}?sheetPath=recipients`, {
+              method: 'POST',
+              headers: {
+                authorization: `bearer ${token}`,
+                'content-type': 'application/json',
+              },
+              body: JSON.stringify(newRecipient),
+            });
+          };
+
+          send.onclick = async () => {
+            const selectedRecipients = recipients.querySelectorAll('tbody tr:has(input:checked)');
+
+            if (await window.createPromiseDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
+              send.classList.add('is-disabled');
+
+              const previewSource = new URL(iframe.src);
+              const req = await fetch(`${EMAIL_WORKER_API}/send`, {
+                headers: {
+                  'content-type': 'application/json',
+                  authorization: `bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  styles: previewSource.searchParams.get('styles'),
+                  content: previewSource.searchParams.get('content'),
+                  from: block.querySelector('.from').value,
+                  variables: customVariables,
+                  to: recipientsData.data.filter(({ email }) => selectedRecipients
+                    .find((el) => el.dataset.email === email)),
+                }),
+                method: 'POST',
               });
 
-              send.onclick = async () => {
-                const selectedRecipients = [...recipients.querySelectorAll('li.is-selected')];
+              if (req.ok) {
+                await window.alertDialog('Email delivered successfully!');
+              } else {
+                await window.alertDialog(OOPS);
+              }
 
-                if (await window.createPromiseDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
-                  send.classList.add('is-disabled');
-
-                  const previewSource = new URL(iframe.src);
-                  const req = await fetch(`${EMAIL_WORKER_API}/send`, {
-                    headers: {
-                      'content-type': 'application/json',
-                      authorization: `bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                      styles: previewSource.searchParams.get('styles'),
-                      content: previewSource.searchParams.get('content'),
-                      from: block.querySelector('.from').value,
-                      variables: customVariables,
-                      to: recipientsData.filter(({ email }) => selectedRecipients
-                        .find((el) => el.textContent === email)),
-                    }),
-                    method: 'POST',
-                  });
-
-                  if (req.ok) {
-                    await window.alertDialog('Email delivered successfully!');
-                  } else {
-                    await window.alertDialog(OOPS);
-                  }
-
-                  send.classList.remove('is-disabled');
-                }
-              };
+              send.classList.remove('is-disabled');
             }
-          }
+          };
         });
     }
   });
