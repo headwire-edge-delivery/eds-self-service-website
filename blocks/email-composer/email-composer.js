@@ -21,6 +21,7 @@ export default async function decorate(block) {
     const user = await window.auth0Client.getUser();
 
     let project;
+    let editor;
     let recipientsData = {
       headers: [],
       data: [],
@@ -139,11 +140,25 @@ export default async function decorate(block) {
       // Render codemirror
       block.querySelector('.enable-styles').onclick = (event) => {
         event.target.remove();
-        window.CodeMirror.fromTextArea(block.querySelector('.styles'));
+        editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
       };
 
-      block.querySelector('.save-styles').onclick = async () => {
-        // TODO save styles in codebase
+      const saveStyles = block.querySelector('.save-styles');
+      saveStyles.onclick = async () => {
+        saveStyles.classList.add('is-disabled');
+        const req = await fetch(`${SCRIPT_API}/emailStyles/${id}`, {
+          method: 'POST',
+          headers: {
+            authorization: `bearer ${token}`,
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            fileName: meta.styles.replace('/styles/email/', '').replace('.css', ''),
+            css: btoa(editor.getValue()),
+          }),
+        });
+        await window.alertDialog(req.ok ? 'Variables successfully updated!' : OOPS);
+        saveStyles.classList.remove('is-disabled');
       };
 
       // Render preview with custom variables
