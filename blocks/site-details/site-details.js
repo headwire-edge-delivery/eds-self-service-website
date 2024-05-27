@@ -334,7 +334,7 @@ function renderIconsList(block, { project, headers, id }) {
  */
 export default async function decorate(block) {
   onAuthenticated(async () => {
-    const id = window.location.pathname.split('/').pop();
+    const id = window.location.pathname.split('/')[2];
     const token = await window.auth0Client.getTokenSilently();
     const headers = { authorization: `bearer ${token}` };
 
