@@ -14,7 +14,6 @@ export default async function decorate(block) {
     const url = `https://${id}.${KESTREL_ONE}${path}`;
 
     const token = await window.auth0Client.getTokenSilently();
-    const user = await window.auth0Client.getUser();
 
     let project;
     let editor;
