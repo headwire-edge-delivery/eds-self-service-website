@@ -4,13 +4,15 @@ const unauthenticatedAllowedPaths = {
   '/contact-sales': true,
 };
 
+document.body.style.display = 'none';
+
 window.auth0.createAuth0Client({
   domain: 'dev-ao71660qsmfxenrv.us.auth0.com',
   clientId: 'uu61j8YM6RirVCEyy6M39vdNQUx8hlW9',
   useRefreshTokens: true,
   cacheLocation: 'localstorage',
   authorizationParams: {
-    redirect_uri: window.location.origin,
+    redirect_uri: `${window.location.origin}/dashboard`,
     audience: 'https://dev-ao71660qsmfxenrv.us.auth0.com/api/v2/',
     prompt: 'login',
   },
@@ -21,12 +23,13 @@ window.auth0.createAuth0Client({
     && (window.location.search.includes('code=')
       || window.location.search.includes('error='))) {
     await auth0Client.handleRedirectCallback();
-    window.history.replaceState({}, document.title, '/');
 
-    // Restore session hash
-    if (window.sessionStorage.hash) {
-      window.location.hash = window.sessionStorage.hash;
-      window.sessionStorage.hash = '';
+    if (window.sessionStorage.redirectTo) {
+      const { redirectTo } = window.sessionStorage;
+      window.sessionStorage.redirectTo = '';
+      window.location.href = redirectTo;
+    } else {
+      window.history.replaceState({}, document.title, '/dashboard');
     }
   }
 
@@ -34,14 +37,10 @@ window.auth0.createAuth0Client({
   document.body.classList.add(isAuthenticated ? 'is-authenticated' : 'is-anonymous');
 
   if (isAuthenticated) {
-    // on root page without searchparams (for site creation point)
-    if (window.location.pathname === '/' && !window.location.search) {
-      if (!document.referrer || new URL(document.referrer).origin !== window.location.origin) {
-        window.location.replace('/dashboard');
-      }
-    }
     document.dispatchEvent(new CustomEvent('auth0:authenticated'));
   } else if (!unauthenticatedAllowedPaths[window.location.pathname]) {
     window.location.href = '/';
   }
+
+  document.body.style.display = '';
 });

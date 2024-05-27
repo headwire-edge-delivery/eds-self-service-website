@@ -338,6 +338,12 @@ export default async function decorate(block) {
     const token = await window.auth0Client.getTokenSilently();
     const headers = { authorization: `bearer ${token}` };
 
+    if (window.location.pathname.startsWith('/site/') && window.location.pathname.split('/').length === 3) {
+      window.history.replaceState({}, '', `${window.location.pathname}/overview`);
+    }
+
+    const selected = window.location.pathname.split('/')[3];
+
     let editor = {
       refresh: () => {},
     };
@@ -378,12 +384,12 @@ export default async function decorate(block) {
           </div>
           
           <div class="actions">
-            <div class="overview-actions button-container is-selected">
+            <div class="overview-actions button-container ${selected === 'overview' ? 'is-selected' : ''}">
                 <button class="button secondary delete action">Delete</button>
             </div>
-            <div class="pages-actions button-container"></div>
-            <div class="emails-actions button-container"></div>
-            <div class="settings-actions button-container">
+            <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}"></div>
+            <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}"></div>
+            <div class="settings-actions button-container ${selected === 'settings' ? 'is-selected' : ''}">
                 <button class="button action secondary share">Project Authors</button>
             </div>
           </div>
@@ -394,7 +400,7 @@ export default async function decorate(block) {
             <aside>
                 <ul>
                     <li>
-                        <a href="#overview" class="button secondary is-selected" target="_blank">
+                        <a href="overview" class="button secondary ${selected === 'overview' ? 'is-selected' : ''}" target="_blank">
                           <span class="icon icon-template">
                             <img alt src="/icons/template.svg" loading="lazy">  
                           </span>
@@ -402,7 +408,7 @@ export default async function decorate(block) {
                         </a>
                     </li>
                     <li>
-                        <a href="#pages" class="button secondary" target="_blank">
+                        <a href="pages" class="button secondary ${selected === 'pages' ? 'is-selected' : ''}" target="_blank">
                           <span class="icon icon-web">
                             <img alt src="/icons/web.svg" loading="lazy">  
                           </span>
@@ -410,7 +416,7 @@ export default async function decorate(block) {
                         </a>
                     </li>
                     <li>
-                        <a href="#emails" class="button secondary" target="_blank">
+                        <a href="emails" class="button secondary ${selected === 'emails' ? 'is-selected' : ''}" target="_blank">
                           <span class="icon icon-email">
                             <img alt src="/icons/email.svg" loading="lazy">  
                           </span>
@@ -418,7 +424,7 @@ export default async function decorate(block) {
                         </a>
                     </li>
                     <li>
-                        <a href="#settings" class="button secondary" target="_blank">
+                        <a href="settings" class="button secondary ${selected === 'settings' ? 'is-selected' : ''}" target="_blank">
                           <span class="icon icon-settings">
                             <img alt src="/icons/settings.svg" loading="lazy">  
                           </span>
@@ -429,7 +435,7 @@ export default async function decorate(block) {
             </aside>
 
             <div class="details">
-                <div class="overview-panel is-selected">
+                <div class="overview-panel ${selected === 'overview' ? 'is-selected' : ''}">
                     <div class="docs">
                       <h2>
                         <span class="icon icon-info">
@@ -464,7 +470,7 @@ export default async function decorate(block) {
                     </div>
                 </div>
                 
-                <div class="pages-panel">
+                <div class="pages-panel ${selected === 'pages' ? 'is-selected' : ''}">
                     <div class="docs">
                       <h2>
                         <span class="icon icon-info">
@@ -493,7 +499,7 @@ export default async function decorate(block) {
                     </div>
                 </div>
                 
-                <div class="emails-panel">
+                <div class="emails-panel ${selected === 'emails' ? 'is-selected' : ''}">
                     <div class="docs">
                       <h2>
                         <span class="icon icon-info">
@@ -518,7 +524,7 @@ export default async function decorate(block) {
                     </div>
                 </div>
                 
-                <div class="settings-panel">
+                <div class="settings-panel ${selected === 'settings' ? 'is-selected' : ''}">
                     <div class="docs">
                       <h2>
                         <span class="icon icon-info">
@@ -707,7 +713,9 @@ export default async function decorate(block) {
 
         const link = event.target.closest('a');
         if (link && !link.classList.contains('is-selected')) {
-          const identifier = link.getAttribute('href').slice(1);
+          const identifier = link.getAttribute('href');
+
+          window.history.pushState({}, '', `${window.location.pathname.split('/').slice(0, -1).join('/')}/${identifier}`);
 
           aside.querySelector('.is-selected').classList.remove('is-selected');
           block.querySelector('.details > .is-selected').classList.remove('is-selected');
@@ -722,6 +730,14 @@ export default async function decorate(block) {
           }
         }
       });
+
+      window.onpopstate = () => {
+        const identifier = window.location.pathname.split('/').pop();
+        const link = aside.querySelector(`[href="${identifier}"]`).click();
+        if (link) {
+          link.click();
+        }
+      };
 
       // Delete site and redirect to dashboard
       block.querySelector('.delete').onclick = async () => {

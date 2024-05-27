@@ -19,7 +19,7 @@ export default async function decorate(block) {
 
   const prevTemplate = document.createElement('button');
   prevTemplate.className = 'button secondary prev';
-  prevTemplate.textContent = 'Back';
+  prevTemplate.textContent = 'Previous';
 
   creationSteps.forEach((step, i) => {
     const buttonContainer = step.querySelector('.button-container:last-child');
@@ -47,7 +47,7 @@ export default async function decorate(block) {
   });
 
   const previewTemplate = () => {
-    const template = window.location.hash.split('/').pop();
+    const template = window.location.pathname.split('/')[2];
     const selectedTemplate = document.getElementById(template);
     if (selectedTemplate) {
       selectedTemplate.click();
@@ -75,7 +75,7 @@ export default async function decorate(block) {
       block.classList.remove('show-buttons');
     }
 
-    if (siblingStep.matches(':first-child') && window.location.hash.startsWith('#templates/')) {
+    if (siblingStep.matches(':first-child') && window.location.pathname.startsWith('/templates/')) {
       previewTemplate();
     }
 
@@ -152,6 +152,19 @@ export default async function decorate(block) {
       .then((req) => req.json())
       .then(({ data }) => {
         const render = () => {
+          const selectTemplate = document.querySelector('header a[href="#select-template"]');
+          const back = document.querySelector('header a[href="#back"]');
+
+          const hidePreview = () => {
+            if (document.body.classList.contains('is-template-previewing')) {
+              document.body.classList.remove('is-template-previewing');
+              block.querySelector('.preview.is-visible').classList.remove('is-visible');
+              block.classList.remove('show-buttons');
+              selectTemplate.onclick = undefined;
+              back.onclick = undefined;
+            }
+          };
+
           templateContainer.innerHTML = data
             .map(
               ({
@@ -161,7 +174,7 @@ export default async function decorate(block) {
                   return '';
                 }
                 return `
-          <a href="#templates/${id}" id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
+          <a href="/templates/${id}" id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
             <p>${description}</p>
             <div class="carousel">
@@ -185,6 +198,9 @@ export default async function decorate(block) {
 
           const templateImage = document.createElement('div');
           templateImage.className = 'template-image';
+          const templateName = document.createElement('h3');
+          templateName.textContent = templateContainer.querySelector('.template.is-selected h3').textContent;
+          templateImage.append(templateName);
           templateImage.append(templateContainer.querySelector('.template.is-selected img').cloneNode(true));
 
           // Add template image to all steps
@@ -208,7 +224,9 @@ export default async function decorate(block) {
               dots.querySelector('.is-selected').classList.remove('is-selected');
               event.target.classList.add('is-selected');
             } else if (event.target.closest('.template')) {
+              event.preventDefault();
               const template = event.target.closest('.template');
+              window.history.pushState({}, '', template.href);
 
               block.querySelector('.template.is-selected').classList.remove('is-selected');
               template.classList.add('is-selected');
@@ -216,7 +234,6 @@ export default async function decorate(block) {
               document.body.classList.add('is-template-previewing');
               template.querySelector('.preview').classList.add('is-visible');
 
-              const selectTemplate = document.querySelector('header a[href="#select-template"]');
               let selectTemplateName = selectTemplate.querySelector('span');
               if (!selectTemplateName) {
                 selectTemplateName = document.createElement('span');
@@ -224,21 +241,10 @@ export default async function decorate(block) {
               }
               selectTemplateName.textContent = template.querySelector('h3').textContent;
 
-              const back = document.querySelector('header a[href="#back"]');
-              const hidePreview = () => {
-                if (document.body.classList.contains('is-template-previewing')) {
-                  document.body.classList.remove('is-template-previewing');
-                  block.querySelector('.preview.is-visible').classList.remove('is-visible');
-                  block.classList.remove('show-buttons');
-                  selectTemplate.onclick = undefined;
-                  back.onclick = undefined;
-                }
-              };
-
               back.onclick = (e) => {
                 e.preventDefault();
                 hidePreview();
-                window.location.hash = '';
+                window.history.replaceState({}, '', '/');
               };
 
               if (document.body.classList.contains('is-anonymous')) {
@@ -246,31 +252,60 @@ export default async function decorate(block) {
                   e.preventDefault();
                   document.querySelector('.plans-dialog').showModal();
 
-                  // In case of login
-                  window.sessionStorage.hash = window.location.hash;
+                  window.sessionStorage.redirectTo = `${window.location.href}/create`;
                 };
               } else {
                 selectTemplate.onclick = (e) => {
                   e.preventDefault();
+
+                  window.history.replaceState({}, '', `${window.location.pathname}/create`);
+
                   hidePreview();
                   block.querySelector('a[href="#template"]').click();
                   block.classList.add('show-buttons');
 
                   block.querySelectorAll('.template-image').forEach((el) => {
                     el.innerHTML = '';
+                    const name = document.createElement('h3');
+                    name.textContent = template.querySelector('h3').textContent;
+                    el.append(name);
                     el.append(template.querySelector('img').cloneNode(true));
                   });
                 };
               }
-
-              document.body.style.display = '';
             }
           });
 
-          // Handle path on page load
-          if (window.location.hash.startsWith('#templates/')) {
-            previewTemplate();
-          }
+          // Handle on page load
+          const handleHistory = () => {
+            const { pathname } = window.location;
+            const split = pathname.split('/');
+
+            if (pathname === '/') {
+              hidePreview();
+
+              block.querySelector('.step.is-selected').classList.remove('is-selected');
+              block.querySelector('.step:nth-child(1)').classList.add('is-selected');
+            } else if (pathname.startsWith('/templates/') && split.length === 3) {
+              const template = split.pop();
+              document.getElementById(template).click();
+
+              block.querySelector('.step.is-selected').classList.remove('is-selected');
+              block.querySelector('.step:nth-child(1)').classList.add('is-selected');
+            } else if (pathname.startsWith('/templates/') && pathname.endsWith('/create')) {
+              const template = split[2];
+              document.getElementById(template).click();
+              selectTemplate.click();
+
+              block.querySelector('.step.is-selected').classList.remove('is-selected');
+              block.querySelector('.step:nth-child(2)').classList.add('is-selected');
+            }
+          };
+
+          // On page load
+          handleHistory();
+
+          window.onpopstate = handleHistory;
         };
 
         if (document.querySelector('.header[data-block-status="loaded"]')) {

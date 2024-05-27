@@ -8,6 +8,12 @@ export default async function decorate(block) {
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();
 
+    if (window.location.pathname === '/dashboard') {
+      window.history.replaceState({}, '', '/dashboard/sites');
+    }
+
+    const selected = window.location.pathname.split('/').pop();
+
     block.innerHTML = `
         <div class="nav">
           <h1>Dashboard</h1>
@@ -18,7 +24,7 @@ export default async function decorate(block) {
             <aside>
                 <ul>
                     <li>
-                      <a href="#sites" class="button secondary is-selected">
+                      <a href="sites" class="button secondary ${selected === 'sites' ? 'is-selected' : ''}">
                           <span class="icon icon-web">
                             <img alt src="/icons/web.svg" loading="lazy">  
                           </span>
@@ -26,7 +32,7 @@ export default async function decorate(block) {
                       </a>
                     </li>
                     <li>
-                      <a href="#account" class="button secondary">
+                      <a href="account" class="button secondary ${selected === 'account' ? 'is-selected' : ''}">
                           <span class="icon icon-user">
                             <img alt src="/icons/user.svg" loading="lazy">
                           </span>
@@ -36,7 +42,7 @@ export default async function decorate(block) {
                 </ul>
             </aside>
             <div class="details">
-              <div class="account">
+              <div class="account ${selected === 'account' ? 'is-selected' : ''}">
                 <div class="account-details">
                   <div>
                       <strong>Name</strong>
@@ -56,7 +62,7 @@ export default async function decorate(block) {
                   </div>
                 </div>
               </div>
-              <div class="sites is-selected">
+              <div class="sites ${selected === 'sites' ? 'is-selected' : ''}">
                 <p>
                     <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
                 </p> 
@@ -71,24 +77,27 @@ export default async function decorate(block) {
     const sites = block.querySelector('.sites');
 
     aside.addEventListener('click', (event) => {
-      if (event.target.closest('[href="#sites"]')) {
+      if (event.target.closest('a')) {
         event.preventDefault();
+
+        const identifier = event.target.closest('a').getAttribute('href');
+        window.history.pushState({}, '', `/dashboard/${identifier}`);
 
         aside.querySelector('.is-selected').classList.remove('is-selected');
         details.querySelector('.is-selected').classList.remove('is-selected');
 
-        event.target.closest('[href="#sites"]').classList.add('is-selected');
-        sites.classList.add('is-selected');
-      } else if (event.target.closest('[href="#account"]')) {
-        event.preventDefault();
-
-        aside.querySelector('.is-selected').classList.remove('is-selected');
-        details.querySelector('.is-selected').classList.remove('is-selected');
-
-        event.target.closest('[href="#account"]').classList.add('is-selected');
-        account.classList.add('is-selected');
+        event.target.closest('a').classList.add('is-selected');
+        block.querySelector(`.${identifier}`).classList.add('is-selected');
       }
     });
+
+    window.onpopstate = () => {
+      const identifier = window.location.pathname.split('/').pop();
+      const link = aside.querySelector(`[href="${identifier}"]`).click();
+      if (link) {
+        link.click();
+      }
+    };
 
     // Add plans
     const plans = document.querySelector('.plans-dialog-wrapper');
