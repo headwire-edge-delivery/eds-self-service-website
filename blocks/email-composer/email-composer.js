@@ -29,7 +29,7 @@ export default async function decorate(block) {
         <div class="nav">
           <div class="breadcrumbs">
             <a href="/dashboard">
-              ${user.given_name}'s Sites
+              Dashboard
             </a>
             <span>&rsaquo;</span>
             <a href="/site/${id}">
@@ -53,7 +53,7 @@ export default async function decorate(block) {
         <div class="nav">
           <div class="breadcrumbs">
             <a href="/dashboard">
-              ${user.given_name}'s Sites
+              Dashboard
             </a>
             <span>&rsaquo;</span>
             <a href="/site/${id}">
