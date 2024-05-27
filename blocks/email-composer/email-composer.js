@@ -1,5 +1,5 @@
 import {
-  SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, toKestrel1URL,
+  SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, toKestrel1URL, KESTREL_ONE,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -8,14 +8,10 @@ import { loadCSS } from '../../scripts/aem.js';
  */
 export default async function decorate(block) {
   onAuthenticated(async () => {
-    const { searchParams } = new URL(window.location.href);
-    const url = searchParams.get('url');
-    if (!url) {
-      window.location.href = '/';
-      return;
-    }
-
-    const id = new URL(url).hostname.split('.')[0];
+    const split = window.location.pathname.split('/');
+    const id = split[2];
+    const path = `/${split.slice(3).join('/')}`;
+    const url = `https://${id}.${KESTREL_ONE}${path}`;
 
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();
@@ -64,7 +60,7 @@ export default async function decorate(block) {
               ${id}
             </a>
             <span>&rsaquo;</span>
-            <a href="/email-composer?url=${url}" aria-current="page">
+            <a href="${window.location.href}" aria-current="page">
               <h1>${meta.subject}</h1>
             </a>
           </div>

@@ -40,8 +40,10 @@ export function onAuthenticated(cb) {
   }
 }
 
+export const KESTREL_ONE = 'kestrelone.com';
+
 export function toKestrel1URL(url) {
-  return url.replace('--headwire-self-service.hlx.live', '.kestrelone.com').replace('main--', '');
+  return url.replace('--headwire-self-service.hlx.live', `.${KESTREL_ONE}`).replace('main--', '');
 }
 
 /**
