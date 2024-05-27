@@ -3,3 +3,5 @@ mountpoints:
 
 folders:
   /site/: /site/default
+  /templates/: /
+  /dashboard/: /dashboard
