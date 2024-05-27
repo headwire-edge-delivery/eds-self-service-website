@@ -334,11 +334,12 @@ function renderIconsList(block, { project, headers, id }) {
  */
 export default async function decorate(block) {
   onAuthenticated(async () => {
-    const id = window.location.pathname.split('/')[2];
+    const split = window.location.pathname.split('/');
+    const id = split[2];
     const token = await window.auth0Client.getTokenSilently();
     const headers = { authorization: `bearer ${token}` };
 
-    if (window.location.pathname.startsWith('/site/') && window.location.pathname.split('/').length === 3) {
+    if (window.location.pathname.startsWith('/site/') && split.length === 3) {
       window.history.replaceState({}, '', `${window.location.pathname}/overview`);
     }
 
