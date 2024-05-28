@@ -2,6 +2,7 @@ const unauthenticatedAllowedPaths = {
   '/': true,
   '/feedback': true,
   '/contact-sales': true,
+  '/privacy-policy': true,
 };
 
 document.body.style.display = 'none';
