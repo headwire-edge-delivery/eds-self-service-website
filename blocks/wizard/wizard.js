@@ -404,6 +404,8 @@ export default async function decorate(block) {
     const token = await window.auth0Client.getTokenSilently();
     const template = block.querySelector('.template.is-selected').id;
 
+    window.history.replaceState({}, '', `${window.location.pathname}/progress`);
+
     const reqCreate = await fetch(`${SCRIPT_API}/create`, {
       headers: {
         'content-type': 'application/json',
