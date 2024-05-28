@@ -134,12 +134,16 @@ export default async function decorate(block) {
 
       // Render codemirror
       block.querySelector('.enable-styles').onclick = (event) => {
+        window?.zaraz?.track('click email styles enable', { url: window.location.href });
+
         event.target.remove();
         editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
       };
 
       const saveStyles = block.querySelector('.save-styles');
       saveStyles.onclick = async () => {
+        window?.zaraz?.track('click email preview styles', { url: window.location.href });
+
         saveStyles.classList.add('is-disabled');
         const req = await fetch(`${SCRIPT_API}/emailStyles/${id}`, {
           method: 'POST',
@@ -158,6 +162,8 @@ export default async function decorate(block) {
 
       // Render preview with custom variables
       block.querySelector('.save-variables').onclick = () => {
+        window?.zaraz?.track('click email preview variables', { url: window.location.href });
+
         block.querySelectorAll('.kv input:first-child').forEach((input) => {
           const key = input.value;
           const { value } = input.nextElementSibling;
@@ -193,11 +199,17 @@ export default async function decorate(block) {
 
           block.querySelector('.actions').innerHTML = `
             <a href="#" target="_blank" class="button secondary action copy">Copy</a>
-            <a href="${project.driveUrl}" target="_blank" class="button action secondary">Edit</a>
+            <a href="${project.driveUrl}" target="_blank" class="button action secondary edit">Edit</a>
             <button class="button primary action send is-disabled">Send</button>
           `;
 
+          block.querySelector('.edit').onclick = () => {
+            window?.zaraz?.track('click email edit', { url: window.location.href });
+          };
+
           block.querySelector('.copy').onclick = (e) => {
+            window?.zaraz?.track('click email copy', { url: window.location.href });
+
             e.preventDefault();
 
             const copyUrl = new URL(iframe.src);
@@ -295,6 +307,8 @@ export default async function decorate(block) {
             if (e.target.matches('input[type="checkbox"]')) {
               toggleSendDisabled();
             } else if (e.target.matches('.render')) {
+              window?.zaraz?.track('click email preview recipients', { url: window.location.href });
+
               const isRendering = recipients.querySelector('.is-rendering');
               if (isRendering) {
                 isRendering.classList.remove('is-rendering');
@@ -306,6 +320,8 @@ export default async function decorate(block) {
               block.querySelector('.save-variables').click();
               block.querySelector('h1').textContent = replaceMatches(meta.subject);
             } else if (e.target.matches('.remove')) {
+              window?.zaraz?.track('click email recipients remove', { url: window.location.href });
+
               const tr = e.target.closest('tr');
               const index = [...tr.parentElement.children].indexOf(tr);
               tr.remove();
@@ -329,6 +345,8 @@ export default async function decorate(block) {
           });
 
           add.onclick = () => {
+            window?.zaraz?.track('click email recipients add', { url: window.location.href });
+
             const newRecipient = {};
             recipientsData.headers.forEach((key, index) => {
               newRecipient[key] = addInputs[index].value;
@@ -364,9 +382,13 @@ export default async function decorate(block) {
           };
 
           send.onclick = async () => {
+            window?.zaraz?.track('click email send', { url: window.location.href });
+
             const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
 
             if (await window.confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
+              window?.zaraz?.track('click email copy submit', { url: window.location.href });
+
               send.classList.add('is-disabled');
 
               const previewSource = new URL(iframe.src);

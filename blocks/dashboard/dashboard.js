@@ -17,8 +17,8 @@ export default async function decorate(block) {
     block.innerHTML = `
         <div class="nav">
           <h1>Dashboard</h1>
-          <a href="/" class="button primary nav-sites">Create new site</a>
-          <a href="https://myaccount.google.com/" class="button nav-account primary">Edit account</a>
+          <a href="/" class="button primary new">Create new site</a>
+          <a href="https://myaccount.google.com/" class="button edit primary">Edit account</a>
         </div>
         <div class="content">
             <aside>
@@ -75,6 +75,14 @@ export default async function decorate(block) {
     const aside = block.querySelector('aside');
     const account = block.querySelector('.account');
     const sites = block.querySelector('.sites');
+
+    block.querySelector('.new').onclick = () => {
+      window?.zaraz?.track('click dashboard new site', { url: window.location.href });
+    };
+
+    block.querySelector('.edit').onclick = () => {
+      window?.zaraz?.track('click dashboard edit account', { url: window.location.href });
+    };
 
     aside.addEventListener('click', (event) => {
       if (event.target.closest('a')) {

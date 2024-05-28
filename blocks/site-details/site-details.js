@@ -22,6 +22,8 @@ function addGoogleCalendarLink(calendarId, actionsList) {
 function dialogSetup({
   name, deleteWarning, project, headers, isIcon = false, iconBase64,
 }) {
+  window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`, { url: window.location.href });
+
   const dialogContent = document.createElement('div');
   dialogContent.innerHTML = `
     <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>
@@ -35,6 +37,8 @@ function dialogSetup({
     deleteButton.disabled = true;
   }
   deleteButton.onclick = async (event) => {
+    window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} delete submit`, { url: window.location.href });
+
     const dialogParent = event.target.closest('dialog');
     deleteButton.disabled = true;
     dialogParent.classList.add('loading');
@@ -62,6 +66,8 @@ function dialogSetup({
 }
 
 function addBlockDialogSetup({ id, headers, itemList }) {
+  window?.zaraz?.track('click site block add', { url: window.location.href });
+
   const dialogContent = document.createElement('div');
   dialogContent.innerHTML = '<h3 class="centered-info" >Loading available blocks...</h3>';
   const dialog = window.createDialog(dialogContent);
@@ -106,6 +112,8 @@ function addBlockDialogSetup({ id, headers, itemList }) {
     addButton.innerText = 'Add';
 
     addButton.onclick = async () => {
+      window?.zaraz?.track('click site block add submit', { url: window.location.href });
+
       if (!select.value) {
         await window.alertDialog('Please select a block');
         return;
@@ -183,6 +191,8 @@ function addIconDialogSetup({
   extraHtml = '', uploadEndpoint = `${SCRIPT_API}/icons/${id}`,
   defaultSrc,
 }) {
+  window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add`, { url: window.location.href });
+
   const dialogContent = document.createElement('div');
 
   const title = document.createElement('h3');
@@ -229,6 +239,8 @@ function addIconDialogSetup({
   addButton.innerText = 'Add';
   const dialog = window.createDialog(dialogContent, [addButton]);
   addButton.onclick = async () => {
+    window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add submit`, { url: window.location.href });
+
     if (!file) {
       await window.alertDialog('Please select a file');
       return;
@@ -308,6 +320,8 @@ function renderIconsList(block, { project, headers, id }) {
     iconsList.append(li);
 
     copyButton.onclick = () => {
+      window?.zaraz?.track('click site icon copy', { url: window.location.href });
+
       // copy icon as doc compatible string (without .svg)
       navigator.clipboard.writeText(`:${name.replace(/\.[^/.]+$/, '')}:`);
     };
@@ -567,20 +581,22 @@ export default async function decorate(block) {
       actions.querySelector('.overview-actions').insertAdjacentHTML(
         'beforeend',
         `
-        <a href="${project.sidekickSetupUrl}" class="button action secondary" target="_blank">Install sidekick</a>
+        <a href="${project.sidekickSetupUrl}" class="button action secondary sidekick" target="_blank">Install sidekick</a>
         ${
   project.authoringGuideUrl
-    ? `<a href="${project.authoringGuideUrl}" class="button action secondary" target="_blank">Guides</a>`
+    ? `<a href="${project.authoringGuideUrl}" class="button action secondary guides" target="_blank">Guides</a>`
     : ''
 }
-        <a href="${project.driveUrl}" class="button action secondary" target="_blank">Edit</a>
-        <a href="${toKestrel1URL(project.liveUrl)}" class="button primary action" target="_blank">Open</a>
+        <a href="${project.driveUrl}" class="button action secondary edit" target="_blank">Edit</a>
+        <a href="${toKestrel1URL(project.liveUrl)}" class="button primary action open" target="_blank">Open</a>
       `,
       );
 
       // MARK: Share dialog
       const shareButton = actions.querySelector('button.share');
       shareButton.onclick = async () => {
+        window?.zaraz?.track('click site share', { url: window.location.href });
+
         const dialog = window.createDialog('<div><h3>Getting Authors...</h3></div>');
         const authors = await fetch(`${SCRIPT_API}/authors/${id}`, { headers })
           .then((r) => r.json())
@@ -605,8 +621,12 @@ export default async function decorate(block) {
           revoke.classList.add('revoke-button', 'button');
           if (isOwner) revoke.disabled = true;
           revoke.onclick = async () => {
+            window?.zaraz?.track('click site share delete', { url: window.location.href });
+
             if (isOwner) return;
             if (await window.confirmDialog('Are you sure ?')) {
+              window?.zaraz?.track('click site share delete submit', { url: window.location.href });
+
               dialog.setLoading(true, `Removing ${authorEmail}...`);
               const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
                 method: 'DELETE',
@@ -638,6 +658,8 @@ export default async function decorate(block) {
         `;
         const addAuthorForm = addAuthorSection.querySelector('form');
         addAuthorForm.onsubmit = async (event) => {
+          window?.zaraz?.track('click site share add submit', { url: window.location.href });
+
           event.preventDefault();
           dialog.setLoading(true, 'Adding Author...');
           const email = event.target.email.value;
@@ -670,6 +692,8 @@ export default async function decorate(block) {
       changeContactButton.classList.add('button', 'secondary', 'action');
       changeContactButton.innerText = 'Change contact email';
       changeContactButton.onclick = () => {
+        window?.zaraz?.track('click site contact', { url: window.location.href });
+
         const title = document.createElement('h3');
         title.innerText = 'Change contact email';
 
@@ -691,6 +715,8 @@ export default async function decorate(block) {
         submitButton.classList.add('button');
         submitButton.innerText = 'Submit';
         submitButton.onclick = async () => {
+          window?.zaraz?.track('click site contact submit', { url: window.location.href });
+
           if (!input.value) return;
           dialog.setLoading(true, 'Updating Contact Email...');
           const response = await fetch(`${SCRIPT_API}/updateContact/${project.projectSlug}`, {
@@ -740,10 +766,30 @@ export default async function decorate(block) {
         }
       };
 
+      block.querySelector('.sidekick').onclick = () => {
+        window?.zaraz?.track('click site sidekick', { url: window.location.href });
+      };
+
+      block.querySelector('.edit').onclick = () => {
+        window?.zaraz?.track('click site edit', { url: window.location.href });
+      };
+
+      block.querySelector('.open').onclick = () => {
+        window?.zaraz?.track('click site open', { url: window.location.href });
+      };
+
+      block.querySelector('.guides').onclick = () => {
+        window?.zaraz?.track('click site guides', { url: window.location.href });
+      };
+
       // Delete site and redirect to dashboard
       block.querySelector('.delete').onclick = async () => {
+        window?.zaraz?.track('click site delete', { url: window.location.href });
+
         block.classList.add('is-deleting');
         if (await window.confirmDialog('Are you sure ?')) {
+          window?.zaraz?.track('click site delete submit', { url: window.location.href });
+
           const reqDelete = await fetch(`${SCRIPT_API}/delete/${project.projectSlug}`, {
             method: 'DELETE',
             headers,
@@ -839,6 +885,8 @@ export default async function decorate(block) {
 
           const select = block.querySelector('.publish-theme-selector');
           select.onchange = () => {
+            window?.zaraz?.track('click site theme', { url: window.location.href });
+
             const varsPreview = block.querySelector('.vars-preview');
             if (new URL(varsPreview.src).pathname !== select.value) {
               varsPreview.src = `${toKestrel1URL(project.liveUrl)}${select.value}`;
@@ -892,6 +940,8 @@ export default async function decorate(block) {
           });
 
           block.querySelector('.publish-theme').onclick = async () => {
+            window?.zaraz?.track('click site theme submit', { url: window.location.href });
+
             editor.display.wrapper.classList.add('sending');
             editor.setOption('readOnly', true);
             const response = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {

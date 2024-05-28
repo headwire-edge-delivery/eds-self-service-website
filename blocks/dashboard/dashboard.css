@@ -130,11 +130,11 @@
     display: none;
 }
 
-.dashboard.block:has(.account.is-selected) .nav-sites {
+.dashboard.block:has(.account.is-selected) .new {
     display: none;
 }
 
-.dashboard.block:has(.sites.is-selected) .nav-account {
+.dashboard.block:has(.sites.is-selected) .edit {
     display: none;
 }
 

@@ -23,6 +23,10 @@ window.auth0.createAuth0Client({
   if (window.location.search.includes('state=')
     && (window.location.search.includes('code=')
       || window.location.search.includes('error='))) {
+    const user = await window.auth0Client.getUser();
+    window?.zaraz?.track('new auth session', { url: window.location.href });
+    window?.zaraz?.set('user', user.email);
+
     await auth0Client.handleRedirectCallback();
 
     if (window.sessionStorage.redirectTo) {

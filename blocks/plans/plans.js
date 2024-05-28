@@ -22,6 +22,8 @@ export default async function decorate(block) {
   };
 
   dialog.querySelector('a[href="#signin"]').onclick = (e) => {
+    window?.zaraz?.track('click login plans', { url: window.location.href });
+
     e.preventDefault();
     window.auth0Client.loginWithRedirect();
   };
