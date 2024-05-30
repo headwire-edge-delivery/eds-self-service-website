@@ -343,6 +343,18 @@ function renderIconsList(block, { project, headers, id }) {
     });
 }
 
+const createDocsEl = (html) => `
+  <div class="docs">
+    <h2>
+      <span class="icon icon-info">
+        <img alt src="/icons/info.svg" loading="lazy">  
+      </span>
+      Information
+    </h2>
+    ${html}
+  </div>
+`;
+
 /**
  * @param {Element} block
  */
@@ -404,6 +416,7 @@ export default async function decorate(block) {
             </div>
             <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}"></div>
             <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}"></div>
+            <div class="monitoring-actions button-container ${selected === 'monitoring' ? 'is-selected' : ''}"></div>
             <div class="settings-actions button-container ${selected === 'settings' ? 'is-selected' : ''}">
                 <button class="button action secondary share">Project Authors</button>
             </div>
@@ -439,6 +452,14 @@ export default async function decorate(block) {
                         </a>
                     </li>
                     <li>
+                        <a href="monitoring" class="button secondary ${selected === 'monitoring' ? 'is-selected' : ''}" target="_blank">
+                          <span class="icon icon-monitoring">
+                            <img alt src="/icons/monitoring.svg" loading="lazy">  
+                          </span>
+                          Analytics
+                        </a>
+                    </li>
+                    <li>
                         <a href="settings" class="button secondary ${selected === 'settings' ? 'is-selected' : ''}" target="_blank">
                           <span class="icon icon-settings">
                             <img alt src="/icons/settings.svg" loading="lazy">  
@@ -451,17 +472,9 @@ export default async function decorate(block) {
 
             <div class="details">
                 <div class="overview-panel ${selected === 'overview' ? 'is-selected' : ''}">
-                    <div class="docs">
-                      <h2>
-                        <span class="icon icon-info">
-                          <img alt src="/icons/info.svg" loading="lazy">  
-                        </span>
-                        Information
-                      </h2>
-                      <p>
-                      Overview serves as your centralized control hub, offering quick access to essential information and actions about your site to help you to stay organized and productive with ease.  
-                      </p>
-                    </div>
+                    ${createDocsEl(`
+                      <p>Overview serves as your centralized control hub, offering quick access to essential information and actions about your site to help you to stay organized and productive with ease.</p>
+                    `)}
                     
                     <div class="container">
                         <div class="cards">
@@ -486,17 +499,9 @@ export default async function decorate(block) {
                 </div>
                 
                 <div class="pages-panel ${selected === 'pages' ? 'is-selected' : ''}">
-                    <div class="docs">
-                      <h2>
-                        <span class="icon icon-info">
-                          <img alt src="/icons/info.svg" loading="lazy">  
-                        </span>
-                        Information
-                      </h2>
-                      <p>
-                      Pages lists all published pages to serve as a comprehensive directory of your website's content. It provides a convenient overview of all accessible pages, enabling easy navigation and exploration of your site.    
-                      </p>
-                    </div>
+                    ${createDocsEl(`
+                      <p>Pages lists all published pages to serve as a comprehensive directory of your website's content. It provides a convenient overview of all accessible pages, enabling easy navigation and exploration of your site.</p>
+                    `)}
                     
                     <div class="container">
                         <table class="pages">
@@ -515,15 +520,9 @@ export default async function decorate(block) {
                 </div>
                 
                 <div class="emails-panel ${selected === 'emails' ? 'is-selected' : ''}">
-                    <div class="docs">
-                      <h2>
-                        <span class="icon icon-info">
-                          <img alt src="/icons/info.svg" loading="lazy">  
-                        </span>
-                        Information
-                      </h2>
+                    ${createDocsEl(`
                       <p>Emails serves as your toolkit for crafting impactful communication in your online endeavors tailored for various purposes, from newsletters to promotional campaigns streamlining your email creation process.</p>
-                    </div>
+                    `)}
                     <div class="container">
                         <table class="emails">
                             <thead>
@@ -539,18 +538,28 @@ export default async function decorate(block) {
                     </div>
                 </div>
                 
+                <div class="monitoring-panel ${selected === 'monitoring' ? 'is-selected' : ''}">
+                    ${createDocsEl(`
+                      <p>Here, you'll find key insights into your online performance. Track website traffic, audience demographics, email campaign success, and subscriber engagement—all in one place.</p>
+                      <p><strong>Website key metrics:</strong></p>
+                      <ul>
+                        <li><strong>Visits</strong>: when someone navigates to your website, either directly or from an external referer. One visit can consist of multiple page views.</li>
+                        <li><strong>Page views</strong>: when a page of your website is loaded by the browser.</li>
+                        <li><strong>Page load time</strong>: total amount of time it took to load the page.</li>
+                        <li><strong>Core Web Vitals</strong>: an initiative by Google to provide unified guidance for quality signals that are essential to delivering a great user experience on the web.</li>
+                      </ul>
+                    `)}
+                    <div class="container">
+                        <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+                    </div>
+                </div>
+                
                 <div class="settings-panel ${selected === 'settings' ? 'is-selected' : ''}">
-                    <div class="docs">
-                      <h2>
-                        <span class="icon icon-info">
-                          <img alt src="/icons/info.svg" loading="lazy">  
-                        </span>
-                        Information
-                      </h2>
+                    ${createDocsEl(`
                       <p><strong>Blocks</strong> acts as a repository of building blocks for your website. Here, you can explore and select from a variety of available blocks to enhance your web pages.</p>
                       <p><strong>Icons</strong> is your go-to resource for web assets that add visual flair and functionality to your website. Here, you'll find a curated collection of icons suitable for various purposes, from navigation to social media integration.</p>
                       <p><strong>Theme</strong> is your gateway to tailor your website's visual identity to align perfectly with your brand. Here, you have the power to customize colors, ensuring consistency and harmony throughout your site.</p>
-                    </div>
+                    `)}
                     
                     <div class="container">
                         <h2>Blocks</h2>
@@ -925,9 +934,9 @@ export default async function decorate(block) {
         })
         .then(async (css) => {
           // Load codemirror to edit styles
-          loadCSS('/libs/codemirror/codemirror.css');
-          await import('../../libs/codemirror/codemirror.js');
-          await import('../../libs/codemirror/css.js');
+          loadCSS('/libs/codemirror/codemirror.min.css');
+          await import('../../libs/codemirror/codemirror.min.js');
+          await import('../../libs/codemirror/css.min.js');
 
           const vars = block.querySelector('.vars');
           const varsPreview = block.querySelector('.vars-preview');
@@ -953,6 +962,194 @@ export default async function decorate(block) {
             editor.display.wrapper.classList.remove('sending');
             editor.setOption('readOnly', false);
           };
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
+      // Load analytics
+      fetch(`${SCRIPT_API}/monitoring/${project.projectSlug}`, { headers })
+        .then((res) => {
+          if (res.ok) {
+            return res.json();
+          }
+          throw new Error(res.status);
+        })
+        .then(async (res) => {
+          const { countries } = await import('./countries.js');
+
+          block.querySelector('.monitoring-panel .container').innerHTML = `
+            <div class="cards">
+              <div>
+                  <strong>Total visits</strong>
+                  <span>${res[0].data.viewer.accounts[0]?.total[0]?.sum?.visits ?? '0'}</span>
+              </div>
+              <div>
+                  <strong>Total page views</strong>
+                  <span>${res[0].data.viewer.accounts[0]?.total[0]?.count ?? '0'}</span>
+              </div>
+              <div>
+                  <strong>Average page load time</strong>
+                  <span>${(res[2].data.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0) / 1000}ms</span>
+              </div>
+            </div>
+            
+            <h2>Core Web Vitals</h2>
+            
+            <div class="cards">
+                ${['lcp', 'inp', 'fid', 'cls'].map((metric) => `
+                  <div>
+                    <strong>${metric.toUpperCase()}</strong>
+                    <span>Good (${res[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
+                    <span>Needs improvement (${res[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
+                    <span>Poor (${res[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
+                  </div>
+                  `).join('')}
+            </div>
+           
+            <div class="chart-container">
+                <canvas id="chart" width="600" height="400"></canvas>
+            </div>
+
+            <h2>Visits details</h2>
+            
+            <div class="cards metrics">
+                <div>
+                    <strong>By country</strong>
+                    ${res[0].data.viewer.accounts[0].countries.map((country) => `
+                      <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div>
+                    <strong>By referers</strong>
+                    ${res[0].data.viewer.accounts[0].topReferers.map((referer) => `
+                      <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div>
+                    <strong>By paths</strong>
+                    ${res[0].data.viewer.accounts[0].topPaths.map((paths) => `
+                      <span>${paths.dimensions.metric}: <span>${paths.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div>
+                    <strong>By browsers</strong>
+                    ${res[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+                      <span>${browsers.dimensions.metric}: <span>${browsers.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div>
+                    <strong>By operating systems</strong>
+                    ${res[0].data.viewer.accounts[0].topOSs.map((OSs) => `
+                      <span>${OSs.dimensions.metric}: <span>${OSs.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div>
+                    <strong>By device type</strong>
+                    ${res[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+                      <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <h2>Page views details</h2>
+            <div class="cards metrics">
+              <div>
+                  <strong>By country</strong>
+                  ${res[0].data.viewer.accounts[0].countries.map((country) => `
+                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
+                  `).join('')}
+              </div>
+              <div>
+                  <strong>By referers</strong>
+                  ${res[0].data.viewer.accounts[0].topReferers.map((referer) => `
+                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
+                  `).join('')}
+              </div>
+              <div>
+                  <strong>By paths</strong>
+                  ${res[0].data.viewer.accounts[0].topPaths.map((paths) => `
+                    <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
+                  `).join('')}
+              </div>
+              <div>
+                  <strong>By browsers</strong>
+                  ${res[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+                    <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
+                  `).join('')}
+              </div>
+              <div>
+                  <strong>By operating systems</strong>
+                  ${res[0].data.viewer.accounts[0].topOSs.map((OSs) => `
+                    <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
+                  `).join('')}
+              </div>
+              <div>
+                  <strong>By device type</strong>
+                  ${res[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
+                  `).join('')}
+              </div>
+            </div>
+          `;
+
+          // Load chart.js
+          await import('../../libs/chart/chart.min.js');
+          await import('../../libs/chart/chart-utils.min.js');
+
+          const Utils = window.ChartUtils.init();
+
+          const labels = [];
+          for (let i = 0; i < 24; i += 1) {
+            labels.push(`${i < 10 ? `0${i}` : i}:00`);
+            labels.push(`${i < 10 ? `0${i}` : i}:15`);
+            labels.push(`${i < 10 ? `0${i}` : i}:30`);
+            labels.push(`${i < 10 ? `0${i}` : i}:45`);
+          }
+
+          const visitsData = [];
+          const pageViewsData = [];
+
+          labels.forEach((label) => {
+            const found = res[1].data.viewer.accounts[0].series
+              .find((serie) => label === new Date(serie.dimensions.ts).toTimeString().slice(0, 5));
+
+            if (found) {
+              visitsData.push(found.sum.visits);
+              pageViewsData.push(found.count);
+            } else {
+              visitsData.push(0);
+              pageViewsData.push(0);
+            }
+          });
+
+          const config = {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: 'Visits',
+                  data: visitsData,
+                  fill: false,
+                  borderColor: Utils.CHART_COLORS.blue,
+                },
+                {
+                  label: 'Page views',
+                  data: pageViewsData,
+                  fill: false,
+                  borderColor: Utils.CHART_COLORS.red,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+            },
+          };
+
+          // eslint-disable-next-line no-new
+          new window.Chart(document.getElementById('chart'), config);
         })
         .catch((error) => {
           console.log(error);

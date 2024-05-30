@@ -156,6 +156,11 @@
     font-weight: 300;
 }
 
+.site-details.block .cards.metrics span {
+    display: flex;
+    justify-content: space-between;
+}
+
 .site-details.block .cards > div {
     display: flex;
     flex-direction: column;
@@ -323,3 +328,16 @@
     border-right: none;
     width: auto;
 }
+
+.site-details .chart-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+    margin-block: 32px;
+}
+
+.site-details .monitoring-panel .container img:only-child {
+    height: 64px;
+    width: 64px;
+}
+

@@ -218,9 +218,9 @@ export default async function decorate(block) {
           };
 
           // Load codemirror to edit styles
-          loadCSS('/libs/codemirror/codemirror.css');
-          await import('../../libs/codemirror/codemirror.js');
-          await import('../../libs/codemirror/css.js');
+          loadCSS('/libs/codemirror/codemirror.min.css');
+          await import('../../libs/codemirror/codemirror.min.js');
+          await import('../../libs/codemirror/css.min.js');
 
           fetch(`${toKestrel1URL(project.liveUrl)}${meta.styles}`)
             .then((resStyles) => {
