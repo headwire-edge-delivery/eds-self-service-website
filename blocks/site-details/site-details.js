@@ -38,17 +38,16 @@ function dialogSetup({
     const blockPreview = document.createElement('div');
     blockPreview.classList.add('block-preview');
 
-    fetch(`${SCRIPT_API}/blockScreenshots/${project.projectSlug}/${name}`).then(async (response) => {
-      if (response.ok) {
-        const data = await response.json();
+    fetch(`${SCRIPT_API}/blockScreenshots/${project.projectSlug}/${name}`)
+      .then((response) => response.json())
+      .then((data) => {
         data.forEach((screenshot) => {
           const img = document.createElement('img');
           img.src = `http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}`;
           blockPreview.append(img);
         });
         dialogContent.append(blockPreview);
-      }
-    });
+      });
   }
 
   const deleteButton = document.createElement('button');
