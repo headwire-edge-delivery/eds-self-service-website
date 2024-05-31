@@ -418,7 +418,13 @@ export default async function decorate(block) {
             </div>
             <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}"></div>
             <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}"></div>
-            <div class="monitoring-actions button-container ${selected === 'monitoring' ? 'is-selected' : ''}"></div>
+            <div class="monitoring-actions button-container ${selected === 'monitoring' ? 'is-selected' : ''}">
+                <select class="button action secondary period-selector">
+                    <option value="1d" selected>Period: 1 day</option>
+                    <option value="7d">Period: 7 days</option>
+                    <option value="30d">Period: 30 days</option>
+                </select>
+            </div>
             <div class="settings-actions button-container ${selected === 'settings' ? 'is-selected' : ''}">
                 <button class="button action secondary share">Project Authors</button>
             </div>
@@ -970,7 +976,7 @@ export default async function decorate(block) {
         });
 
       // Load analytics
-      fetch(`${SCRIPT_API}/monitoring/${project.projectSlug}`, { headers })
+      fetch(`${SCRIPT_API}/monitoring/${project.projectSlug}?period=1d`, { headers })
         .then((res) => {
           if (res.ok) {
             return res.json();
@@ -1112,21 +1118,42 @@ export default async function decorate(block) {
 
           const Utils = window.ChartUtils.init();
 
-          const labels = [];
-          for (let i = 0; i < 24; i += 1) {
-            labels.push(`${i < 10 ? `0${i}` : i}:00`);
-            labels.push(`${i < 10 ? `0${i}` : i}:15`);
-            labels.push(`${i < 10 ? `0${i}` : i}:30`);
-            labels.push(`${i < 10 ? `0${i}` : i}:45`);
-          }
+          const roundUpToNearest15Minutes = (date) => {
+            const minutes = date.getMinutes();
+            const roundedMinutes = Math.ceil(minutes / 15) * 15;
+            date.setMinutes(roundedMinutes);
+            date.setSeconds(0);
+            date.setMilliseconds(0);
+            return date;
+          };
+
+          const generateTimeSeries = () => {
+            const intervalMinutes = 15;
+            const hoursBack = 24;
+            const intervalMillis = intervalMinutes * 60 * 1000;
+            const totalIntervals = (hoursBack * 60) / intervalMinutes;
+
+            let now = new Date();
+            now = roundUpToNearest15Minutes(now);
+
+            const timeSeries = [];
+
+            for (let i = 0; i <= totalIntervals; i += 1) {
+              const timePoint = new Date(now.getTime() - (i * intervalMillis));
+              timeSeries.push(timePoint);
+            }
+
+            return timeSeries;
+          };
+
+          const series = generateTimeSeries();
+          const labels = series.map((d) => d.toTimeString().slice(0, 5));
 
           const visitsData = [];
           const pageViewsData = [];
 
-          labels.forEach((label) => {
-            // TODO check date
-            const found = res[1].data.viewer.accounts[0].series
-              .find((serie) => label === new Date(serie.dimensions.ts).toTimeString().slice(0, 5));
+          series.forEach((d) => {
+            const found = res[1].data.viewer.accounts[0].series.find((serie) => d.getTime() === new Date(serie.dimensions.ts).getTime());
 
             if (found) {
               visitsData.push(found.sum.visits);
@@ -1162,8 +1189,12 @@ export default async function decorate(block) {
             },
           };
 
-          // eslint-disable-next-line no-new
-          new window.Chart(document.getElementById('chart'), config);
+          const chart = new window.Chart(document.getElementById('chart'), config);
+
+          block.querySelector('.period-selector').onchange = (e) => {
+            console.log(e.target.value);
+            console.log(chart);
+          };
         })
         .catch((error) => {
           console.log(error);
