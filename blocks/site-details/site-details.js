@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+
 import {
   SCRIPT_API, onAuthenticated, OOPS, toKestrel1URL, EMAIL_WORKER_API,
 } from '../../scripts/scripts.js';
@@ -978,19 +980,30 @@ export default async function decorate(block) {
         .then(async (res) => {
           const { countries } = await import('./countries.js');
 
+          const totalVisits = res[0].data.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
+          const totalPageViews = res[0].data.viewer.accounts[0]?.total[0]?.count ?? 0;
+          const averagePageLoadTime = res[2].data.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
+
+          const visitsDelta = res[2].data.viewer.accounts[0].visitsDelta[0] ? ((totalVisits * 100) / res[2].data.viewer.accounts[0].visitsDelta[0].sum.visits) - 100 : 0;
+          const pageViewsDelta = res[2].data.viewer.accounts[0].pageviewsDelta[0] ? ((totalPageViews * 100) / res[2].data.viewer.accounts[0].pageviewsDelta[0].count) - 100 : 0;
+          const performanceDelta = res[2].data.viewer.accounts[0].performanceDelta[0] ? ((averagePageLoadTime * 100) / res[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime) - 100 : 0;
+
           block.querySelector('.monitoring-panel .container').innerHTML = `
             <div class="cards">
               <div>
                   <strong>Total visits</strong>
-                  <span>${res[0].data.viewer.accounts[0]?.total[0]?.sum?.visits ?? '0'}</span>
+                  <span>${totalVisits}</span>
+                  ${visitsDelta !== 0 ? `<span class="${visitsDelta < 0 ? 'red' : 'green'}">${visitsDelta > 0 ? '+' : ''}${visitsDelta}%</span>` : ''} 
               </div>
               <div>
                   <strong>Total page views</strong>
-                  <span>${res[0].data.viewer.accounts[0]?.total[0]?.count ?? '0'}</span>
+                  <span>${totalPageViews}</span>
+                  ${pageViewsDelta !== 0 ? `<span class="${pageViewsDelta < 0 ? 'red' : 'green'}">${pageViewsDelta > 0 ? '+' : ''}${pageViewsDelta}%</span>` : ''}
               </div>
               <div>
                   <strong>Average page load time</strong>
-                  <span>${(res[2].data.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0) / 1000}ms</span>
+                  <span>${averagePageLoadTime / 1000}ms</span>
+                  ${performanceDelta !== 0 ? `<span class="${performanceDelta < 0 ? 'red' : 'green'}">${performanceDelta > 0 ? '+' : ''}${performanceDelta}%</span>` : ''}
               </div>
             </div>
             
@@ -1111,6 +1124,7 @@ export default async function decorate(block) {
           const pageViewsData = [];
 
           labels.forEach((label) => {
+            // TODO check date
             const found = res[1].data.viewer.accounts[0].series
               .find((serie) => label === new Date(serie.dimensions.ts).toTimeString().slice(0, 5));
 
