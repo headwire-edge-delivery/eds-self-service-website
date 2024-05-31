@@ -21,8 +21,9 @@ function addGoogleCalendarLink(calendarId, actionsList) {
   );
 }
 
+// MARK: dialog setup
 function dialogSetup({
-  name, deleteWarning, project, headers, isIcon = false, iconBase64,
+  name, deleteWarning, project, headers, isIcon = false, iconBase64, showBlockScreenshots,
 }) {
   window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`, { url: window.location.href });
 
@@ -32,6 +33,23 @@ function dialogSetup({
     <p>${deleteWarning || ''}</p>
     ${iconBase64 ? `<div class="preview"><img class="icon-display" src="${iconBase64}" alt="icon display" /></div>` : ''}
   `;
+
+  if (showBlockScreenshots) {
+    const blockPreview = document.createElement('div');
+    blockPreview.classList.add('block-preview');
+
+    fetch(`${SCRIPT_API}/blockScreenshots/${project.projectSlug}/${name}`).then(async (response) => {
+      if (response.ok) {
+        const data = await response.json();
+        data.forEach((screenshot) => {
+          const img = document.createElement('img');
+          img.src = `http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}`;
+          blockPreview.append(img);
+        });
+        dialogContent.append(blockPreview);
+      }
+    });
+  }
 
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
@@ -67,6 +85,7 @@ function dialogSetup({
   window.createDialog(dialogContent, [deleteButton]);
 }
 
+// MARK: add dialog
 function addBlockDialogSetup({ id, headers, itemList }) {
   window?.zaraz?.track('click site block add', { url: window.location.href });
 
@@ -149,6 +168,7 @@ function addBlockDialogSetup({ id, headers, itemList }) {
   });
 }
 
+// MARK: block list
 function renderBlocksList(block, { project, headers, id }) {
   const blocksList = block.querySelector('.blocks');
   block.querySelector('.add-block').onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
@@ -167,6 +187,7 @@ function renderBlocksList(block, { project, headers, id }) {
       deleteWarning,
       project,
       headers,
+      showBlockScreenshots: true,
     });
     blocksList.appendChild(li);
   };
@@ -358,6 +379,7 @@ const createDocsEl = (html) => `
 `;
 
 /**
+ * MARK: Decorate
  * @param {Element} block
  */
 export default async function decorate(block) {
@@ -400,7 +422,7 @@ export default async function decorate(block) {
     if (reqDetails.ok) {
       const { project } = await reqDetails.json();
 
-      block.innerHTML = `
+      block.innerHTML = /* html */`
         <div class="nav">
           <div class="breadcrumbs">
             <a href="/dashboard">
