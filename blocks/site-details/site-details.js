@@ -1053,7 +1053,7 @@ export default async function decorate(block) {
 
             for (let i = 0; i <= totalIntervals; i += 1) {
               const timePoint = new Date(now.getTime() - (i * intervalMillis));
-              timeSeries.push(timePoint);
+              timeSeries.unshift(timePoint);
             }
 
             return timeSeries;
@@ -1191,13 +1191,13 @@ export default async function decorate(block) {
 
             const series = generateTimeSeries(period.value);
 
-            const labels = series.map((d) => d.toTimeString().slice(0, 5));
+            const labels = series.map((d) => (period.value === '30d' ? d.toLocaleDateString() : d.toLocaleString()));
 
             const visitsData = [];
             const pageViewsData = [];
 
             series.forEach((d) => {
-              const found = metrics[1].data.viewer.accounts[0].series.find((serie) => d.getTime() === new Date(serie.dimensions.ts).getTime());
+              const found = metrics[1].data.viewer.accounts[0].series.find((serie) => (period.value === '30d' ? d.toLocaleDateString() === new Date(serie.dimensions.ts).toLocaleDateString() : d.getTime() === new Date(serie.dimensions.ts).getTime()));
 
               if (found) {
                 visitsData.push(found.sum.visits);
