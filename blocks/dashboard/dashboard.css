@@ -23,6 +23,7 @@
     gap: 64px;
     padding-block: 32px;
     min-height: calc(100vh - 200px);
+    justify-content: space-between;
 }
 
 .dashboard.block .filter {
@@ -87,6 +88,7 @@
 
 .dashboard.block .content aside {
     height: max-content;
+    width: 200px;
 }
 
 .dashboard.block .content aside ul {
@@ -124,6 +126,7 @@
 
 .dashboard.block .details {
     flex: 1;
+    max-width: calc(100% - 200px - 64px);
 }
 
 .dashboard.block .details > :not(.is-selected) {
@@ -171,4 +174,14 @@
 
 .dashboard.block .plans-dialog-wrapper {
     padding-inline: 0;
+}
+
+@media (width < 768px) {
+    .dashboard.block .content aside {
+        width: 100%;
+    }
+
+    .dashboard.block .details {
+        max-width: 100%;
+    }
 }
