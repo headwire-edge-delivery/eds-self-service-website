@@ -569,12 +569,12 @@ export default async function decorate(block) {
                 
                 <div class="monitoring-panel ${selected === 'monitoring' ? 'is-selected' : ''}">
                     ${createDocsEl(`
-                      <p>Here, you'll find key insights into your online performance. Track website traffic, audience demographics, email campaign success, and subscriber engagement—all in one place.</p>
+                      <p>Here, you'll find key insights into your online performance all in one place.</p>
                       <p><strong>Website key metrics:</strong></p>
                       <ul>
                         <li><strong>Visits</strong>: when someone navigates to your website, either directly or from an external referer. One visit can consist of multiple page views.</li>
                         <li><strong>Page views</strong>: when a page of your website is loaded by the browser.</li>
-                        <li><strong>Page load time</strong>: total amount of time it took to load the page.</li>
+                        <li><strong>Page load time</strong>: total amount of time it took to load the page (P50 median).</li>
                         <li><strong>Core Web Vitals</strong>: an initiative by Google to provide unified guidance for quality signals that are essential to delivering a great user experience on the web.</li>
                       </ul>
                     `)}
@@ -1065,11 +1065,11 @@ export default async function decorate(block) {
           const render = (metrics) => {
             const totalVisits = metrics[0].data.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
             const totalPageViews = metrics[0].data.viewer.accounts[0]?.total[0]?.count ?? 0;
-            const averagePageLoadTime = metrics[2].data.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
+            const medianPageLoadTime = metrics[2].data.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
 
             const visitsDelta = metrics[2].data.viewer.accounts[0].visitsDelta[0] ? ((totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits) - 100 : 0;
             const pageViewsDelta = metrics[2].data.viewer.accounts[0].pageviewsDelta[0] ? ((totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count) - 100 : 0;
-            const performanceDelta = metrics[2].data.viewer.accounts[0].performanceDelta[0] ? ((averagePageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime) - 100 : 0;
+            const performanceDelta = metrics[2].data.viewer.accounts[0].performanceDelta[0] ? ((medianPageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime) - 100 : 0;
 
             container.innerHTML = `
               <div class="cards">
@@ -1084,8 +1084,8 @@ export default async function decorate(block) {
                     ${pageViewsDelta !== 0 ? `<span class="${pageViewsDelta < 0 ? 'red' : 'green'}">${pageViewsDelta > 0 ? '+' : ''}${pageViewsDelta}%</span>` : ''}
                 </div>
                 <div>
-                    <strong>Average page load time</strong>
-                    <span>${averagePageLoadTime / 1000}ms</span>
+                    <strong>Median page load time</strong>
+                    <span>${medianPageLoadTime / 1000}ms</span>
                     ${performanceDelta !== 0 ? `<span class="${performanceDelta < 0 ? 'red' : 'green'}">${performanceDelta > 0 ? '+' : ''}${performanceDelta}%</span>` : ''}
                 </div>
               </div>
@@ -1108,7 +1108,6 @@ export default async function decorate(block) {
               </div>
   
               <h2>Visits details</h2>
-              
               <div class="cards metrics">
                   <div>
                       <strong>By country</strong>
@@ -1183,6 +1182,46 @@ export default async function decorate(block) {
                 <div>
                     <strong>By device type</strong>
                     ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+                      <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
+                    `).join('')}
+                </div>
+              </div>
+              
+              <h2>Page load time details</h2>
+              <div class="cards metrics">
+                <div>
+                    <strong>By country</strong>
+                    ${metrics[3].data.viewer.accounts[0].countries.map((country) => `
+                      <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
+                    `).join('')}
+                </div>
+                <div>
+                    <strong>By referers</strong>
+                    ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `
+                      <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
+                    `).join('')}
+                </div>
+                <div>
+                    <strong>By paths</strong>
+                    ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `
+                      <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
+                    `).join('')}
+                </div>
+                <div>
+                    <strong>By browsers</strong>
+                    ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+                      <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
+                    `).join('')}
+                </div>
+                <div>
+                    <strong>By operating systems</strong>
+                    ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `
+                      <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
+                    `).join('')}
+                </div>
+                <div>
+                    <strong>By device type</strong>
+                    ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
                       <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
                     `).join('')}
                 </div>
