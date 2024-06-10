@@ -163,6 +163,17 @@
     justify-content: space-between;
 }
 
+.site-details.block .cards.metrics ul {
+    margin: 0;
+    font-weight: 300;
+    padding-left: 16px;
+}
+
+.site-details.block .cards.metrics > div > strong:only-child::after {
+    content: ' (Not enough data)';
+    font-size: 11px;
+}
+
 .site-details.block .cards > div {
     display: flex;
     flex-direction: column;

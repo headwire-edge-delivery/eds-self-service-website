@@ -997,301 +997,354 @@ export default async function decorate(block) {
         });
 
       // Load analytics
-      fetch(`${SCRIPT_API}/monitoring/${project.projectSlug}?period=1d`, { headers })
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
+      const loadAnalytics = async (interval) => Promise.all([
+        `${SCRIPT_API}/monitoring/${project.projectSlug}?period=${interval}`,
+        `${SCRIPT_API}/cww/${project.projectSlug}?period=${interval}`,
+      ].map(async (url) => {
+        const req = await fetch(url, { headers });
+        if (!req.ok) {
+          throw new Error(req.status);
+        }
+        return req.json();
+      }));
+
+      const analytics = await loadAnalytics('1d');
+
+      const { countries } = await import('./countries.js');
+
+      // Load chart.js
+      await import('../../libs/chart/chart.min.js');
+      await import('../../libs/chart/chart-utils.min.js');
+
+      const Utils = window.ChartUtils.init();
+
+      const roundUpToNearestInterval = (date, intervalMinutes) => {
+        const minutes = date.getMinutes();
+        const roundedMinutes = Math.ceil(minutes / intervalMinutes) * intervalMinutes;
+        date.setMinutes(roundedMinutes);
+        date.setSeconds(0);
+        date.setMilliseconds(0);
+        return date;
+      };
+
+      const generateTimeSeries = (intervalChoice) => {
+        let intervalMinutes;
+        let daysBack;
+
+        switch (intervalChoice) {
+          case '1d':
+            intervalMinutes = 15;
+            daysBack = 1; // 24 hours
+            break;
+          case '7d':
+            intervalMinutes = 60;
+            daysBack = 7; // 7 days
+            break;
+          case '30d':
+            intervalMinutes = 1440; // 24 hours * 60 minutes
+            daysBack = 30; // 30 days
+            break;
+          default:
+            throw new Error('Invalid interval choice.');
+        }
+
+        const intervalMillis = intervalMinutes * 60 * 1000;
+        const totalIntervals = (daysBack * 24 * 60) / intervalMinutes;
+
+        let now = new Date();
+        now = roundUpToNearestInterval(now, intervalMinutes);
+
+        const timeSeries = [];
+
+        for (let i = 0; i <= totalIntervals; i += 1) {
+          const timePoint = new Date(now.getTime() - (i * intervalMillis));
+          timeSeries.unshift(timePoint);
+        }
+
+        return timeSeries;
+      };
+
+      const container = block.querySelector('.monitoring-panel .container');
+      const period = block.querySelector('.period-selector');
+
+      const render = ([metrics, cww]) => {
+        const totalVisits = metrics[0].data.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
+        const totalPageViews = metrics[0].data.viewer.accounts[0]?.total[0]?.count ?? 0;
+        const medianPageLoadTime = metrics[2].data.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
+
+        const visitsDelta = metrics[2].data.viewer.accounts[0].visitsDelta[0] ? ((totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits) - 100 : 0;
+        const pageViewsDelta = metrics[2].data.viewer.accounts[0].pageviewsDelta[0] ? ((totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count) - 100 : 0;
+        const performanceDelta = metrics[2].data.viewer.accounts[0].performanceDelta[0] ? ((medianPageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime) - 100 : 0;
+
+        container.innerHTML = `
+          <div class="cards">
+            <div>
+                <strong>Total visits</strong>
+                <span>${totalVisits}</span>
+                ${visitsDelta !== 0 ? `<span class="${visitsDelta < 0 ? 'red' : 'green'}">${visitsDelta > 0 ? '+' : ''}${visitsDelta}%</span>` : ''}
+            </div>
+            <div>
+                <strong>Total page views</strong>
+                <span>${totalPageViews}</span>
+                ${pageViewsDelta !== 0 ? `<span class="${pageViewsDelta < 0 ? 'red' : 'green'}">${pageViewsDelta > 0 ? '+' : ''}${pageViewsDelta}%</span>` : ''}
+            </div>
+            <div>
+                <strong>Median page load time</strong>
+                <span>${medianPageLoadTime / 1000}ms</span>
+                ${performanceDelta !== 0 ? `<span class="${performanceDelta < 0 ? 'red' : 'green'}">${performanceDelta > 0 ? '+' : ''}${performanceDelta}%</span>` : ''}
+            </div>
+          </div>
+
+          <div class="chart-container">
+              <canvas id="chart" width="600" height="400"></canvas>
+          </div>
+
+          <h2>Visits details</h2>
+          <div class="cards metrics">
+              <div>
+                  <strong>By country</strong>
+                  ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
+                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.sum.visits}</span></span>
+                  `).join('')}
+              </div>
+              <div>
+                  <strong>By referers</strong>
+                  ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
+                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.sum.visits}</span></span>
+                  `).join('')}
+              </div>
+              <div>
+                  <strong>By paths</strong>
+                  ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
+                    <span>${paths.dimensions.metric}: <span>${paths.sum.visits}</span></span>
+                  `).join('')}
+              </div>
+              <div>
+                  <strong>By browsers</strong>
+                  ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+                    <span>${browsers.dimensions.metric}: <span>${browsers.sum.visits}</span></span>
+                  `).join('')}
+              </div>
+              <div>
+                  <strong>By operating systems</strong>
+                  ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
+                    <span>${OSs.dimensions.metric}: <span>${OSs.sum.visits}</span></span>
+                  `).join('')}
+              </div>
+              <div>
+                  <strong>By device type</strong>
+                  ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.sum.visits}</span></span>
+                  `).join('')}
+              </div>
+          </div>
+
+          <h2>Page views details</h2>
+          <div class="cards metrics">
+            <div>
+                <strong>By country</strong>
+                ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
+                  <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
+                `).join('')}
+            </div>
+            <div>
+                <strong>By referers</strong>
+                ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
+                  <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
+                `).join('')}
+            </div>
+            <div>
+                <strong>By paths</strong>
+                ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
+                  <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
+                `).join('')}
+            </div>
+            <div>
+                <strong>By browsers</strong>
+                ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+                  <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
+                `).join('')}
+            </div>
+            <div>
+                <strong>By operating systems</strong>
+                ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
+                  <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
+                `).join('')}
+            </div>
+            <div>
+                <strong>By device type</strong>
+                ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+                  <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
+                `).join('')}
+            </div>
+          </div>
+
+          <h2>Page load time details</h2>
+          <div class="cards metrics">
+            <div>
+                <strong>By country</strong>
+                ${metrics[3].data.viewer.accounts[0].countries.map((country) => `
+                  <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
+                `).join('')}
+            </div>
+            <div>
+                <strong>By referers</strong>
+                ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `
+                  <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
+                `).join('')}
+            </div>
+            <div>
+                <strong>By paths</strong>
+                ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `
+                  <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
+                `).join('')}
+            </div>
+            <div>
+                <strong>By browsers</strong>
+                ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+                  <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
+                `).join('')}
+            </div>
+            <div>
+                <strong>By operating systems</strong>
+                ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `
+                  <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
+                `).join('')}
+            </div>
+            <div>
+                <strong>By device type</strong>
+                ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+                  <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
+                `).join('')}
+            </div>
+          </div>
+          
+          <h2>Core Web Vitals</h2>
+
+          <div class="cards">
+              ${['lcp', 'inp', 'fid', 'cls'].map((metric) => `
+                <div>
+                  <strong>${metric.toUpperCase()}</strong>
+                  <span>Good (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
+                  <span>Needs improvement (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
+                  <span>Poor (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
+                </div>
+                `).join('')}
+          </div>
+          
+          <h2>By Path and Browsers</h2>
+          
+          <div class="cards metrics">
+            <div>
+                <strong>LCP</strong>
+                ${cww[0].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
+    .filter((rum) => rum?.dimensions?.largestContentfulPaintPath)
+    .map((rum) => `
+                    <span>Path: <span>${rum.dimensions.largestContentfulPaintPath}</span></span>
+                    <ul>
+                      <li>Good (${rum?.sum.lcpGood ?? '0'})</li>
+                      <li>Needs improvement (${rum?.sum.lcpNeedsImprovement ?? '0'})</li>
+                      <li>Poor (${rum?.sum.lcpPoor ?? '0'})</li>
+                    </ul>
+                  `).join('')}
+            </div>
+            <div>
+                <strong>INP</strong>
+                ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
+    .filter((rum) => rum?.dimensions?.userAgentBrowser)
+    .map((rum) => `
+                    <span>Browser: <span>${rum.dimensions.userAgentBrowser}</span></span>
+                    <ul>
+                        <li>Good (${rum?.sum.inpGood ?? '0'})</li>
+                        <li>Needs improvement (${rum?.sum.inpNeedsImprovement ?? '0'})</li>
+                        <li>Poor (${rum?.sum.inpPoor ?? '0'})</li>
+                    </ul>
+                  `).join('')}
+            </div>
+            <div>
+                <strong>FID</strong>
+                ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
+    .filter((rum) => rum?.dimensions?.firstInputDelayPath)
+    .map((rum) => `
+                  <span>Path: <span>${rum.dimensions.firstInputDelayPath}</span></span>
+                  <ul>
+                    <li>Good (${rum?.sum.fidGood ?? '0'})</li>
+                    <li>Needs improvement (${rum?.sum.fidNeedsImprovement ?? '0'})</li>
+                    <li>Poor (${rum?.sum.fidPoor ?? '0'})</li>
+                  </ul>
+                `).join('')}
+            </div>
+            <div>
+                <strong>CLS</strong>
+                ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
+    .filter((rum) => rum?.dimensions?.cumulativeLayoutShiftPath)
+    .map((rum) => `
+                  <span>Path: <span>${rum.dimensions.cumulativeLayoutShiftPath}</span></span>
+                  <ul>
+                    <li>Good (${rum?.sum.clsGood ?? '0'})</li>
+                    <li>Needs improvement (${rum?.sum.clsNeedsImprovement ?? '0'})</li>
+                    <li>Poor (${rum?.sum.clsPoor ?? '0'})</li>
+                  </ul>
+                `).join('')}
+            </div>
+          </div>
+        `;
+
+        const series = generateTimeSeries(period.value);
+
+        const labels = series.map((d) => (period.value === '30d' ? d.toLocaleDateString() : d.toLocaleString()));
+
+        const visitsData = [];
+        const pageViewsData = [];
+
+        series.forEach((d) => {
+          const found = metrics[1].data.viewer.accounts[0].series.find((serie) => (period.value === '30d' ? d.toLocaleDateString() === new Date(serie.dimensions.ts).toLocaleDateString() : d.getTime() === new Date(serie.dimensions.ts).getTime()));
+
+          if (found) {
+            visitsData.push(found.sum.visits);
+            pageViewsData.push(found.count);
+          } else {
+            visitsData.push(0);
+            pageViewsData.push(0);
           }
-          throw new Error(res.status);
-        })
-        .then(async (res) => {
-          const { countries } = await import('./countries.js');
-
-          // Load chart.js
-          await import('../../libs/chart/chart.min.js');
-          await import('../../libs/chart/chart-utils.min.js');
-
-          const Utils = window.ChartUtils.init();
-
-          const roundUpToNearestInterval = (date, intervalMinutes) => {
-            const minutes = date.getMinutes();
-            const roundedMinutes = Math.ceil(minutes / intervalMinutes) * intervalMinutes;
-            date.setMinutes(roundedMinutes);
-            date.setSeconds(0);
-            date.setMilliseconds(0);
-            return date;
-          };
-
-          const generateTimeSeries = (intervalChoice) => {
-            let intervalMinutes;
-            let daysBack;
-
-            switch (intervalChoice) {
-              case '1d':
-                intervalMinutes = 15;
-                daysBack = 1; // 24 hours
-                break;
-              case '7d':
-                intervalMinutes = 60;
-                daysBack = 7; // 7 days
-                break;
-              case '30d':
-                intervalMinutes = 1440; // 24 hours * 60 minutes
-                daysBack = 30; // 30 days
-                break;
-              default:
-                throw new Error('Invalid interval choice.');
-            }
-
-            const intervalMillis = intervalMinutes * 60 * 1000;
-            const totalIntervals = (daysBack * 24 * 60) / intervalMinutes;
-
-            let now = new Date();
-            now = roundUpToNearestInterval(now, intervalMinutes);
-
-            const timeSeries = [];
-
-            for (let i = 0; i <= totalIntervals; i += 1) {
-              const timePoint = new Date(now.getTime() - (i * intervalMillis));
-              timeSeries.unshift(timePoint);
-            }
-
-            return timeSeries;
-          };
-
-          const container = block.querySelector('.monitoring-panel .container');
-          const period = block.querySelector('.period-selector');
-
-          const render = (metrics) => {
-            const totalVisits = metrics[0].data.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
-            const totalPageViews = metrics[0].data.viewer.accounts[0]?.total[0]?.count ?? 0;
-            const medianPageLoadTime = metrics[2].data.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
-
-            const visitsDelta = metrics[2].data.viewer.accounts[0].visitsDelta[0] ? ((totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits) - 100 : 0;
-            const pageViewsDelta = metrics[2].data.viewer.accounts[0].pageviewsDelta[0] ? ((totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count) - 100 : 0;
-            const performanceDelta = metrics[2].data.viewer.accounts[0].performanceDelta[0] ? ((medianPageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime) - 100 : 0;
-
-            container.innerHTML = `
-              <div class="cards">
-                <div>
-                    <strong>Total visits</strong>
-                    <span>${totalVisits}</span>
-                    ${visitsDelta !== 0 ? `<span class="${visitsDelta < 0 ? 'red' : 'green'}">${visitsDelta > 0 ? '+' : ''}${visitsDelta}%</span>` : ''} 
-                </div>
-                <div>
-                    <strong>Total page views</strong>
-                    <span>${totalPageViews}</span>
-                    ${pageViewsDelta !== 0 ? `<span class="${pageViewsDelta < 0 ? 'red' : 'green'}">${pageViewsDelta > 0 ? '+' : ''}${pageViewsDelta}%</span>` : ''}
-                </div>
-                <div>
-                    <strong>Median page load time</strong>
-                    <span>${medianPageLoadTime / 1000}ms</span>
-                    ${performanceDelta !== 0 ? `<span class="${performanceDelta < 0 ? 'red' : 'green'}">${performanceDelta > 0 ? '+' : ''}${performanceDelta}%</span>` : ''}
-                </div>
-              </div>
-              
-              <h2>Core Web Vitals</h2>
-              
-              <div class="cards">
-                  ${['lcp', 'inp', 'fid', 'cls'].map((metric) => `
-                    <div>
-                      <strong>${metric.toUpperCase()}</strong>
-                      <span>Good (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
-                      <span>Needs improvement (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
-                      <span>Poor (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
-                    </div>
-                    `).join('')}
-              </div>
-             
-              <div class="chart-container">
-                  <canvas id="chart" width="600" height="400"></canvas>
-              </div>
-  
-              <h2>Visits details</h2>
-              <div class="cards metrics">
-                  <div>
-                      <strong>By country</strong>
-                      ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                        <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.sum.visits}</span></span>
-                      `).join('')}
-                  </div>
-                  <div>
-                      <strong>By referers</strong>
-                      ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
-                        <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.sum.visits}</span></span>
-                      `).join('')}
-                  </div>
-                  <div>
-                      <strong>By paths</strong>
-                      ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
-                        <span>${paths.dimensions.metric}: <span>${paths.sum.visits}</span></span>
-                      `).join('')}
-                  </div>
-                  <div>
-                      <strong>By browsers</strong>
-                      ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                        <span>${browsers.dimensions.metric}: <span>${browsers.sum.visits}</span></span>
-                      `).join('')}
-                  </div>
-                  <div>
-                      <strong>By operating systems</strong>
-                      ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
-                        <span>${OSs.dimensions.metric}: <span>${OSs.sum.visits}</span></span>
-                      `).join('')}
-                  </div>
-                  <div>
-                      <strong>By device type</strong>
-                      ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                        <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.sum.visits}</span></span>
-                      `).join('')}
-                  </div>
-              </div>
-              
-              <h2>Page views details</h2>
-              <div class="cards metrics">
-                <div>
-                    <strong>By country</strong>
-                    ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                      <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
-                    `).join('')}
-                </div>
-                <div>
-                    <strong>By referers</strong>
-                    ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
-                      <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
-                    `).join('')}
-                </div>
-                <div>
-                    <strong>By paths</strong>
-                    ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
-                      <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
-                    `).join('')}
-                </div>
-                <div>
-                    <strong>By browsers</strong>
-                    ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                      <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
-                    `).join('')}
-                </div>
-                <div>
-                    <strong>By operating systems</strong>
-                    ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
-                      <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
-                    `).join('')}
-                </div>
-                <div>
-                    <strong>By device type</strong>
-                    ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                      <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
-                    `).join('')}
-                </div>
-              </div>
-              
-              <h2>Page load time details</h2>
-              <div class="cards metrics">
-                <div>
-                    <strong>By country</strong>
-                    ${metrics[3].data.viewer.accounts[0].countries.map((country) => `
-                      <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
-                    `).join('')}
-                </div>
-                <div>
-                    <strong>By referers</strong>
-                    ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `
-                      <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
-                    `).join('')}
-                </div>
-                <div>
-                    <strong>By paths</strong>
-                    ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `
-                      <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
-                    `).join('')}
-                </div>
-                <div>
-                    <strong>By browsers</strong>
-                    ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                      <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
-                    `).join('')}
-                </div>
-                <div>
-                    <strong>By operating systems</strong>
-                    ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `
-                      <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
-                    `).join('')}
-                </div>
-                <div>
-                    <strong>By device type</strong>
-                    ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                      <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
-                    `).join('')}
-                </div>
-              </div>
-            `;
-
-            const series = generateTimeSeries(period.value);
-
-            const labels = series.map((d) => (period.value === '30d' ? d.toLocaleDateString() : d.toLocaleString()));
-
-            const visitsData = [];
-            const pageViewsData = [];
-
-            series.forEach((d) => {
-              const found = metrics[1].data.viewer.accounts[0].series.find((serie) => (period.value === '30d' ? d.toLocaleDateString() === new Date(serie.dimensions.ts).toLocaleDateString() : d.getTime() === new Date(serie.dimensions.ts).getTime()));
-
-              if (found) {
-                visitsData.push(found.sum.visits);
-                pageViewsData.push(found.count);
-              } else {
-                visitsData.push(0);
-                pageViewsData.push(0);
-              }
-            });
-
-            const config = {
-              type: 'line',
-              data: {
-                labels,
-                datasets: [
-                  {
-                    label: 'Visits',
-                    data: visitsData,
-                    fill: false,
-                    borderColor: Utils.CHART_COLORS.blue,
-                  },
-                  {
-                    label: 'Page views',
-                    data: pageViewsData,
-                    fill: false,
-                    borderColor: Utils.CHART_COLORS.red,
-                  },
-                ],
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-              },
-            };
-
-            // eslint-disable-next-line no-new
-            new window.Chart(document.getElementById('chart'), config);
-          };
-
-          period.onchange = async () => {
-            container.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
-            const req = await fetch(`${SCRIPT_API}/monitoring/${project.projectSlug}?period=${period.value}`, { headers });
-            if (!req.ok) {
-              await window.alertDialog(OOPS);
-              return;
-            }
-
-            render(await req.json());
-          };
-
-          render(res);
-        })
-        .catch((error) => {
-          console.log(error);
         });
+
+        const config = {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Visits',
+                data: visitsData,
+                fill: false,
+                borderColor: Utils.CHART_COLORS.blue,
+              },
+              {
+                label: 'Page views',
+                data: pageViewsData,
+                fill: false,
+                borderColor: Utils.CHART_COLORS.red,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        };
+
+        // eslint-disable-next-line no-new
+        new window.Chart(document.getElementById('chart'), config);
+      };
+
+      period.onchange = async () => {
+        window?.zaraz?.track('change analytics period', { url: window.location.href });
+        container.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
+        render(await loadAnalytics(period.value));
+      };
+
+      render(analytics);
     } else {
       block.querySelector('.content p').textContent = OOPS;
     }
