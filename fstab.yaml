@@ -4,5 +4,6 @@ mountpoints:
 folders:
   /site/: /site/default
   /email/: /email/default
+  /theme/: /theme/default
   /templates/: /
   /dashboard/: /dashboard
