@@ -298,7 +298,9 @@ export default async function decorate(block) {
               selectTemplate.click();
 
               block.querySelector('.step.is-selected').classList.remove('is-selected');
-              block.querySelector('.step:nth-child(2)').classList.add('is-selected');
+              const selectedStep = block.querySelector('.step:nth-child(2)');
+              selectedStep.classList.add('is-selected');
+              selectedStep.classList.remove('error');
             }
           };
 
@@ -404,7 +406,7 @@ export default async function decorate(block) {
     const token = await window.auth0Client.getTokenSilently();
     const template = block.querySelector('.template.is-selected').id;
 
-    window.history.replaceState({}, '', `${window.location.pathname}/progress`);
+    window.history.pushState({}, '', `${window.location.pathname}/progress`);
 
     const reqCreate = await fetch(`${SCRIPT_API}/create`, {
       headers: {
@@ -424,8 +426,25 @@ export default async function decorate(block) {
     const statusList = editStep.querySelector('ul');
 
     const error = () => {
-      statusList.remove();
-      editStep.querySelector('h2 + p').textContent = `${OOPS} Please try again in a few minutes.`;
+      window?.zaraz?.track('error create site', { url: window.location.href });
+
+      editStep.classList.add('error');
+      const errorMessage = editStep.querySelector('.error-message');
+      if (!errorMessage) {
+        editStep.querySelector('.button-container').insertAdjacentHTML('beforebegin', `
+          <div class="error-message">
+              <p>${OOPS} Please try again in a few minutes.</p>
+              <button class="button prev">Go back</button>
+          </div>
+        `);
+
+        editStep.querySelector('.error-message .button').onclick = () => {
+          window?.zaraz?.track('click error site back', { url: window.location.href });
+
+          window.history.replaceState({}, '', `${window.location.pathname.split('/').slice(0, -1).join('/')}`);
+          editStep.classList.remove('error');
+        };
+      }
     };
 
     const renderStatusList = (stepsObj) => {
