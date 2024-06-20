@@ -1,5 +1,5 @@
 import {
-  SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, toKestrel1URL, KESTREL_ONE,
+  SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -222,7 +222,7 @@ export default async function decorate(block) {
           await import('../../libs/codemirror/codemirror.min.js');
           await import('../../libs/codemirror/css.min.js');
 
-          fetch(`${toKestrel1URL(project.liveUrl)}${meta.styles}`)
+          fetch(`${project.customLiveUrl}${meta.styles}`)
             .then((resStyles) => {
               if (resStyles.ok) {
                 return resStyles.text();

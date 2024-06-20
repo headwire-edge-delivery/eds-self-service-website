@@ -1,5 +1,5 @@
 import {
-  slugMaxLength, slugify, SCRIPT_API, OOPS, toKestrel1URL,
+  slugMaxLength, slugify, SCRIPT_API, OOPS,
 } from '../../scripts/scripts.js';
 
 const progressSteps = [
@@ -464,7 +464,14 @@ export default async function decorate(block) {
         const reqStatus = await fetch(`${SCRIPT_API}/jobs/${jobId}`);
         if (reqStatus.ok) {
           const {
-            steps, finished, success, failed, driveUrl, sidekickSetupUrl, liveUrl, projectSlug,
+            steps,
+            finished,
+            success,
+            failed,
+            driveUrl,
+            sidekickSetupUrl,
+            customLiveUrl,
+            projectSlug,
           } = await reqStatus.json();
 
           renderStatusList(steps);
@@ -483,7 +490,7 @@ export default async function decorate(block) {
                 }
               };
 
-              makeReady(openSite, toKestrel1URL(liveUrl));
+              makeReady(openSite, customLiveUrl);
               makeReady(openDrive, driveUrl);
               makeReady(installSidekick, sidekickSetupUrl);
 

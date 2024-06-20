@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 
 import {
-  SCRIPT_API, onAuthenticated, OOPS, toKestrel1URL, EMAIL_WORKER_API,
+  SCRIPT_API, onAuthenticated, OOPS, EMAIL_WORKER_API,
 } from '../../scripts/scripts.js';
 
 const protectedBlocks = {
@@ -442,6 +442,7 @@ export default async function decorate(block) {
                 </select>
             </div>
             <div class="settings-actions button-container ${selected === 'settings' ? 'is-selected' : ''}">
+                <a href="/theme/${id}" target="_blank" class="button action secondary">Theme Editor</a>
                 <button class="button action secondary share">Project Authors</button>
             </div>
           </div>
@@ -593,9 +594,6 @@ export default async function decorate(block) {
                         <h2>Icons</h2>
                         <button class="button action secondary add-icon">Add icon</button>
                         <ul class="icons list"></ul>
-                        
-                        <h2>Theme</h2>
-                        <a href="/theme/${id}" target="_blank" class="button">Open Theme Editor</a>
                     </div> 
                 </div>
             </div>
@@ -613,7 +611,7 @@ export default async function decorate(block) {
     : ''
 }
         <a href="${project.driveUrl}" class="button action secondary edit" target="_blank">Edit</a>
-        <a href="${toKestrel1URL(project.liveUrl)}" class="button primary action open" target="_blank">Open</a>
+        <a href="${project.customLiveUrl}" class="button primary action open" target="_blank">Open</a>
       `,
       );
 
@@ -713,7 +711,7 @@ export default async function decorate(block) {
 
       // MARK: Contact Email dialog
       const changeContactButton = document.createElement('button');
-      actions.querySelector('.settings-actions.button-container').prepend(changeContactButton);
+      actions.querySelector('.settings-actions.button-container').append(changeContactButton);
       changeContactButton.classList.add('button', 'secondary', 'action');
       changeContactButton.innerText = 'Change contact email';
       changeContactButton.onclick = () => {
@@ -830,7 +828,7 @@ export default async function decorate(block) {
       };
 
       // Load index to list pages
-      fetch(`${toKestrel1URL(project.liveUrl)}/query-index.json?sheet=all`)
+      fetch(`${project.customLiveUrl}/query-index.json?sheet=all`)
         .then((res) => {
           if (res.ok) {
             return res.json();
@@ -867,7 +865,7 @@ export default async function decorate(block) {
                   <td>${toDate(item.lastModified).toLocaleString()}</td>
                   <td>
                     <div class="button-container">
-                      <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${toKestrel1URL(project.liveUrl)}${item.path}" target="_blank">Open</a>
+                      <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${project.customLiveUrl}${item.path}" target="_blank">Open</a>
                       <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
                     </div>
                   </td>
@@ -895,7 +893,7 @@ export default async function decorate(block) {
                   <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
                   <td>${item.path}</td>          
                   <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
-                  <td><a class="button action secondary" href="${toKestrel1URL(project.liveUrl)}${item.path}" target="_blank">Open</a></td>
+                  <td><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
               </tr>
             `;
             })

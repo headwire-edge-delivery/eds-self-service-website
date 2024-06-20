@@ -210,12 +210,6 @@
     display: none !important;
 }
 
-.site-details.block .list li {
-    padding: 8px;
-    font-size: 14px;
-    font-weight: 700;
-}
-
 .site-details.block table td:first-child {
     font-weight: 500;
 }
