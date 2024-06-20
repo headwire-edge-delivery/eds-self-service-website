@@ -99,7 +99,8 @@ export default async function decorate(block) {
         
           <div class="content">
               <div class="preview">
-                  <iframe src="https://preview--${id}.${KESTREL_ONE}" class="iframe" loading="lazy"></iframe>
+                  <iframe src="https://preview--${id}.${KESTREL_ONE}" class="iframe is-loading"></iframe>
+                  <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
               </div>
               <aside>
                   <h2>Typography</h2>
@@ -411,7 +412,13 @@ export default async function decorate(block) {
 
         // Render codemirror
         const vars = block.querySelector('.vars');
-        const varsPreview = block.querySelector('.iframe');
+        const previewFrame = block.querySelector('.iframe');
+        previewFrame.addEventListener('load', () => {
+          // Add loading buffer
+          setTimeout(() => {
+            previewFrame.classList.remove('is-loading');
+          }, 1000);
+        });
         vars.value = css;
 
         // Load codemirror to edit styles
@@ -421,13 +428,13 @@ export default async function decorate(block) {
 
         const editor = window.CodeMirror.fromTextArea(vars);
         editor.on('change', () => {
-          varsPreview.contentWindow.postMessage({
+          previewFrame.contentWindow.postMessage({
             type: 'update:styles',
             styles: fonts,
             file: 'fonts',
           }, '*');
 
-          varsPreview.contentWindow.postMessage({
+          previewFrame.contentWindow.postMessage({
             type: 'update:styles',
             styles: editor.getValue(),
             file: 'vars',
@@ -440,12 +447,12 @@ export default async function decorate(block) {
         const previewMode = block.querySelector('.preview-mode');
         const editMode = block.querySelector('.edit-mode');
         previewMode.onclick = () => {
-          varsPreview.classList.add('preview-mode');
+          previewFrame.classList.add('preview-mode');
           previewMode.hidden = true;
           editMode.hidden = false;
         };
         editMode.onclick = () => {
-          varsPreview.classList.remove('preview-mode');
+          previewFrame.classList.remove('preview-mode');
           editMode.hidden = true;
           previewMode.hidden = false;
         };
@@ -630,7 +637,7 @@ export default async function decorate(block) {
               editor.setValue(editor.getValue().replace(`--${selectedColor.name}:${selectedColor.fullValue}`, `--${selectedColor.name}: var(--${newValue})`));
 
               // Update vars
-              varsPreview.contentWindow.postMessage({
+              previewFrame.contentWindow.postMessage({
                 type: 'update:styles',
                 styles: editor.getValue(),
                 file: 'vars',
@@ -669,18 +676,19 @@ export default async function decorate(block) {
         publishThemeSelector.onchange = () => {
           window?.zaraz?.track('click save theme', { url: window.location.href });
 
-          if (new URL(varsPreview.src).pathname !== publishThemeSelector.value) {
-            varsPreview.src = `https://preview--${id}.${KESTREL_ONE}${publishThemeSelector.value}`;
-            varsPreview.addEventListener(
+          if (new URL(previewFrame.src).pathname !== publishThemeSelector.value) {
+            previewFrame.classList.add('is-loading');
+            previewFrame.src = `https://preview--${id}.${KESTREL_ONE}${publishThemeSelector.value}`;
+            previewFrame.addEventListener(
               'load',
               () => {
-                varsPreview.contentWindow.postMessage({
+                previewFrame.contentWindow.postMessage({
                   type: 'update:styles',
                   styles: fonts,
                   file: 'fonts',
                 }, '*');
 
-                varsPreview.contentWindow.postMessage({
+                previewFrame.contentWindow.postMessage({
                   type: 'update:styles',
                   styles: editor.getValue(),
                   file: 'vars',
