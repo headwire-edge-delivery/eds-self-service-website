@@ -470,7 +470,7 @@ export default async function decorate(block) {
         });
 
         // Init font-pickers
-        const fontsKey = 'AIzaSyD_4VCO7MVoXVHp2-1X0b8LlZkHzs4mdTg';
+        const fontsKey = 'AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps';
         fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${fontsKey}&capability=WOFF2`)
           .then((req) => {
             if (req.ok) {
