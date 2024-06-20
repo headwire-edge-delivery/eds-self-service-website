@@ -3,7 +3,6 @@
 import {
   SCRIPT_API, onAuthenticated, OOPS, toKestrel1URL, EMAIL_WORKER_API,
 } from '../../scripts/scripts.js';
-import { loadCSS } from '../../scripts/aem.js';
 
 const protectedBlocks = {
   header: true,
@@ -394,10 +393,6 @@ export default async function decorate(block) {
 
     const selected = window.location.pathname.split('/')[3];
 
-    let editor = {
-      refresh: () => {},
-    };
-
     block.innerHTML = `
         <div class="nav">
           <div class="breadcrumbs">
@@ -600,15 +595,7 @@ export default async function decorate(block) {
                         <ul class="icons list"></ul>
                         
                         <h2>Theme</h2>
-                        <div class="button-container">
-                            <select class="button action secondary publish-theme-selector"></select>
-                            <button class="button action secondary publish-theme">Publish</button>
-                        </div>
-                        
-                        <div class="theme-container">
-                          <textarea class="vars"></textarea>
-                          <iframe src="${toKestrel1URL(project.liveUrl)}" class="vars-preview" loading="lazy"></iframe>
-                        </div>
+                        <a href="/theme/${id}" target="_blank" class="button">Open Theme Editor</a>
                     </div> 
                 </div>
             </div>
@@ -789,10 +776,6 @@ export default async function decorate(block) {
           block.querySelector(`.details .${identifier}-panel`).classList.add('is-selected');
           block.querySelector(`.actions .${identifier}-actions`).classList.add('is-selected');
           link.classList.add('is-selected');
-
-          if (identifier === 'settings') {
-            editor.refresh();
-          }
         }
       });
 
@@ -917,26 +900,6 @@ export default async function decorate(block) {
             `;
             })
             .join('');
-
-          // Theme pages
-          block.querySelector('.publish-theme-selector').innerHTML = `${pages.map(({ path }) => `<option value="${path}">Theme: ${path}</option>`).join('')}`;
-
-          const select = block.querySelector('.publish-theme-selector');
-          select.onchange = () => {
-            window?.zaraz?.track('click site theme', { url: window.location.href });
-
-            const varsPreview = block.querySelector('.vars-preview');
-            if (new URL(varsPreview.src).pathname !== select.value) {
-              varsPreview.src = `${toKestrel1URL(project.liveUrl)}${select.value}`;
-              varsPreview.addEventListener(
-                'load',
-                () => {
-                  varsPreview.contentWindow.postMessage({ type: 'css-vars', cssVars: encodeURIComponent(editor.getValue()) }, '*');
-                },
-                { once: true },
-              );
-            }
-          };
         })
         .catch((error) => {
           console.log(error);
@@ -952,49 +915,6 @@ export default async function decorate(block) {
       if (project.calendarId) {
         addGoogleCalendarLink(project.calendarId, block.querySelector('.settings-actions'));
       }
-
-      // Load site theme
-      fetch(`${toKestrel1URL(project.liveUrl)}/styles/vars.css`)
-        .then((res) => {
-          if (res.ok) {
-            return res.text();
-          }
-          throw new Error(res.status);
-        })
-        .then(async (css) => {
-          // Load codemirror to edit styles
-          loadCSS('/libs/codemirror/codemirror.min.css');
-          await import('../../libs/codemirror/codemirror.min.js');
-          await import('../../libs/codemirror/css.min.js');
-
-          const vars = block.querySelector('.vars');
-          const varsPreview = block.querySelector('.vars-preview');
-
-          vars.value = css;
-          editor = window.CodeMirror.fromTextArea(vars);
-
-          editor.on('change', () => {
-            varsPreview.contentWindow.postMessage({ type: 'css-vars', cssVars: encodeURIComponent(editor.getValue()) }, '*');
-          });
-
-          block.querySelector('.publish-theme').onclick = async () => {
-            window?.zaraz?.track('click site theme submit', { url: window.location.href });
-
-            editor.display.wrapper.classList.add('sending');
-            editor.setOption('readOnly', true);
-            const response = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {
-              method: 'POST',
-              headers: { ...headers, 'content-type': 'application/json' },
-              body: JSON.stringify({ css: btoa(editor.getValue()) }),
-            });
-            await window.alertDialog(response.ok ? 'Variables successfully updated!' : OOPS);
-            editor.display.wrapper.classList.remove('sending');
-            editor.setOption('readOnly', false);
-          };
-        })
-        .catch((error) => {
-          console.log(error);
-        });
 
       // Load analytics
       const loadAnalytics = async (interval) => Promise.all([

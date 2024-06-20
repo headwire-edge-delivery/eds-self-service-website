@@ -11,7 +11,7 @@ export default async function decorate(block) {
     const split = window.location.pathname.split('/');
     const id = split[2];
     const path = `/${split.slice(3).join('/')}`;
-    const url = `https://${id}.${KESTREL_ONE}${path}`;
+    const url = `https://preview--${id}.${KESTREL_ONE}${path}`;
 
     const token = await window.auth0Client.getTokenSilently();
 

@@ -220,39 +220,6 @@
     font-weight: 500;
 }
 
-.site-details.block .vars:empty {
-    display: none;
-}
-
-.site-details.block .theme-container {
-    display: flex;
-    gap: 16px;
-}
-
-.site-details.block .vars-preview,
-.site-details.block .cm-s-default {
-    max-width: calc(100vw - 32px);
-    min-height: 500px;
-    height: calc(100vh - 128px - 64px - 32px);
-    flex: 1;
-    border: 1px solid var(--gray);
-}
-
-.site-details.block .vars-preview {
-    border: none;
-}
-
-.site-details.block .theme-actions .publish-theme {
-    order: 1;
-}
-
-.site-details.block .theme-actions select {
-    text-transform: none;
-    order: 0;
-    position: relative;
-    padding-block: 6px;
-}
-
 @media (width < 768px) {
     .site-details.block .content aside {
         width: 100%;
@@ -260,10 +227,6 @@
 
     .site-details.block .details {
         max-width: 100%;
-    }
-
-    .site-details.block .theme-container {
-        flex-direction: column;
     }
 
     .site-details.block .cards {
@@ -282,26 +245,6 @@
         flex-direction: column;
         align-items: flex-start;
     }
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-.site-details.block .CodeMirror.sending {
-    pointer-events: none;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-.site-details.block .CodeMirror.sending::after {
-    inset: 0;
-    position: absolute;
-    content: "Updating...";
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0 0 0 / 20%);
-    backdrop-filter: blur(2px);
-    font-size: 24px;
-    font-family: var(--font-family);
-    font-weight: 600;
 }
 
 /* MARK: Icon list */
@@ -336,26 +279,6 @@
 
 .site-details.block .icons.list .button {
     flex: 1;
-}
-
-.site-details .button-container:has(.publish-theme) {
-    justify-content: flex-start;
-    margin-bottom: 32px;
-    flex-direction: row;
-}
-
-.site-details .publish-theme {
-    margin-left: -12px;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
-
-.site-details .publish-theme-selector {
-    padding-block: 6.5px;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-right: none;
-    width: auto;
 }
 
 .site-details .chart-container {

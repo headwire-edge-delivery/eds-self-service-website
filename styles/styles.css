@@ -25,6 +25,10 @@
   text-size-adjust: 100%;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   font-family: var(--font-family);
   background-color: var(--white);
@@ -234,6 +238,15 @@ input[type="file"]::file-selector-button:hover,
   background-color: var(--gray);
   text-decoration: none;
   color: var(--black);
+}
+
+input[type="color"] {
+  padding: 4px;
+  font-weight: 400;
+  border: 1px solid var(--gray);
+  border-radius: calc(var(--border-radius) / 2);
+  background-color: var(--white);
+  width: 100%;
 }
 
 .button.primary {
