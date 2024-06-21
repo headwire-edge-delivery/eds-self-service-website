@@ -24,11 +24,22 @@ const findCSSVar = (vars, name, isFont) => {
     return false;
   }
 
-  const value = found.split(':')[1];
+  const fullValue = found.split(':')[1];
+
+  let value = fullValue;
+  if (isFont) {
+    value = value.split(',')[0].trim();
+    if (value.startsWith('"') || value.startsWith("'")) {
+      value = value.slice(1, -1);
+    }
+  } else {
+    value = value.trim();
+  }
+
   return {
     name,
-    value: isFont ? value.split(',')[0].trim().slice(1, -1) : value.trim(),
-    fullValue: value,
+    value,
+    fullValue,
   };
 };
 
