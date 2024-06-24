@@ -137,8 +137,11 @@
 }
 
 .theme-editor .vars + div {
-    border: 1px solid var(--gray);
-    height: calc(100% - 48px);
+    display: none;
+
+    /* border: 1px solid var(--gray); */
+
+    /* height: calc(100% - 48px); */
 }
 
 .theme-editor .button-container {
@@ -154,18 +157,8 @@
     flex-direction: row;
 }
 
-.theme-editor .publish-theme {
-    margin-left: -12px;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    border-color: var(--black);
-}
-
 .theme-editor .publish-theme-selector {
     padding-block: 6.5px;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-right: none;
     width: auto;
 }
 

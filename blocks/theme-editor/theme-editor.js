@@ -377,9 +377,8 @@ export default async function decorate(block) {
                       </div>
                   </label>
                
-                  <h2>Styles (Developer)</h2>
-                  
-                  <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
+                  <!--<h2>Styles (Developer)</h2>-->
+                  <!--<button class="button secondary action enable-styles">Edit styles (developer mode)</button>-->
                   <textarea class="vars"></textarea>
               </aside>
             </div>
@@ -612,7 +611,7 @@ export default async function decorate(block) {
               span.textContent = selectedColor.value.toUpperCase();
             }
 
-            input.onchange = () => {
+            input.oninput = () => {
               const newValue = input.value.toUpperCase();
               selectedColor = findCSSVar(cssVars, input.dataset.var);
               el.querySelector('span').textContent = newValue;
@@ -685,7 +684,7 @@ export default async function decorate(block) {
           });
 
         publishThemeSelector.onchange = () => {
-          window?.zaraz?.track('click save theme', { url: window.location.href });
+          window?.zaraz?.track('click change theme preview', { url: window.location.href });
 
           if (new URL(previewFrame.src).pathname !== publishThemeSelector.value) {
             previewFrame.classList.add('is-loading');
@@ -756,22 +755,22 @@ export default async function decorate(block) {
           block.classList.remove('is-saving');
         };
 
-        block.querySelector('.enable-styles').onclick = (event) => {
-          window?.zaraz?.track('click theme styles enable', { url: window.location.href });
-
-          [...block.querySelectorAll('aside > *')].some((el) => {
-            if (el === event.target.previousElementSibling) {
-              return true;
-            }
-
-            el.remove();
-            return false;
-          });
-
-          event.target.remove();
-
-          editor.refresh();
-        };
+        // block.querySelector('.enable-styles').onclick = (event) => {
+        //   window?.zaraz?.track('click theme styles enable', { url: window.location.href });
+        //
+        //   [...block.querySelectorAll('aside > *')].some((el) => {
+        //     if (el === event.target.previousElementSibling) {
+        //       return true;
+        //     }
+        //
+        //     el.remove();
+        //     return false;
+        //   });
+        //
+        //   event.target.remove();
+        //
+        //   editor.refresh();
+        // };
       })
       .catch((error) => {
         console.log(error);
