@@ -38,7 +38,16 @@ window.auth0.createAuth0Client({
     }
   }
 
-  const isAuthenticated = await auth0Client.isAuthenticated();
+  let isAuthenticated = false;
+  if (await auth0Client.isAuthenticated()) {
+    try {
+      await auth0Client.getTokenSilently();
+      isAuthenticated = true;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   document.body.classList.add(isAuthenticated ? 'is-authenticated' : 'is-anonymous');
 
   if (isAuthenticated) {
