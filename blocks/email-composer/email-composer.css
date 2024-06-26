@@ -113,6 +113,11 @@
     justify-content: flex-start;
 }
 
+.email-composer .recipients-wrapper {
+    max-height: 300px;
+    overflow: auto;
+}
+
 .email-composer .recipients img {
     height: 64px;
     width: 64px;

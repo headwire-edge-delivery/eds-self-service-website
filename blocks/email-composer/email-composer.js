@@ -77,7 +77,7 @@ export default async function decorate(block) {
                 
                 <h2>Recipients</h2>
                 
-                <div>
+                <div class="recipients-wrapper">
                     <table class="recipients">
                         <tr>
                           <td>
