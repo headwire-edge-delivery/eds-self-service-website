@@ -119,7 +119,12 @@ export default async function decorate(block) {
         let newValue = value;
         const matches = value.match(regExp);
         if (matches) {
-          const selectedEmail = block.querySelector('.recipients tbody tr.is-rendering').dataset.email;
+          const rendering = block.querySelector('.recipients tbody tr.is-rendering, .recipients tbody tr:has(input:checked)');
+          if (!rendering) {
+            return newValue;
+          }
+
+          const selectedEmail = rendering.dataset.email;
           const selectedRecipient = recipientsData.data
             .find(({ email }) => email === selectedEmail);
 
@@ -326,6 +331,8 @@ export default async function decorate(block) {
               const index = [...tr.parentElement.children].indexOf(tr);
               tr.remove();
 
+              toggleSendDisabled();
+
               fetch(`${SCRIPT_API}/sheets/${id}?sheetPath=recipients&row=${index}`, {
                 method: 'DELETE',
                 headers: {
@@ -384,12 +391,16 @@ export default async function decorate(block) {
           send.onclick = async () => {
             window?.zaraz?.track('click email send', { url: window.location.href });
 
+            // Preview to update the iframe source
+            block.querySelector('.save-variables').click();
+
             const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
 
             if (await window.confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
               window?.zaraz?.track('click email copy submit', { url: window.location.href });
 
               send.classList.add('is-disabled');
+              send.textContent = 'Sending…';
 
               const previewSource = new URL(iframe.src);
               const req = await fetch(`${SCRIPT_API}/send/${id}`, {
@@ -414,6 +425,7 @@ export default async function decorate(block) {
               }
 
               send.classList.remove('is-disabled');
+              send.textContent = 'Send';
             }
           };
         });
