@@ -99,6 +99,10 @@ export default async function decorate(block) {
             </div>
             
             <div class="actions">
+              <div class="warning" hidden>
+                <span>You have unsaved changes</span>
+                <button type="button" aria-label="close">&#x2715;</button>
+              </div>
               <div class="button-container">
                 <button class="button action secondary edit-mode" hidden>Editing mode</button>
                 <button class="button action secondary preview-mode">Preview mode</button>
@@ -385,6 +389,11 @@ export default async function decorate(block) {
           </div>
         </div>`;
 
+        const warning = block.querySelector('.warning');
+        warning.querySelector('button').onclick = () => {
+          warning.hidden = true;
+        };
+
         const defaultColors = [
           {
             label: 'Light',
@@ -483,6 +492,8 @@ export default async function decorate(block) {
 
             cssVars = getCSSVars(editor.getValue());
             selectedFontWeight = findCSSVar(cssVars, el.dataset.var);
+
+            warning.hidden = false;
           };
         });
 
@@ -593,6 +604,7 @@ export default async function decorate(block) {
               el.onchange = () => {
                 selectedFont = findCSSVar(cssVars, el.dataset.var, true);
                 updateFonts(selectedFont, el.value);
+                warning.hidden = false;
               };
             });
           });
@@ -629,6 +641,8 @@ export default async function decorate(block) {
                 const elInput = element.querySelector('input');
                 elInput.value = newValue;
               });
+
+              warning.hidden = false;
             };
           } else if (el.classList.contains('elements')) {
             // Find base color
@@ -654,6 +668,8 @@ export default async function decorate(block) {
               }, '*');
 
               cssVars = getCSSVars(editor.getValue());
+
+              warning.hidden = false;
             };
           }
         });
@@ -753,6 +769,8 @@ export default async function decorate(block) {
           editor.setOption('readOnly', false);
 
           block.classList.remove('is-saving');
+
+          warning.hidden = true;
         };
 
         // block.querySelector('.enable-styles').onclick = (event) => {
@@ -774,6 +792,7 @@ export default async function decorate(block) {
       })
       .catch((error) => {
         console.log(error);
+        block.querySelector('.content p').textContent = OOPS;
       });
   });
 }

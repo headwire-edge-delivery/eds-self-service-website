@@ -188,6 +188,23 @@
     min-width: 50%;
 }
 
+.theme-editor .warning {
+    padding-left: 16px;
+    background-color: var(--orange);
+    color: var(--black);
+    border-radius: 4px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.theme-editor .warning button {
+    background-color: transparent;
+    border-color: transparent;
+    cursor: pointer;
+}
+
 @media (width < 768px) {
     .theme-editor.block .content {
         flex-direction: column;
