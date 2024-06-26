@@ -100,6 +100,9 @@ export default async function decorate(block) {
             
             <div class="actions">
               <div class="warning" hidden>
+                <span class="icon icon-info">
+                  <img alt src="/icons/info.svg" loading="lazy">  
+                </span>
                 <span>You have unsaved changes</span>
                 <button type="button" aria-label="close">&#x2715;</button>
               </div>
