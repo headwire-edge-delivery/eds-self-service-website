@@ -399,8 +399,7 @@ export default async function decorate(block) {
             if (await window.confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
               window?.zaraz?.track('click email copy submit', { url: window.location.href });
 
-              send.classList.add('is-disabled');
-              send.textContent = 'Sending…';
+              block.classList.add('is-sending');
 
               const previewSource = new URL(iframe.src);
               const req = await fetch(`${SCRIPT_API}/send/${id}`, {
@@ -424,11 +423,12 @@ export default async function decorate(block) {
                 await window.alertDialog(OOPS);
               }
 
-              send.classList.remove('is-disabled');
-              send.textContent = 'Send';
+              block.classList.remove('is-sending');
             }
           };
         });
+    } else {
+      block.querySelector('.content p').textContent = OOPS;
     }
   });
 }

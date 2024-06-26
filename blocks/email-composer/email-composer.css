@@ -130,6 +130,11 @@
     display: none;
 }
 
+.email-composer.block.is-sending {
+    opacity: .3;
+    pointer-events: none;
+}
+
 @media (width < 768px) {
     .email-composer.block .content {
         flex-direction: column;
