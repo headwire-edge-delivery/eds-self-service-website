@@ -1297,7 +1297,7 @@ export default async function decorate(block) {
             return req.json();
           }
 
-          return [];
+          return false;
         })
         .then((res) => {
           let sentCount = 0;
@@ -1348,7 +1348,7 @@ export default async function decorate(block) {
                   </tr>
                 </thead>
                 <tbody>
-                    ${res.length ? Object.keys(res).map((emailId) => {
+                    ${res ? Object.keys(res).map((emailId) => {
     const reverse = res[emailId].reverse();
 
     const sent = res[emailId].find(({ type }) => type === 'email.sent');
@@ -1396,7 +1396,7 @@ export default async function decorate(block) {
             </table>
           `;
 
-          if (res.length) {
+          if (res) {
             block.querySelector('.delivered-count').textContent = deliveredCount === 0 ? '0%' : `${(deliveredCount / sentCount) * 100}%`;
             block.querySelector('.bounced-count').textContent = bouncedCount === 0 ? '0%' : `${(bouncedCount / sentCount) * 100}%`;
             block.querySelector('.opened-count').textContent = openedCount === 0 ? '0%' : `${(openedCount / deliveredCount) * 100}%`;
