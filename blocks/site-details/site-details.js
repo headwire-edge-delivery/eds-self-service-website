@@ -441,6 +441,7 @@ export default async function decorate(block) {
                     <option value="30d">Period: 30 days</option>
                 </select>
             </div>
+            <div class="analytics-actions button-container ${selected === 'analytics' ? 'is-selected' : ''}"></div>
             <div class="settings-actions button-container ${selected === 'settings' ? 'is-selected' : ''}">
                 <a href="/theme/${id}" target="_blank" class="button action secondary">Theme Editor</a>
                 <button class="button action secondary share">Project Authors</button>
@@ -481,7 +482,15 @@ export default async function decorate(block) {
                           <span class="icon icon-monitoring">
                             <img alt src="/icons/monitoring.svg" loading="lazy">  
                           </span>
-                          Analytics
+                          Web analytics
+                        </a>
+                    </li>
+                    <li>
+                        <a href="analytics" class="button secondary ${selected === 'analytics' ? 'is-selected' : ''}" target="_blank">
+                          <span class="icon icon-analytics">
+                            <img alt src="/icons/analytics.svg" loading="lazy">  
+                          </span>
+                          Email metrics
                         </a>
                     </li>
                     <li>
@@ -565,13 +574,30 @@ export default async function decorate(block) {
                 
                 <div class="monitoring-panel ${selected === 'monitoring' ? 'is-selected' : ''}">
                     ${createDocsEl(`
-                      <p>Here, you'll find key insights into your online performance all in one place.</p>
+                      <p>Here, you'll find key insights into your web performance all in one place.</p>
                       <p><strong>Website key metrics:</strong></p>
                       <ul>
                         <li><strong>Visits</strong>: when someone navigates to your website, either directly or from an external referer. One visit can consist of multiple page views.</li>
                         <li><strong>Page views</strong>: when a page of your website is loaded by the browser.</li>
                         <li><strong>Page load time</strong>: total amount of time it took to load the page (P50 median).</li>
                         <li><strong>Core Web Vitals</strong>: an initiative by Google to provide unified guidance for quality signals that are essential to delivering a great user experience on the web.</li>
+                      </ul>
+                    `)}
+                    <div class="container">
+                        <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+                    </div>
+                </div>
+                
+                <div class="analytics-panel ${selected === 'analytics' ? 'is-selected' : ''}">
+                    ${createDocsEl(`
+                      <p>Here, you'll find key insights into your campaign performance all in one place.</p>
+                      <p><strong>Campaign key metrics:</strong></p>
+                      <ul>
+                        <li><strong>Delivery rate</strong>: percentage of successfully delivered emails.</li>
+                        <li><strong>Bounce rate</strong>: percentage of emails sent that couldn't be delivered to the recipient's inbox.</li>
+                        <li><strong>Open rate</strong>: percentage of recipients who opened the email.</li>
+                        <li><strong>Click-to-open rate</strong>: percentage of recipients who clicked on a link inside the email after opening.</li>
+                        <li><strong>Spam complaints rate</strong>: percentage of recipients reporting the email as spam.</li>
                       </ul>
                     `)}
                     <div class="container">
@@ -914,8 +940,8 @@ export default async function decorate(block) {
         addGoogleCalendarLink(project.calendarId, block.querySelector('.settings-actions'));
       }
 
-      // Load analytics
-      const loadAnalytics = async (interval) => Promise.all([
+      // Load web analytics
+      const loadWebAnalytics = async (interval) => Promise.all([
         `${SCRIPT_API}/monitoring/${project.projectSlug}?period=${interval}`,
         `${SCRIPT_API}/cww/${project.projectSlug}?period=${interval}`,
       ].map(async (url) => {
@@ -926,7 +952,7 @@ export default async function decorate(block) {
         return req.json();
       }));
 
-      const analytics = await loadAnalytics('1d');
+      const analytics = await loadWebAnalytics('1d');
 
       const { countries } = await import('./countries.js');
 
@@ -985,7 +1011,7 @@ export default async function decorate(block) {
       const container = block.querySelector('.monitoring-panel .container');
       const period = block.querySelector('.period-selector');
 
-      const render = ([metrics, cww]) => {
+      const renderWebAnalytics = ([metrics, cww]) => {
         const totalVisits = metrics[0].data.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
         const totalPageViews = metrics[0].data.viewer.accounts[0]?.total[0]?.count ?? 0;
         const medianPageLoadTime = metrics[2].data.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
@@ -1259,10 +1285,127 @@ export default async function decorate(block) {
       period.onchange = async () => {
         window?.zaraz?.track('change analytics period', { url: window.location.href });
         container.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
-        render(await loadAnalytics(period.value));
+        renderWebAnalytics(await loadWebAnalytics(period.value));
       };
 
-      render(analytics);
+      renderWebAnalytics(analytics);
+
+      // Load email analytics
+      fetch(`${SCRIPT_API}/email/${project.projectSlug}`, { headers })
+        .then((req) => {
+          if (req.ok) {
+            return req.json();
+          }
+
+          return [];
+        })
+        .then((res) => {
+          let sentCount = 0;
+          let deliveredCount = 0;
+          let bouncedCount = 0;
+          let openedCount = 0;
+          let clickedCount = 0;
+          let complainedCount = 0;
+
+          block.querySelector('.analytics-panel .container').innerHTML = `
+            <div class="cards metrics">
+              <div>
+                  <strong>Delivery rate</strong>
+                  <span class="delivered-count"></span>
+              </div>
+              <div>
+                  <strong>Bounce rate</strong>
+                  <span class="bounced-count"></span>
+              </div>
+              <div>
+                  <strong>Open rate</strong>
+                  <span class="opened-count"></span>
+              </div>
+              <div>
+                  <strong>Click-to-open rate</strong>
+                  <span class="clicked-count"></span>
+              </div>
+              <div>
+                  <strong>Spam complaints rate</strong>
+                  <span class="complained-count"></span>
+              </div>
+            </div>
+            
+            <h2>Email details</h2>
+            
+            <table>
+                <thead>
+                  <tr>
+                    <th>Subject</th>
+                    <th>To</th>
+                    <th>Sent</th>
+                    <th>Delivered</th>
+                    <th>Bounced</th>
+                    <th>Complained</th>
+                    <th>Opened</th>
+                    <th>Clicked</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                    ${res.length ? Object.keys(res).map((emailId) => {
+    const reverse = res[emailId].reverse();
+
+    const sent = res[emailId].find(({ type }) => type === 'email.sent');
+    const delivered = reverse.find(({ type }) => type === 'email.delivered');
+    const complained = res[emailId].find(({ type }) => type === 'email.complained');
+    const bounced = res[emailId].find(({ type }) => type === 'email.bounced');
+    const opened = reverse.find(({ type }) => type === 'email.opened');
+    const clicks = res[emailId].filter(({ type }) => type === 'email.clicked');
+
+    if (sent) {
+      sentCount += 1;
+    }
+    if (delivered) {
+      deliveredCount += 1;
+    }
+    if (complained) {
+      complainedCount += 1;
+    }
+    if (bounced) {
+      bouncedCount += 1;
+    }
+    if (opened) {
+      openedCount += 1;
+    }
+    if (clicks.length) {
+      clickedCount += 1;
+    }
+
+    return `
+                      <tr>
+                        <td>${res[emailId][0].data.subject}</td>
+                        <td>${res[emailId][0].data.to.join(',')}</td>
+                        <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
+                        <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
+                        <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
+                        <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
+                        <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
+                        <td>${clicks.map((clicked) => `<p>Clicked <a href="${clicked.data.click.link}" target="_blank">link</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</p>`).join('')}</td>
+                      </tr>
+                    `;
+  }).join('') : `
+    <tr><td class="empty" colspan="8">Not enough data</td></tr>
+  `}
+                </tbody>
+            </table>
+          `;
+
+          if (res.length) {
+            block.querySelector('.delivered-count').textContent = deliveredCount === 0 ? '0%' : `${(deliveredCount / sentCount) * 100}%`;
+            block.querySelector('.bounced-count').textContent = bouncedCount === 0 ? '0%' : `${(bouncedCount / sentCount) * 100}%`;
+            block.querySelector('.opened-count').textContent = openedCount === 0 ? '0%' : `${(openedCount / deliveredCount) * 100}%`;
+            block.querySelector('.clicked-count').textContent = clickedCount === 0 ? '0%' : `${(clickedCount / openedCount) * 100}%`;
+            block.querySelector('.complained-count').textContent = complainedCount === 0 ? '0%' : `${(complainedCount / deliveredCount) * 100}%`;
+          } else {
+            block.querySelectorAll('.analytics-panel .metrics span').forEach((el) => el.remove());
+          }
+        });
     } else {
       block.querySelector('.content p').textContent = OOPS;
     }
