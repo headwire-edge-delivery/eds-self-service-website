@@ -538,7 +538,36 @@ export default async function decorate(block) {
                     `)}
                     
                     <div class="container">
+                        <h2>Pages</h2>
                         <table class="pages">
+                            <thead>
+                              <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Path</th>
+                                <th>Last update</th>
+                                <th></th>
+                              </tr>  
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        
+                        <h2>Navigation</h2>
+                        <table class="navs">
+                            <thead>
+                              <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Path</th>
+                                <th>Last update</th>
+                                <th></th>
+                              </tr>  
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        
+                        <h2>Footer</h2>
+                        <table class="footers">
                             <thead>
                               <tr>
                                 <th>Title</th>
@@ -872,58 +901,62 @@ export default async function decorate(block) {
           const lastUpdate = Math.max(...data.map(({ lastModified }) => toDate(lastModified)));
           block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
-          // Emails only
-          block.querySelector('.emails tbody').innerHTML = data
-            .filter(({ template }) => template.includes('email'))
-            .map((item) => {
-              const title = document.createElement('div');
-              title.innerHTML = item.title;
-
-              const description = document.createElement('div');
-              description.innerHTML = item.description;
-
-              return `
-              <tr>
-                  <td>${title.textContent}</td>
-                  <td>${
-  description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''
-}</td>          
-                  <td>${toDate(item.lastModified).toLocaleString()}</td>
-                  <td>
-                    <div class="button-container">
-                      <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${project.customLiveUrl}${item.path}" target="_blank">Open</a>
-                      <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
-                    </div>
-                  </td>
-              </tr>
-            `;
-            })
-            .join('');
-
-          // Rest of the pages
           const pages = data.filter(
             ({ template, robots }) => !template.includes('email') && !robots.includes('noindex'),
           );
+          const navs = data.filter(({ path }) => path.endsWith('/nav'));
+          const footers = data.filter(({ path }) => path.endsWith('/footer'));
+          const emails = data.filter(({ template }) => template.includes('email'));
 
-          block.querySelector('.pages tbody').innerHTML = pages
+          const renderTable = (tableData, type) => tableData
             .map((item) => {
-              const title = document.createElement('div');
-              title.innerHTML = item.title;
+              const titleEl = document.createElement('div');
+              titleEl.innerHTML = item.title;
 
-              const description = document.createElement('div');
-              description.innerHTML = item.description;
+              const descriptionEl = document.createElement('div');
+              descriptionEl.innerHTML = item.description;
+
+              let description = '';
+              if (descriptionEl.textContent) {
+                if (descriptionEl.textContent.length > 100) {
+                  description = `${descriptionEl.textContent.substring(0, 100)}…`;
+                } else {
+                  description = descriptionEl.textContent;
+                }
+              }
+
+              if (type === 'emails') {
+                return `
+                  <tr>
+                      <td>${titleEl.textContent}</td>
+                      <td>${description}</td>          
+                      <td>${toDate(item.lastModified).toLocaleString()}</td>
+                      <td>
+                        <div class="button-container">
+                          <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${project.customLiveUrl}${item.path}" target="_blank">Open</a>
+                          <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
+                        </div>
+                      </td>
+                  </tr>
+                `;
+              }
 
               return `
-              <tr>
-                  <td>${title.textContent}</td>
-                  <td>${description.textContent.length ? `${description.textContent.substring(0, 100)}…` : ''}</td>
-                  <td>${item.path}</td>          
-                  <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
-                  <td><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
-              </tr>
-            `;
+                  <tr>
+                      <td>${titleEl.textContent}</td>
+                      <td>${description}</td>
+                      <td>${item.path}</td>          
+                      <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
+                      <td><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
+                  </tr>
+                `;
             })
             .join('');
+
+          block.querySelector('.pages tbody').innerHTML = renderTable(pages);
+          block.querySelector('.navs tbody').innerHTML = renderTable(navs);
+          block.querySelector('.footers tbody').innerHTML = renderTable(footers);
+          block.querySelector('.emails tbody').innerHTML = renderTable(emails, 'emails');
         })
         .catch((error) => {
           console.log(error);
