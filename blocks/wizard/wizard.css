@@ -213,7 +213,7 @@
     background-color: var(--white);
 }
 
-.wizard.block input,
+.wizard.block input:not([type="checkbox"]),
 .wizard.block textarea,
 .wizard.block #slug-input-wrapper {
     width: 300px;
@@ -230,12 +230,18 @@
     left: 16px;
 }
 
-.wizard.block input,
+.wizard.block input:not([type="checkbox"]),
 .wizard.block textarea {
     font-size: 16px;
     padding: 16px;
     margin-block: 32px;
     text-overflow: ellipsis;
+}
+
+.wizard.block .checkbox-label {
+    width: 300px;
+    display: flex;
+    margin: auto;
 }
 
 .wizard.block textarea {
