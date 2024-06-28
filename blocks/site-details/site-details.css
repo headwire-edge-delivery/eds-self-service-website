@@ -314,3 +314,22 @@
     font-weight: bold;
     font-size: 11px;
 }
+
+
+/* MARK: description dialog */
+
+dialog.update-description-dialog form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+}
+
+dialog.update-description-dialog textarea {
+    height: 220px;
+    resize: vertical;
+}
+
+dialog.update-description-dialog button[type="submit"] {
+    margin-top: auto;
+}

@@ -49,6 +49,7 @@ function dialogSetup({
       });
   }
 
+  // MARK: delete block button
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
   if (protectedBlocks[name]) {
@@ -431,6 +432,7 @@ export default async function decorate(block) {
           <div class="actions">
             <div class="overview-actions button-container ${selected === 'overview' ? 'is-selected' : ''}">
                 <button class="button secondary delete action">Delete</button>
+                <button class="button secondary update-description action">Update Description</button>
             </div>
             <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}"></div>
             <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}"></div>
@@ -526,9 +528,9 @@ export default async function decorate(block) {
                               <strong>Site id</strong>
                               <span>${project.projectSlug}</span>
                           </div>
-                          <div>
+                          <div class="project-description card">
                               <strong>Site description</strong>
-                              <span>${project.projectDescription ?? ''}</span>
+                              <span class="project-description span">${project.projectDescription ?? ''}</span>
                           </div>
                           <div>
                               <strong>Last update</strong>
@@ -870,6 +872,7 @@ export default async function decorate(block) {
         window?.zaraz?.track('click site guides', { url: window.location.href });
       };
 
+      // MARK: Delete dialog
       // Delete site and redirect to dashboard
       block.querySelector('.delete').onclick = async () => {
         window?.zaraz?.track('click site delete', { url: window.location.href });
@@ -896,6 +899,47 @@ export default async function decorate(block) {
         }
       };
 
+      // MARK: update description
+      block.querySelector('.update-description.action').onclick = async () => {
+        window?.zaraz?.track('click update site description', { url: window.location.href });
+
+        const title = document.createElement('h3');
+        title.innerText = 'Update Site Description';
+        const textArea = document.createElement('textarea');
+        textArea.value = project.projectDescription;
+        textArea.placeholder = 'Enter description here';
+        const submit = document.createElement('button');
+        submit.innerText = 'Submit';
+        submit.classList.add('button');
+        submit.type = 'submit';
+
+        const form = document.createElement('form');
+        form.append(title, textArea, submit);
+
+        const dialog = window.createDialog(form);
+        dialog.classList.add('update-description-dialog');
+
+        form.onsubmit = async (event) => {
+          event.preventDefault();
+          dialog.setLoading(true, 'Updating description...');
+          const response = await fetch(`${SCRIPT_API}/description/${project.projectSlug}`, {
+            headers: { ...headers, 'content-type': 'application/json' },
+            method: 'POST',
+            body: JSON.stringify({ projectDescription: textArea.value }),
+          });
+          if (response.ok) {
+            dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
+            project.projectDescription = textArea.value;
+            const descriptionSpan = block.querySelector('.project-description.card .project-description.span');
+            if (descriptionSpan) descriptionSpan.textContent = textArea.value;
+          } else {
+            await window.alertDialog(OOPS);
+          }
+          dialog.setLoading(false);
+        };
+      };
+
+      // MARK: page list
       // Load index to list pages
       fetch(`${project.customLiveUrl}/query-index.json?sheet=all`)
         .then((res) => {
