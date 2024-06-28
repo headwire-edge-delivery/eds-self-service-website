@@ -452,7 +452,7 @@ export default async function decorate(block) {
             <dialog class="display-dialog"></dialog>
             <aside>
                 <ul>
-                    <li class="title">Website</li>
+                    <li class="title">Site</li>
                     <li>
                         <a href="overview" class="button action secondary ${selected === 'overview' ? 'is-selected' : ''}">
                           <span class="icon icon-template">
