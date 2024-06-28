@@ -90,7 +90,6 @@
     width: 100%;
     justify-content: flex-start;
     border-color: transparent;
-    color: var(--black);
 }
 
 .site-details.block .content aside .button:hover {
@@ -106,6 +105,14 @@
 
 .site-details.block .content aside .button.is-selected img {
     filter: invert(1);
+}
+
+.site-details.block .content aside li.title {
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--orange);
+    padding-bottom: 4px;
 }
 
 .site-details.block .details > :not(.is-selected),

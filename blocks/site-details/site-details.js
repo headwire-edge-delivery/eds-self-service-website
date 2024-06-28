@@ -443,7 +443,6 @@ export default async function decorate(block) {
             </div>
             <div class="analytics-actions button-container ${selected === 'analytics' ? 'is-selected' : ''}"></div>
             <div class="settings-actions button-container ${selected === 'settings' ? 'is-selected' : ''}">
-                <a href="/theme/${id}" target="_blank" class="button action secondary">Theme Editor</a>
                 <button class="button action secondary share">Project Authors</button>
             </div>
           </div>
@@ -453,8 +452,9 @@ export default async function decorate(block) {
             <dialog class="display-dialog"></dialog>
             <aside>
                 <ul>
+                    <li class="title">Website</li>
                     <li>
-                        <a href="overview" class="button secondary ${selected === 'overview' ? 'is-selected' : ''}" target="_blank">
+                        <a href="overview" class="button action secondary ${selected === 'overview' ? 'is-selected' : ''}">
                           <span class="icon icon-template">
                             <img alt src="/icons/template.svg" loading="lazy">  
                           </span>
@@ -462,44 +462,54 @@ export default async function decorate(block) {
                         </a>
                     </li>
                     <li>
-                        <a href="pages" class="button secondary ${selected === 'pages' ? 'is-selected' : ''}" target="_blank">
+                        <a href="pages" class="button action secondary ${selected === 'pages' ? 'is-selected' : ''}">
                           <span class="icon icon-web">
                             <img alt src="/icons/web.svg" loading="lazy">  
                           </span>
-                          Website
+                          Pages
                         </a>
                     </li>
                     <li>
-                        <a href="emails" class="button secondary ${selected === 'emails' ? 'is-selected' : ''}" target="_blank">
-                          <span class="icon icon-email">
-                            <img alt src="/icons/email.svg" loading="lazy">  
-                          </span>
-                          Campaign
-                        </a>
-                    </li>
-                    <li>
-                        <a href="monitoring" class="button secondary ${selected === 'monitoring' ? 'is-selected' : ''}" target="_blank">
+                        <a href="monitoring" class="button action secondary ${selected === 'monitoring' ? 'is-selected' : ''}">
                           <span class="icon icon-monitoring">
                             <img alt src="/icons/monitoring.svg" loading="lazy">  
                           </span>
                           Web analytics
                         </a>
                     </li>
+                    <li class="title">Campaign</li>
                     <li>
-                        <a href="analytics" class="button secondary ${selected === 'analytics' ? 'is-selected' : ''}" target="_blank">
-                          <span class="icon icon-analytics">
-                            <img alt src="/icons/analytics.svg" loading="lazy">  
+                        <a href="emails" class="button action secondary ${selected === 'emails' ? 'is-selected' : ''}">
+                          <span class="icon icon-email">
+                            <img alt src="/icons/email.svg" loading="lazy">  
                           </span>
-                          Email metrics
+                          Emails
                         </a>
                     </li>
                     <li>
-                        <a href="settings" class="button secondary ${selected === 'settings' ? 'is-selected' : ''}" target="_blank">
+                        <a href="analytics" class="button action secondary ${selected === 'analytics' ? 'is-selected' : ''}">
+                          <span class="icon icon-analytics">
+                            <img alt src="/icons/analytics.svg" loading="lazy">  
+                          </span>
+                          Email analytics
+                        </a>
+                    </li>
+                    <li class="title">Settings</li>
+                    <li>
+                        <a href="settings" class="button action secondary ${selected === 'settings' ? 'is-selected' : ''}">
                           <span class="icon icon-settings">
                             <img alt src="/icons/settings.svg" loading="lazy">  
                           </span>
-                          Settings
+                          General
                         </a>
+                    </li>
+                    <li>
+                      <a href="/theme/${id}" class="button action secondary" target="_blank">
+                        <span class="icon icon-palette">
+                          <img alt src="/icons/palette.svg" loading="lazy">  
+                        </span>
+                        Theme
+                      </a>
                     </li>
                 </ul>
             </aside>
@@ -638,7 +648,6 @@ export default async function decorate(block) {
                     ${createDocsEl(`
                       <p><strong>Blocks</strong> acts as a repository of building blocks for your website. Here, you can explore and select from a variety of available blocks to enhance your web pages.</p>
                       <p><strong>Icons</strong> is your go-to resource for web assets that add visual flair and functionality to your website. Here, you'll find a curated collection of icons suitable for various purposes, from navigation to social media integration.</p>
-                      <p><strong>Theme</strong> is your gateway to tailor your website's visual identity to align perfectly with your brand. Here, you have the power to customize colors, ensuring consistency and harmony throughout your site.</p>
                     `)}
                     
                     <div class="container">
@@ -814,10 +823,15 @@ export default async function decorate(block) {
 
       const aside = block.querySelector('aside');
       aside.addEventListener('click', (event) => {
+        const link = event.target.closest('a');
+
+        if (!link || link.target === '_blank') {
+          return;
+        }
+
         event.preventDefault();
 
-        const link = event.target.closest('a');
-        if (link && !link.classList.contains('is-selected')) {
+        if (!link.classList.contains('is-selected')) {
           const identifier = link.getAttribute('href');
 
           window.history.pushState({}, '', `${window.location.pathname.split('/').slice(0, -1).join('/')}/${identifier}`);
