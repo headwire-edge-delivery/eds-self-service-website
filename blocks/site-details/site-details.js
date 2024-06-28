@@ -1169,9 +1169,9 @@ export default async function decorate(block) {
               ${['lcp', 'inp', 'fid', 'cls'].map((metric) => `
                 <div>
                   <strong>${metric.toUpperCase()}</strong>
-                  <span>Good (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
-                  <span>Needs improvement (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
-                  <span>Poor (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
+                  <span>Excellent (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
+                  <span>Good (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
+                  <span>Needs improvement (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
                 </div>
                 `).join('')}
           </div>
@@ -1186,9 +1186,9 @@ export default async function decorate(block) {
     .map((rum) => `
                     <span>Path: <span>${rum.dimensions.largestContentfulPaintPath}</span></span>
                     <ul>
-                      <li>Good (${rum?.sum.lcpGood ?? '0'})</li>
-                      <li>Needs improvement (${rum?.sum.lcpNeedsImprovement ?? '0'})</li>
-                      <li>Poor (${rum?.sum.lcpPoor ?? '0'})</li>
+                      <li>Excellent (${rum?.sum.lcpGood ?? '0'})</li>
+                      <li>Good (${rum?.sum.lcpNeedsImprovement ?? '0'})</li>
+                      <li>Needs improvement (${rum?.sum.lcpPoor ?? '0'})</li>
                     </ul>
                   `).join('')}
             </div>
@@ -1199,9 +1199,9 @@ export default async function decorate(block) {
     .map((rum) => `
                     <span>Browser: <span>${rum.dimensions.userAgentBrowser}</span></span>
                     <ul>
-                        <li>Good (${rum?.sum.inpGood ?? '0'})</li>
-                        <li>Needs improvement (${rum?.sum.inpNeedsImprovement ?? '0'})</li>
-                        <li>Poor (${rum?.sum.inpPoor ?? '0'})</li>
+                        <li>Excellent (${rum?.sum.inpGood ?? '0'})</li>
+                        <li>Good (${rum?.sum.inpNeedsImprovement ?? '0'})</li>
+                        <li>Needs improvement (${rum?.sum.inpPoor ?? '0'})</li>
                     </ul>
                   `).join('')}
             </div>
@@ -1212,9 +1212,9 @@ export default async function decorate(block) {
     .map((rum) => `
                   <span>Path: <span>${rum.dimensions.firstInputDelayPath}</span></span>
                   <ul>
-                    <li>Good (${rum?.sum.fidGood ?? '0'})</li>
-                    <li>Needs improvement (${rum?.sum.fidNeedsImprovement ?? '0'})</li>
-                    <li>Poor (${rum?.sum.fidPoor ?? '0'})</li>
+                    <li>Excellent (${rum?.sum.fidGood ?? '0'})</li>
+                    <li>Good (${rum?.sum.fidNeedsImprovement ?? '0'})</li>
+                    <li>Needs improvement (${rum?.sum.fidPoor ?? '0'})</li>
                   </ul>
                 `).join('')}
             </div>
@@ -1225,9 +1225,9 @@ export default async function decorate(block) {
     .map((rum) => `
                   <span>Path: <span>${rum.dimensions.cumulativeLayoutShiftPath}</span></span>
                   <ul>
-                    <li>Good (${rum?.sum.clsGood ?? '0'})</li>
-                    <li>Needs improvement (${rum?.sum.clsNeedsImprovement ?? '0'})</li>
-                    <li>Poor (${rum?.sum.clsPoor ?? '0'})</li>
+                    <li>Excellent (${rum?.sum.clsGood ?? '0'})</li>
+                    <li>Good (${rum?.sum.clsNeedsImprovement ?? '0'})</li>
+                    <li>Needs improvement (${rum?.sum.clsPoor ?? '0'})</li>
                   </ul>
                 `).join('')}
             </div>
