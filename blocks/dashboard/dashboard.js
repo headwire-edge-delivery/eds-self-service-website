@@ -24,7 +24,7 @@ export default async function decorate(block) {
             <aside>
                 <ul>
                     <li>
-                      <a href="sites" class="button secondary ${selected === 'sites' ? 'is-selected' : ''}">
+                      <a href="sites" class="button action secondary ${selected === 'sites' ? 'is-selected' : ''}">
                           <span class="icon icon-web">
                             <img alt src="/icons/web.svg" loading="lazy">  
                           </span>
@@ -32,7 +32,7 @@ export default async function decorate(block) {
                       </a>
                     </li>
                     <li>
-                      <a href="account" class="button secondary ${selected === 'account' ? 'is-selected' : ''}">
+                      <a href="account" class="button action secondary ${selected === 'account' ? 'is-selected' : ''}">
                           <span class="icon icon-user">
                             <img alt src="/icons/user.svg" loading="lazy">
                           </span>

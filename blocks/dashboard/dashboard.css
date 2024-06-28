@@ -106,7 +106,6 @@
     width: 100%;
     justify-content: flex-start;
     border-color: transparent;
-    color: var(--black);
 }
 
 .dashboard.block .content aside .button:hover {
