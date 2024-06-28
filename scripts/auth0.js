@@ -1,9 +1,14 @@
+import { getExpirationTime } from './scripts.js';
+
 const unauthenticatedAllowedPaths = {
   '/': true,
   '/feedback': true,
   '/contact-sales': true,
   '/privacy-policy': true,
 };
+
+const bufferTime = 120000;
+const sessionExpirationDays = 3;
 
 document.body.style.display = 'none';
 
@@ -29,6 +34,10 @@ window.auth0.createAuth0Client({
     window?.zaraz?.track('new auth session', { url: window.location.href });
     window?.zaraz?.set('user', user.email);
 
+    if (!window.localStorage.sessionExpiration) {
+      window.localStorage.sessionExpiration = getExpirationTime(sessionExpirationDays, bufferTime);
+    }
+
     if (window.sessionStorage.redirectTo) {
       const { redirectTo } = window.sessionStorage;
       window.sessionStorage.redirectTo = '';
@@ -52,6 +61,34 @@ window.auth0.createAuth0Client({
 
   if (isAuthenticated) {
     document.dispatchEvent(new CustomEvent('auth0:authenticated'));
+
+    const sign = (type) => {
+      document.querySelector(`a[href="#sign${type}"]`).click();
+    };
+
+    const sessionInterval = window.setInterval(() => {
+      const now = new Date().getTime();
+      if (now >= Number(window.localStorage.sessionExpiration)) {
+        window.clearInterval(sessionInterval);
+        window.setTimeout(() => {
+          sign('out');
+        }, bufferTime);
+
+        const signIn = document.createElement('button');
+        signIn.innerText = 'Sign in';
+        signIn.onclick = () => {
+          sign('in');
+        };
+
+        const signOut = document.createElement('button');
+        signOut.innerText = 'Sign out';
+        signOut.onclick = () => {
+          sign('out');
+        };
+
+        window.createDialog('<h3 class="centered-info">Your session is about to expire</h3><p>Please sign in to keep your session active.</p>', [signIn, signOut]);
+      }
+    }, 1000);
   } else if (!unauthenticatedAllowedPaths[window.location.pathname]) {
     window.location.href = '/';
   }

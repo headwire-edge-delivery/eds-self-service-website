@@ -41,6 +41,13 @@ export function onAuthenticated(cb) {
 
 export const KESTREL_ONE = 'kestrelone.com';
 
+export function getExpirationTime(expirationDays, bufferTime) {
+  const date = new Date();
+  date.setDate(date.getDate() + expirationDays);
+
+  return date.getTime() - bufferTime;
+}
+
 /**
  * Get placeholders for current language.
  * Using this function will only ever fetch once.

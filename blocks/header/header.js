@@ -37,6 +37,7 @@ export default async function decorate(block) {
       window?.zaraz?.track('click logout header', { url: window.location.href });
       window?.zaraz?.set('user', undefined);
       event.preventDefault();
+      delete window.localStorage.sessionExpiration;
       window.auth0Client.logout({ logoutParams: { returnTo: window.location.origin } });
     }
   });

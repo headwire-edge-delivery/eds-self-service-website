@@ -398,10 +398,15 @@ dialog .dialog-button-container {
   flex-wrap: wrap;
   gap: 16px;
   justify-content: flex-end;
+  padding-top: 16px;
 }
 
 dialog .dialog-button-container > * {
   align-items: flex-start;
+}
+
+dialog .dialog-content:has(.centered-info) {
+  min-height: auto;
 }
 
 dialog .dialog-content > div:has(> .centered-info),
