@@ -507,11 +507,13 @@ export default async function decorate(block) {
                 }
               };
 
-              const openDarkAlley = document.createElement('a');
-              openDarkAlley.href = darkAlleyUrl;
-              openDarkAlley.target = '_blank';
-              openDarkAlley.textContent = 'Open Dark Alley';
-              openSite.after(openDarkAlley);
+              if (darkAlleyUrl) {
+                const openDarkAlley = document.createElement('a');
+                openDarkAlley.href = darkAlleyUrl;
+                openDarkAlley.target = '_blank';
+                openDarkAlley.textContent = 'Open Dark Alley';
+                openSite.after(openDarkAlley);
+              }
 
               makeReady(openSite, customLiveUrl);
               makeReady(openDrive, driveUrl);
@@ -519,7 +521,7 @@ export default async function decorate(block) {
 
               if (openSiteDetails) {
                 openSiteDetails.classList.remove('next');
-                openSiteDetails.href = `/site/${projectSlug}`;
+                openSiteDetails.href = `/${darkAlleyUrl ? 'da-' : ''}site/${projectSlug}`;
               }
 
               const edit = editStep.querySelector('a[href="#edit"]');

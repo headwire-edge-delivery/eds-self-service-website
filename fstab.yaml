@@ -3,6 +3,7 @@ mountpoints:
 
 folders:
   /site/: /site/default
+  /da-site/: /da-site/default
   /email/: /email/default
   /theme/: /theme/default
   /templates/: /

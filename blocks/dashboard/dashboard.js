@@ -126,7 +126,7 @@ export default async function decorate(block) {
     });
 
     if (reqList.ok) {
-      const { projects } = await reqList.json();
+      const { projects, darkAlleyProjects } = await reqList.json();
       if (!projects.length) {
         sites.innerHTML = '<p>No Sites found</p>';
       } else {
@@ -159,6 +159,29 @@ export default async function decorate(block) {
             });
           }
         };
+
+        // MARK: dark alley projects
+
+        const darkAlleySection = document.createElement('section');
+        darkAlleySection.classList.add('dark-alley-section');
+
+        darkAlleySection.innerHTML = `
+          <h3 id="dark-alley-projects">(Experimental) Dark Alley Projects</h3>
+
+          <ul>
+            ${darkAlleyProjects.map(({ projectSlug, projectName, projectDescription }) => `
+              <li>
+                <a href="/da-site/${projectSlug}" target="_blank">
+                  <h2>${projectName}</h2>
+                  <p><strong>${projectSlug}</strong></p>
+                  <p>${projectDescription || ''}</p>
+                </a>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+
+        sites.append(darkAlleySection);
       }
     } else {
       sites.querySelector('.content p').textContent = OOPS;
