@@ -507,17 +507,17 @@ export default async function decorate(block) {
                 }
               };
 
-              if (darkAlleyUrl) {
-                const openDarkAlley = document.createElement('a');
-                openDarkAlley.href = darkAlleyUrl;
-                openDarkAlley.target = '_blank';
-                openDarkAlley.textContent = 'Open Dark Alley';
-                openSite.after(openDarkAlley);
-              }
-
               makeReady(openSite, customLiveUrl);
               makeReady(openDrive, driveUrl);
               makeReady(installSidekick, sidekickSetupUrl);
+
+              if (darkAlleyUrl) {
+                // const openDarkAlley = document.createElement('a');
+                openDrive.href = darkAlleyUrl;
+                // openDarkAlley.href = darkAlleyUrl;
+                openDrive.textContent = 'Open Dark Alley';
+                // openSite.after(openDarkAlley);
+              }
 
               if (openSiteDetails) {
                 openSiteDetails.classList.remove('next');

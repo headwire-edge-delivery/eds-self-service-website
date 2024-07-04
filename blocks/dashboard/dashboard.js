@@ -171,7 +171,7 @@ export default async function decorate(block) {
           <ul>
             ${darkAlleyProjects.map(({ projectSlug, projectName, projectDescription }) => `
               <li>
-                <a href="/da-site/${projectSlug}" target="_blank">
+                <a href="/da-site/${projectSlug}">
                   <h2>${projectName}</h2>
                   <p><strong>${projectSlug}</strong></p>
                   <p>${projectDescription || ''}</p>

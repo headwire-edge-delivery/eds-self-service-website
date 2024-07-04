@@ -887,7 +887,7 @@ export default async function decorate(block) {
         if (await window.confirmDialog('Are you sure ?')) {
           window?.zaraz?.track('click site delete submit', { url: window.location.href });
 
-          const reqDelete = await fetch(`${SCRIPT_API}/delete/${project.projectSlug}`, {
+          const reqDelete = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'da-' : ''}delete/${project.projectSlug}`, {
             method: 'DELETE',
             headers,
           });
