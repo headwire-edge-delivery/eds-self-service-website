@@ -348,6 +348,10 @@ export default async function decorate(block) {
     createButtonTimer = setTimeout(async () => {
       const res = await fetch(`${SCRIPT_API}/checkAvailability/${slugInput.value}`);
       if (res.ok) {
+        const data = await res.json().catch(() => {});
+        if (data.projectSlug !== slugInput.value) {
+          return;
+        }
         createButton.classList.remove('is-disabled');
         slugInputWrapper.classList.remove('slug-taken');
       } else {
@@ -356,12 +360,23 @@ export default async function decorate(block) {
       }
     }, 300);
   }
-  const textarea = document.createElement('textarea');
-  textarea.placeholder = 'Description';
+  const descriptionTextarea = document.createElement('textarea');
+  descriptionTextarea.placeholder = 'Description';
+
+  const darkAlleyCheckbox = document.createElement('input');
+  darkAlleyCheckbox.type = 'checkbox';
+  darkAlleyCheckbox.id = 'dark-alley-checkbox';
+  const darkAlleyLabel = document.createElement('label');
+  darkAlleyLabel.classList.add('checkbox-label', 'dark-alley-label');
+  const darkAlleySpan = document.createElement('span');
+  darkAlleySpan.textContent = 'Use Dark alley?';
+  darkAlleyLabel.append(darkAlleyCheckbox, darkAlleySpan);
+
   if (createStep) {
     createStep.querySelector('h2').after(input);
     input.after(slugInputWrapper);
-    slugInputWrapper.after(textarea);
+    slugInputWrapper.after(descriptionTextarea);
+    descriptionTextarea.after(darkAlleyLabel);
 
     slugInput.oninput = (event) => {
       slugInput.value = slugify(slugInput.value);
@@ -416,7 +431,8 @@ export default async function decorate(block) {
       body: JSON.stringify({
         inputProjectName: input.value,
         inputProjectSlug: slugInput.value,
-        inputProjectDescription: textarea.value,
+        inputProjectDescription: descriptionTextarea.value,
+        preferDarkAlley: darkAlleyCheckbox.checked,
         template,
       }),
       method: 'POST',
@@ -472,6 +488,7 @@ export default async function decorate(block) {
             sidekickSetupUrl,
             customLiveUrl,
             projectSlug,
+            darkAlleyUrl,
           } = await reqStatus.json();
 
           renderStatusList(steps);
@@ -494,9 +511,17 @@ export default async function decorate(block) {
               makeReady(openDrive, driveUrl);
               makeReady(installSidekick, sidekickSetupUrl);
 
+              if (darkAlleyUrl) {
+                // const openDarkAlley = document.createElement('a');
+                openDrive.href = darkAlleyUrl;
+                // openDarkAlley.href = darkAlleyUrl;
+                openDrive.textContent = 'Open Dark Alley';
+                // openSite.after(openDarkAlley);
+              }
+
               if (openSiteDetails) {
                 openSiteDetails.classList.remove('next');
-                openSiteDetails.href = `/site/${projectSlug}`;
+                openSiteDetails.href = `/${darkAlleyUrl ? 'da-' : ''}site/${projectSlug}`;
               }
 
               const edit = editStep.querySelector('a[href="#edit"]');

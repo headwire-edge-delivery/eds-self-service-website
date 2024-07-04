@@ -382,13 +382,15 @@ const createDocsEl = (html) => `
  * @param {Element} block
  */
 export default async function decorate(block) {
+  const darkAlleyVariation = block.classList.contains('dark-alley');
+
   onAuthenticated(async () => {
     const split = window.location.pathname.split('/');
     const id = split[2];
     const token = await window.auth0Client.getTokenSilently();
     const headers = { authorization: `bearer ${token}` };
 
-    if (window.location.pathname.startsWith('/site/') && split.length === 3) {
+    if (/(^\/site\/|^\/da-site\/)/g.test(window.location.pathname) && split.length === 3) {
       window.history.replaceState({}, '', `${window.location.pathname}/overview`);
     }
 
@@ -410,9 +412,13 @@ export default async function decorate(block) {
         </div>
       </div>`;
 
-    const reqDetails = await fetch(`${SCRIPT_API}/list/${id}`, {
-      headers,
-    });
+    const reqDetails = await fetch(
+      darkAlleyVariation ? `${SCRIPT_API}/darkAlleyList/${id}`
+        : `${SCRIPT_API}/list/${id}`,
+      {
+        headers,
+      },
+    );
 
     if (reqDetails.ok) {
       const { project } = await reqDetails.json();
@@ -881,7 +887,7 @@ export default async function decorate(block) {
         if (await window.confirmDialog('Are you sure ?')) {
           window?.zaraz?.track('click site delete submit', { url: window.location.href });
 
-          const reqDelete = await fetch(`${SCRIPT_API}/delete/${project.projectSlug}`, {
+          const reqDelete = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'da-' : ''}delete/${project.projectSlug}`, {
             method: 'DELETE',
             headers,
           });

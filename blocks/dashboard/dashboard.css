@@ -184,3 +184,8 @@
         max-width: 100%;
     }
 }
+
+.dashboard.block .dark-alley-section {
+    margin-top: 64px;
+    border: 2px solid crimson;
+}
