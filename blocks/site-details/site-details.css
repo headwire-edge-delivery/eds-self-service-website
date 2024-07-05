@@ -221,6 +221,14 @@
     font-weight: 500;
 }
 
+.site-details.block table .table-actions {
+    white-space: nowrap;
+}
+
+.site-details.block table .table-actions > .button {
+    margin: 3px;
+}
+
 @media (width < 768px) {
     .site-details.block .content aside {
         width: 100%;

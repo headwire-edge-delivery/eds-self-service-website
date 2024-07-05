@@ -972,8 +972,8 @@ export default async function decorate(block) {
           const footers = data.filter(({ path }) => path.endsWith('/footer'));
           const emails = data.filter(({ template }) => template.includes('email'));
 
-          const renderTable = (tableData, type) => tableData
-            .map((item) => {
+          const renderTable = (tableBody, tableData, type) => {
+            const tableRows = tableData.map((item) => {
               const titleEl = document.createElement('div');
               titleEl.innerHTML = item.title;
 
@@ -989,8 +989,10 @@ export default async function decorate(block) {
                 }
               }
 
+              const tableRow = document.createElement('tr');
+
               if (type === 'emails') {
-                return `
+                tableRow.innerHTML = `
                   <tr>
                       <td>${titleEl.textContent}</td>
                       <td>${description}</td>          
@@ -1003,24 +1005,39 @@ export default async function decorate(block) {
                       </td>
                   </tr>
                 `;
+                return tableRow;
               }
 
-              return `
-                  <tr>
-                      <td>${titleEl.textContent}</td>
-                      <td>${description}</td>
-                      <td>${item.path}</td>          
-                      <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
-                      <td><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
-                  </tr>
-                `;
-            })
-            .join('');
+              tableRow.innerHTML = `
+                <td>${titleEl.textContent}</td>
+                <td>${description}</td>
+                <td>${item.path}</td>          
+                <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
+                <td class="table-actions"><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
+              `;
 
-          block.querySelector('.pages tbody').innerHTML = renderTable(pages);
-          block.querySelector('.navs tbody').innerHTML = renderTable(navs);
-          block.querySelector('.footers tbody').innerHTML = renderTable(footers);
-          block.querySelector('.emails tbody').innerHTML = renderTable(emails, 'emails');
+              // add edit button
+              fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main/`).then((res) => res.json()).then((statusData) => {
+                const [locationService, servicePageId] = statusData?.live?.sourceLocation?.split(':') || statusData?.preview?.sourceLocation?.split(':') || [null, null];
+                if (locationService === 'gdrive' && servicePageId) {
+                  const editButton = document.createElement('a');
+                  editButton.classList.add('button', 'action', 'secondary');
+                  editButton.href = `https://docs.google.com/document/d/${servicePageId}`;
+                  editButton.target = '_blank';
+                  editButton.innerText = 'Edit';
+                  tableRow.lastElementChild.prepend(editButton);
+                }
+              }).catch(/* no edit button */);
+
+              return tableRow;
+            });
+            tableBody.append(...tableRows);
+          };
+
+          renderTable(block.querySelector('.pages tbody'), pages);
+          renderTable(block.querySelector('.navs tbody'), navs);
+          renderTable(block.querySelector('.footers tbody'), footers);
+          renderTable(block.querySelector('.emails tbody'), emails, 'emails');
         })
         .catch((error) => {
           console.log(error);
