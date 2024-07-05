@@ -107,6 +107,23 @@
     filter: invert(1);
 }
 
+.site-details.block .button.edit-page.loading {
+    pointer-events: none;
+    position: relative;
+    color: transparent;
+}
+
+.site-details.block .button.edit-page.loading::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    filter: invert(1);
+    background: url("/icons/loading.svg") no-repeat center;
+}
+
 .site-details.block .content aside li.title {
     font-weight: 600;
     letter-spacing: 0.1em;

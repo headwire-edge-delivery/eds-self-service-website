@@ -1067,17 +1067,24 @@ export default async function decorate(block) {
               `;
 
               // add edit button
-              fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main/`).then((res) => res.json()).then((statusData) => {
-                const [locationService, servicePageId] = statusData?.live?.sourceLocation?.split(':') || statusData?.preview?.sourceLocation?.split(':') || [null, null];
-                if (locationService === 'gdrive' && servicePageId) {
-                  const editButton = document.createElement('a');
-                  editButton.classList.add('button', 'action', 'secondary');
-                  editButton.href = `https://docs.google.com/document/d/${servicePageId}`;
-                  editButton.target = '_blank';
-                  editButton.innerText = 'Edit';
-                  tableRow.lastElementChild.prepend(editButton);
-                }
-              }).catch(/* no edit button */);
+              const editButton = document.createElement('button');
+              editButton.classList.add('button', 'action', 'secondary', 'edit-page');
+              editButton.target = '_blank';
+              editButton.innerText = 'Edit';
+              tableRow.lastElementChild.prepend(editButton);
+
+              editButton.onclick = () => {
+                editButton.classList.add('loading');
+                fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main/`).then((res) => res.json()).then((statusData) => {
+                  const [locationService, servicePageId] = statusData?.live?.sourceLocation?.split(':') || statusData?.preview?.sourceLocation?.split(':') || [null, null];
+                  if (locationService === 'gdrive' && servicePageId) {
+                    window.open(`https://docs.google.com/document/d/${servicePageId}/edit`, '_blank');
+                  }
+                }).catch(/* do nothing */)
+                  .finally(() => {
+                    editButton.classList.remove('loading');
+                  });
+              };
 
               return tableRow;
             });
