@@ -123,7 +123,7 @@ export default async function decorate(block) {
         'content-type': 'application/json',
         authorization: `bearer ${token}`,
       },
-    });
+    }).catch(() => ({ ok: false }));
 
     if (reqList.ok) {
       const { projects, darkAlleyProjects } = await reqList.json();

@@ -9,6 +9,35 @@ const protectedBlocks = {
   footer: true,
 };
 
+const BLOCK_ICON_LOOKUP = {
+  default: 'table',
+  screenshot: 'fullscreen',
+  article: 'article',
+  aside: 'ad-placement',
+  breadcrumbs: 'breadcrumbs',
+  header: 'breadcrumbs',
+  calendar: 'calendar',
+  schedule: 'calendar',
+  cards: 'card',
+  carousel: 'carousel',
+  columns: 'columns',
+  download: 'download',
+  contact: 'email',
+  form: 'form',
+  'contact-form': 'form',
+  gallery: 'images',
+  'grid-gallery': 'images',
+  fragment: 'fragment',
+  hero: 'homepage',
+  destinations: 'location',
+  footer: 'section-after',
+  blog: 'text',
+  embed: 'webpage',
+  'article-list': 'list',
+  tabs: 'add-to',
+  search: 'search',
+};
+
 const iconBase64Prefix = 'data:image/svg+xml;base64,';
 
 function addGoogleCalendarLink(calendarId, actionsList) {
@@ -85,7 +114,7 @@ function dialogSetup({
 }
 
 // MARK: add dialog
-function addBlockDialogSetup({ id, headers, itemList }) {
+function addBlockDialogSetup({ project, headers, itemList }) {
   window?.zaraz?.track('click site block add', { url: window.location.href });
 
   const dialogContent = document.createElement('div');
@@ -93,8 +122,8 @@ function addBlockDialogSetup({ id, headers, itemList }) {
   const dialog = window.createDialog(dialogContent);
 
   Promise.all([
-    fetch(`${SCRIPT_API}/compatibleBlocks/${id}`, { headers }).then((res) => res.json()),
-    fetch(`${SCRIPT_API}/blocks/${id}`, { headers }).then((res) => res.json()),
+    fetch(`${SCRIPT_API}/compatibleBlocks/${project.projectSlug}`, { headers }).then((res) => res.json()),
+    fetch(`${SCRIPT_API}/blocks/${project.projectSlug}`, { headers }).then((res) => res.json()),
   ]).then(([compatibleBlocks, currentBlocks]) => {
     const data = compatibleBlocks.filter(
       (item) => !currentBlocks.some((currentBlocksItem) => currentBlocksItem.name === item.name),
@@ -120,13 +149,26 @@ function addBlockDialogSetup({ id, headers, itemList }) {
 
     const blockInfo = document.createElement('p');
     blockInfo.style.width = '100%';
-    blockInfo.innerText = select.querySelector(`option[value="${select.value}"]`).dataset.blockCreateInfo;
+    const blockPreview = document.createElement('div');
+    blockPreview.classList.add('block-preview');
 
     select.onchange = () => {
       blockInfo.innerText = select.querySelector(`option[value="${select.value}"]`).dataset.blockCreateInfo;
-    };
 
-    content.append(select, blockInfo);
+      fetch(`${SCRIPT_API}/blockScreenshots/${project.projectSlug}/${select.value}`)
+        .then((response) => response.json())
+        .then((screenshotData) => {
+          blockPreview.innerHTML = '';
+          screenshotData.forEach((screenshot) => {
+            const img = document.createElement('img');
+            img.src = `http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}`;
+            blockPreview.append(img);
+          });
+        });
+    };
+    select.onchange();
+
+    content.append(select, blockInfo, blockPreview);
 
     const addButton = document.createElement('button');
     addButton.innerText = 'Add';
@@ -139,7 +181,7 @@ function addBlockDialogSetup({ id, headers, itemList }) {
         return;
       }
       dialog.setLoading(true, 'Adding Block...');
-      const addRequest = await fetch(`${SCRIPT_API}/blocks/${id}/${select.value}`, {
+      const addRequest = await fetch(`${SCRIPT_API}/blocks/${project.projectSlug}/${select.value}`, {
         method: 'POST',
         headers,
       });
@@ -168,19 +210,27 @@ function addBlockDialogSetup({ id, headers, itemList }) {
 }
 
 // MARK: block list
-function renderBlocksList(block, { project, headers, id }) {
+function renderBlocksList(block, { project, headers }) {
   const blocksList = block.querySelector('.blocks');
-  block.querySelector('.add-block').onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
+  block.querySelector('.add-block').onclick = () => addBlockDialogSetup({ project, headers, itemList: blocksList });
 
   blocksList.innerHTML = '';
   blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
     const li = document.createElement('li');
-    li.className = 'button action';
-    li.innerText = name;
     li.dataset.blockName = name;
     li.dataset.createInfo = createInfo || '';
     li.dataset.deleteWarning = deleteWarning || '';
     li.tabIndex = 0;
+    li.classList.add('button', 'secondary', 'action');
+
+    const blockIcon = document.createElement('img');
+    blockIcon.src = `/icons/block-icons/${BLOCK_ICON_LOOKUP[name] || BLOCK_ICON_LOOKUP.default}.svg`;
+    blockIcon.alt = `${name} icon`;
+    blockIcon.classList.add('block-icon');
+    const blockName = document.createElement('span');
+    blockName.innerText = name;
+    li.append(blockIcon, blockName);
+
     li.onclick = () => dialogSetup({
       name,
       deleteWarning,
