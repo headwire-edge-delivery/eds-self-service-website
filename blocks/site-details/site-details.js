@@ -1017,8 +1017,8 @@ export default async function decorate(block) {
               `;
 
               // add edit button
-              fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main/`).then((res) => res.json()).then((data) => {
-                const [locationService, servicePageId] = data?.live?.sourceLocation?.split(':') || data?.preview?.sourceLocation?.split(':') || [null, null];
+              fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main/`).then((res) => res.json()).then((statusData) => {
+                const [locationService, servicePageId] = statusData?.live?.sourceLocation?.split(':') || statusData?.preview?.sourceLocation?.split(':') || [null, null];
                 if (locationService === 'gdrive' && servicePageId) {
                   const editButton = document.createElement('a');
                   editButton.classList.add('button', 'action', 'secondary');
