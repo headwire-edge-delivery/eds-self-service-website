@@ -9,6 +9,35 @@ const protectedBlocks = {
   footer: true,
 };
 
+const BLOCK_ICON_LOOKUP = {
+  default: 'table',
+  screenshot: 'fullscreen',
+  article: 'article',
+  aside: 'ad-placement',
+  breadcrumbs: 'breadcrumbs',
+  header: 'breadcrumbs',
+  calendar: 'calendar',
+  schedule: 'calendar',
+  cards: 'card',
+  carousel: 'carousel',
+  columns: 'columns',
+  download: 'download',
+  contact: 'email',
+  form: 'form',
+  'contact-form': 'form',
+  gallery: 'images',
+  'grid-gallery': 'images',
+  fragment: 'fragment',
+  hero: 'homepage',
+  destinations: 'location',
+  footer: 'section-after',
+  blog: 'text',
+  embed: 'webpage',
+  'article-list': 'list',
+  tabs: 'add-to',
+  search: 'search',
+};
+
 const iconBase64Prefix = 'data:image/svg+xml;base64,';
 
 function addGoogleCalendarLink(calendarId, actionsList) {
@@ -20,195 +49,9 @@ function addGoogleCalendarLink(calendarId, actionsList) {
   );
 }
 
-// MARK: dialog setup
-function dialogSetup({
-  name, deleteWarning, project, headers, isIcon = false, iconBase64, showBlockScreenshots,
-}) {
-  window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`, { url: window.location.href });
-
-  const dialogContent = document.createElement('div');
-  dialogContent.innerHTML = `
-    <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>
-    <p>${deleteWarning || ''}</p>
-    ${iconBase64 ? `<div class="preview"><img class="icon-display" src="${iconBase64}" alt="icon display" /></div>` : ''}
-  `;
-
-  if (showBlockScreenshots) {
-    const blockPreview = document.createElement('div');
-    blockPreview.classList.add('block-preview');
-
-    fetch(`${SCRIPT_API}/blockScreenshots/${project.projectSlug}/${name}`)
-      .then((response) => response.json())
-      .then((data) => {
-        data.forEach((screenshot) => {
-          const img = document.createElement('img');
-          img.src = `http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}`;
-          blockPreview.append(img);
-        });
-        dialogContent.append(blockPreview);
-      });
-  }
-
-  // MARK: delete block button
-  const deleteButton = document.createElement('button');
-  deleteButton.innerText = 'Delete';
-  if (protectedBlocks[name]) {
-    deleteButton.disabled = true;
-  }
-  deleteButton.onclick = async (event) => {
-    window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} delete submit`, { url: window.location.href });
-
-    const dialogParent = event.target.closest('dialog');
-    deleteButton.disabled = true;
-    dialogParent.classList.add('loading');
-    dialogParent.dataset.loadingText = 'Deleting...';
-    const delResponse = await fetch(`${SCRIPT_API}/${isIcon ? 'icons' : 'blocks'}/${project.projectSlug}/${name}`, {
-      method: 'DELETE',
-      headers,
-    });
-    if (delResponse.ok) {
-      dialogContent.innerHTML = `
-      <h3 class="centered-info" >${name} deleted</h3>
-      `;
-      deleteButton.remove();
-      document
-        .querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`)
-        .forEach((item) => item.remove());
-    } else {
-      await window.alertDialog(OOPS);
-    }
-    deleteButton.disabled = null;
-    dialogParent.classList.remove('loading');
-  };
-
-  window.createDialog(dialogContent, [deleteButton]);
-}
-
-// MARK: add dialog
-function addBlockDialogSetup({ id, headers, itemList }) {
-  window?.zaraz?.track('click site block add', { url: window.location.href });
-
-  const dialogContent = document.createElement('div');
-  dialogContent.innerHTML = '<h3 class="centered-info" >Loading available blocks...</h3>';
-  const dialog = window.createDialog(dialogContent);
-
-  Promise.all([
-    fetch(`${SCRIPT_API}/compatibleBlocks/${id}`, { headers }).then((res) => res.json()),
-    fetch(`${SCRIPT_API}/blocks/${id}`, { headers }).then((res) => res.json()),
-  ]).then(([compatibleBlocks, currentBlocks]) => {
-    const data = compatibleBlocks.filter(
-      (item) => !currentBlocks.some((currentBlocksItem) => currentBlocksItem.name === item.name),
-    );
-
-    if (data.length === 0) {
-      dialog.renderDialog('<h3 class="centered-info" >No new blocks available</h3>');
-      return;
-    }
-
-    const content = document.createElement('div');
-    content.innerHTML = '<h3>Add block</h3>';
-
-    const select = document.createElement('select');
-    select.className = 'button secondary action';
-    select.innerHTML = data
-      .map(
-        (blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${
-          blockOption.name
-        }</option>`,
-      )
-      .join('');
-
-    const blockInfo = document.createElement('p');
-    blockInfo.style.width = '100%';
-    blockInfo.innerText = select.querySelector(`option[value="${select.value}"]`).dataset.blockCreateInfo;
-
-    select.onchange = () => {
-      blockInfo.innerText = select.querySelector(`option[value="${select.value}"]`).dataset.blockCreateInfo;
-    };
-
-    content.append(select, blockInfo);
-
-    const addButton = document.createElement('button');
-    addButton.innerText = 'Add';
-
-    addButton.onclick = async () => {
-      window?.zaraz?.track('click site block add submit', { url: window.location.href });
-
-      if (!select.value) {
-        await window.alertDialog('Please select a block');
-        return;
-      }
-      dialog.setLoading(true, 'Adding Block...');
-      const addRequest = await fetch(`${SCRIPT_API}/blocks/${id}/${select.value}`, {
-        method: 'POST',
-        headers,
-      });
-      if (addRequest.ok) {
-        const addRequestData = await addRequest.json().catch(() => ({}));
-        const buttons = [];
-        if (addRequestData.calendarId) {
-          const calendarLink = document.createElement('a');
-          calendarLink.classList.add('button');
-          calendarLink.href = `https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}`;
-          calendarLink.target = '_blank';
-          calendarLink.innerText = 'Google Calendar';
-          buttons.push(calendarLink);
-          addGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.settings-actions'));
-        }
-
-        dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`, buttons);
-        itemList.addItem({ name: select.value });
-      } else {
-        await window.alertDialog(OOPS);
-      }
-      dialog.setLoading(false);
-    };
-    dialog.renderDialog(content, [addButton]);
-  });
-}
-
-// MARK: block list
-function renderBlocksList(block, { project, headers, id }) {
-  const blocksList = block.querySelector('.blocks');
-  block.querySelector('.add-block').onclick = () => addBlockDialogSetup({ id, headers, itemList: blocksList });
-
-  blocksList.innerHTML = '';
-  blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
-    const li = document.createElement('li');
-    li.className = 'button action';
-    li.innerText = name;
-    li.dataset.blockName = name;
-    li.dataset.createInfo = createInfo || '';
-    li.dataset.deleteWarning = deleteWarning || '';
-    li.tabIndex = 0;
-    li.onclick = () => dialogSetup({
-      name,
-      deleteWarning,
-      project,
-      headers,
-      showBlockScreenshots: true,
-    });
-    blocksList.appendChild(li);
-  };
-
-  fetch(`${SCRIPT_API}/blocks/${project.projectSlug}`, { headers })
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-
-      throw new Error(res.status);
-    })
-    .then((blocks) => {
-      blocks.forEach((item) => blocksList.addItem(item));
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-}
-
 // MARK: Icon dialog
 function addIconDialogSetup({
+  nameOverride, replaceIconItem,
   headers, id, itemList, fileAccept = 'image/svg+xml', titleText = 'Add icon',
   extraHtml = '', uploadEndpoint = `${SCRIPT_API}/icons/${id}`,
   defaultSrc,
@@ -274,19 +117,254 @@ function addIconDialogSetup({
     const formData = new FormData();
     formData.append('file', file);
     dialog.setLoading(true, 'Adding Icon...');
-    const addRequest = await fetch(uploadEndpoint, {
+    const addRequest = await fetch(uploadEndpoint + (nameOverride ? `?nameOverride=${nameOverride}` : ''), {
       method: 'POST',
       body: formData,
       headers,
     });
     if (addRequest.ok) {
       dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
-      itemList?.addItem({ name: file.name, base64: fileAsBase64 });
+      if (replaceIconItem) {
+        const iconImage = replaceIconItem.querySelector('img');
+        iconImage.src = fileAsBase64;
+      } else {
+        itemList?.addItem({ name: file.name, base64: fileAsBase64 });
+      }
     } else {
-      await window.alertDialog(OOPS);
+      await window.alertDialog('Something went wrong! Make sure this icon doesn\'t already exist.');
     }
     dialog.setLoading(false);
   };
+  return dialog;
+}
+
+// MARK: dialog setup
+function dialogSetup({
+  name, deleteWarning, project, headers, isIcon = false, iconBase64, showBlockScreenshots,
+}) {
+  window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`, { url: window.location.href });
+
+  const dialogContent = document.createElement('div');
+  dialogContent.innerHTML = `
+    <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>
+    <p>${deleteWarning || ''}</p>
+    ${iconBase64 ? `<div class="preview"><img class="icon-display" src="${iconBase64}" alt="icon display" /></div>` : ''}
+  `;
+
+  if (showBlockScreenshots) {
+    const blockPreview = document.createElement('div');
+    blockPreview.classList.add('block-preview');
+
+    fetch(`${SCRIPT_API}/blockScreenshots/${project.projectSlug}/${name}`)
+      .then((response) => response.json())
+      .then((data) => {
+        data.forEach((screenshot) => {
+          const img = document.createElement('img');
+          img.src = `http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}`;
+          blockPreview.append(img);
+        });
+        dialogContent.append(blockPreview);
+      });
+  }
+
+  const buttonList = [];
+
+  // MARK: replace icon button
+  if (isIcon) {
+    const replaceButton = document.createElement('button');
+    replaceButton.innerText = 'Replace';
+    buttonList.push(replaceButton);
+
+    const replaceIconItem = document.querySelector(`[data-icon-name="${name}"`);
+
+    // closes this dialog, opens add Icon dialog that will replace this item instead of adding new icon.
+    replaceButton.onclick = () => {
+      replaceButton.closest('dialog').close();
+      const addDialogForReplace = addIconDialogSetup({
+        nameOverride: name, headers, id: project.projectSlug, replaceIconItem,
+      });
+      addDialogForReplace.showModal();
+    };
+  }
+
+  // MARK: delete block/icon button
+  const deleteButton = document.createElement('button');
+  deleteButton.innerText = 'Delete';
+  buttonList.push(deleteButton);
+  if (protectedBlocks[name]) {
+    deleteButton.disabled = true;
+  }
+  deleteButton.onclick = async (event) => {
+    window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} delete submit`, { url: window.location.href });
+
+    const dialogParent = event.target.closest('dialog');
+    deleteButton.disabled = true;
+    dialogParent.classList.add('loading');
+    dialogParent.dataset.loadingText = 'Deleting...';
+    const delResponse = await fetch(`${SCRIPT_API}/${isIcon ? 'icons' : 'blocks'}/${project.projectSlug}/${name}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (delResponse.ok) {
+      dialogContent.innerHTML = `
+      <h3 class="centered-info" >${name} deleted</h3>
+      `;
+      deleteButton.remove();
+      document
+        .querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`)
+        .forEach((item) => item.remove());
+    } else {
+      await window.alertDialog(OOPS);
+    }
+    deleteButton.disabled = null;
+    dialogParent.classList.remove('loading');
+  };
+
+  window.createDialog(dialogContent, buttonList);
+}
+
+// MARK: add dialog
+function addBlockDialogSetup({ project, headers, itemList }) {
+  window?.zaraz?.track('click site block add', { url: window.location.href });
+
+  const dialogContent = document.createElement('div');
+  dialogContent.innerHTML = '<h3 class="centered-info" >Loading available blocks...</h3>';
+  const dialog = window.createDialog(dialogContent);
+
+  Promise.all([
+    fetch(`${SCRIPT_API}/compatibleBlocks/${project.projectSlug}`, { headers }).then((res) => res.json()),
+    fetch(`${SCRIPT_API}/blocks/${project.projectSlug}`, { headers }).then((res) => res.json()),
+  ]).then(([compatibleBlocks, currentBlocks]) => {
+    const data = compatibleBlocks.filter(
+      (item) => !currentBlocks.some((currentBlocksItem) => currentBlocksItem.name === item.name),
+    );
+
+    if (data.length === 0) {
+      dialog.renderDialog('<h3 class="centered-info" >No new blocks available</h3>');
+      return;
+    }
+
+    const content = document.createElement('div');
+    content.innerHTML = '<h3>Add block</h3>';
+
+    const select = document.createElement('select');
+    select.className = 'button secondary action';
+    select.innerHTML = data
+      .map(
+        (blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${
+          blockOption.name
+        }</option>`,
+      )
+      .join('');
+
+    const blockInfo = document.createElement('p');
+    blockInfo.style.width = '100%';
+    const blockPreview = document.createElement('div');
+    blockPreview.classList.add('block-preview');
+
+    select.onchange = () => {
+      blockInfo.innerText = select.querySelector(`option[value="${select.value}"]`).dataset.blockCreateInfo;
+
+      fetch(`${SCRIPT_API}/blockScreenshots/${project.projectSlug}/${select.value}`)
+        .then((response) => response.json())
+        .then((screenshotData) => {
+          blockPreview.innerHTML = '';
+          screenshotData.forEach((screenshot) => {
+            const img = document.createElement('img');
+            img.src = `http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}`;
+            blockPreview.append(img);
+          });
+        });
+    };
+    select.onchange();
+
+    content.append(select, blockInfo, blockPreview);
+
+    const addButton = document.createElement('button');
+    addButton.innerText = 'Add';
+
+    addButton.onclick = async () => {
+      window?.zaraz?.track('click site block add submit', { url: window.location.href });
+
+      if (!select.value) {
+        await window.alertDialog('Please select a block');
+        return;
+      }
+      dialog.setLoading(true, 'Adding Block...');
+      const addRequest = await fetch(`${SCRIPT_API}/blocks/${project.projectSlug}/${select.value}`, {
+        method: 'POST',
+        headers,
+      });
+      if (addRequest.ok) {
+        const addRequestData = await addRequest.json().catch(() => ({}));
+        const buttons = [];
+        if (addRequestData.calendarId) {
+          const calendarLink = document.createElement('a');
+          calendarLink.classList.add('button');
+          calendarLink.href = `https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}`;
+          calendarLink.target = '_blank';
+          calendarLink.innerText = 'Google Calendar';
+          buttons.push(calendarLink);
+          addGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.settings-actions'));
+        }
+
+        dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`, buttons);
+        itemList.addItem({ name: select.value });
+      } else {
+        await window.alertDialog(OOPS);
+      }
+      dialog.setLoading(false);
+    };
+    dialog.renderDialog(content, [addButton]);
+  });
+}
+
+// MARK: block list
+function renderBlocksList(block, { project, headers }) {
+  const blocksList = block.querySelector('.blocks');
+  block.querySelector('.add-block').onclick = () => addBlockDialogSetup({ project, headers, itemList: blocksList });
+
+  blocksList.innerHTML = '';
+  blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
+    const li = document.createElement('li');
+    li.dataset.blockName = name;
+    li.dataset.createInfo = createInfo || '';
+    li.dataset.deleteWarning = deleteWarning || '';
+    li.tabIndex = 0;
+    li.classList.add('button', 'secondary', 'action');
+
+    const blockIcon = document.createElement('img');
+    blockIcon.src = `/icons/block-icons/${BLOCK_ICON_LOOKUP[name] || BLOCK_ICON_LOOKUP.default}.svg`;
+    blockIcon.alt = `${name} icon`;
+    blockIcon.classList.add('block-icon');
+    const blockName = document.createElement('span');
+    blockName.innerText = name;
+    li.append(blockIcon, blockName);
+
+    li.onclick = () => dialogSetup({
+      name,
+      deleteWarning,
+      project,
+      headers,
+      showBlockScreenshots: true,
+    });
+    blocksList.appendChild(li);
+  };
+
+  fetch(`${SCRIPT_API}/blocks/${project.projectSlug}`, { headers })
+    .then((res) => {
+      if (res.ok) {
+        return res.json();
+      }
+
+      throw new Error(res.status);
+    })
+    .then((blocks) => {
+      blocks.forEach((item) => blocksList.addItem(item));
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 }
 
 // MARK: Icon list

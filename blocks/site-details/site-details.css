@@ -275,12 +275,14 @@
 
 /* MARK: Icon list */
 
+.site-details.block .blocks.list,
 .site-details.block .icons.list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     align-items: stretch;
 }
 
+.site-details.block .blocks.list li,
 .site-details.block .icons.list li {
     flex: 1;
     display: flex;
