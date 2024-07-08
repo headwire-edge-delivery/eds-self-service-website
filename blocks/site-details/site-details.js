@@ -49,7 +49,7 @@ function addGoogleCalendarLink(calendarId, actionsList) {
   );
 }
 
-// MARK: Icon dialog
+// MARK: add Icon dialog
 function addIconDialogSetup({
   nameOverride, replaceIconItem,
   headers, id, itemList, fileAccept = 'image/svg+xml', titleText = 'Add icon',
@@ -138,8 +138,8 @@ function addIconDialogSetup({
   return dialog;
 }
 
-// MARK: dialog setup
-function dialogSetup({
+// MARK: block/icon dialog
+function blockIconDialogSetup({
   name, deleteWarning, project, headers, isIcon = false, iconBase64, showBlockScreenshots,
 }) {
   window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`, { url: window.location.href });
@@ -223,7 +223,7 @@ function dialogSetup({
   window.createDialog(dialogContent, buttonList);
 }
 
-// MARK: add dialog
+// MARK: add block dialog
 function addBlockDialogSetup({ project, headers, itemList }) {
   window?.zaraz?.track('click site block add', { url: window.location.href });
 
@@ -319,6 +319,113 @@ function addBlockDialogSetup({ project, headers, itemList }) {
   });
 }
 
+// MARK: add page dialog
+function addPageDialogSetup({
+  project, headers,
+}) {
+  const dialogContent = document.createElement('div');
+  const form = document.createElement('form');
+  const info = document.createElement('p');
+  info.innerHTML = '<strong>The newly created document will appear in the drafts folder. Make sure to move it to your desired path before attempting to publish! Draft files cannot be published.</strong>';
+  const nameLabel = document.createElement('label');
+  nameLabel.innerHTML = '<span>Page Name</span>';
+  const pageNameInput = document.createElement('input');
+  pageNameInput.name = 'pageName';
+  nameLabel.append(pageNameInput);
+
+  const dropdown = document.createElement('select');
+  dropdown.name = 'templatePath';
+  dropdown.disabled = true;
+  dropdown.innerHTML = '<option>Loading...</option>';
+
+  const previewIframe = document.createElement('iframe');
+  previewIframe.classList.add('template-preview', 'hidden');
+  previewIframe.width = '100%';
+  previewIframe.height = '400';
+
+  const templateUrl = `https://main--${project.templateSlug}--headwire-self-service-templates.hlx.live`;
+  const templateRegex = /^template\s*-\s*(?!.*authoring\s+guide\s*-)/i;
+
+  fetch(`${templateUrl}/tools/sidekick/library.json`).then((res) => res.json()).then(({ data }) => {
+    const templates = data.filter((item) => {
+      if (templateRegex.test(item.name)) {
+        return true;
+      }
+      return false;
+    });
+    console.log('templates:', templates);
+
+    dropdown.innerHTML = '';
+    dropdown.disabled = null;
+    templates.forEach((template) => {
+      template.templateName = template.name.split('-')[1].trim();
+      const option = document.createElement('option');
+      option.value = template.path;
+      option.innerText = template.templateName;
+      dropdown.append(option);
+    });
+    previewIframe.classList.remove('hidden');
+    previewIframe.src = `${templateUrl}${dropdown.value}`;
+  }).catch((err) => console.error(err));
+
+  dropdown.onchange = () => {
+    console.log('\x1b[34m ~ TEST:');
+    previewIframe.src = `${templateUrl}${dropdown.value}`;
+  };
+
+  const submit = document.createElement('button');
+  submit.classList.add('button', 'primary', 'action');
+  submit.innerText = 'Submit';
+
+  form.append(info, nameLabel, dropdown);
+  dialogContent.append(form, previewIframe);
+
+  const dialog = window.createDialog(dialogContent, [submit]);
+
+  submit.onclick = async (event) => {
+    event.preventDefault();
+    window.zaraz?.track('click site page add', { url: window.location.href });
+
+    dialog.setLoading(true, 'Adding Block...');
+    const formData = new FormData(form);
+    const addPageRequest = await fetch(`${SCRIPT_API}/addPage/${project.projectSlug}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (addPageRequest.ok) {
+      const responseData = await addPageRequest.json().catch(() => ({}));
+
+      const buttons = [];
+
+      if (responseData.draftsFolderId) {
+        const draftsLink = document.createElement('a');
+        draftsLink.classList.add('button', 'secondary', 'action');
+        draftsLink.href = `https://drive.google.com/drive/folders/${responseData.draftsFolderId}`;
+        draftsLink.target = '_blank';
+        draftsLink.innerText = 'Drafts';
+
+        buttons.push(draftsLink);
+      }
+
+      if (responseData.newPageId) {
+        const editLink = document.createElement('a');
+        editLink.classList.add('button', 'primary', 'action');
+        editLink.href = `https://docs.google.com/document/d/${responseData.newPageId}/edit`;
+        editLink.target = '_blank';
+        editLink.innerText = `Edit ${pageNameInput.value}`;
+
+        buttons.push(editLink);
+      }
+
+      dialog.renderDialog(`<h3 class="centered-info" >${pageNameInput.value} page added to drafts</h3>`, buttons);
+    } else {
+      await window.alertDialog(OOPS);
+    }
+    dialog.setLoading(false);
+  };
+}
+
 // MARK: block list
 function renderBlocksList(block, { project, headers }) {
   const blocksList = block.querySelector('.blocks');
@@ -341,7 +448,7 @@ function renderBlocksList(block, { project, headers }) {
     blockName.innerText = name;
     li.append(blockIcon, blockName);
 
-    li.onclick = () => dialogSetup({
+    li.onclick = () => blockIconDialogSetup({
       name,
       deleteWarning,
       project,
@@ -410,7 +517,7 @@ function renderIconsList(block, { project, headers, id }) {
     buttonsContainer.append(settingsButton, copyButton);
     li.append(buttonsContainer);
 
-    settingsButton.onclick = () => dialogSetup({
+    settingsButton.onclick = () => blockIconDialogSetup({
       name,
       project,
       headers,
@@ -1127,6 +1234,20 @@ export default async function decorate(block) {
         .catch((error) => {
           console.log(error);
         });
+
+      // MARK: add page button
+
+      const addPageContainer = document.createElement('div');
+      addPageContainer.classList.add('container', 'add-page-container');
+      block.querySelector('.pages-panel .docs')?.after(addPageContainer);
+      const addPageButton = document.createElement('button');
+      addPageButton.classList.add('button', 'action', 'secondary', 'add-page');
+      addPageButton.innerText = 'Add Page';
+      addPageContainer.append(addPageButton);
+
+      addPageButton.onclick = () => {
+        addPageDialogSetup({ project, headers });
+      };
 
       // Load site blocks
       renderBlocksList(block, { project, headers, id });
