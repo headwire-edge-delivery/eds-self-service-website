@@ -1092,7 +1092,8 @@ export default async function decorate(block) {
                 <td>${item.path}</td>          
                 <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
                 <td class="table-actions"><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
-              `;
+                `;
+              console.log('item.path:', item.path);
 
               // add edit button
               const editButton = document.createElement('button');
@@ -1103,10 +1104,9 @@ export default async function decorate(block) {
 
               editButton.onclick = () => {
                 editButton.classList.add('loading');
-                fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main/`).then((res) => res.json()).then((statusData) => {
-                  const [locationService, servicePageId] = statusData?.live?.sourceLocation?.split(':') || statusData?.preview?.sourceLocation?.split(':') || [null, null];
-                  if (locationService === 'gdrive' && servicePageId) {
-                    window.open(`https://docs.google.com/document/d/${servicePageId}/edit`, '_blank');
+                fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).then((statusData) => {
+                  if (statusData?.edit?.url) {
+                    window.open(statusData.edit.url, '_blank');
                   }
                 }).catch(/* do nothing */)
                   .finally(() => {
