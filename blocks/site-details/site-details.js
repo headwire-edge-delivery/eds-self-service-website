@@ -49,6 +49,95 @@ function addGoogleCalendarLink(calendarId, actionsList) {
   );
 }
 
+// MARK: Icon dialog
+function addIconDialogSetup({
+  nameOverride, replaceIconItem,
+  headers, id, itemList, fileAccept = 'image/svg+xml', titleText = 'Add icon',
+  extraHtml = '', uploadEndpoint = `${SCRIPT_API}/icons/${id}`,
+  defaultSrc,
+}) {
+  window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add`, { url: window.location.href });
+
+  const dialogContent = document.createElement('div');
+
+  const title = document.createElement('h3');
+  title.innerText = titleText;
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = fileAccept;
+  const preview = document.createElement('div');
+  preview.classList.add('preview');
+  if (defaultSrc) {
+    preview.innerHTML = `<img alt="favicon" src="${defaultSrc}" loading="lazy" />`;
+  }
+
+  dialogContent.append(title, input, preview);
+  if (extraHtml) {
+    dialogContent.insertAdjacentHTML('beforeend', extraHtml);
+  }
+
+  let file = null;
+  let fileAsBase64 = null;
+  input.onchange = (event) => {
+    [file] = event.target.files;
+    if (file) {
+      if (file.type !== fileAccept) {
+        preview.innerHTML = 'Please select a valid file!';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.createElement('img');
+        fileAsBase64 = e.target.result;
+        img.src = fileAsBase64;
+        img.alt = file.name;
+        preview.innerHTML = '';
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.innerHTML = 'Please select a file';
+    }
+  };
+
+  const addButton = document.createElement('button');
+  addButton.innerText = 'Add';
+  const dialog = window.createDialog(dialogContent, [addButton]);
+  addButton.onclick = async () => {
+    window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add submit`, { url: window.location.href });
+
+    if (!file) {
+      await window.alertDialog('Please select a file');
+      return;
+    }
+    if (file.type !== fileAccept) {
+      await window.alertDialog('Please select a valid file!');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', file);
+    dialog.setLoading(true, 'Adding Icon...');
+    const addRequest = await fetch(uploadEndpoint + (nameOverride ? `?nameOverride=${nameOverride}` : ''), {
+      method: 'POST',
+      body: formData,
+      headers,
+    });
+    if (addRequest.ok) {
+      dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
+      if (replaceIconItem) {
+        const iconImage = replaceIconItem.querySelector('img');
+        iconImage.src = fileAsBase64;
+      } else {
+        itemList?.addItem({ name: file.name, base64: fileAsBase64 });
+      }
+    } else {
+      await window.alertDialog('Something went wrong! Make sure this icon doesn\'t already exist.');
+    }
+    dialog.setLoading(false);
+  };
+  return dialog;
+}
+
 // MARK: dialog setup
 function dialogSetup({
   name, deleteWarning, project, headers, isIcon = false, iconBase64, showBlockScreenshots,
@@ -78,9 +167,30 @@ function dialogSetup({
       });
   }
 
-  // MARK: delete block button
+  const buttonList = [];
+
+  // MARK: replace icon button
+  if (isIcon) {
+    const replaceButton = document.createElement('button');
+    replaceButton.innerText = 'Replace';
+    buttonList.push(replaceButton);
+
+    const replaceIconItem = document.querySelector(`[data-icon-name="${name}"`);
+
+    // closes this dialog, opens add Icon dialog that will replace this item instead of adding new icon.
+    replaceButton.onclick = () => {
+      replaceButton.closest('dialog').close();
+      const addDialogForReplace = addIconDialogSetup({
+        nameOverride: name, headers, id: project.projectSlug, replaceIconItem,
+      });
+      addDialogForReplace.showModal();
+    };
+  }
+
+  // MARK: delete block/icon button
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
+  buttonList.push(deleteButton);
   if (protectedBlocks[name]) {
     deleteButton.disabled = true;
   }
@@ -110,7 +220,7 @@ function dialogSetup({
     dialogParent.classList.remove('loading');
   };
 
-  window.createDialog(dialogContent, [deleteButton]);
+  window.createDialog(dialogContent, buttonList);
 }
 
 // MARK: add dialog
@@ -255,88 +365,6 @@ function renderBlocksList(block, { project, headers }) {
     .catch((error) => {
       console.log(error);
     });
-}
-
-// MARK: Icon dialog
-function addIconDialogSetup({
-  headers, id, itemList, fileAccept = 'image/svg+xml', titleText = 'Add icon',
-  extraHtml = '', uploadEndpoint = `${SCRIPT_API}/icons/${id}`,
-  defaultSrc,
-}) {
-  window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add`, { url: window.location.href });
-
-  const dialogContent = document.createElement('div');
-
-  const title = document.createElement('h3');
-  title.innerText = titleText;
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = fileAccept;
-  const preview = document.createElement('div');
-  preview.classList.add('preview');
-  if (defaultSrc) {
-    preview.innerHTML = `<img alt="favicon" src="${defaultSrc}" loading="lazy" />`;
-  }
-
-  dialogContent.append(title, input, preview);
-  if (extraHtml) {
-    dialogContent.insertAdjacentHTML('beforeend', extraHtml);
-  }
-
-  let file = null;
-  let fileAsBase64 = null;
-  input.onchange = (event) => {
-    [file] = event.target.files;
-    if (file) {
-      if (file.type !== fileAccept) {
-        preview.innerHTML = 'Please select a valid file!';
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = document.createElement('img');
-        fileAsBase64 = e.target.result;
-        img.src = fileAsBase64;
-        img.alt = file.name;
-        preview.innerHTML = '';
-        preview.appendChild(img);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      preview.innerHTML = 'Please select a file';
-    }
-  };
-
-  const addButton = document.createElement('button');
-  addButton.innerText = 'Add';
-  const dialog = window.createDialog(dialogContent, [addButton]);
-  addButton.onclick = async () => {
-    window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add submit`, { url: window.location.href });
-
-    if (!file) {
-      await window.alertDialog('Please select a file');
-      return;
-    }
-    if (file.type !== fileAccept) {
-      await window.alertDialog('Please select a valid file!');
-      return;
-    }
-    const formData = new FormData();
-    formData.append('file', file);
-    dialog.setLoading(true, 'Adding Icon...');
-    const addRequest = await fetch(uploadEndpoint, {
-      method: 'POST',
-      body: formData,
-      headers,
-    });
-    if (addRequest.ok) {
-      dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
-      itemList?.addItem({ name: file.name, base64: fileAsBase64 });
-    } else {
-      await window.alertDialog(OOPS);
-    }
-    dialog.setLoading(false);
-  };
 }
 
 // MARK: Icon list
