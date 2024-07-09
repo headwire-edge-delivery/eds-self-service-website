@@ -325,12 +325,14 @@ function addPageDialogSetup({
 }) {
   const dialogContent = document.createElement('div');
   const form = document.createElement('form');
+  form.id = 'add-page-form';
   const info = document.createElement('p');
   info.innerHTML = '<strong>The newly created document will appear in the drafts folder. Make sure to move it to your desired path before attempting to publish! Draft files cannot be published.</strong>';
   const nameLabel = document.createElement('label');
   nameLabel.innerHTML = '<span>Page Name</span>';
   const pageNameInput = document.createElement('input');
   pageNameInput.name = 'pageName';
+  pageNameInput.required = true;
   nameLabel.append(pageNameInput);
 
   const dropdown = document.createElement('select');
@@ -375,40 +377,47 @@ function addPageDialogSetup({
 
   const submit = document.createElement('button');
   submit.classList.add('button', 'primary', 'action');
-  submit.innerText = 'Submit';
+  submit.type = 'submit';
+  submit.setAttribute('form', 'add-page-form');
+  submit.innerText = 'Create Page';
 
   form.append(info, nameLabel, dropdown);
   dialogContent.append(form, previewIframe);
 
   const dialog = window.createDialog(dialogContent, [submit]);
 
-  submit.onclick = async (event) => {
+  // submit.onclick = () => form.dispatchEvent(new Event('submit', { cancelable: true }));
+  form.onsubmit = async (event) => {
     event.preventDefault();
+    // if (!form.checkValidity()) {
+    //   form.reportValidity();
+    //   return;
+    // }
     window.zaraz?.track('click site page add', { url: window.location.href });
 
-    dialog.setLoading(true, 'Adding Block...');
-    const formData = new FormData(form);
+    dialog.setLoading(true, 'Copying and setting up page...');
     const addPageRequest = await fetch(`${SCRIPT_API}/addPage/${project.projectSlug}`, {
       method: 'POST',
-      headers,
-      body: formData,
+      headers: { ...headers, 'content-type': 'application/json' },
+      body: JSON.stringify({ pageName: pageNameInput.value, templatePath: dropdown.value }),
+
     });
     if (addPageRequest.ok) {
       const responseData = await addPageRequest.json().catch(() => ({}));
 
       const buttons = [];
 
-      if (responseData.draftsFolderId) {
+      if (responseData?.draftsFolderId) {
         const draftsLink = document.createElement('a');
         draftsLink.classList.add('button', 'secondary', 'action');
         draftsLink.href = `https://drive.google.com/drive/folders/${responseData.draftsFolderId}`;
         draftsLink.target = '_blank';
-        draftsLink.innerText = 'Drafts';
+        draftsLink.innerText = 'Drafts Folder';
 
         buttons.push(draftsLink);
       }
 
-      if (responseData.newPageId) {
+      if (responseData?.newPageId) {
         const editLink = document.createElement('a');
         editLink.classList.add('button', 'primary', 'action');
         editLink.href = `https://docs.google.com/document/d/${responseData.newPageId}/edit`;
