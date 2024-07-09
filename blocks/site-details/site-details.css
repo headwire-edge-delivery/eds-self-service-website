@@ -342,6 +342,12 @@
     font-size: 11px;
 }
 
+/* MARK: add page */
+
+.site-details.block .add-page-container {
+    display: flex;
+    justify-content: flex-end;
+}
 
 /* MARK: description dialog */
 
