@@ -3,6 +3,73 @@ import {
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
+function hexToRgb(hexOrInput) {
+  const hexValue = hexOrInput.value || hexOrInput.startsWith('#') || null;
+  if (!hexValue) return;
+
+  // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+  const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+  hexValue = hexValue.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexValue);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16),
+  } : null;
+}
+
+function luminance(r, g, b) {
+  const a = [r, g, b].map((v) => {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+}
+
+function contrastRatio(lum1, lum2) {
+  const brighter = Math.max(lum1, lum2);
+  const darker = Math.min(lum1, lum2);
+  return (brighter + 0.05) / (darker + 0.05);
+}
+
+function calculateContrast(hex1, hex2) {
+  const rgb1 = hexToRgb(hex1);
+  const rgb2 = hexToRgb(hex2);
+
+  if (!rgb1 || !rgb2) {
+    return { error: 'Invalid color input' };
+  }
+
+  const lum1 = luminance(rgb1.r, rgb1.g, rgb1.b);
+  const lum2 = luminance(rgb2.r, rgb2.g, rgb2.b);
+  const ratio = contrastRatio(lum1, lum2);
+
+  return {
+    ratio: ratio.toFixed(2),
+    AA: ratio >= 4.5,
+    AAA: ratio >= 7,
+  };
+}
+
+function validateContrast({ element, shouldContrastWith = [] }) {
+  console.log('\x1b[34m ~ TEST:',);
+  if (!shouldContrastWith.length) return;
+
+  const elementValue = element.querySelector('input').value;
+  if (!elementValue) return;
+
+  for (let index = 0; index < shouldContrastWith.length; index++) {
+    const labelElement = shouldContrastWith[index];
+    const inputElement = labelElement.querySelector('input');
+
+    const { ratio, AA, AAA } = calculateContrast(elementValue, inputElement.value);
+    if (!AA || !AAA) {
+      console.log('\x1b[31m ~ FAILED:', element, labelElement, { ratio, AA, AAA });
+    }
+  }
+}
+
 const getCSSVars = (css) => css
   .split('\n')
   .map((s) => {
@@ -192,7 +259,7 @@ export default async function decorate(block) {
                   </label>
                   
                   <h3>Elements</h3>
-                  <label>
+                  <label id="background-color-main">
                       <span>Background color</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -200,7 +267,7 @@ export default async function decorate(block) {
                       </div>
                   </label>
                   
-                  <label>
+                  <label id="background-color-header">
                       <span>Header background color</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -208,7 +275,7 @@ export default async function decorate(block) {
                       </div>
                   </label>
                   
-                  <label>
+                  <label id="background-color-footer">
                       <span>Footer background color</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -216,7 +283,7 @@ export default async function decorate(block) {
                       </div>
                   </label>
                  
-                  <label>
+                  <label id="text-color-header">
                       <span>Heading text color</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -224,7 +291,7 @@ export default async function decorate(block) {
                       </div>
                   </label>
                   
-                  <label>
+                  <label id="text-color-main">
                       <span>Body text color</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -232,14 +299,14 @@ export default async function decorate(block) {
                       </div>
                   </label>
                   
-                  <label>
+                  <label id="text-color-links">
                       <span>Links text color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="link-color">
                       </div>
                   </label>
-                  <label>
+                  <label id="text-color-links-hover">
                       <span>Links text color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -251,14 +318,14 @@ export default async function decorate(block) {
                   
                   <h3>Default</h3>
                   
-                  <label>
+                  <label id="button-color-text">
                       <span>Text color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-text-color">
                       </div>
                   </label>
-                  <label>
+                  <label id="button-color-background">
                       <span>Background color</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -272,14 +339,14 @@ export default async function decorate(block) {
                         <input type="color" disabled data-var="button-border-color">
                       </div>
                   </label>
-                  <label>
+                  <label id="button-color-text-hover">
                       <span>Text color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-text-color-hover">
                       </div>
                   </label>
-                  <label>
+                  <label id="button-color-background-hover">
                       <span>Background color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -296,14 +363,14 @@ export default async function decorate(block) {
                   
                   <h3>Primary</h3>
                   
-                  <label>
+                  <label id="button-primary-color-text">
                       <span>Text color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-text-color">
                       </div>
                   </label>
-                  <label>
+                  <label id="button-primary-color-background">
                       <span>Background color</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -317,14 +384,14 @@ export default async function decorate(block) {
                         <input type="color" disabled data-var="button-primary-border-color">
                       </div>
                   </label>
-                  <label>
+                  <label id="button-primary-color-text-hover">
                       <span>Text color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-text-color-hover">
                       </div>
                   </label>
-                  <label>
+                  <label id="button-primary-color-background-hover">
                       <span>Background color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -341,14 +408,14 @@ export default async function decorate(block) {
                   
                   <h3>Secondary</h3>
                   
-                  <label>
+                  <label id="button-secondary-color-text">
                       <span>Text color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-text-color">
                       </div>
                   </label>
-                  <label>
+                  <label id="button-secondary-color-background">
                       <span>Background color</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -362,14 +429,14 @@ export default async function decorate(block) {
                         <input type="color" disabled data-var="button-secondary-border-color">
                       </div>
                   </label>
-                  <label>
+                  <label id="button-secondary-color-text-hover">
                       <span>Text color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-text-color-hover">
                       </div>
                   </label>
-                  <label>
+                  <label id="button-secondary-color-background-hover">
                       <span>Background color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
@@ -792,6 +859,116 @@ export default async function decorate(block) {
         //
         //   editor.refresh();
         // };
+
+        // MARK: contrast checker
+        // elements
+        const backgroundColorMain = block.querySelector('#background-color-main');
+        const backgroundColorHeader = block.querySelector('#background-color-header');
+        const backgroundColorFooter = block.querySelector('#background-color-footer');
+        const textColorMain = block.querySelector('#text-color-main');
+        const textColorHeader = block.querySelector('#text-color-header');
+        const textColorLinks = block.querySelector('#text-color-links');
+        const textColorLinksHover = block.querySelector('#text-color-links-hover');
+        // buttons
+        // default
+        const buttonColorText = block.querySelector('#button-color-text');
+        const buttonColorBackground = block.querySelector('#button-color-background');
+        const buttonColorTextHover = block.querySelector('#button-color-text-hover');
+        const buttonColorBackgroundHover = block.querySelector('#button-color-background-hover');
+        // primary
+        const buttonPrimaryColorText = block.querySelector('#button-primary-color-text');
+        const buttonPrimaryColorBackground = block.querySelector('#button-primary-color-background');
+        const buttonPrimaryColorTextHover = block.querySelector('#button-primary-color-text-hover');
+        const buttonPrimaryColorBackgroundHover = block.querySelector('#button-primary-color-background-hover');
+        // secondary
+        const buttonSecondaryColorText = block.querySelector('#button-secondary-color-text');
+        const buttonSecondaryColorBackground = block.querySelector('#button-secondary-color-background');
+        const buttonSecondaryColorTextHover = block.querySelector('#button-secondary-color-text-hover');
+        const buttonSecondaryColorBackgroundHover = block.querySelector('#button-secondary-color-background-hover');
+
+        const contrastMap = {
+          // text
+          textColorMain: {
+            element: textColorMain,
+            shouldContrastWith: [
+              backgroundColorMain,
+            ],
+          },
+          textColorHeader: {
+            element: textColorHeader,
+            shouldContrastWith: [
+              backgroundColorHeader,
+              backgroundColorFooter,
+            ],
+          },
+          // links
+          textColorLinks: {
+            element: textColorLinks,
+            shouldContrastWith: [
+              backgroundColorMain,
+              backgroundColorHeader,
+              backgroundColorFooter,
+            ],
+          },
+          textColorLinksHover: {
+            element: textColorLinksHover,
+            shouldContrastWith: [
+              backgroundColorMain,
+              backgroundColorHeader,
+              backgroundColorFooter,
+            ],
+          },
+          // buttons
+          buttonColorText: {
+            element: buttonColorText,
+            shouldContrastWith: [
+              buttonColorBackground,
+            ],
+          },
+          buttonColorTextHover: {
+            element: buttonColorTextHover,
+            shouldContrastWith: [
+              buttonColorBackgroundHover,
+            ],
+          },
+          // button primary
+          buttonPrimaryColorText: {
+            element: buttonPrimaryColorText,
+            shouldContrastWith: [
+              buttonPrimaryColorBackground,
+            ],
+          },
+          buttonPrimaryColorTextHover: {
+            element: buttonPrimaryColorTextHover,
+            shouldContrastWith: [
+              buttonPrimaryColorBackgroundHover,
+            ],
+          },
+          // button secondary
+          buttonSecondaryColorText: {
+            element: buttonSecondaryColorText,
+            shouldContrastWith: [
+              buttonSecondaryColorBackground,
+            ],
+          },
+          buttonSecondaryColorTextHover: {
+            element: buttonSecondaryColorTextHover,
+            shouldContrastWith: [
+              buttonSecondaryColorBackgroundHover,
+            ],
+          },
+        };
+
+        const contrastMapKeys = Object.keys(contrastMap);
+
+        for (let i = 0; i < contrastMapKeys.length; i++) {
+          const colorProperty = contrastMap[contrastMapKeys[i]];
+          const colorInput = colorProperty.element.querySelector('input');
+
+          colorInput.addEventListener('change', () => {
+            validateContrast(colorProperty);
+          });
+        }
       })
       .catch((error) => {
         console.log(error);
