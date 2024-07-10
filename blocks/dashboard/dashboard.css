@@ -185,7 +185,14 @@
     }
 }
 
+/* MARK: Dark Alley */
+
 .dashboard.block .dark-alley-section {
+    display: none;
     margin-top: 64px;
     border: 2px solid crimson;
+}
+
+body.is-headwire .dashboard.block .dark-alley-section {
+    display: block;
 }

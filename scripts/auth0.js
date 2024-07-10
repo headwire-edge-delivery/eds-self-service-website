@@ -61,6 +61,11 @@ window.auth0.createAuth0Client({
 
   if (isAuthenticated) {
     document.dispatchEvent(new CustomEvent('auth0:authenticated'));
+    window.auth0Client.getUser().then((user) => {
+      if (user?.email?.endsWith('@headwire.com')) {
+        document.body.classList.add('is-headwire');
+      }
+    });
 
     const sign = (type) => {
       document.querySelector(`a[href="#sign${type}"]`).click();

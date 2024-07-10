@@ -342,3 +342,12 @@
 .wizard.block > .step:last-child a[href^="#"]:not(.is-ready) {
     display: none;
 }
+
+/* MARK: Dark Alley */
+.wizard.block .dark-alley-label {
+    display: none;
+}
+
+body.is-headwire .wizard.block .dark-alley-label {
+    display: flex;
+}
