@@ -1209,7 +1209,6 @@ export default async function decorate(block) {
                 <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
                 <td class="table-actions"><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
                 `;
-              console.log('item.path:', item.path);
 
               // add edit button
               const editButton = document.createElement('button');
