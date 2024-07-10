@@ -3,8 +3,7 @@ import {
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
-function hexToRgb(hexOrInput) {
-  const hexValue = hexOrInput.value || hexOrInput.startsWith('#') || null;
+function hexToRgb(hexValue) {
   if (!hexValue) return;
 
   // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
@@ -52,23 +51,23 @@ function calculateContrast(hex1, hex2) {
   };
 }
 
-function validateContrast({ element, shouldContrastWith = [] }) {
-  console.log('\x1b[34m ~ TEST:',);
-  if (!shouldContrastWith.length) return;
+// function validateContrast({ element, shouldContrastWith = [] }) {
+//   console.log('\x1b[34m ~ TEST:');
+//   if (!shouldContrastWith.length) return;
 
-  const elementValue = element.querySelector('input').value;
-  if (!elementValue) return;
+//   const elementValue = element.querySelector('input').value;
+//   if (!elementValue) return;
 
-  for (let index = 0; index < shouldContrastWith.length; index++) {
-    const labelElement = shouldContrastWith[index];
-    const inputElement = labelElement.querySelector('input');
+//   for (let index = 0; index < shouldContrastWith.length; index++) {
+//     const labelElement = shouldContrastWith[index];
+//     const inputElement = labelElement.querySelector('input');
 
-    const { ratio, AA, AAA } = calculateContrast(elementValue, inputElement.value);
-    if (!AA || !AAA) {
-      console.log('\x1b[31m ~ FAILED:', element, labelElement, { ratio, AA, AAA });
-    }
-  }
-}
+//     const { ratio, AA, AAA } = calculateContrast(elementValue, inputElement.value);
+//     if (!AA || !AAA) {
+//       console.log('\x1b[31m ~ FAILED:', element, labelElement, { ratio, AA, AAA });
+//     }
+//   }
+// }
 
 const getCSSVars = (css) => css
   .split('\n')
@@ -961,14 +960,23 @@ export default async function decorate(block) {
 
         const contrastMapKeys = Object.keys(contrastMap);
 
-        for (let i = 0; i < contrastMapKeys.length; i++) {
-          const colorProperty = contrastMap[contrastMapKeys[i]];
-          const colorInput = colorProperty.element.querySelector('input');
+        editor.on('change', () => {
+          for (let i = 0; i < contrastMapKeys.length; i++) {
+            const colorProperty = contrastMap[contrastMapKeys[i]];
 
-          colorInput.addEventListener('change', () => {
-            validateContrast(colorProperty);
-          });
-        }
+            for (let j = 0; j < colorProperty.shouldContrastWith.length; j++) {
+              const shouldContrastInput = colorProperty.shouldContrastWith[j].querySelector('input');
+              console.log('shouldContrastInput:', shouldContrastInput);
+              const { ratio, AA, AAA } = calculateContrast(
+                colorProperty.element.value,
+                shouldContrastInput.value,
+              );
+              if (!AA || !AAA) {
+                console.log('\x1b[31m ~ FAILED:', colorProperty, shouldContrastInput, { ratio, AA, AAA });
+              }
+            }
+          }
+        });
       })
       .catch((error) => {
         console.log(error);
