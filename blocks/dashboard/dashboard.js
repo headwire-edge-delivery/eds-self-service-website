@@ -1,4 +1,5 @@
 import { SCRIPT_API, onAuthenticated, OOPS } from '../../scripts/scripts.js';
+import '../../tour/dashboard.js';
 
 /**
  * @param {Element} block
@@ -13,12 +14,22 @@ export default async function decorate(block) {
     }
 
     const selected = window.location.pathname.split('/').pop();
+    const enableTour = localStorage.getItem('enableTour') === 'true';
+    const enableTourCheck = enableTour ? 'checked' : '';
+
+    const toggleEnableTour = () => {
+      const state = localStorage.getItem('enableTour') === 'true';
+      localStorage.setItem('enableTour', !state);
+      if (!state) {
+        window.location.reload();
+      }
+    };
 
     block.innerHTML = `
         <div class="nav">
           <h1>Dashboard</h1>
           <a href="/" class="button primary new">Create new site</a>
-          <a href="https://myaccount.google.com/" class="button edit primary">Edit account</a>
+          <a href="https://myaccount.google.com/" id="edit-account-button" class="button edit primary">Edit account</a>
         </div>
         <div class="content">
             <aside>
@@ -61,6 +72,11 @@ export default async function decorate(block) {
                       <span>Free</span>
                   </div>
                 </div>
+                <div>
+                      <label for="tour"><strong>Tour</strong><br />
+                      <p>Enable the Tour. The Tour helps you to understand how Everything works.</p></label>
+                      <input type="checkbox" id="tour" ${enableTourCheck} />
+                  </div>
               </div>
               <div class="sites ${selected === 'sites' ? 'is-selected' : ''}">
                 <p>
@@ -83,6 +99,8 @@ export default async function decorate(block) {
     block.querySelector('.edit').onclick = () => {
       window?.zaraz?.track('click dashboard edit account', { url: window.location.href });
     };
+
+    block.querySelector('#tour').addEventListener('click', toggleEnableTour);
 
     aside.addEventListener('click', (event) => {
       if (event.target.closest('a')) {
