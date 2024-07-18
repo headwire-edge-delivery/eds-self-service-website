@@ -65,6 +65,9 @@ window.auth0.createAuth0Client({
       if (user?.email?.endsWith('@headwire.com')) {
         document.body.classList.add('is-headwire');
       }
+      if (user?.email?.endsWith('@adobe.com')) {
+        document.body.classList.add('is-adobe');
+      }
     });
 
     const sign = (type) => {

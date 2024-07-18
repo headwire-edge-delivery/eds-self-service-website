@@ -348,7 +348,7 @@
     display: none;
 }
 
-body.is-headwire .wizard.block .dark-alley-label {
+body:is(.is-headwire, .is-adobe) .wizard.block .dark-alley-label {
     display: flex;
     align-items: center;
     margin-bottom: 16px;
