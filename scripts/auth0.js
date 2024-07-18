@@ -91,7 +91,7 @@ window.auth0.createAuth0Client({
           sign('out');
         };
 
-        window.createDialog('<h3 class="centered-info">Your session is about to expire</h3><p>Please sign in to keep your session active.</p>', [signIn, signOut]);
+        window.createDialog('<h3 class="centered-info">Your session is about to expire</h3><p class="centered-info">Please sign in to keep your session active.</p>', [signIn, signOut]);
       }
     }, 1000);
   } else if (!unauthenticatedAllowedPaths[window.location.pathname]) {
