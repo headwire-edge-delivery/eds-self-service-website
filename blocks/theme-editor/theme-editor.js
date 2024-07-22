@@ -763,7 +763,7 @@ export default async function decorate(block) {
             failed = !res.ok;
           }
 
-          await window.alertDialog(failed ? OOPS : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to the all site pages.');
+          await window.alertDialog(failed ? OOPS : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.');
 
           editor.setOption('readOnly', false);
 
