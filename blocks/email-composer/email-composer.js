@@ -161,7 +161,7 @@ export default async function decorate(block) {
             css: btoa(editor.getValue()),
           }),
         });
-        await window.alertDialog(req.ok ? 'Variables successfully updated!' : OOPS);
+        await window.alertDialog(req.ok ? 'Styles successfully updated! Please note style updates can take up to 1 minute to be reflected for all users.' : OOPS);
         saveStyles.classList.remove('is-disabled');
       };
 
