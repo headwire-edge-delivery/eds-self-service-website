@@ -635,7 +635,9 @@ export default async function decorate(block) {
                 <button class="button secondary delete action">Delete</button>
                 <button class="button secondary update-description action">Update Description</button>
             </div>
-            <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}"></div>
+            <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}">
+                <button class="button primary add-page action">Add Page</button>
+            </div>
             <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}"></div>
             <div class="monitoring-actions button-container ${selected === 'monitoring' ? 'is-selected' : ''}">
                 <select class="button action secondary period-selector">
@@ -1246,16 +1248,7 @@ export default async function decorate(block) {
         });
 
       // MARK: add page button
-
-      const addPageContainer = document.createElement('div');
-      addPageContainer.classList.add('container', 'add-page-container');
-      block.querySelector('.pages-panel .docs')?.after(addPageContainer);
-      const addPageButton = document.createElement('button');
-      addPageButton.classList.add('button', 'action', 'secondary', 'add-page');
-      addPageButton.innerText = 'Add Page';
-      addPageContainer.append(addPageButton);
-
-      addPageButton.onclick = () => {
+      block.querySelector('.add-page').onclick = () => {
         addPageDialogSetup({ project, headers });
       };
 
