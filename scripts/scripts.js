@@ -139,9 +139,10 @@ async function loadPage() {
 
 loadPage();
 
-window.createDialog = (contentDiv, buttons, { open, onCloseFn } = { open: true }) => {
+window.createDialog = (contentDiv, buttons, { open = true, onCloseFn, fullscreen } = {}) => {
   const dialog = document.createElement('dialog');
   dialog.classList.add('display-dialog');
+  if (fullscreen) dialog.classList.add('fullscreen');
   const dialogContent = document.createElement('div');
   dialogContent.classList.add('dialog-content');
   dialog.append(dialogContent);

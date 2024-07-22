@@ -324,6 +324,7 @@ function addPageDialogSetup({
   project, headers,
 }) {
   const dialogContent = document.createElement('div');
+  dialogContent.classList.add('flex-row');
   const form = document.createElement('form');
   form.id = 'add-page-form';
   const info = document.createElement('p');
@@ -384,7 +385,7 @@ function addPageDialogSetup({
   form.append(info, nameLabel, dropdown);
   dialogContent.append(form, previewIframe);
 
-  const dialog = window.createDialog(dialogContent, [submit]);
+  const dialog = window.createDialog(dialogContent, [submit], { fullscreen: true });
 
   // submit.onclick = () => form.dispatchEvent(new Event('submit', { cancelable: true }));
   form.onsubmit = async (event) => {

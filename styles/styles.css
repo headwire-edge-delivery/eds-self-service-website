@@ -109,6 +109,11 @@ ol {
   margin-block: 16px;
 }
 
+label > span {
+  padding-block: 16px;
+  display: block;
+}
+
 h1 {
   padding-block: 32px;
   font-size: 42px;
@@ -326,6 +331,13 @@ dialog:has(.dialog-content) {
   overflow: visible;
 }
 
+dialog.fullscreen {
+  width: 90vw;
+  height: 90vh;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
 dialog .dialog-content {
   padding: 16px;
   height: 100%;
@@ -337,8 +349,15 @@ dialog .dialog-content {
   max-height: 80vh;
 }
 
-dialog .dialog-content > div:not(.dialog-button-container) {
+dialog.fullscreen .dialog-content {
+  max-height: 90vh;
+}
+
+dialog .dialog-content > div {
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 dialog select {
@@ -393,20 +412,37 @@ dialog.loading::before {
   background-color: var(--loading-backdrop);
 }
 
-dialog .dialog-button-container {
+dialog .dialog-content .dialog-button-container {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
+  flex-direction: row;
   justify-content: flex-end;
   padding-top: 16px;
+  overflow: visible;
+  flex: 0;
 }
 
-dialog .dialog-button-container > * {
+dialog .dialog-content .dialog-button-container > * {
   align-items: flex-start;
 }
 
-dialog .template-preview {
+dialog .dialog-content .template-preview {
   border: none;
+  flex: 1;
+  height: auto;
+  min-height: 400px;
+}
+
+dialog .dialog-content > .flex-row {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+dialog .dialog-content > .flex-row > * {
+  flex: 1;
 }
 
 dialog .dialog-content > div:has(> .centered-info),
