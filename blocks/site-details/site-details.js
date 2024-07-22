@@ -2,6 +2,7 @@
 
 import {
   SCRIPT_API, onAuthenticated, OOPS, EMAIL_WORKER_API,
+  daProjectRepo,
 } from '../../scripts/scripts.js';
 
 const protectedBlocks = {
@@ -321,7 +322,7 @@ function addBlockDialogSetup({ project, headers, itemList }) {
 
 // MARK: add page dialog
 function addPageDialogSetup({
-  project, headers,
+  project, headers, darkAlleyVariation,
 }) {
   const dialogContent = document.createElement('div');
   dialogContent.classList.add('flex-row');
@@ -397,7 +398,7 @@ function addPageDialogSetup({
     window.zaraz?.track('click site page add', { url: window.location.href });
 
     dialog.setLoading(true, 'Copying and setting up page...');
-    const addPageRequest = await fetch(`${SCRIPT_API}/addPage/${project.projectSlug}`, {
+    const addPageRequest = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'daAddPage' : 'addPage'}/${project.projectSlug}`, {
       method: 'POST',
       headers: { ...headers, 'content-type': 'application/json' },
       body: JSON.stringify({ pageName: pageNameInput.value, templatePath: dropdown.value }),
@@ -416,6 +417,24 @@ function addPageDialogSetup({
         draftsLink.innerText = 'Drafts Folder';
 
         buttons.push(draftsLink);
+      }
+
+      if (responseData.daDraftsPath) {
+        const draftsLink = document.createElement('a');
+        draftsLink.classList.add('button', 'secondary', 'action');
+        draftsLink.href = `https://da.live/#${responseData.daDraftsPath}`;
+        draftsLink.target = '_blank';
+        draftsLink.innerText = 'Drafts Folder';
+        buttons.push(draftsLink);
+
+        if (responseData.daNewPageSlug) {
+          const editLink = document.createElement('a');
+          editLink.classList.add('button', 'primary', 'action');
+          editLink.href = `https://da.live/edit#${responseData.daDraftsPath}/${responseData.daNewPageSlug}`;
+          editLink.target = '_blank';
+          editLink.innerText = `Edit ${pageNameInput.value}`;
+          buttons.push(editLink);
+        }
       }
 
       if (responseData?.newPageId) {
@@ -1221,17 +1240,24 @@ export default async function decorate(block) {
               editButton.innerText = 'Edit';
               tableRow.lastElementChild.prepend(editButton);
 
-              editButton.onclick = () => {
-                editButton.classList.add('loading');
-                fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).then((statusData) => {
-                  if (statusData?.edit?.url) {
-                    window.open(statusData.edit.url, '_blank');
-                  }
-                }).catch(/* do nothing */)
-                  .finally(() => {
-                    editButton.classList.remove('loading');
-                  });
-              };
+              // TODO: change to link if we drop drive support
+              if (!darkAlleyVariation) {
+                editButton.onclick = () => {
+                  editButton.classList.add('loading');
+                  fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).then((statusData) => {
+                    if (statusData?.edit?.url) {
+                      window.open(statusData.edit.url, '_blank');
+                    }
+                  }).catch(/* do nothing */)
+                    .finally(() => {
+                      editButton.classList.remove('loading');
+                    });
+                };
+              } else {
+                editButton.onclick = () => {
+                  window.open(`https://da.live/edit#/${daProjectRepo}/${id}${item.path.endsWith('/') ? `${item.path}index` : item.path}`, '_blank');
+                };
+              }
 
               return tableRow;
             });
@@ -1249,7 +1275,7 @@ export default async function decorate(block) {
 
       // MARK: add page button
       block.querySelector('.add-page').onclick = () => {
-        addPageDialogSetup({ project, headers });
+        addPageDialogSetup({ project, headers, darkAlleyVariation });
       };
 
       // Load site blocks
