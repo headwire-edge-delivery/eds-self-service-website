@@ -487,17 +487,7 @@ function renderBlocksList(block, { project, headers }) {
 // MARK: Icon list
 function renderIconsList(block, { project, headers, id }) {
   const iconsList = block.querySelector('.icons');
-  block.querySelector('.settings-actions').insertAdjacentHTML('beforeend', '<button class="button secondary action change-favicon">Change Favicon</button>');
   block.querySelector('.add-icon').onclick = () => addIconDialogSetup({ id, headers, itemList: iconsList });
-  block.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
-    id,
-    headers,
-    titleText: 'Favicon',
-    fileAccept: 'image/x-icon',
-    extraHtml: '<p>The favicon is the icon that appears in the browser tab.</p><p>You can change it here, but it must be a .ico file.</p>',
-    uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
-    defaultSrc: `https://main--${id}--headwire-self-service.hlx.page/favicon.ico`,
-  });
 
   iconsList.innerHTML = '';
   iconsList.addItem = ({ name, base64 }) => {
@@ -516,11 +506,14 @@ function renderIconsList(block, { project, headers, id }) {
 
     const settingsButton = document.createElement('button');
     settingsButton.classList.add('button', 'secondary', 'icon-settings', 'action');
-    settingsButton.innerText = 'Settings';
+    settingsButton.innerText = 'Update';
 
     const copyButton = document.createElement('button');
     copyButton.classList.add('button', 'secondary', 'copy-button', 'action');
-    copyButton.innerText = 'Copy';
+    copyButton.innerHTML = `
+      <img loading="lazy" alt="Copied" hidden src="/icons/check-mark.svg">
+      <span>Copy</span>
+    `;
 
     const buttonsContainer = document.createElement('div');
     buttonsContainer.classList.add('buttons-container');
@@ -541,6 +534,15 @@ function renderIconsList(block, { project, headers, id }) {
 
       // copy icon as doc compatible string (without .svg)
       navigator.clipboard.writeText(`:${name.replace(/\.[^/.]+$/, '')}:`);
+      const icon = copyButton.querySelector('img');
+      const text = copyButton.querySelector('span');
+
+      text.hidden = true;
+      icon.hidden = false;
+      setTimeout(() => {
+        text.hidden = false;
+        icon.hidden = true;
+      }, 2000);
     };
   };
 
@@ -647,9 +649,7 @@ export default async function decorate(block) {
                 </select>
             </div>
             <div class="analytics-actions button-container ${selected === 'analytics' ? 'is-selected' : ''}"></div>
-            <div class="settings-actions button-container ${selected === 'settings' ? 'is-selected' : ''}">
-                <button class="button action secondary share">Project Authors</button>
-            </div>
+            <div class="settings-actions button-container ${selected === 'settings' ? 'is-selected' : ''}"></div>
           </div>
         </div>
         
@@ -851,17 +851,46 @@ export default async function decorate(block) {
                 
                 <div class="settings-panel ${selected === 'settings' ? 'is-selected' : ''}">
                     ${createDocsEl(`
+                      <p><strong>Authors</strong> lists all users that have read and write access to the content source of your project. You can add or delete authors by indicating their email address.</p>
+                      <p><strong>Contact email</strong> defines which email the contact form submits to.</p>
+                      <p><strong>Favicon</strong> is the small icon associated with your website displayed within the browser tabs and bookmarks bar.</p>
                       <p><strong>Blocks</strong> acts as a repository of building blocks for your website. Here, you can explore and select from a variety of available blocks to enhance your web pages.</p>
                       <p><strong>Icons</strong> is your go-to resource for web assets that add visual flair and functionality to your website. Here, you'll find a curated collection of icons suitable for various purposes, from navigation to social media integration.</p>
                     `)}
                     
                     <div class="container">
+                        <h2>Authors</h2>
+                        <form class="add-author-form form">
+                          <label>
+                            <span>New author</span>
+                            <input name="email" type="email" placeholder="person@example.com" />
+                          </label>
+                          <button class="button primary action" type="submit">Add</button>
+                        </form>
+                        <ul class="authors-list"></ul>
+                        
+                        <h2>Contact email</h2>
+                        <form class="contact-email-form form">
+                            <label>
+                                <span>Define which email the contact form submits to.</span>
+                                <input name="email" type="email" placeholder="person@example.com" />
+                            </label>    
+                            <button class="button primary action" type="submit">Save</button>
+                        </form>
+                        
+                        <h2>Favicon</h2>
+                        <p>Only <code>.ico</code> files are supported.</p>
+                        <div class="favicon-section">
+                          <img alt="favicon" src="https://main--${id}--headwire-self-service.hlx.page/favicon.ico" loading="lazy">
+                          <button class="button action primary change-favicon">Update</button>     
+                        </div>
+                       
                         <h2>Blocks</h2>
-                        <button class="button secondary action add-block">Add block</button>
+                        <button class="button primary action add-block">Add block</button>
                         <ul class="blocks list"></ul>
                         
                         <h2>Icons</h2>
-                        <button class="button action secondary add-icon">Add icon</button>
+                        <button class="button action primary add-icon">Add icon</button>
                         <ul class="icons list"></ul>
                     </div> 
                 </div>
@@ -884,146 +913,107 @@ export default async function decorate(block) {
       `,
       );
 
-      // MARK: Share dialog
-      const shareButton = actions.querySelector('button.share');
-      shareButton.onclick = async () => {
-        window?.zaraz?.track('click site share', { url: window.location.href });
+      // MARK: Share authors
+      const authorsList = block.querySelector('.authors-list');
+      const addAuthorListItem = (author) => {
+        if (!author.email) return;
+        const listItem = document.createElement('li');
+        listItem.classList.add('author');
+        const authorEmail = author.email;
+        const isOwner = author.owner;
+        listItem.dataset.authorEmail = authorEmail;
+        const span = document.createElement('span');
+        span.innerText = authorEmail;
+        const revoke = document.createElement('button');
+        revoke.classList.add('revoke-button', 'button', 'action', 'secondary');
+        revoke.textContent = 'Revoke';
+        if (isOwner) revoke.disabled = true;
+        revoke.onclick = async () => {
+          window?.zaraz?.track('click site share delete', { url: window.location.href });
 
-        const dialog = window.createDialog('<div><h3>Getting Authors...</h3></div>');
-        const authors = await fetch(`${SCRIPT_API}/authors/${id}`, { headers })
-          .then((r) => r.json())
-          .catch(() => []);
-        const populatedContent = document.createElement('div');
-        const title = document.createElement('h3');
-        title.innerText = 'Project authors';
-        const authorList = document.createElement('ul');
-        authorList.classList.add('author-list');
+          if (isOwner) return;
+          if (await window.confirmDialog('Are you sure ?')) {
+            window?.zaraz?.track('click site share delete submit', { url: window.location.href });
 
-        // author list
-        const addAuthorListItem = (author) => {
-          if (!author.email) return;
-          const listItem = document.createElement('li');
-          listItem.classList.add('author');
-          const authorEmail = author.email;
-          const isOwner = author.owner;
-          listItem.dataset.authorEmail = authorEmail;
-          const span = document.createElement('span');
-          span.innerText = authorEmail;
-          const revoke = document.createElement('button');
-          revoke.classList.add('revoke-button', 'button');
-          if (isOwner) revoke.disabled = true;
-          revoke.onclick = async () => {
-            window?.zaraz?.track('click site share delete', { url: window.location.href });
-
-            if (isOwner) return;
-            if (await window.confirmDialog('Are you sure ?')) {
-              window?.zaraz?.track('click site share delete submit', { url: window.location.href });
-
-              dialog.setLoading(true, `Removing ${authorEmail}...`);
-              const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
-                method: 'DELETE',
-                headers,
-              });
-              if (revokeResponse.ok) {
-                dialog.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
-              } else {
-                await window.alertDialog(OOPS);
-              }
-              dialog.setLoading(false);
+            authorsList.classList.add('is-disabled');
+            const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
+              method: 'DELETE',
+              headers,
+            });
+            if (revokeResponse.ok) {
+              authorsList.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
+            } else {
+              await window.alertDialog(OOPS);
             }
-          };
-
-          listItem.append(revoke, span);
-          authorList.append(listItem);
-        };
-        authors.forEach(addAuthorListItem);
-
-        // add new authors
-        const addAuthorSection = document.createElement('div');
-        addAuthorSection.classList.add('add-author-section');
-        addAuthorSection.innerHTML = `
-          <h4>Add an Author:</h4>
-          <form>
-            <input name="email" type="email" placeholder="person@example.com" />
-            <button class="button secondary action" type="submit">Add</button>
-          </form>
-        `;
-        const addAuthorForm = addAuthorSection.querySelector('form');
-        addAuthorForm.onsubmit = async (event) => {
-          window?.zaraz?.track('click site share add submit', { url: window.location.href });
-
-          event.preventDefault();
-          dialog.setLoading(true, 'Adding Author...');
-          const email = event.target.email.value;
-          const isValid = /^(?!@).*@.*(?<!@)$/.test(email);
-          if (!isValid) {
-            await window.alertDialog('Please enter a valid email.');
-            dialog.setLoading(false);
-            return;
+            authorsList.classList.remove('is-disabled');
           }
-          const response = await fetch(`${SCRIPT_API}/authors/${id}/${email}`, {
-            method: 'POST',
-            headers,
-          });
-          if (response.ok) {
-            addAuthorListItem({ email });
-            event.target.email.value = '';
-          } else {
-            await window.alertDialog(OOPS);
-          }
-          dialog.setLoading(false);
         };
 
-        populatedContent.append(title, authorList, addAuthorSection);
-        dialog.renderDialog(populatedContent);
+        listItem.append(span, revoke);
+        authorsList.append(listItem);
       };
 
-      // MARK: Contact Email dialog
-      const changeContactButton = document.createElement('button');
-      actions.querySelector('.settings-actions.button-container').append(changeContactButton);
-      changeContactButton.classList.add('button', 'secondary', 'action');
-      changeContactButton.innerText = 'Change contact email';
-      changeContactButton.onclick = () => {
-        window?.zaraz?.track('click site contact', { url: window.location.href });
+      const addAuthorForm = block.querySelector('.add-author-form');
+      addAuthorForm.onsubmit = async (event) => {
+        window?.zaraz?.track('click site share add submit', { url: window.location.href });
 
-        const title = document.createElement('h3');
-        title.innerText = 'Change contact email';
+        event.preventDefault();
 
-        const input = document.createElement('input');
-        input.value = project.contactEmail || project.ownerEmail || '';
-        input.type = 'email';
-        input.placeholder = 'contact@email.com';
+        addAuthorForm.classList.add('is-disabled');
+        const email = event.target.email.value;
+        const isValid = /^(?!@).*@.*(?<!@)$/.test(email);
+        if (!isValid) {
+          await window.alertDialog('Please enter a valid email.');
+          addAuthorForm.classList.remove('is-disabled');
+          return;
+        }
+        const response = await fetch(`${SCRIPT_API}/authors/${id}/${email}`, {
+          method: 'POST',
+          headers,
+        });
+        if (response.ok) {
+          addAuthorListItem({ email });
+          event.target.email.value = '';
+        } else {
+          await window.alertDialog(OOPS);
+        }
+        addAuthorForm.classList.remove('is-disabled');
+      };
 
-        const paragraph = document.createElement('p');
-        paragraph.innerText = 'This defines which email the contact form submits to.';
+      fetch(`${SCRIPT_API}/authors/${id}`, { headers })
+        .then((res) => res.json())
+        .then((authors) => {
+          authors.forEach(addAuthorListItem);
+        })
+        .catch(() => {});
 
-        const dialogContent = document.createElement('div');
-        dialogContent.append(title, input, paragraph);
+      // MARK: Contact Email
+      const contactEmailForm = block.querySelector('.contact-email-form');
+      const contactEmailFormInput = contactEmailForm.querySelector('input');
+      contactEmailFormInput.value = project.contactEmail || project.ownerEmail || '';
 
-        const submitButton = document.createElement('button');
+      contactEmailForm.onsubmit = async (event) => {
+        window?.zaraz?.track('click site contact submit', { url: window.location.href });
 
-        const dialog = window.createDialog(dialogContent, [submitButton]);
+        event.preventDefault();
 
-        submitButton.classList.add('button');
-        submitButton.innerText = 'Submit';
-        submitButton.onclick = async () => {
-          window?.zaraz?.track('click site contact submit', { url: window.location.href });
+        if (!contactEmailFormInput.value) return;
 
-          if (!input.value) return;
-          dialog.setLoading(true, 'Updating Contact Email...');
-          const response = await fetch(`${SCRIPT_API}/updateContact/${project.projectSlug}`, {
-            headers: { ...headers, 'content-type': 'application/json' },
-            method: 'POST',
-            body: JSON.stringify({ contactEmail: input.value }),
-          });
-          if (response.ok) {
-            dialog.renderDialog('<h3 class="centered-info" >Email Updated</h3>');
-            project.contactEmail = input.value;
-          } else {
-            await window.alertDialog(OOPS);
-          }
-          dialog.setLoading(false);
-        };
+        contactEmailForm.classList.add('is-disabled');
+
+        const response = await fetch(`${SCRIPT_API}/updateContact/${project.projectSlug}`, {
+          headers: { ...headers, 'content-type': 'application/json' },
+          method: 'POST',
+          body: JSON.stringify({ contactEmail: contactEmailFormInput.value }),
+        });
+        if (response.ok) {
+          await window.alertDialog('Contact email updated!');
+          project.contactEmail = contactEmailFormInput.value;
+        } else {
+          await window.alertDialog(OOPS);
+        }
+
+        contactEmailForm.classList.remove('is-disabled');
       };
 
       const aside = block.querySelector('aside');
@@ -1257,6 +1247,16 @@ export default async function decorate(block) {
 
       // Load site icons
       renderIconsList(block, { project, headers, id });
+
+      // Favicon
+      block.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
+        id,
+        headers,
+        titleText: 'Favicon',
+        fileAccept: 'image/x-icon',
+        uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
+        defaultSrc: `https://main--${id}--headwire-self-service.hlx.page/favicon.ico`,
+      });
 
       // calendar link
       if (project.calendarId) {
