@@ -414,9 +414,8 @@ dialog.loading::before {
 
 dialog .dialog-content .dialog-button-container {
   display: flex;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
   gap: 16px;
-  flex-direction: row;
   justify-content: flex-end;
   padding-top: 16px;
   overflow: visible;
@@ -436,9 +435,8 @@ dialog .dialog-content .template-preview {
 
 dialog .dialog-content > .flex-row {
   display: flex;
-  flex-direction: row;
+  flex-flow: row wrap;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
 dialog .dialog-content > .flex-row > * {
