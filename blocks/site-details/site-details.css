@@ -140,6 +140,7 @@
 .site-details.block h2 {
     font-size: 16px;
     margin-top: 16px;
+    padding-bottom: 12px;
 }
 
 .site-details.block .container > h2:first-child {
@@ -274,12 +275,31 @@
 }
 
 /* MARK: Icon list */
+.site-details.block .favicon-section {
+    display: flex;
+    gap: 8px;
+}
+
+.site-details.block .change-favicon {
+    align-self: center;
+}
+
+.site-details.block .copy-button img {
+    max-width: 12px;
+}
+
+.site-details.block .block-icon,
+.site-details.block .icon-preview,
+.site-details.block .favicon-section img {
+    max-width: 48px;
+}
 
 .site-details.block .blocks.list,
 .site-details.block .icons.list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
     align-items: stretch;
+    gap: 24px;
 }
 
 .site-details.block .blocks.list li,
@@ -287,7 +307,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    align-items: center;
 }
 
 .site-details.block .icons.list .icon-preview {
@@ -301,12 +322,9 @@
 .site-details.block .icons.list .buttons-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
+    justify-content: center;
     margin-top: auto;
-}
-
-.site-details.block .icons.list .button {
-    flex: 1;
 }
 
 .site-details.block .chart-container {
@@ -340,6 +358,43 @@
     padding: 32px;
     font-weight: bold;
     font-size: 11px;
+}
+
+.site-details.block .form {
+    display: flex;
+    gap: 8px;
+    max-width: calc(var(--layout-width) / 2);
+}
+
+.site-details.block .form label {
+    flex: 1;
+}
+
+.site-details.block .form button[type="submit"] {
+    align-self: flex-end;
+}
+
+/* MARK: Author list */
+.site-details.block .author {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--gray);
+    padding-block: 8px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.site-details.block .author:first-child {
+    border-top: none;
+}
+
+.site-details.block .authors-list {
+    list-style: none;
+    padding: 0;
+    max-width: calc(var(--layout-width) / 2);
+    max-height: 300px;
+    overflow: auto;
 }
 
 /* MARK: add page */

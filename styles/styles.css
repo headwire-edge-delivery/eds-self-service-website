@@ -29,6 +29,12 @@
   display: none !important;
 }
 
+.is-disabled {
+  pointer-events: none !important;
+  cursor: unset !important;
+  opacity: 0.2 !important;
+}
+
 html {
   font-family: var(--font-family);
   background-color: var(--white);
@@ -110,7 +116,7 @@ ol {
 }
 
 label > span {
-  padding-block: 16px;
+  padding-block: 12px;
   display: block;
 }
 
@@ -236,13 +242,20 @@ input[type="file"] {
 
 input[type="file"]::file-selector-button {
   border-width: 0 1px 0 0;
+  padding: 9px;
+  font-size: 13px;
+  border-radius: calc(var(--border-radius) / 2);
+  text-transform: none;
+  background-color: var(--black);
+  color: var(--white);
+  border-color: var(--white);
 }
 
 input[type="file"]::file-selector-button:hover,
 .button:hover {
   background-color: var(--gray);
-  text-decoration: none;
   color: var(--black);
+  text-decoration: none;
 }
 
 input[type="color"] {
@@ -275,7 +288,6 @@ input[type="color"] {
   background-color: var(--gray);
 }
 
-.button.is-disabled,
 .button:disabled,
 .button:disabled:hover {
   pointer-events: none;
@@ -284,7 +296,7 @@ input[type="color"] {
 }
 
 .button.action {
-  padding: 8px;
+  padding: 9px;
   font-size: 13px;
   border-radius: calc(var(--border-radius) / 2);
   text-transform: none;
@@ -380,7 +392,7 @@ dialog .preview:empty {
 
 dialog .preview img {
   display: block;
-  padding: 20px;
+  max-width: 128px;
   width: 100%;
   height: auto;
   max-height: var(--preview-max-height);
@@ -414,9 +426,8 @@ dialog.loading::before {
 
 dialog .dialog-content .dialog-button-container {
   display: flex;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
   gap: 16px;
-  flex-direction: row;
   justify-content: flex-end;
   padding-top: 16px;
   overflow: visible;
@@ -436,9 +447,8 @@ dialog .dialog-content .template-preview {
 
 dialog .dialog-content > .flex-row {
   display: flex;
-  flex-direction: row;
+  flex-flow: row wrap;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
 dialog .dialog-content > .flex-row > * {
@@ -504,45 +514,4 @@ img[src="/icons/loading.svg"] {
   width: 124px;
   height: 124px;
   filter: invert(1);
-}
-
-/* MARK: Author list */
-ul.author-list {
-  list-style: none;
-  margin: 20px 0;
-  padding: 0;
-}
-
-ul.author-list .author {
-  margin-bottom: 10px;
-  width: 100%;
-  display: flex;
-  gap: 6px;
-}
-
-ul.author-list:empty::after {
-  content: "No external authors yet";
-}
-
-ul.author-list .author .revoke-button {
-  padding: 0;
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: url("/icons/remove-circle.svg") no-repeat center / contain;
-}
-
-.add-author-section {
-  border-top: 1px solid var(--gray);
-  margin-bottom: 24px;
-}
-
-.add-author-section h4 {
-  margin: 6px 0;
-}
-
-.add-author-section form {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 8px;
 }
