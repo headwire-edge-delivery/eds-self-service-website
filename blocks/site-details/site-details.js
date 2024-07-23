@@ -2,6 +2,7 @@
 
 import {
   SCRIPT_API, onAuthenticated, OOPS, EMAIL_WORKER_API,
+  daProjectRepo,
 } from '../../scripts/scripts.js';
 
 const protectedBlocks = {
@@ -321,7 +322,7 @@ function addBlockDialogSetup({ project, headers, itemList }) {
 
 // MARK: add page dialog
 function addPageDialogSetup({
-  project, headers,
+  project, headers, darkAlleyVariation,
 }) {
   const dialogContent = document.createElement('div');
   dialogContent.classList.add('flex-row');
@@ -397,7 +398,7 @@ function addPageDialogSetup({
     window.zaraz?.track('click site page add', { url: window.location.href });
 
     dialog.setLoading(true, 'Copying and setting up page...');
-    const addPageRequest = await fetch(`${SCRIPT_API}/addPage/${project.projectSlug}`, {
+    const addPageRequest = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'daAddPage' : 'addPage'}/${project.projectSlug}`, {
       method: 'POST',
       headers: { ...headers, 'content-type': 'application/json' },
       body: JSON.stringify({ pageName: pageNameInput.value, templatePath: dropdown.value }),
@@ -416,6 +417,24 @@ function addPageDialogSetup({
         draftsLink.innerText = 'Drafts Folder';
 
         buttons.push(draftsLink);
+      }
+
+      if (responseData.daDraftsPath) {
+        const draftsLink = document.createElement('a');
+        draftsLink.classList.add('button', 'secondary', 'action');
+        draftsLink.href = `https://da.live/#${responseData.daDraftsPath}`;
+        draftsLink.target = '_blank';
+        draftsLink.innerText = 'Drafts Folder';
+        buttons.push(draftsLink);
+
+        if (responseData.daNewPageSlug) {
+          const editLink = document.createElement('a');
+          editLink.classList.add('button', 'primary', 'action');
+          editLink.href = `https://da.live/edit#${responseData.daDraftsPath}/${responseData.daNewPageSlug}`;
+          editLink.target = '_blank';
+          editLink.innerText = `Edit ${pageNameInput.value}`;
+          buttons.push(editLink);
+        }
       }
 
       if (responseData?.newPageId) {
@@ -881,7 +900,7 @@ export default async function decorate(block) {
                         <h2>Favicon</h2>
                         <p>Only <code>.ico</code> files are supported.</p>
                         <div class="favicon-section">
-                          <img alt="favicon" src="https://main--${id}--headwire-self-service.hlx.page/favicon.ico" loading="lazy">
+                          <img alt="favicon" src="https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico" loading="lazy">
                           <button class="button action primary change-favicon">Update</button>     
                         </div>
                        
@@ -897,6 +916,15 @@ export default async function decorate(block) {
             </div>
         </div>
     `;
+
+      // TODO: remove when we move to dark alley
+      if (project.darkAlleyProject) {
+        block.querySelectorAll('.breadcrumbs a').forEach((link) => {
+          if (link.href.includes('/site/')) {
+            link.href = link.href.replace('/site/', '/da-site/');
+          }
+        });
+      }
 
       const actions = block.querySelector('.actions');
       actions.querySelector('.overview-actions').insertAdjacentHTML(
@@ -954,6 +982,10 @@ export default async function decorate(block) {
       };
 
       const addAuthorForm = block.querySelector('.add-author-form');
+      // TODO: Update when we have dark alley authorization
+      if (darkAlleyVariation) {
+        addAuthorForm.classList.add('is-disabled');
+      }
       addAuthorForm.onsubmit = async (event) => {
         window?.zaraz?.track('click site share add submit', { url: window.location.href });
 
@@ -1202,7 +1234,6 @@ export default async function decorate(block) {
                 <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
                 <td class="table-actions"><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
                 `;
-              console.log('item.path:', item.path);
 
               // add edit button
               const editButton = document.createElement('button');
@@ -1211,17 +1242,21 @@ export default async function decorate(block) {
               editButton.innerText = 'Edit';
               tableRow.lastElementChild.prepend(editButton);
 
-              editButton.onclick = () => {
-                editButton.classList.add('loading');
-                fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).then((statusData) => {
+              // TODO: change to link if we drop drive support
+              if (!darkAlleyVariation) {
+                editButton.onclick = async () => {
+                  editButton.classList.add('loading');
+                  const statusData = await fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).catch(() => null);
                   if (statusData?.edit?.url) {
                     window.open(statusData.edit.url, '_blank');
                   }
-                }).catch(/* do nothing */)
-                  .finally(() => {
-                    editButton.classList.remove('loading');
-                  });
-              };
+                  editButton.classList.remove('loading');
+                };
+              } else {
+                editButton.onclick = () => {
+                  window.open(`https://da.live/edit#/${daProjectRepo}/${id}${item.path.endsWith('/') ? `${item.path}index` : item.path}`, '_blank');
+                };
+              }
 
               return tableRow;
             });
@@ -1239,7 +1274,7 @@ export default async function decorate(block) {
 
       // MARK: add page button
       block.querySelector('.add-page').onclick = () => {
-        addPageDialogSetup({ project, headers });
+        addPageDialogSetup({ project, headers, darkAlleyVariation });
       };
 
       // Load site blocks
@@ -1255,7 +1290,7 @@ export default async function decorate(block) {
         titleText: 'Favicon',
         fileAccept: 'image/x-icon',
         uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
-        defaultSrc: `https://main--${id}--headwire-self-service.hlx.page/favicon.ico`,
+        defaultSrc: `https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico`,
       });
 
       // calendar link
