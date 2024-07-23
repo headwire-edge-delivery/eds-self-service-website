@@ -392,6 +392,23 @@ export default async function decorate(block) {
           </div>
         </div>`;
 
+        // TODO: remove when we move to dark alley
+        fetch(`${SCRIPT_API}/darkAlleyList/${id}`, {
+          headers: {
+            authorization: `bearer ${token}`,
+          },
+        }).then((res) => res.json())
+          .then(({ project }) => {
+            if (project.darkAlleyProject) {
+              block.querySelectorAll('.breadcrumbs a').forEach((link) => {
+                if (link.href.includes('/site/')) {
+                  link.href = link.href.replace('/site/', '/da-site/');
+                }
+              });
+            }
+          })
+          .catch(() => null);
+
         const warning = block.querySelector('.warning');
         warning.querySelector('button').onclick = () => {
           warning.hidden = true;

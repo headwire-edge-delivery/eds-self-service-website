@@ -900,7 +900,7 @@ export default async function decorate(block) {
                         <h2>Favicon</h2>
                         <p>Only <code>.ico</code> files are supported.</p>
                         <div class="favicon-section">
-                          <img alt="favicon" src="https://main--${id}--headwire-self-service.hlx.page/favicon.ico" loading="lazy">
+                          <img alt="favicon" src="https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico" loading="lazy">
                           <button class="button action primary change-favicon">Update</button>     
                         </div>
                        
@@ -916,6 +916,15 @@ export default async function decorate(block) {
             </div>
         </div>
     `;
+
+      // TODO: remove when we move to dark alley
+      if (project.darkAlleyProject) {
+        block.querySelectorAll('.breadcrumbs a').forEach((link) => {
+          if (link.href.includes('/site/')) {
+            link.href = link.href.replace('/site/', '/da-site/');
+          }
+        });
+      }
 
       const actions = block.querySelector('.actions');
       actions.querySelector('.overview-actions').insertAdjacentHTML(
@@ -973,6 +982,10 @@ export default async function decorate(block) {
       };
 
       const addAuthorForm = block.querySelector('.add-author-form');
+      // TODO: Update when we have dark alley authorization
+      if (darkAlleyVariation) {
+        addAuthorForm.classList.add('is-disabled');
+      }
       addAuthorForm.onsubmit = async (event) => {
         window?.zaraz?.track('click site share add submit', { url: window.location.href });
 
@@ -1221,7 +1234,6 @@ export default async function decorate(block) {
                 <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
                 <td class="table-actions"><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
                 `;
-              console.log('item.path:', item.path);
 
               // add edit button
               const editButton = document.createElement('button');
@@ -1278,7 +1290,7 @@ export default async function decorate(block) {
         titleText: 'Favicon',
         fileAccept: 'image/x-icon',
         uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
-        defaultSrc: `https://main--${id}--headwire-self-service.hlx.page/favicon.ico`,
+        defaultSrc: `https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico`,
       });
 
       // calendar link
