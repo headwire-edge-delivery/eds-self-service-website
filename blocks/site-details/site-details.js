@@ -1232,16 +1232,13 @@ export default async function decorate(block) {
 
               // TODO: change to link if we drop drive support
               if (!darkAlleyVariation) {
-                editButton.onclick = () => {
+                editButton.onclick = async () => {
                   editButton.classList.add('loading');
-                  fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).then((statusData) => {
-                    if (statusData?.edit?.url) {
-                      window.open(statusData.edit.url, '_blank');
-                    }
-                  }).catch(/* do nothing */)
-                    .finally(() => {
-                      editButton.classList.remove('loading');
-                    });
+                  const statusData = await fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).catch(() => null);
+                  if (statusData?.edit?.url) {
+                    window.open(statusData.edit.url, '_blank');
+                  }
+                  editButton.classList.remove('loading');
                 };
               } else {
                 editButton.onclick = () => {
