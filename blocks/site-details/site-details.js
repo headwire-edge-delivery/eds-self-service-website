@@ -1185,11 +1185,11 @@ export default async function decorate(block) {
           block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
           const pages = data.filter(
-            ({ template, robots }) => !template.includes('email') && !robots.includes('noindex'),
+            ({ template, robots }) => !template?.includes('email') && !robots?.includes('noindex'),
           );
-          const navs = data.filter(({ path }) => path.endsWith('/nav'));
-          const footers = data.filter(({ path }) => path.endsWith('/footer'));
-          const emails = data.filter(({ template }) => template.includes('email'));
+          const navs = data.filter(({ path }) => path?.endsWith('/nav'));
+          const footers = data.filter(({ path }) => path?.endsWith('/footer'));
+          const emails = data.filter(({ template }) => template?.includes('email'));
 
           const renderTable = (tableBody, tableData, type) => {
             const tableRows = tableData.map((item) => {

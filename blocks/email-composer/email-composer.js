@@ -16,6 +16,27 @@ export default async function decorate(block) {
     const token = await window.auth0Client.getTokenSilently();
 
     let project;
+
+    const googleProjectResponse = await fetch(`${SCRIPT_API}/list/${id}`, {
+      headers: {
+        authorization: `bearer ${token}`,
+      },
+    });
+    const googleProjectData = await googleProjectResponse.json();
+    project = googleProjectData?.project;
+
+    if (!project) {
+      // try dark alley
+      const darkAlleyProjectResponse = await fetch(`${SCRIPT_API}/darkAlleyList/${id}`);
+      const darkAlleyProjectData = await darkAlleyProjectResponse.json();
+      project = darkAlleyProjectData?.project;
+    }
+
+    // no project
+    if (!project) {
+      block.querySelector('.content p').textContent = OOPS;
+    }
+
     let editor;
     let recipientsData = {
       headers: [],
@@ -47,6 +68,7 @@ export default async function decorate(block) {
     const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta?url=${url}`);
     if (reqEmail.ok) {
       const { meta, variables } = await reqEmail.json();
+      console.log('meta:', meta);
 
       block.innerHTML = `
         <div class="nav">
@@ -188,63 +210,80 @@ export default async function decorate(block) {
       };
 
       // Load site to retrieve drive id
-      fetch(`${SCRIPT_API}/list/${id}`, {
-        headers: {
-          authorization: `bearer ${token}`,
-        },
-      }).then((res) => {
-        if (res.ok) {
-          return res.json();
-        }
+      // fetch(`${SCRIPT_API}/list/${id}`, {
+      //   headers: {
+      //     authorization: `bearer ${token}`,
+      //   },
+      // }).then((res) => {
+      //   if (res.ok) {
+      //     return res.json();
+      //   }
 
-        throw new Error(res.status);
-      })
-        .then(async (res) => {
-          project = res.project;
+      //   throw new Error(res.status);
+      // })
+      //   .then(async (res) => {
+      // project = res.project;
+      // // TODO: replace when we switch to dark alley
+      // if (!project) {
+      //   const daData = await fetch(`${SCRIPT_API}/darkAlleyList/${id}`).then((daRes) => daRes.json()).catch(() => null);
 
-          block.querySelector('.actions').innerHTML = `
+      //   if (daData) {
+      //     project = daData.project;
+      //   }
+      // }
+
+      block.querySelector('.actions').innerHTML = `
             <a href="#" target="_blank" class="button secondary action copy">Copy</a>
-            <a href="${project.driveUrl}" target="_blank" class="button action secondary edit">Edit</a>
+            <a href="${project?.driveUrl || `https://da.live/edit#/da-self-service/${id}/newsletter`}" target="_blank" class="button action secondary edit">Edit</a>
             <button class="button primary action send is-disabled">Send</button>
           `;
 
-          block.querySelector('.edit').onclick = () => {
-            window?.zaraz?.track('click email edit', { url: window.location.href });
-          };
-
-          block.querySelector('.copy').onclick = (e) => {
-            window?.zaraz?.track('click email copy', { url: window.location.href });
-
-            e.preventDefault();
-
-            const copyUrl = new URL(iframe.src);
-            copyUrl.searchParams.set('copy', '');
-            window.open(copyUrl.toString(), '_blank');
-          };
-
-          // Load codemirror to edit styles
-          loadCSS('/libs/codemirror/codemirror.min.css');
-          await import('../../libs/codemirror/codemirror.min.js');
-          await import('../../libs/codemirror/css.min.js');
-
-          fetch(`${project.customLiveUrl}${meta.styles}`)
-            .then((resStyles) => {
-              if (resStyles.ok) {
-                return resStyles.text();
-              }
-              return '';
-            })
-            .then((css) => {
-              const styles = block.querySelector('.styles');
-              styles.value = css;
-            });
-        })
-        .catch((error) => {
-          console.log(error);
+      console.log('project:', project);
+      if (project.darkAlleyProject) {
+        block.querySelectorAll('.breadcrumbs a').forEach((link) => {
+          if (link.href.includes('/site/')) {
+            link.href = link.href.replace('/site/', '/da-site/');
+          }
         });
+      }
+
+      block.querySelector('.edit').onclick = () => {
+        window?.zaraz?.track('click email edit', { url: window.location.href });
+      };
+
+      block.querySelector('.copy').onclick = (e) => {
+        window?.zaraz?.track('click email copy', { url: window.location.href });
+
+        e.preventDefault();
+
+        const copyUrl = new URL(iframe.src);
+        copyUrl.searchParams.set('copy', '');
+        window.open(copyUrl.toString(), '_blank');
+      };
+
+      // Load codemirror to edit styles
+      loadCSS('/libs/codemirror/codemirror.min.css');
+      await import('../../libs/codemirror/codemirror.min.js');
+      await import('../../libs/codemirror/css.min.js');
+
+      fetch(`${project.customLiveUrl}${meta.styles}`)
+        .then((resStyles) => {
+          if (resStyles.ok) {
+            return resStyles.text();
+          }
+          return '';
+        })
+        .then((css) => {
+          const styles = block.querySelector('.styles');
+          styles.value = css;
+        });
+      // })
+      // .catch((error) => {
+      //   console.log(error);
+      // });
 
       // Load email metadata
-      fetch(`${SCRIPT_API}/sheets/${id}?sheetPath=recipients`, {
+      fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
         headers: {
           authorization: `bearer ${token}`,
         },
@@ -265,6 +304,7 @@ export default async function decorate(block) {
           }
 
           recipientsData = data;
+          console.log('recipientsData:', recipientsData);
           recipients.innerHTML = `
               <thead>
                 <tr>
@@ -333,7 +373,7 @@ export default async function decorate(block) {
 
               toggleSendDisabled();
 
-              fetch(`${SCRIPT_API}/sheets/${id}?sheetPath=recipients&row=${index}`, {
+              fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients&row=${index}`, {
                 method: 'DELETE',
                 headers: {
                   authorization: `bearer ${token}`,
@@ -378,7 +418,7 @@ export default async function decorate(block) {
               input.value = '';
             });
 
-            fetch(`${SCRIPT_API}/sheets/${id}?sheetPath=recipients`, {
+            fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
               method: 'POST',
               headers: {
                 authorization: `bearer ${token}`,
@@ -402,7 +442,7 @@ export default async function decorate(block) {
               block.classList.add('is-sending');
 
               const previewSource = new URL(iframe.src);
-              const req = await fetch(`${SCRIPT_API}/send/${id}`, {
+              const req = await fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSend' : 'send'}/${id}`, {
                 headers: {
                   'content-type': 'application/json',
                   authorization: `bearer ${token}`,
