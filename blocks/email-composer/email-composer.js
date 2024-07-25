@@ -68,7 +68,6 @@ export default async function decorate(block) {
     const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta?url=${url}`);
     if (reqEmail.ok) {
       const { meta, variables } = await reqEmail.json();
-      console.log('meta:', meta);
 
       block.innerHTML = `
         <div class="nav">
@@ -209,29 +208,6 @@ export default async function decorate(block) {
         }
       };
 
-      // Load site to retrieve drive id
-      // fetch(`${SCRIPT_API}/list/${id}`, {
-      //   headers: {
-      //     authorization: `bearer ${token}`,
-      //   },
-      // }).then((res) => {
-      //   if (res.ok) {
-      //     return res.json();
-      //   }
-
-      //   throw new Error(res.status);
-      // })
-      //   .then(async (res) => {
-      // project = res.project;
-      // // TODO: replace when we switch to dark alley
-      // if (!project) {
-      //   const daData = await fetch(`${SCRIPT_API}/darkAlleyList/${id}`).then((daRes) => daRes.json()).catch(() => null);
-
-      //   if (daData) {
-      //     project = daData.project;
-      //   }
-      // }
-
       block.querySelector('.actions').innerHTML = `
             <a href="#" target="_blank" class="button secondary action copy">Copy</a>
             <a href="${project?.driveUrl || `https://da.live/edit#/da-self-service/${id}/newsletter`}" target="_blank" class="button action secondary edit">Edit</a>
@@ -277,10 +253,6 @@ export default async function decorate(block) {
           const styles = block.querySelector('.styles');
           styles.value = css;
         });
-      // })
-      // .catch((error) => {
-      //   console.log(error);
-      // });
 
       // Load email metadata
       fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
