@@ -31,3 +31,7 @@
     font-family: var(--font-family) !important;
     text-shadow: none !important;
   }
+
+  .help-btn:hover {
+    transform: scale(1.1);
+  }

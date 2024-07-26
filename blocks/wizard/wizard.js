@@ -177,18 +177,7 @@ export default async function decorate(block) {
           <a href="/templates/${id}" id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
             <p>${description}</p>
-            <div class="carousel">
-                <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
-                <img alt="" src="/assets/${id}/image2.png" loading="lazy"/>
-                <img alt="" src="/assets/${id}/image3.png" loading="lazy"/>
-                <img alt="" src="/assets/${id}/image4.png" loading="lazy"/>
-                <div class="dots">
-                    <div class="dot is-selected"></div>
-                    <div class="dot"></div>
-                    <div class="dot "></div>
-                    <div class="dot"></div>
-                </div>
-            </div>
+            <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
             <iframe class="preview" src="${demo}" loading="lazy"></iframe>
           </a>
         `;

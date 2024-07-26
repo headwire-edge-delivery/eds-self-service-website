@@ -72,11 +72,13 @@ export default async function decorate(block) {
                 <iframe name="preview" src="${EMAIL_WORKER_API}?url=${url}"></iframe>
             </div>
             <aside>
+                <div id="email-subject">
                 <h2>Subject</h2>
                 <input type="text" readonly value="${meta.subject}">
+                </div>
                 
+                <div id="email-recipients">
                 <h2>Recipients</h2>
-                
                 <div class="recipients-wrapper">
                     <table class="recipients">
                         <tr>
@@ -86,7 +88,9 @@ export default async function decorate(block) {
                         </tr>
                     </table>
                 </div>
+                </div>
                 
+                <div id="email-variables">
                 <h2>Variables</h2>
                 ${variables.map((variable) => `
                   <div class="kv">
@@ -96,9 +100,10 @@ export default async function decorate(block) {
                 `).join('')}
                 
                 <button class="button secondary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
-                
-                <h2>Styles (Developer)</h2>
-                
+                </div>
+
+                <div id="email-styles">
+                <h2>Styles (Developer)</h2>                
                 <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
                 <form action="${EMAIL_WORKER_API}?url=${url}" method="POST" target="preview">
                     <textarea name="styles" class="styles"></textarea>
@@ -107,6 +112,7 @@ export default async function decorate(block) {
                         <button type="button" class="button secondary action save-styles">Save styles</button>
                     </div>
                 </form>
+                </div>
             </aside>
         </div>
       `;
@@ -203,9 +209,9 @@ export default async function decorate(block) {
           project = res.project;
 
           block.querySelector('.actions').innerHTML = `
-            <a href="#" target="_blank" class="button secondary action copy">Copy</a>
-            <a href="${project.driveUrl}" target="_blank" class="button action secondary edit">Edit</a>
-            <button class="button primary action send is-disabled">Send</button>
+            <a href="#" id="copy-button" target="_blank" class="button secondary action copy">Copy</a>
+            <a href="${project.driveUrl}" id="edit-button" target="_blank" class="button action secondary edit">Edit</a>
+            <button id="send-button" class="button primary action send is-disabled">Send</button>
           `;
 
           block.querySelector('.edit').onclick = () => {

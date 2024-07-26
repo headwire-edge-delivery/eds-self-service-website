@@ -1,5 +1,4 @@
 import { SCRIPT_API, onAuthenticated, OOPS } from '../../scripts/scripts.js';
-import '../../tour/dashboard.js';
 
 /**
  * @param {Element} block
@@ -14,22 +13,20 @@ export default async function decorate(block) {
     }
 
     const selected = window.location.pathname.split('/').pop();
-    const enableTour = localStorage.getItem('enableTour') === 'true';
-    const enableTourCheck = enableTour ? 'checked' : '';
+    const enableTourButton = localStorage.getItem('enableTourButton') === 'true';
+    const enableTourButtonCheck = enableTourButton ? 'checked' : '';
 
-    const toggleEnableTour = () => {
-      const state = localStorage.getItem('enableTour') === 'true';
-      localStorage.setItem('enableTour', !state);
-      if (!state) {
-        window.location.reload();
-      }
+    const toggleenableTourButton = () => {
+      const state = localStorage.getItem('enableTourButton') === 'true';
+      localStorage.setItem('enableTourButton', !state);
+      window.location.reload();
     };
 
     block.innerHTML = `
         <div class="nav">
           <h1>Dashboard</h1>
-          <a href="/" class="button primary new">Create new site</a>
-          <a href="https://myaccount.google.com/" id="edit-account-button" class="button edit primary">Edit account</a>
+          <a href="/" id="create-new-button" class="button primary new">Create new site</a>
+          <a href="https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit primary">Edit account</a>
         </div>
         <div class="content">
             <aside>
@@ -67,15 +64,15 @@ export default async function decorate(block) {
                       <strong>Last update</strong>
                       <span>${new Date(user.updated_at).toLocaleDateString()}</span>
                   </div>
-                  <div>
+                  <div id="current-plan-wrapper">
                       <strong>Plan</strong>
-                      <span>Free</span>
+                      <span id="current-plan">Free</span>
                   </div>
                 </div>
-                <div>
+                <div id="tour-checkbox">
                       <label for="tour"><strong>Tour</strong><br />
-                      <p>Enable the Tour. The Tour helps you to understand how Everything works.</p></label>
-                      <input type="checkbox" id="tour" ${enableTourCheck} />
+                      <p>Enables a “Help” button at the bottom right, which activates a tour for the current page.</p></label>
+                      <input type="checkbox" id="tour" ${enableTourButtonCheck} />
                   </div>
               </div>
               <div class="sites ${selected === 'sites' ? 'is-selected' : ''}">
@@ -100,7 +97,7 @@ export default async function decorate(block) {
       window?.zaraz?.track('click dashboard edit account', { url: window.location.href });
     };
 
-    block.querySelector('#tour').addEventListener('click', toggleEnableTour);
+    block.querySelector('#tour').addEventListener('click', toggleenableTourButton);
 
     aside.addEventListener('click', (event) => {
       if (event.target.closest('a')) {
@@ -151,7 +148,7 @@ export default async function decorate(block) {
         sites.innerHTML = `
           <input type="text" placeholder="Filter sites" class="filter">
           
-          <ul>
+          <ul id="my-sites-overview">
             ${projects.map(({ projectSlug, projectName, projectDescription }) => `
               <li>
                 <a href="/site/${projectSlug}">

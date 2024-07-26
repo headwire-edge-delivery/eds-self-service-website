@@ -13,7 +13,9 @@ export default async function decorate(block) {
   while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
 
   nav.querySelector('a[href="#back"]').classList.add('button');
+  nav.querySelector('a[href="#back"]').id = 'back-button';
   nav.querySelector('a[href="#select-template"]').classList.add('primary');
+  nav.querySelector('a[href="#select-template"]').id = 'select-template-button';
 
   block.innerHTML = '';
   block.append(nav);
@@ -45,6 +47,7 @@ export default async function decorate(block) {
   onAuthenticated(async () => {
     const dashboard = document.querySelector('header a[href="/dashboard"]');
     if (dashboard) {
+      dashboard.id = 'dashboard-button';
       const { picture } = await window.auth0Client.getUser();
       dashboard.insertAdjacentHTML('afterbegin', `
           <img alt="Avatar" referrerpolicy="no-referrer" src="${picture}">

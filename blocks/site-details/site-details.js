@@ -515,7 +515,7 @@ function renderIconsList(block, { project, headers, id }) {
 
     const settingsButton = document.createElement('button');
     settingsButton.classList.add('button', 'secondary', 'icon-settings', 'action');
-    settingsButton.innerText = 'Settings';
+    settingsButton.innerText = 'Edit';
 
     const copyButton = document.createElement('button');
     copyButton.classList.add('button', 'secondary', 'copy-button', 'action');
@@ -558,18 +558,6 @@ function renderIconsList(block, { project, headers, id }) {
       console.log(error);
     });
 }
-
-const createDocsEl = (html) => `
-  <div class="docs">
-    <h2>
-      <span class="icon icon-info">
-        <img alt src="/icons/info.svg" loading="lazy">  
-      </span>
-      Information
-    </h2>
-    ${html}
-  </div>
-`;
 
 /**
  * MARK: Decorate
@@ -631,8 +619,8 @@ export default async function decorate(block) {
           
           <div class="actions">
             <div class="overview-actions button-container ${selected === 'overview' ? 'is-selected' : ''}">
-                <button class="button secondary delete action">Delete</button>
-                <button class="button secondary update-description action">Update Description</button>
+                <button id="delete-site-button" class="button secondary delete action">Delete</button>
+                <button id="update-desc-button" class="button secondary update-description action">Update Description</button>
             </div>
             <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}"></div>
             <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}"></div>
@@ -717,26 +705,22 @@ export default async function decorate(block) {
             </aside>
 
             <div class="details">
-                <div class="overview-panel ${selected === 'overview' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p>Overview serves as your centralized control hub, offering quick access to essential information and actions about your site to help you to stay organized and productive with ease.</p>
-                    `)}
-                    
+                <div class="overview-panel ${selected === 'overview' ? 'is-selected' : ''}">                    
                     <div class="container">
                         <div class="cards">
-                            <div>
+                            <div id="site-id">
                               <strong>Site id</strong>
                               <span>${project.projectSlug}</span>
                           </div>
-                          <div class="project-description card">
+                          <div id="site-description" class="project-description card">
                               <strong>Site description</strong>
                               <span class="project-description span">${project.projectDescription ?? ''}</span>
                           </div>
-                          <div>
+                          <div id="last-updated">
                               <strong>Last update</strong>
                               <span class="last-update"></span>
                           </div>
-                          <div>
+                          <div id="site-template">
                               <strong>Site template</strong>
                               <span>${project.templateName}</span>
                           </div>
@@ -744,15 +728,12 @@ export default async function decorate(block) {
                     </div>
                 </div>
                 
-                <div class="pages-panel ${selected === 'pages' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p>Pages lists all published pages to serve as a comprehensive directory of your website's content. It provides a convenient overview of all accessible pages, enabling easy navigation and exploration of your site.</p>
-                    `)}
-                    
+                <div class="pages-panel ${selected === 'pages' ? 'is-selected' : ''}">                    
                     <div class="container">
+                        <div id="pages-overview">
                         <h2>Pages</h2>
                         <table class="pages">
-                            <thead>
+                          <thead>
                               <tr>
                                 <th>Title</th>
                                 <th>Description</th>
@@ -762,8 +743,10 @@ export default async function decorate(block) {
                               </tr>  
                             </thead>
                             <tbody></tbody>
-                        </table>
+                          </table>
+                        </div>
                         
+                        <div id="nav-overview">
                         <h2>Navigation</h2>
                         <table class="navs">
                             <thead>
@@ -777,7 +760,9 @@ export default async function decorate(block) {
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                         
+                        <div id="footer-overview">
                         <h2>Footer</h2>
                         <table class="footers">
                             <thead>
@@ -791,13 +776,11 @@ export default async function decorate(block) {
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="emails-panel ${selected === 'emails' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p>Emails serves as your toolkit for crafting impactful communication in your online endeavors tailored for various purposes, from newsletters to promotional campaigns streamlining your email creation process.</p>
-                    `)}
                     <div class="container">
                         <table class="emails">
                             <thead>
@@ -814,52 +797,30 @@ export default async function decorate(block) {
                 </div>
                 
                 <div class="monitoring-panel ${selected === 'monitoring' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p>Here, you'll find key insights into your web performance all in one place.</p>
-                      <p><strong>Website key metrics:</strong></p>
-                      <ul>
-                        <li><strong>Visits</strong>: when someone navigates to your website, either directly or from an external referer. One visit can consist of multiple page views.</li>
-                        <li><strong>Page views</strong>: when a page of your website is loaded by the browser.</li>
-                        <li><strong>Page load time</strong>: total amount of time it took to load the page (P50 median).</li>
-                        <li><strong>Core Web Vitals</strong>: an initiative by Google to provide unified guidance for quality signals that are essential to delivering a great user experience on the web.</li>
-                      </ul>
-                    `)}
                     <div class="container">
                         <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
                     </div>
                 </div>
                 
                 <div class="analytics-panel ${selected === 'analytics' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p>Here, you'll find key insights into your campaign performance all in one place.</p>
-                      <p><strong>Campaign key metrics:</strong></p>
-                      <ul>
-                        <li><strong>Delivery rate</strong>: percentage of successfully delivered emails.</li>
-                        <li><strong>Bounce rate</strong>: percentage of emails sent that couldn't be delivered to the recipient's inbox.</li>
-                        <li><strong>Open rate</strong>: percentage of recipients who opened the email.</li>
-                        <li><strong>Click-to-open rate</strong>: percentage of recipients who clicked on a link inside the email after opening.</li>
-                        <li><strong>Spam complaints rate</strong>: percentage of recipients reporting the email as spam.</li>
-                      </ul>
-                    `)}
                     <div class="container">
                         <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
                     </div>
                 </div>
                 
                 <div class="settings-panel ${selected === 'settings' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p><strong>Blocks</strong> acts as a repository of building blocks for your website. Here, you can explore and select from a variety of available blocks to enhance your web pages.</p>
-                      <p><strong>Icons</strong> is your go-to resource for web assets that add visual flair and functionality to your website. Here, you'll find a curated collection of icons suitable for various purposes, from navigation to social media integration.</p>
-                    `)}
-                    
                     <div class="container">
+                        <div id="blocks">
                         <h2>Blocks</h2>
-                        <button class="button secondary action add-block">Add block</button>
-                        <ul class="blocks list"></ul>
-                        
+                        <button id="add-block-button" class="button secondary action add-block">Add block</button>
+                        <ul id="blocks-list" class="blocks list"></ul>
+                        </div>
+
+                        <div id="icons">
                         <h2>Icons</h2>
-                        <button class="button action secondary add-icon">Add icon</button>
-                        <ul class="icons list"></ul>
+                        <button id="add-icon-button" class="button action secondary add-icon">Add icon</button>
+                        <ul id="icons-list" class="icons list"></ul>
+                        </div>
                     </div> 
                 </div>
             </div>
@@ -870,14 +831,14 @@ export default async function decorate(block) {
       actions.querySelector('.overview-actions').insertAdjacentHTML(
         'beforeend',
         `
-        <a href="${project.sidekickSetupUrl}" class="button action secondary sidekick" target="_blank">Install sidekick</a>
+        <a href="${project.sidekickSetupUrl}" id="install-sidekick-button" class="button action secondary sidekick" target="_blank">Install sidekick</a>
         ${
   project.authoringGuideUrl
-    ? `<a href="${project.authoringGuideUrl}" class="button action secondary guides" target="_blank">Guides</a>`
+    ? `<a href="${project.authoringGuideUrl}" id="guides-button" class="button action secondary guides" target="_blank">Guides</a>`
     : ''
 }
-        <a href="${project.driveUrl}" class="button action secondary edit" target="_blank">Edit</a>
-        <a href="${project.customLiveUrl}" class="button primary action open" target="_blank">Open</a>
+        <a href="${project.driveUrl}" id="edit-button" class="button action secondary edit" target="_blank">Edit</a>
+        <a href="${project.customLiveUrl}" id="open-button" class="button primary action open" target="_blank">Open</a>
       `,
       );
 
@@ -1192,7 +1153,7 @@ export default async function decorate(block) {
                       <td>${description}</td>          
                       <td>${toDate(item.lastModified).toLocaleString()}</td>
                       <td>
-                        <div class="button-container">
+                        <div id="email-open-edit" class="button-container">
                           <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${project.customLiveUrl}${item.path}" target="_blank">Open</a>
                           <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
                         </div>
@@ -1248,10 +1209,11 @@ export default async function decorate(block) {
 
       const addPageContainer = document.createElement('div');
       addPageContainer.classList.add('container', 'add-page-container');
-      block.querySelector('.pages-panel .docs')?.after(addPageContainer);
+      block.querySelector('.pages-panel')?.prepend(addPageContainer);
       const addPageButton = document.createElement('button');
       addPageButton.classList.add('button', 'action', 'secondary', 'add-page');
       addPageButton.innerText = 'Add Page';
+      addPageButton.id = 'add-page-button';
       addPageContainer.append(addPageButton);
 
       addPageButton.onclick = () => {
@@ -1351,17 +1313,17 @@ export default async function decorate(block) {
 
         container.innerHTML = `
           <div class="cards">
-            <div>
+            <div id="total-visits">
                 <strong>Total visits</strong>
                 <span>${totalVisits}</span>
                 ${visitsDelta !== 0 ? `<span class="${visitsDelta < 0 ? 'red' : 'green'}">${visitsDelta > 0 ? '+' : ''}${visitsDelta}%</span>` : ''}
             </div>
-            <div>
+            <div id="total-page-views">
                 <strong>Total page views</strong>
                 <span>${totalPageViews}</span>
                 ${pageViewsDelta !== 0 ? `<span class="${pageViewsDelta < 0 ? 'red' : 'green'}">${pageViewsDelta > 0 ? '+' : ''}${pageViewsDelta}%</span>` : ''}
             </div>
-            <div>
+            <div id="median-page-load">
                 <strong>Median page load time</strong>
                 <span>${medianPageLoadTime / 1000}ms</span>
                 ${performanceDelta !== 0 ? `<span class="${performanceDelta < 0 ? 'red' : 'green'}">${performanceDelta > 0 ? '+' : ''}${performanceDelta}%</span>` : ''}
@@ -1372,6 +1334,7 @@ export default async function decorate(block) {
               <canvas id="chart" width="600" height="400"></canvas>
           </div>
 
+          <div id="monitoring-details">
           <h2>Visits details</h2>
           <div class="cards metrics">
               <div>
@@ -1414,37 +1377,37 @@ export default async function decorate(block) {
 
           <h2>Page views details</h2>
           <div class="cards metrics">
-            <div>
+            <div id="visits-details-country">
                 <strong>By country</strong>
                 ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
                   <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
                 `).join('')}
             </div>
-            <div>
+            <div id="visits-details-referers">
                 <strong>By referers</strong>
                 ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
                   <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
                 `).join('')}
             </div>
-            <div>
+            <div id="visits-details-paths">
                 <strong>By paths</strong>
                 ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
                   <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
                 `).join('')}
             </div>
-            <div>
+            <div id="visits-details-browsers">
                 <strong>By browsers</strong>
                 ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
                   <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
                 `).join('')}
             </div>
-            <div>
+            <div id="visits-details-os">
                 <strong>By operating systems</strong>
                 ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
                   <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
                 `).join('')}
             </div>
-            <div>
+            <div id="visits-details-devices">
                 <strong>By device type</strong>
                 ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
                   <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
@@ -1491,7 +1454,9 @@ export default async function decorate(block) {
                 `).join('')}
             </div>
           </div>
+          </div>
           
+          <div id="core-web-vitals">
           <h2>Core Web Vitals</h2>
 
           <div class="cards">
@@ -1504,7 +1469,9 @@ export default async function decorate(block) {
                 </div>
                 `).join('')}
           </div>
+          </div>
           
+          <div id="core-web-vitals-path-browsers">
           <h2>By Path and Browsers</h2>
           
           <div class="cards metrics">
@@ -1560,6 +1527,7 @@ export default async function decorate(block) {
                   </ul>
                 `).join('')}
             </div>
+          </div>
           </div>
         `;
 
@@ -1637,31 +1605,31 @@ export default async function decorate(block) {
           let complainedCount = 0;
 
           block.querySelector('.analytics-panel .container').innerHTML = `
-            <div class="cards metrics">
-              <div>
+            <div id="email-metrics" class="cards metrics">
+              <div id="email-metrics-delivery-rate">
                   <strong>Delivery rate</strong>
                   <span class="delivered-count"></span>
               </div>
-              <div>
+              <div id="email-metrics-bounce-rate">
                   <strong>Bounce rate</strong>
                   <span class="bounced-count"></span>
               </div>
-              <div>
+              <div id="email-metrics-open-rate">
                   <strong>Open rate</strong>
                   <span class="opened-count"></span>
               </div>
-              <div>
+              <div id="email-metrics-cto-rate">
                   <strong>Click-to-open rate</strong>
                   <span class="clicked-count"></span>
               </div>
-              <div>
+              <div id="email-metrics-sc-rate">
                   <strong>Spam complaints rate</strong>
                   <span class="complained-count"></span>
               </div>
             </div>
             
+            <div id="email-details">
             <h2>Email details</h2>
-            
             <table>
                 <thead>
                   <tr>
@@ -1723,6 +1691,7 @@ export default async function decorate(block) {
   `}
                 </tbody>
             </table>
+            </div>
           `;
 
           if (res) {

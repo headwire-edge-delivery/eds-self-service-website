@@ -107,10 +107,10 @@ export default async function decorate(block) {
                 <button type="button" aria-label="close">&#x2715;</button>
               </div>
               <div class="button-container">
-                <button class="button action secondary edit-mode" hidden>Editing mode</button>
-                <button class="button action secondary preview-mode">Preview mode</button>
-                <select class="button action secondary publish-theme-selector"></select>
-                <button class="button action primary publish-theme">Save</button>
+                <button id="toggle-editing" class="button action secondary edit-mode" hidden>Editing mode</button>
+                <button id="toggle-preview" class="button action secondary preview-mode">Preview mode</button>
+                <select id="publish-theme-selector" class="button action secondary publish-theme-selector"></select>
+                <button id="save-button" class="button action primary publish-theme">Save</button>
               </div>
             </div>
           </div>

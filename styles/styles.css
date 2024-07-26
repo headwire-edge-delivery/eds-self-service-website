@@ -510,3 +510,27 @@ ul.author-list .author .revoke-button {
   gap: 10px;
   margin-bottom: 8px;
 }
+
+/* MARK: Help Button */
+.help-btn {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  margin: 1rem;
+  font-size: 1.8rem;
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 58px;
+  height: 58px;
+  border: 1px solid var(--white);
+  border-radius: 50%;
+  background-color: var(--orange);
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 5px var(--box-shadow-color);
+}
