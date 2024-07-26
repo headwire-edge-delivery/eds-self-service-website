@@ -1238,7 +1238,7 @@ export default async function decorate(block) {
 
               // add edit button
               const editButton = document.createElement('button');
-              editButton.classList.add('button', 'action', 'secondary', 'edit-page');
+              editButton.classList.add('button', 'action', 'secondary', 'edit-page', 'edit');
               editButton.target = '_blank';
               editButton.innerText = 'Edit';
               tableRow.lastElementChild.prepend(editButton);

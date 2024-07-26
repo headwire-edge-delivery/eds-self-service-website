@@ -304,15 +304,13 @@ input[type="color"] {
 
 
 
-.button.edit.loading,
-.button.edit-page.loading {
+.button.edit.loading {
   pointer-events: none;
   position: relative;
   color: transparent;
 }
 
-.button.edit.loading::after,
-.button.edit-page.loading::after {
+.button.edit.loading::after {
   content: "";
   position: absolute;
   top: 0;
