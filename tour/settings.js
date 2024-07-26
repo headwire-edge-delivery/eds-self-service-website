@@ -2,6 +2,21 @@ function settingsGeneralTour() {
   const tour = {
     steps: [
       {
+        title: 'Authors',
+        description: 'This is where you can add or remove authors for your website. <br /> Authors are the people who write the content on your website. <br /> By default, the website owner is the only author. <br /> You can add more authors. The new Author will receive an invitation email from us.',
+        element: '#authors',
+      },
+      {
+        title: 'Contact Email',
+        description: 'You can change your contact email here. <br /> This email will be used for contact forms and other contact related features. By default, it is the email from the website owner.',
+        element: '#contact-email',
+      },
+      {
+        title: 'Favicon',
+        description: 'This is where you can upload a favicon for your website. A favicon is a small icon that appears in the browser tab when your website is open. It helps users identify your website easily. <br /> It should be a square and as a filetype .ico.',
+        element: '#favicon',
+      },
+      {
         title: 'Blocks',
         description: 'This acts as a repository of building blocks for your website. Here, you can explore and select from a variety of available blocks to enhance your web pages.',
         element: '#blocks',

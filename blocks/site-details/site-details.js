@@ -833,6 +833,7 @@ export default async function decorate(block) {
                 
                 <div class="settings-panel ${selected === 'settings' ? 'is-selected' : ''}">
                     <div class="container">
+                      <div id="authors">
                         <h2>Authors</h2>
                         <form class="add-author-form form">
                           <label>
@@ -842,7 +843,9 @@ export default async function decorate(block) {
                           <button class="button primary action" type="submit">Add</button>
                         </form>
                         <ul class="authors-list"></ul>
+                      </div>
                         
+                      <div id="contact-email">
                         <h2>Contact email</h2>
                         <form class="contact-email-form form">
                             <label>
@@ -851,13 +854,16 @@ export default async function decorate(block) {
                             </label>    
                             <button class="button primary action" type="submit">Save</button>
                         </form>
+                      </div>
                         
+                      <div id="favicon">
                         <h2>Favicon</h2>
                         <p>Only <code>.ico</code> files are supported.</p>
                         <div class="favicon-section">
                           <img alt="favicon" src="https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico" loading="lazy">
                           <button class="button action primary change-favicon">Update</button>     
                         </div>
+                      </div>
                        
                         <div id="blocks">
                         <h2>Blocks</h2>
