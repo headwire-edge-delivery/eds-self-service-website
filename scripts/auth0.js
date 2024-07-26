@@ -34,9 +34,7 @@ window.auth0.createAuth0Client({
     window?.zaraz?.track('new auth session', { url: window.location.href });
     window?.zaraz?.set('user', user.email);
 
-    if (!window.localStorage.sessionExpiration) {
-      window.localStorage.sessionExpiration = getExpirationTime(sessionExpirationDays, bufferTime);
-    }
+    window.localStorage.sessionExpiration = getExpirationTime(sessionExpirationDays, bufferTime);
 
     if (window.sessionStorage.redirectTo) {
       const { redirectTo } = window.sessionStorage;
