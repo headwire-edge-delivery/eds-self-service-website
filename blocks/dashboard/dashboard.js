@@ -142,47 +142,21 @@ export default async function decorate(block) {
 
     if (reqList.ok) {
       const { projects, darkAlleyProjects } = await reqList.json();
-      if (!projects.length) {
+
+      if (!projects.length && !darkAlleyProjects.length) {
         sites.innerHTML = '<p>No Sites found</p>';
-      } else {
-        sites.innerHTML = `
-          <input type="text" placeholder="Filter sites" class="filter">
-          
-          <ul id="my-sites-overview">
-            ${projects.map(({ projectSlug, projectName, projectDescription }) => `
-              <li>
-                <a href="/site/${projectSlug}">
-                  <h2>${projectName}</h2>
-                  <p><strong>${projectSlug}</strong></p>
-                  <p>${projectDescription || ''}</p>
-                </a>
-              </li>
-            `).join('')}
-          </ul>
-      `;
+        return;
+      }
 
-        const filter = sites.querySelector('.filter');
-        filter.oninput = () => {
-          if (filter.value.length) {
-            sites.querySelectorAll('h2')
-              .forEach((el) => {
-                el.closest('li').hidden = !el.textContent.toLowerCase().includes(filter.value.toLowerCase().trim());
-              });
-          } else {
-            sites.querySelectorAll('li[hidden]').forEach((el) => {
-              el.hidden = false;
-            });
-          }
-        };
+      sites.innerHTML = '<input type="text" placeholder="Filter sites" class="filter">';
 
-        // MARK: dark alley projects
-
+      // MARK: dark alley projects
+      if (darkAlleyProjects.length) {
         const darkAlleySection = document.createElement('section');
         darkAlleySection.classList.add('dark-alley-section');
 
         darkAlleySection.innerHTML = `
-          <h3 id="dark-alley-projects">(Experimental) Dark Alley Projects</h3>
-
+          <h3>Dark Alley Sites (Experimental)</h3>
           <ul>
             ${darkAlleyProjects.map(({ projectSlug, projectName, projectDescription }) => `
               <li>
@@ -198,6 +172,40 @@ export default async function decorate(block) {
 
         sites.append(darkAlleySection);
       }
+
+      if (projects.length) {
+        const sitesSection = document.createElement('section');
+        sitesSection.innerHTML = `
+          <h3>Google Drive Sites</h3>
+          <ul id="my-sites-overview">
+            ${projects.map(({ projectSlug, projectName, projectDescription }) => `
+              <li>
+                <a href="/site/${projectSlug}">
+                  <h2>${projectName}</h2>
+                  <p><strong>${projectSlug}</strong></p>
+                  <p>${projectDescription || ''}</p>
+                </a>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+
+        sites.append(sitesSection);
+      }
+
+      const filter = sites.querySelector('.filter');
+      filter.oninput = () => {
+        if (filter.value.length) {
+          sites.querySelectorAll('h2')
+            .forEach((el) => {
+              el.closest('li').hidden = !el.textContent.toLowerCase().includes(filter.value.toLowerCase().trim());
+            });
+        } else {
+          sites.querySelectorAll('li[hidden]').forEach((el) => {
+            el.hidden = false;
+          });
+        }
+      };
     } else {
       sites.querySelector('.content p').textContent = OOPS;
     }

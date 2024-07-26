@@ -185,14 +185,17 @@
     }
 }
 
+.dashboard.block .sites section h3 {
+    padding-top: 48px;
+    padding-bottom: 0;
+}
+
 /* MARK: Dark Alley */
 
 .dashboard.block .dark-alley-section {
     display: none;
-    margin-top: 64px;
-    border: 2px solid crimson;
 }
 
-body.is-headwire .dashboard.block .dark-alley-section {
+body:is(.is-headwire, .is-adobe) .dashboard.block .dark-alley-section {
     display: block;
 }

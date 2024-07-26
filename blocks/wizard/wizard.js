@@ -506,7 +506,7 @@ export default async function decorate(block) {
                 // openDarkAlley.href = darkAlleyUrl;
                 openDrive.textContent = 'Open Dark Alley';
                 // openSite.after(openDarkAlley);
-                installSidekick.hidden = true;
+                installSidekick.parentElement.hidden = true;
               }
 
               if (openSiteDetails) {

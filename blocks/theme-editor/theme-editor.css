@@ -87,12 +87,6 @@
     padding-block: 14px;
 }
 
-.theme-editor.block label > span {
-    display: block;
-    margin-bottom: 8px;
-    margin-top: 12px;
-}
-
 .theme-editor.block .preview {
     flex: 1;
 }

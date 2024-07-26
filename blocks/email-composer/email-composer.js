@@ -1,5 +1,6 @@
 import {
   SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE,
+  projectRepo,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -16,6 +17,28 @@ export default async function decorate(block) {
     const token = await window.auth0Client.getTokenSilently();
 
     let project;
+
+    const googleProjectResponse = await fetch(`${SCRIPT_API}/list/${id}`, {
+      headers: {
+        authorization: `bearer ${token}`,
+      },
+    });
+    const googleProjectData = await googleProjectResponse.json();
+    project = googleProjectData?.project;
+
+    if (!project) {
+      // try dark alley
+      const darkAlleyProjectResponse = await fetch(`${SCRIPT_API}/darkAlleyList/${id}`);
+      const darkAlleyProjectData = await darkAlleyProjectResponse.json();
+      project = darkAlleyProjectData?.project;
+    }
+
+    // no project
+    if (!project) {
+      block.querySelector('.content p').textContent = OOPS;
+      return;
+    }
+
     let editor;
     let recipientsData = {
       headers: [],
@@ -167,7 +190,7 @@ export default async function decorate(block) {
             css: btoa(editor.getValue()),
           }),
         });
-        await window.alertDialog(req.ok ? 'Variables successfully updated!' : OOPS);
+        await window.alertDialog(req.ok ? 'Styles successfully updated! Please note style updates can take up to 1 minute to be reflected for all users.' : OOPS);
         saveStyles.classList.remove('is-disabled');
       };
 
@@ -193,64 +216,76 @@ export default async function decorate(block) {
         }
       };
 
-      // Load site to retrieve drive id
-      fetch(`${SCRIPT_API}/list/${id}`, {
-        headers: {
-          authorization: `bearer ${token}`,
-        },
-      }).then((res) => {
-        if (res.ok) {
-          return res.json();
-        }
-
-        throw new Error(res.status);
-      })
-        .then(async (res) => {
-          project = res.project;
-
-          block.querySelector('.actions').innerHTML = `
+      block.querySelector('.actions').innerHTML = `
             <a href="#" id="copy-button" target="_blank" class="button secondary action copy">Copy</a>
-            <a href="${project.driveUrl}" id="edit-button" target="_blank" class="button action secondary edit">Edit</a>
+            <button id="edit-button" class="button action secondary edit">Edit</button>
             <button id="send-button" class="button primary action send is-disabled">Send</button>
           `;
 
-          block.querySelector('.edit').onclick = () => {
-            window?.zaraz?.track('click email edit', { url: window.location.href });
-          };
+      const editButton = block.querySelector('.actions button.edit');
+      if (project?.darkAlleyProject) {
+        // DA project
+        const daEditLink = document.createElement('a');
+        daEditLink.classList.add('button', 'action', 'secondary', 'edit');
+        daEditLink.target = '_blank';
+        daEditLink.href = `https://da.live/edit#/da-self-service/${id}${path}`;
+        daEditLink.innerText = 'Edit';
+        editButton.replaceWith(daEditLink);
+      } else {
+        // is drive project
+        editButton.addEventListener('click', async () => {
+          editButton.classList.add('loading');
+          const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${project.projectSlug}/main${path}?editUrl=auto`).then((res) => res.json()).catch(() => null);
+          if (statusData?.edit?.url) {
+            window.open(statusData.edit.url, '_blank');
+          } else {
+            window.open(project.driveUrl, '_blank');
+          }
+          editButton.classList.remove('loading');
+        });
+      }
 
-          block.querySelector('.copy').onclick = (e) => {
-            window?.zaraz?.track('click email copy', { url: window.location.href });
+      if (project.darkAlleyProject) {
+        block.querySelectorAll('.breadcrumbs a').forEach((link) => {
+          if (link.href.includes('/site/')) {
+            link.href = link.href.replace('/site/', '/da-site/');
+          }
+        });
+      }
 
-            e.preventDefault();
+      block.querySelector('.edit').onclick = () => {
+        window?.zaraz?.track('click email edit', { url: window.location.href });
+      };
 
-            const copyUrl = new URL(iframe.src);
-            copyUrl.searchParams.set('copy', '');
-            window.open(copyUrl.toString(), '_blank');
-          };
+      block.querySelector('.copy').onclick = (e) => {
+        window?.zaraz?.track('click email copy', { url: window.location.href });
 
-          // Load codemirror to edit styles
-          loadCSS('/libs/codemirror/codemirror.min.css');
-          await import('../../libs/codemirror/codemirror.min.js');
-          await import('../../libs/codemirror/css.min.js');
+        e.preventDefault();
 
-          fetch(`${project.customLiveUrl}${meta.styles}`)
-            .then((resStyles) => {
-              if (resStyles.ok) {
-                return resStyles.text();
-              }
-              return '';
-            })
-            .then((css) => {
-              const styles = block.querySelector('.styles');
-              styles.value = css;
-            });
+        const copyUrl = new URL(iframe.src);
+        copyUrl.searchParams.set('copy', '');
+        window.open(copyUrl.toString(), '_blank');
+      };
+
+      // Load codemirror to edit styles
+      loadCSS('/libs/codemirror/codemirror.min.css');
+      await import('../../libs/codemirror/codemirror.min.js');
+      await import('../../libs/codemirror/css.min.js');
+
+      fetch(`${project.customLiveUrl}${meta.styles}`)
+        .then((resStyles) => {
+          if (resStyles.ok) {
+            return resStyles.text();
+          }
+          return '';
         })
-        .catch((error) => {
-          console.log(error);
+        .then((css) => {
+          const styles = block.querySelector('.styles');
+          styles.value = css;
         });
 
       // Load email metadata
-      fetch(`${SCRIPT_API}/sheets/${id}?sheetPath=recipients`, {
+      fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
         headers: {
           authorization: `bearer ${token}`,
         },
@@ -339,7 +374,7 @@ export default async function decorate(block) {
 
               toggleSendDisabled();
 
-              fetch(`${SCRIPT_API}/sheets/${id}?sheetPath=recipients&row=${index}`, {
+              fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients&row=${index}`, {
                 method: 'DELETE',
                 headers: {
                   authorization: `bearer ${token}`,
@@ -384,7 +419,7 @@ export default async function decorate(block) {
               input.value = '';
             });
 
-            fetch(`${SCRIPT_API}/sheets/${id}?sheetPath=recipients`, {
+            fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
               method: 'POST',
               headers: {
                 authorization: `bearer ${token}`,
@@ -408,7 +443,7 @@ export default async function decorate(block) {
               block.classList.add('is-sending');
 
               const previewSource = new URL(iframe.src);
-              const req = await fetch(`${SCRIPT_API}/send/${id}`, {
+              const req = await fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSend' : 'send'}/${id}`, {
                 headers: {
                   'content-type': 'application/json',
                   authorization: `bearer ${token}`,

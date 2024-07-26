@@ -2,6 +2,8 @@
 
 import {
   SCRIPT_API, onAuthenticated, OOPS, EMAIL_WORKER_API,
+  daProjectRepo,
+  projectRepo,
 } from '../../scripts/scripts.js';
 
 const protectedBlocks = {
@@ -321,9 +323,10 @@ function addBlockDialogSetup({ project, headers, itemList }) {
 
 // MARK: add page dialog
 function addPageDialogSetup({
-  project, headers,
+  project, headers, darkAlleyVariation,
 }) {
   const dialogContent = document.createElement('div');
+  dialogContent.classList.add('flex-row');
   const form = document.createElement('form');
   form.id = 'add-page-form';
   const info = document.createElement('p');
@@ -384,7 +387,7 @@ function addPageDialogSetup({
   form.append(info, nameLabel, dropdown);
   dialogContent.append(form, previewIframe);
 
-  const dialog = window.createDialog(dialogContent, [submit]);
+  const dialog = window.createDialog(dialogContent, [submit], { fullscreen: true });
 
   // submit.onclick = () => form.dispatchEvent(new Event('submit', { cancelable: true }));
   form.onsubmit = async (event) => {
@@ -396,7 +399,7 @@ function addPageDialogSetup({
     window.zaraz?.track('click site page add', { url: window.location.href });
 
     dialog.setLoading(true, 'Copying and setting up page...');
-    const addPageRequest = await fetch(`${SCRIPT_API}/addPage/${project.projectSlug}`, {
+    const addPageRequest = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'daAddPage' : 'addPage'}/${project.projectSlug}`, {
       method: 'POST',
       headers: { ...headers, 'content-type': 'application/json' },
       body: JSON.stringify({ pageName: pageNameInput.value, templatePath: dropdown.value }),
@@ -415,6 +418,24 @@ function addPageDialogSetup({
         draftsLink.innerText = 'Drafts Folder';
 
         buttons.push(draftsLink);
+      }
+
+      if (responseData.daDraftsPath) {
+        const draftsLink = document.createElement('a');
+        draftsLink.classList.add('button', 'secondary', 'action');
+        draftsLink.href = `https://da.live/#${responseData.daDraftsPath}`;
+        draftsLink.target = '_blank';
+        draftsLink.innerText = 'Drafts Folder';
+        buttons.push(draftsLink);
+
+        if (responseData.daNewPageSlug) {
+          const editLink = document.createElement('a');
+          editLink.classList.add('button', 'primary', 'action');
+          editLink.href = `https://da.live/edit#${responseData.daDraftsPath}/${responseData.daNewPageSlug}`;
+          editLink.target = '_blank';
+          editLink.innerText = `Edit ${pageNameInput.value}`;
+          buttons.push(editLink);
+        }
       }
 
       if (responseData?.newPageId) {
@@ -486,17 +507,7 @@ function renderBlocksList(block, { project, headers }) {
 // MARK: Icon list
 function renderIconsList(block, { project, headers, id }) {
   const iconsList = block.querySelector('.icons');
-  block.querySelector('.settings-actions').insertAdjacentHTML('beforeend', '<button class="button secondary action change-favicon">Change Favicon</button>');
   block.querySelector('.add-icon').onclick = () => addIconDialogSetup({ id, headers, itemList: iconsList });
-  block.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
-    id,
-    headers,
-    titleText: 'Favicon',
-    fileAccept: 'image/x-icon',
-    extraHtml: '<p>The favicon is the icon that appears in the browser tab.</p><p>You can change it here, but it must be a .ico file.</p>',
-    uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
-    defaultSrc: `https://main--${id}--headwire-self-service.hlx.page/favicon.ico`,
-  });
 
   iconsList.innerHTML = '';
   iconsList.addItem = ({ name, base64 }) => {
@@ -515,11 +526,14 @@ function renderIconsList(block, { project, headers, id }) {
 
     const settingsButton = document.createElement('button');
     settingsButton.classList.add('button', 'secondary', 'icon-settings', 'action');
-    settingsButton.innerText = 'Edit';
+    settingsButton.innerText = 'Update';
 
     const copyButton = document.createElement('button');
     copyButton.classList.add('button', 'secondary', 'copy-button', 'action');
-    copyButton.innerText = 'Copy';
+    copyButton.innerHTML = `
+      <img loading="lazy" alt="Copied" hidden src="/icons/check-mark.svg">
+      <span>Copy</span>
+    `;
 
     const buttonsContainer = document.createElement('div');
     buttonsContainer.classList.add('buttons-container');
@@ -540,6 +554,15 @@ function renderIconsList(block, { project, headers, id }) {
 
       // copy icon as doc compatible string (without .svg)
       navigator.clipboard.writeText(`:${name.replace(/\.[^/.]+$/, '')}:`);
+      const icon = copyButton.querySelector('img');
+      const text = copyButton.querySelector('span');
+
+      text.hidden = true;
+      icon.hidden = false;
+      setTimeout(() => {
+        text.hidden = false;
+        icon.hidden = true;
+      }, 2000);
     };
   };
 
@@ -622,7 +645,9 @@ export default async function decorate(block) {
                 <button id="delete-site-button" class="button secondary delete action">Delete</button>
                 <button id="update-desc-button" class="button secondary update-description action">Update Description</button>
             </div>
-            <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}"></div>
+            <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}">
+                <button class="button primary add-page action">Add Page</button>
+            </div>
             <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}"></div>
             <div class="monitoring-actions button-container ${selected === 'monitoring' ? 'is-selected' : ''}">
                 <select class="button action secondary period-selector">
@@ -632,9 +657,7 @@ export default async function decorate(block) {
                 </select>
             </div>
             <div class="analytics-actions button-container ${selected === 'analytics' ? 'is-selected' : ''}"></div>
-            <div class="settings-actions button-container ${selected === 'settings' ? 'is-selected' : ''}">
-                <button class="button action secondary share">Project Authors</button>
-            </div>
+            <div class="settings-actions button-container ${selected === 'settings' ? 'is-selected' : ''}"></div>
           </div>
         </div>
         
@@ -810,15 +833,41 @@ export default async function decorate(block) {
                 
                 <div class="settings-panel ${selected === 'settings' ? 'is-selected' : ''}">
                     <div class="container">
+                        <h2>Authors</h2>
+                        <form class="add-author-form form">
+                          <label>
+                            <span>New author</span>
+                            <input name="email" type="email" placeholder="person@example.com" />
+                          </label>
+                          <button class="button primary action" type="submit">Add</button>
+                        </form>
+                        <ul class="authors-list"></ul>
+                        
+                        <h2>Contact email</h2>
+                        <form class="contact-email-form form">
+                            <label>
+                                <span>Define which email the contact form submits to.</span>
+                                <input name="email" type="email" placeholder="person@example.com" />
+                            </label>    
+                            <button class="button primary action" type="submit">Save</button>
+                        </form>
+                        
+                        <h2>Favicon</h2>
+                        <p>Only <code>.ico</code> files are supported.</p>
+                        <div class="favicon-section">
+                          <img alt="favicon" src="https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico" loading="lazy">
+                          <button class="button action primary change-favicon">Update</button>     
+                        </div>
+                       
                         <div id="blocks">
                         <h2>Blocks</h2>
-                        <button id="add-block-button" class="button secondary action add-block">Add block</button>
+                        <button id="add-block-button" class="button primary action add-block">Add block</button>
                         <ul id="blocks-list" class="blocks list"></ul>
                         </div>
 
                         <div id="icons">
                         <h2>Icons</h2>
-                        <button id="add-icon-button" class="button action secondary add-icon">Add icon</button>
+                        <button id="add-icon-button" class="button action primary add-icon">Add icon</button>
                         <ul id="icons-list" class="icons list"></ul>
                         </div>
                     </div> 
@@ -826,6 +875,15 @@ export default async function decorate(block) {
             </div>
         </div>
     `;
+
+      // TODO: remove when we move to dark alley
+      if (project.darkAlleyProject) {
+        block.querySelectorAll('.breadcrumbs a').forEach((link) => {
+          if (link.href.includes('/site/')) {
+            link.href = link.href.replace('/site/', '/da-site/');
+          }
+        });
+      }
 
       const actions = block.querySelector('.actions');
       actions.querySelector('.overview-actions').insertAdjacentHTML(
@@ -842,146 +900,111 @@ export default async function decorate(block) {
       `,
       );
 
-      // MARK: Share dialog
-      const shareButton = actions.querySelector('button.share');
-      shareButton.onclick = async () => {
-        window?.zaraz?.track('click site share', { url: window.location.href });
+      // MARK: Share authors
+      const authorsList = block.querySelector('.authors-list');
+      const addAuthorListItem = (author) => {
+        if (!author.email) return;
+        const listItem = document.createElement('li');
+        listItem.classList.add('author');
+        const authorEmail = author.email;
+        const isOwner = author.owner;
+        listItem.dataset.authorEmail = authorEmail;
+        const span = document.createElement('span');
+        span.innerText = authorEmail;
+        const revoke = document.createElement('button');
+        revoke.classList.add('revoke-button', 'button', 'action', 'secondary');
+        revoke.textContent = 'Revoke';
+        if (isOwner) revoke.disabled = true;
+        revoke.onclick = async () => {
+          window?.zaraz?.track('click site share delete', { url: window.location.href });
 
-        const dialog = window.createDialog('<div><h3>Getting Authors...</h3></div>');
-        const authors = await fetch(`${SCRIPT_API}/authors/${id}`, { headers })
-          .then((r) => r.json())
-          .catch(() => []);
-        const populatedContent = document.createElement('div');
-        const title = document.createElement('h3');
-        title.innerText = 'Project authors';
-        const authorList = document.createElement('ul');
-        authorList.classList.add('author-list');
+          if (isOwner) return;
+          if (await window.confirmDialog('Are you sure ?')) {
+            window?.zaraz?.track('click site share delete submit', { url: window.location.href });
 
-        // author list
-        const addAuthorListItem = (author) => {
-          if (!author.email) return;
-          const listItem = document.createElement('li');
-          listItem.classList.add('author');
-          const authorEmail = author.email;
-          const isOwner = author.owner;
-          listItem.dataset.authorEmail = authorEmail;
-          const span = document.createElement('span');
-          span.innerText = authorEmail;
-          const revoke = document.createElement('button');
-          revoke.classList.add('revoke-button', 'button');
-          if (isOwner) revoke.disabled = true;
-          revoke.onclick = async () => {
-            window?.zaraz?.track('click site share delete', { url: window.location.href });
-
-            if (isOwner) return;
-            if (await window.confirmDialog('Are you sure ?')) {
-              window?.zaraz?.track('click site share delete submit', { url: window.location.href });
-
-              dialog.setLoading(true, `Removing ${authorEmail}...`);
-              const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
-                method: 'DELETE',
-                headers,
-              });
-              if (revokeResponse.ok) {
-                dialog.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
-              } else {
-                await window.alertDialog(OOPS);
-              }
-              dialog.setLoading(false);
+            authorsList.classList.add('is-disabled');
+            const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
+              method: 'DELETE',
+              headers,
+            });
+            if (revokeResponse.ok) {
+              authorsList.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
+            } else {
+              await window.alertDialog(OOPS);
             }
-          };
-
-          listItem.append(revoke, span);
-          authorList.append(listItem);
-        };
-        authors.forEach(addAuthorListItem);
-
-        // add new authors
-        const addAuthorSection = document.createElement('div');
-        addAuthorSection.classList.add('add-author-section');
-        addAuthorSection.innerHTML = `
-          <h4>Add an Author:</h4>
-          <form>
-            <input name="email" type="email" placeholder="person@example.com" />
-            <button class="button secondary action" type="submit">Add</button>
-          </form>
-        `;
-        const addAuthorForm = addAuthorSection.querySelector('form');
-        addAuthorForm.onsubmit = async (event) => {
-          window?.zaraz?.track('click site share add submit', { url: window.location.href });
-
-          event.preventDefault();
-          dialog.setLoading(true, 'Adding Author...');
-          const email = event.target.email.value;
-          const isValid = /^(?!@).*@.*(?<!@)$/.test(email);
-          if (!isValid) {
-            await window.alertDialog('Please enter a valid email.');
-            dialog.setLoading(false);
-            return;
+            authorsList.classList.remove('is-disabled');
           }
-          const response = await fetch(`${SCRIPT_API}/authors/${id}/${email}`, {
-            method: 'POST',
-            headers,
-          });
-          if (response.ok) {
-            addAuthorListItem({ email });
-            event.target.email.value = '';
-          } else {
-            await window.alertDialog(OOPS);
-          }
-          dialog.setLoading(false);
         };
 
-        populatedContent.append(title, authorList, addAuthorSection);
-        dialog.renderDialog(populatedContent);
+        listItem.append(span, revoke);
+        authorsList.append(listItem);
       };
 
-      // MARK: Contact Email dialog
-      const changeContactButton = document.createElement('button');
-      actions.querySelector('.settings-actions.button-container').append(changeContactButton);
-      changeContactButton.classList.add('button', 'secondary', 'action');
-      changeContactButton.innerText = 'Change contact email';
-      changeContactButton.onclick = () => {
-        window?.zaraz?.track('click site contact', { url: window.location.href });
+      const addAuthorForm = block.querySelector('.add-author-form');
+      // TODO: Update when we have dark alley authorization
+      if (darkAlleyVariation) {
+        addAuthorForm.classList.add('is-disabled');
+      }
+      addAuthorForm.onsubmit = async (event) => {
+        window?.zaraz?.track('click site share add submit', { url: window.location.href });
 
-        const title = document.createElement('h3');
-        title.innerText = 'Change contact email';
+        event.preventDefault();
 
-        const input = document.createElement('input');
-        input.value = project.contactEmail || project.ownerEmail || '';
-        input.type = 'email';
-        input.placeholder = 'contact@email.com';
+        addAuthorForm.classList.add('is-disabled');
+        const email = event.target.email.value;
+        const isValid = /^(?!@).*@.*(?<!@)$/.test(email);
+        if (!isValid) {
+          await window.alertDialog('Please enter a valid email.');
+          addAuthorForm.classList.remove('is-disabled');
+          return;
+        }
+        const response = await fetch(`${SCRIPT_API}/authors/${id}/${email}`, {
+          method: 'POST',
+          headers,
+        });
+        if (response.ok) {
+          addAuthorListItem({ email });
+          event.target.email.value = '';
+        } else {
+          await window.alertDialog(OOPS);
+        }
+        addAuthorForm.classList.remove('is-disabled');
+      };
 
-        const paragraph = document.createElement('p');
-        paragraph.innerText = 'This defines which email the contact form submits to.';
+      fetch(`${SCRIPT_API}/authors/${id}`, { headers })
+        .then((res) => res.json())
+        .then((authors) => {
+          authors.forEach(addAuthorListItem);
+        })
+        .catch(() => {});
 
-        const dialogContent = document.createElement('div');
-        dialogContent.append(title, input, paragraph);
+      // MARK: Contact Email
+      const contactEmailForm = block.querySelector('.contact-email-form');
+      const contactEmailFormInput = contactEmailForm.querySelector('input');
+      contactEmailFormInput.value = project.contactEmail || project.ownerEmail || '';
 
-        const submitButton = document.createElement('button');
+      contactEmailForm.onsubmit = async (event) => {
+        window?.zaraz?.track('click site contact submit', { url: window.location.href });
 
-        const dialog = window.createDialog(dialogContent, [submitButton]);
+        event.preventDefault();
 
-        submitButton.classList.add('button');
-        submitButton.innerText = 'Submit';
-        submitButton.onclick = async () => {
-          window?.zaraz?.track('click site contact submit', { url: window.location.href });
+        if (!contactEmailFormInput.value) return;
 
-          if (!input.value) return;
-          dialog.setLoading(true, 'Updating Contact Email...');
-          const response = await fetch(`${SCRIPT_API}/updateContact/${project.projectSlug}`, {
-            headers: { ...headers, 'content-type': 'application/json' },
-            method: 'POST',
-            body: JSON.stringify({ contactEmail: input.value }),
-          });
-          if (response.ok) {
-            dialog.renderDialog('<h3 class="centered-info" >Email Updated</h3>');
-            project.contactEmail = input.value;
-          } else {
-            await window.alertDialog(OOPS);
-          }
-          dialog.setLoading(false);
-        };
+        contactEmailForm.classList.add('is-disabled');
+
+        const response = await fetch(`${SCRIPT_API}/updateContact/${project.projectSlug}`, {
+          headers: { ...headers, 'content-type': 'application/json' },
+          method: 'POST',
+          body: JSON.stringify({ contactEmail: contactEmailFormInput.value }),
+        });
+        if (response.ok) {
+          await window.alertDialog('Contact email updated!');
+          project.contactEmail = contactEmailFormInput.value;
+        } else {
+          await window.alertDialog(OOPS);
+        }
+
+        contactEmailForm.classList.remove('is-disabled');
       };
 
       const aside = block.querySelector('aside');
@@ -1121,11 +1144,11 @@ export default async function decorate(block) {
           block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
           const pages = data.filter(
-            ({ template, robots }) => !template.includes('email') && !robots.includes('noindex'),
+            ({ template, robots }) => !template?.includes('email') && !robots?.includes('noindex'),
           );
-          const navs = data.filter(({ path }) => path.endsWith('/nav'));
-          const footers = data.filter(({ path }) => path.endsWith('/footer'));
-          const emails = data.filter(({ template }) => template.includes('email'));
+          const navs = data.filter(({ path }) => path?.endsWith('/nav'));
+          const footers = data.filter(({ path }) => path?.endsWith('/footer'));
+          const emails = data.filter(({ template }) => template?.includes('email'));
 
           const renderTable = (tableBody, tableData, type) => {
             const tableRows = tableData.map((item) => {
@@ -1170,26 +1193,31 @@ export default async function decorate(block) {
                 <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
                 <td class="table-actions"><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
                 `;
-              console.log('item.path:', item.path);
 
               // add edit button
               const editButton = document.createElement('button');
-              editButton.classList.add('button', 'action', 'secondary', 'edit-page');
+              editButton.classList.add('button', 'action', 'secondary', 'edit-page', 'edit');
               editButton.target = '_blank';
               editButton.innerText = 'Edit';
               tableRow.lastElementChild.prepend(editButton);
 
-              editButton.onclick = () => {
-                editButton.classList.add('loading');
-                fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).then((statusData) => {
+              // TODO: change to link if we drop drive support
+              if (!darkAlleyVariation) {
+                editButton.onclick = async () => {
+                  editButton.classList.add('loading');
+                  const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).catch(() => null);
                   if (statusData?.edit?.url) {
                     window.open(statusData.edit.url, '_blank');
+                  } else {
+                    window.open(project.driveUrl, '_blank');
                   }
-                }).catch(/* do nothing */)
-                  .finally(() => {
-                    editButton.classList.remove('loading');
-                  });
-              };
+                  editButton.classList.remove('loading');
+                };
+              } else {
+                editButton.onclick = () => {
+                  window.open(`https://da.live/edit#/${daProjectRepo}/${id}${item.path.endsWith('/') ? `${item.path}index` : item.path}`, '_blank');
+                };
+              }
 
               return tableRow;
             });
@@ -1216,7 +1244,7 @@ export default async function decorate(block) {
       addPageButton.id = 'add-page-button';
       addPageContainer.append(addPageButton);
 
-      addPageButton.onclick = () => {
+      block.querySelector('.add-page').onclick = () => {
         addPageDialogSetup({ project, headers });
       };
 
@@ -1225,6 +1253,16 @@ export default async function decorate(block) {
 
       // Load site icons
       renderIconsList(block, { project, headers, id });
+
+      // Favicon
+      block.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
+        id,
+        headers,
+        titleText: 'Favicon',
+        fileAccept: 'image/x-icon',
+        uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
+        defaultSrc: `https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico`,
+      });
 
       // calendar link
       if (project.calendarId) {
