@@ -210,11 +210,10 @@ export default async function decorate(block) {
 
       block.querySelector('.actions').innerHTML = `
             <a href="#" target="_blank" class="button secondary action copy">Copy</a>
-            <a href="${project?.driveUrl || `https://da.live/edit#/da-self-service/${id}/newsletter`}" target="_blank" class="button action secondary edit">Edit</a>
+            <a href="${project?.driveUrl || `https://da.live/#/da-self-service/${id}/`}" target="_blank" class="button action secondary edit">Edit</a>
             <button class="button primary action send is-disabled">Send</button>
           `;
 
-      console.log('project:', project);
       if (project.darkAlleyProject) {
         block.querySelectorAll('.breadcrumbs a').forEach((link) => {
           if (link.href.includes('/site/')) {
