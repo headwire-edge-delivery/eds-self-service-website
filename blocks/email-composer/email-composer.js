@@ -1,5 +1,6 @@
 import {
   SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE,
+  projectRepo,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -35,6 +36,7 @@ export default async function decorate(block) {
     // no project
     if (!project) {
       block.querySelector('.content p').textContent = OOPS;
+      return;
     }
 
     let editor;
@@ -210,9 +212,32 @@ export default async function decorate(block) {
 
       block.querySelector('.actions').innerHTML = `
             <a href="#" target="_blank" class="button secondary action copy">Copy</a>
-            <a href="${project?.driveUrl || `https://da.live/#/da-self-service/${id}/`}" target="_blank" class="button action secondary edit">Edit</a>
+            <button class="button action secondary edit">Edit</button>
             <button class="button primary action send is-disabled">Send</button>
           `;
+
+      const editButton = block.querySelector('.actions button.edit');
+      if (project?.darkAlleyProject) {
+        // DA project
+        const daEditLink = document.createElement('a');
+        daEditLink.classList.add('button', 'action', 'secondary', 'edit');
+        daEditLink.target = '_blank';
+        daEditLink.href = `https://da.live/edit#/da-self-service/${id}${path}`;
+        daEditLink.innerText = 'Edit';
+        editButton.replaceWith(daEditLink);
+      } else {
+        // is drive project
+        editButton.addEventListener('click', async () => {
+          editButton.classList.add('loading');
+          const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${project.projectSlug}/main${path}?editUrl=auto`).then((res) => res.json()).catch(() => null);
+          if (statusData?.edit?.url) {
+            window.open(statusData.edit.url, '_blank');
+          } else {
+            window.open(project.driveUrl, '_blank');
+          }
+          editButton.classList.remove('loading');
+        });
+      }
 
       if (project.darkAlleyProject) {
         block.querySelectorAll('.breadcrumbs a').forEach((link) => {
@@ -275,7 +300,6 @@ export default async function decorate(block) {
           }
 
           recipientsData = data;
-          console.log('recipientsData:', recipientsData);
           recipients.innerHTML = `
               <thead>
                 <tr>

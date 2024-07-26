@@ -3,6 +3,7 @@
 import {
   SCRIPT_API, onAuthenticated, OOPS, EMAIL_WORKER_API,
   daProjectRepo,
+  projectRepo,
 } from '../../scripts/scripts.js';
 
 const protectedBlocks = {
@@ -1246,9 +1247,11 @@ export default async function decorate(block) {
               if (!darkAlleyVariation) {
                 editButton.onclick = async () => {
                   editButton.classList.add('loading');
-                  const statusData = await fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).catch(() => null);
+                  const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).catch(() => null);
                   if (statusData?.edit?.url) {
                     window.open(statusData.edit.url, '_blank');
+                  } else {
+                    window.open(project.driveUrl, '_blank');
                   }
                   editButton.classList.remove('loading');
                 };
