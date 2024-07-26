@@ -302,6 +302,25 @@ input[type="color"] {
   text-transform: none;
 }
 
+
+
+.button.edit.loading {
+  pointer-events: none;
+  position: relative;
+  color: transparent;
+}
+
+.button.edit.loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  filter: invert(1);
+  background: url("/icons/loading.svg") no-repeat center;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

@@ -3,6 +3,7 @@
 import {
   SCRIPT_API, onAuthenticated, OOPS, EMAIL_WORKER_API,
   daProjectRepo,
+  projectRepo,
 } from '../../scripts/scripts.js';
 
 const protectedBlocks = {
@@ -1185,11 +1186,11 @@ export default async function decorate(block) {
           block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
           const pages = data.filter(
-            ({ template, robots }) => !template.includes('email') && !robots.includes('noindex'),
+            ({ template, robots }) => !template?.includes('email') && !robots?.includes('noindex'),
           );
-          const navs = data.filter(({ path }) => path.endsWith('/nav'));
-          const footers = data.filter(({ path }) => path.endsWith('/footer'));
-          const emails = data.filter(({ template }) => template.includes('email'));
+          const navs = data.filter(({ path }) => path?.endsWith('/nav'));
+          const footers = data.filter(({ path }) => path?.endsWith('/footer'));
+          const emails = data.filter(({ template }) => template?.includes('email'));
 
           const renderTable = (tableBody, tableData, type) => {
             const tableRows = tableData.map((item) => {
@@ -1237,7 +1238,7 @@ export default async function decorate(block) {
 
               // add edit button
               const editButton = document.createElement('button');
-              editButton.classList.add('button', 'action', 'secondary', 'edit-page');
+              editButton.classList.add('button', 'action', 'secondary', 'edit-page', 'edit');
               editButton.target = '_blank';
               editButton.innerText = 'Edit';
               tableRow.lastElementChild.prepend(editButton);
@@ -1246,9 +1247,11 @@ export default async function decorate(block) {
               if (!darkAlleyVariation) {
                 editButton.onclick = async () => {
                   editButton.classList.add('loading');
-                  const statusData = await fetch(`https://admin.hlx.page/status/headwire-self-service/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).catch(() => null);
+                  const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).catch(() => null);
                   if (statusData?.edit?.url) {
                     window.open(statusData.edit.url, '_blank');
+                  } else {
+                    window.open(project.driveUrl, '_blank');
                   }
                   editButton.classList.remove('loading');
                 };
