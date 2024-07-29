@@ -1767,6 +1767,8 @@ export default async function decorate(block) {
             block.querySelectorAll('.analytics-panel .metrics span').forEach((el) => el.remove());
           }
         });
+    } else if (reqDetails.status === 404) {
+      block.querySelector('.content p').innerHTML = `<p>Project "${id}" not found. Create it <a href="/">here!</a></p>`;
     } else {
       block.querySelector('.content p').textContent = OOPS;
     }
