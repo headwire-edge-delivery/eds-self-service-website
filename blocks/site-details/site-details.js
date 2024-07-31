@@ -594,6 +594,67 @@ const createDocsEl = (html) => `
   </div>
 `;
 
+// MARK: project updates
+async function renderUpdatesSection(div, { project, headers }) {
+  const endpoint = `${SCRIPT_API}/${project.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
+  const versionInfo = await fetch(`${endpoint}/checkUpdates/${project.projectSlug}`, { headers }).then((res) => res.json()).catch(() => null);
+  console.log('versionInfo:', versionInfo);
+
+  if (!versionInfo) {
+    div.innerHTML = '<h3>Could not get update information.</h3>';
+    return;
+  }
+
+  if (versionInfo.updateAvailable) {
+    div.innerHTML = /* html */`
+      <h3>A new version is available!</h3>
+      ${versionInfo.updateLevel === 'major' ? '<p><strong><span>This version is a major update. It is possible some blocks need to be updated.</span></strong></p>' : ''}
+    `;
+
+    const updateButton = document.createElement('button');
+    updateButton.classList.add('button', 'action', 'primary', 'update-button');
+    updateButton.innerText = 'Update';
+    updateButton.onclick = async () => {
+      const dialogContent = document.createElement('div');
+      dialogContent.innerHTML = '<h3>Update Project</h3><p>Are you sure you want to update this project? This will take a short while.</p><p>This action can be undone, but changes to icons, blocks, and site theme made after an update, will also be reverted when undone.</p>';
+      const confirmUpdateButton = document.createElement('button');
+      confirmUpdateButton.classList.add('button', 'action', 'secondary', 'update-button');
+      confirmUpdateButton.innerText = 'Update';
+
+      const cancelButton = document.createElement('button');
+      cancelButton.classList.add('button', 'action', 'primary', 'update-button');
+      cancelButton.innerText = 'Cancel';
+
+      const projectUpdateDialog = window.createDialog(dialogContent, [confirmUpdateButton, cancelButton]);
+
+      confirmUpdateButton.onclick = async () => {
+        window?.zaraz?.track('click site update', { url: window.location.href });
+
+        projectUpdateDialog.dataset.loadingText = 'Updating...';
+        projectUpdateDialog.setLoading(true);
+
+        const updateResponse = await fetch(`${endpoint}/update/${project.projectSlug}`, { headers });
+        if (updateResponse.ok) {
+          projectUpdateDialog.renderDialog('Project updated successfully!');
+        } else {
+          projectUpdateDialog.renderDialog(OOPS);
+        }
+        projectUpdateDialog.setLoading(false);
+      };
+
+      cancelButton.onclick = () => {
+        const dialog = cancelButton.closest('dialog');
+        dialog.close();
+      };
+    };
+
+    div.append(updateButton);
+    return;
+  }
+
+  div.innerHTML = '<h3>No updates available.</h3>';
+}
+
 /**
  * MARK: Decorate
  * @param {Element} block
@@ -912,6 +973,9 @@ export default async function decorate(block) {
                         <h2>Icons</h2>
                         <button class="button action primary add-icon">Add icon</button>
                         <ul class="icons list"></ul>
+
+                        <h2>Updates</h2>
+                        <div class="update-info"></div>
                     </div> 
                 </div>
             </div>
@@ -1285,6 +1349,9 @@ export default async function decorate(block) {
 
       // Load site icons
       renderIconsList(block, { project, headers, id });
+
+      // project updates
+      renderUpdatesSection(block.querySelector('.update-info'), { project, headers });
 
       // Favicon
       block.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
