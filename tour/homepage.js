@@ -1,6 +1,6 @@
 export default function homepageTour() {
   const userIsAuthenticated = document.body.classList.contains('is-authenticated');
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Welcome to Fast Sites',
@@ -41,5 +41,5 @@ export default function homepageTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }

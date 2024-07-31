@@ -1,5 +1,5 @@
 function campaignEmailsTour() {
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Emails',
@@ -19,11 +19,11 @@ function campaignEmailsTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 function campaignEmailAnalyticsTour() {
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Email Analytics',
@@ -67,7 +67,7 @@ function campaignEmailAnalyticsTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 export {

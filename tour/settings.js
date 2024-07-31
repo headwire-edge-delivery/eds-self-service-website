@@ -1,5 +1,5 @@
 function settingsGeneralTour() {
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Authors',
@@ -58,11 +58,11 @@ function settingsGeneralTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 function settingsThemeTour() {
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Theme Editor',
@@ -86,7 +86,7 @@ function settingsThemeTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 export { settingsGeneralTour, settingsThemeTour };

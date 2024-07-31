@@ -1,5 +1,5 @@
 function siteOverviewTour() {
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Overview',
@@ -64,11 +64,11 @@ function siteOverviewTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 function sitePagesTour() {
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Pages',
@@ -106,11 +106,11 @@ function sitePagesTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 function siteMonitoringTour() {
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Monitoring',
@@ -191,7 +191,7 @@ function siteMonitoringTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 export {

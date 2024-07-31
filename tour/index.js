@@ -1,5 +1,10 @@
 import { dashboardSitesTour, dashboardAccountTour } from './dashboard.js';
-import { wkndTemplateTour, sportsTemplateTour, clubTemplateTour } from './templates.js';
+import {
+  createTemplateTour,
+  wkndTemplateTour,
+  sportsTemplateTour,
+  clubTemplateTour,
+} from './templates.js';
 import homepageTour from './homepage.js';
 import noTourAvailable from './noTour.js';
 import {
@@ -15,6 +20,7 @@ export {
   dashboardAccountTour,
   homepageTour,
   noTourAvailable,
+  createTemplateTour,
   wkndTemplateTour,
   sportsTemplateTour,
   clubTemplateTour,

@@ -1,13 +1,16 @@
-export default function generateTour(driver, tour) {
+export default function generateTour(tour, toggleAutoTour, showAutoTour, tourData) {
   const tourSteps = [];
+  let isLastStep = false;
 
-  tour.steps.forEach((step, index) => {
+  tourData.steps.forEach((step, index) => {
     if (step.skip === true) {
       return;
     }
 
     const tourStep = {
       element: step.element,
+      elementEvent: step.elementEvent,
+      destroyOnClicked: step.destroyOnClicked ?? false,
       popover: {
         title: step.title,
         description: step.description,
@@ -22,10 +25,52 @@ export default function generateTour(driver, tour) {
     tourSteps.push(tourStep);
   });
 
-  return driver({
-    disableActiveInteraction: tour.disableActiveInteraction ?? true,
-    progressText: tour.progressText ?? 'Step {{current}} of {{total}}',
+  return tour({
+    disableActiveInteraction: tourData.disableActiveInteraction ?? false,
+    progressText: tourData.progressText ?? 'Step {{current}} of {{total}}',
+    onNextClick: tourData.onNextClick,
     steps: tourSteps,
-    onDeselected: tour.onDeselected ?? (() => {}),
+    onDestroyStarted: (element, step, { state }) => {
+      isLastStep = state.activeIndex === tourSteps.length - 1;
+      const tourObj = tour({
+        doneBtnText: 'Close Tour',
+        steps: [
+          {
+            popover: {
+              title: 'Do you want to disable the Tour?',
+              description: '',
+              side: 'bottom',
+              align: 'start',
+            },
+          },
+          {
+            element: '.help-btn',
+            popover: {
+              title: 'Need help?',
+              description: 'You can always click the help button to start the tour for the current Page.',
+              side: 'bottom',
+              align: 'start',
+            },
+          },
+        ],
+        onPopoverRender: (popover) => {
+          const disableTourButton = document.createElement('button');
+          disableTourButton.innerText = 'Disable Tour';
+          disableTourButton.classList.add('button', 'disable-tour-btn');
+          popover.footerButtons.appendChild(disableTourButton);
+
+          disableTourButton.addEventListener('click', () => {
+            tourObj.destroy();
+            toggleAutoTour();
+          });
+        },
+      });
+
+      if (showAutoTour && !isLastStep) {
+        tourObj.start();
+      } else {
+        tourObj.destroy();
+      }
+    },
   });
 }

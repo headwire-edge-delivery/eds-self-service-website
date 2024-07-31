@@ -1,7 +1,7 @@
 function dashboardSitesTour() {
   const projects = document.querySelectorAll('#my-sites-overview li').length;
 
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'My Sites Overview',
@@ -23,13 +23,12 @@ function dashboardSitesTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 function dashboardAccountTour() {
-  // get the text inside the span of #current-plan
   const currentPlan = document.querySelector('#current-plan').textContent;
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Account Details',
@@ -55,7 +54,7 @@ function dashboardAccountTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 export { dashboardSitesTour, dashboardAccountTour };

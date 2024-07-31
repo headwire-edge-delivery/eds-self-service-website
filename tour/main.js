@@ -3,6 +3,7 @@ import {
   dashboardSitesTour,
   homepageTour,
   noTourAvailable,
+  createTemplateTour,
   wkndTemplateTour,
   sportsTemplateTour,
   clubTemplateTour,
@@ -17,9 +18,38 @@ import {
 } from './index.js';
 import generateTour from './generateTour.js';
 
-const { driver } = window.driver.js;
+const SCRIPT_API = 'https://eds-self-service-scripts.onrender.com';
+// const SCRIPT_API = window.location.hostname === 'localhost'
+//   ? 'http://localhost:4000' : 'https://eds-self-service-scripts.onrender.com';
 
-const startTour = () => {
+function onAuthenticated(cb) {
+  if (document.body.classList.contains('is-authenticated')) {
+    cb();
+  } else {
+    document.addEventListener('auth0:authenticated', () => {
+      cb();
+    });
+  }
+}
+
+let showAutoTour = false;
+
+const toggleAutoTour = () => {
+  onAuthenticated(async () => {
+    const token = await window.auth0Client.getTokenSilently();
+    const headers = { authorization: `bearer ${token}` };
+
+    await fetch(`${SCRIPT_API}/userSettings`, {
+      headers: { ...headers, 'content-type': 'application/json' },
+      method: 'POST',
+      body: JSON.stringify({ userSettings: { showAutoTour: !showAutoTour } }),
+    }).catch((error) => console.error(error));
+  });
+};
+
+const { tour } = window.expedition.js;
+
+const startTour = (isAutoTour = false) => {
   const { pathname } = window.location;
   const switchCase = (startPath, endPath = undefined) => {
     if (endPath === undefined) {
@@ -28,53 +58,96 @@ const startTour = () => {
     return pathname.startsWith(startPath) && pathname.endsWith(endPath);
   };
 
+  function getTour(siteTour, closeOnClick = true, autoTour = showAutoTour) {
+    /* if (closeOnClick) {
+      document.getElementsByTagName('main')[0].addEventListener('click', () => {
+        tour().destroy();
+        if (showAutoTour) {
+          setTimeout(() => {
+            startTour(showAutoTour);
+          }, 800);
+        }
+      });
+
+      document.getElementsByTagName('header')[0].addEventListener('click', () => {
+        tour().destroy();
+        if (showAutoTour) {
+          setTimeout(() => {
+            startTour(showAutoTour);
+          }, 800);
+        }
+      });
+    } */
+    return generateTour(tour, toggleAutoTour, autoTour, siteTour()).start();
+  }
+
   switch (true) {
     case switchCase('/site/', '/overview'):
-      generateTour(driver, siteOverviewTour()).drive();
+      getTour(siteOverviewTour);
       break;
     case switchCase('/site/', '/pages'):
-      generateTour(driver, sitePagesTour()).drive();
+      getTour(sitePagesTour);
       break;
     case switchCase('/site/', '/monitoring'):
-      generateTour(driver, siteMonitoringTour()).drive();
+      getTour(siteMonitoringTour);
       break;
     case switchCase('/site/', '/emails'):
-      generateTour(driver, campaignEmailsTour()).drive();
+      getTour(campaignEmailsTour);
       break;
     case switchCase('/site/', '/analytics'):
-      generateTour(driver, campaignEmailAnalyticsTour()).drive();
+      getTour(campaignEmailAnalyticsTour);
       break;
     case switchCase('/site/', '/settings'):
-      generateTour(driver, settingsGeneralTour()).drive();
+      getTour(settingsGeneralTour);
       break;
     case switchCase('/theme/'):
-      generateTour(driver, settingsThemeTour()).drive();
+      getTour(settingsThemeTour);
       break;
     case switchCase('/email/'):
-      generateTour(driver, emailTour()).drive();
+      getTour(emailTour);
       break;
     case switchCase('/dashboard/sites'):
-      generateTour(driver, dashboardSitesTour()).drive();
+      getTour(dashboardSitesTour);
       break;
     case switchCase('/dashboard/account'):
-      generateTour(driver, dashboardAccountTour()).drive();
+      getTour(dashboardAccountTour);
+      break;
+    case switchCase('/templates/', '/create'):
+      getTour(createTemplateTour, false);
       break;
     case switchCase('/templates/wknd-template'):
-      generateTour(driver, wkndTemplateTour()).drive();
+      getTour(wkndTemplateTour);
       break;
     case switchCase('/templates/sports-template'):
-      generateTour(driver, sportsTemplateTour()).drive();
+      getTour(sportsTemplateTour);
       break;
     case switchCase('/templates/club-template'):
-      generateTour(driver, clubTemplateTour()).drive();
+      getTour(clubTemplateTour);
       break;
     case pathname === '/' || switchCase('/templates/'):
-      generateTour(driver, homepageTour()).drive();
+      getTour(homepageTour);
       break;
     default:
-      generateTour(driver, noTourAvailable()).drive();
+      if (!isAutoTour) {
+        getTour(noTourAvailable, false);
+      }
       break;
   }
 };
 
-export default startTour;
+onAuthenticated(async () => {
+  const token = await window.auth0Client.getTokenSilently();
+  const headers = { authorization: `bearer ${token}` };
+
+  await fetch(`${SCRIPT_API}/userSettings`, {
+    headers: { ...headers, 'content-type': 'application/json' },
+    method: 'GET',
+  }).then((res) => res.json()).then((data) => {
+    showAutoTour = data.showAutoTour ?? true;
+    if (showAutoTour) {
+      startTour(showAutoTour);
+    }
+  });
+});
+
+export { startTour, toggleAutoTour };

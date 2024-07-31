@@ -15,7 +15,7 @@
     height: auto;
 }
 
-.driver-popover-btn, .driver-popover-prev-btn, .driver-popover-next-btn {
+.driver-popover-btn, .driver-popover-prev-btn, .driver-popover-next-btn, .disable-tour-btn {
     border-color: var(--white) !important;
     text-decoration: none !important;
     align-items: center !important;

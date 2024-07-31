@@ -1,6 +1,46 @@
+function createTemplateTour() {
+  const tourData = {
+    steps: [
+      {
+        title: 'Create your new Page',
+        description: 'Here you can create a new Page with the selected Template.',
+      },
+      {
+        title: 'Name your Site',
+        description: 'Enter a name for your new Site.',
+        element: '#site-name',
+        destroyOnClicked: true,
+      },
+      {
+        title: 'Define a Slug',
+        description: 'It will be automatically generated based on the Site Name. But you can change it here. <br /> A Slug is a part of a URL which identifies a particular page on a website in a form readable by users.',
+        element: '#slug-input',
+        elementEvent: () => console.log('Element Event'),
+      },
+      {
+        title: 'Describe your Site',
+        description: 'Give a short description of your Site.',
+        element: '#description-input',
+      },
+      {
+        title: 'Dark Alley',
+        description: 'By default, Google Drive is used to manage the pages. We also support Dark Alley on an experimental basis. <br /> <a href="https://da.live/docs" target="_blank">Dark Alley</a> is a powerful and flexible Content Management System from Adobe Experience Manager. <br />',
+        element: '.dark-alley-label',
+      },
+      {
+        title: 'Create your Site',
+        description: 'Click here to create your new Site.',
+        element: '#create-button',
+        elementEvent: () => console.log('Element Event'),
+      },
+    ],
+  };
+
+  return tourData;
+}
+
 function wkndTemplateTour() {
-  const tour = {
-    disableActiveInteraction: true,
+  const tourData = {
     steps: [
       {
         title: 'Welcome to the WKND Template',
@@ -9,7 +49,6 @@ function wkndTemplateTour() {
       {
         title: 'Preview of the WKND Template',
         description: 'Here you can see a preview of the WKND Template.',
-        element: 'body',
       },
       {
         title: 'Want to start with the WKND Template?',
@@ -24,11 +63,11 @@ function wkndTemplateTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 function sportsTemplateTour() {
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Welcome to the Sports Template',
@@ -52,11 +91,11 @@ function sportsTemplateTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
 function clubTemplateTour() {
-  const tour = {
+  const tourData = {
     steps: [
       {
         title: 'Welcome to the Club Template',
@@ -80,7 +119,12 @@ function clubTemplateTour() {
     ],
   };
 
-  return tour;
+  return tourData;
 }
 
-export { wkndTemplateTour, sportsTemplateTour, clubTemplateTour };
+export {
+  createTemplateTour,
+  wkndTemplateTour,
+  sportsTemplateTour,
+  clubTemplateTour,
+};

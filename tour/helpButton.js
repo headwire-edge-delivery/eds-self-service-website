@@ -1,18 +1,25 @@
-import startTour from './main.js';
+import { startTour, toggleAutoTour } from './main.js';
 
 const helpButton = () => {
-  const enableTourButton = localStorage.getItem('enableTourButton');
-  if (enableTourButton === 'false') {
-    return;
-  }
   const button = document.createElement('button');
   button.id = 'help-btn';
   button.innerText = '?';
   button.classList.add('help-btn');
   button.ariaLabel = 'Help';
-  document.querySelector('main').appendChild(button);
+  document.querySelector('footer').appendChild(button);
 
   document.querySelector('.help-btn').addEventListener('click', startTour);
+
+  // MARK: Temp button
+
+  const tempButton = document.createElement('button');
+  tempButton.id = 'temp-btn';
+  tempButton.innerText = 'Temp: Toggle Tour';
+  tempButton.classList.add('temp-btn');
+  tempButton.ariaLabel = 'Temp: Toggle Tour';
+  document.querySelector('footer').appendChild(tempButton);
+
+  document.querySelector('.temp-btn').addEventListener('click', toggleAutoTour);
 };
 
 export default helpButton;

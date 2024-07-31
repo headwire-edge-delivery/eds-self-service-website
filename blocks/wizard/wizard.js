@@ -19,7 +19,7 @@ export default async function decorate(block) {
 
   const prevTemplate = document.createElement('button');
   prevTemplate.className = 'button secondary prev';
-  prevTemplate.textContent = 'Previous';
+  prevTemplate.textContent = 'Go back';
 
   creationSteps.forEach((step, i) => {
     const buttonContainer = step.querySelector('.button-container:last-child');
@@ -312,6 +312,7 @@ export default async function decorate(block) {
   const createStep = block.querySelector(':scope > div:has(a[href="#create"])');
   const input = document.createElement('input');
   input.placeholder = 'My Site';
+  input.id = 'site-name';
 
   const slugInputWrapper = document.createElement('label');
   const slugInput = document.createElement('input');
@@ -319,11 +320,13 @@ export default async function decorate(block) {
   slugInputWrapper.append(slugInput);
   slugInput.placeholder = 'my-site';
   slugInputWrapper.dataset.leftoverChars = slugMaxLength;
+  slugInput.id = 'slug-input';
 
   slugInput.dataset.copyName = true;
 
   const createButton = createStep.querySelector('a[href="#create"]');
   createButton.classList.add('is-disabled');
+  createButton.id = 'create-button';
 
   // MARK: Valid slug check
   let createButtonTimer;
@@ -351,6 +354,7 @@ export default async function decorate(block) {
   }
   const descriptionTextarea = document.createElement('textarea');
   descriptionTextarea.placeholder = 'Description';
+  descriptionTextarea.id = 'description-input';
 
   const darkAlleyCheckbox = document.createElement('input');
   darkAlleyCheckbox.type = 'checkbox';

@@ -13,14 +13,6 @@ export default async function decorate(block) {
     }
 
     const selected = window.location.pathname.split('/').pop();
-    const enableTourButton = localStorage.getItem('enableTourButton') === 'true';
-    const enableTourButtonCheck = enableTourButton ? 'checked' : '';
-
-    const toggleenableTourButton = () => {
-      const state = localStorage.getItem('enableTourButton') === 'true';
-      localStorage.setItem('enableTourButton', !state);
-      window.location.reload();
-    };
 
     block.innerHTML = `
         <div class="nav">
@@ -69,11 +61,6 @@ export default async function decorate(block) {
                       <span id="current-plan">Free</span>
                   </div>
                 </div>
-                <div id="tour-checkbox">
-                      <label for="tour"><strong>Tour</strong><br />
-                      <p>Enables a “Help” button at the bottom right, which activates a tour for the current page.</p></label>
-                      <input type="checkbox" id="tour" ${enableTourButtonCheck} />
-                  </div>
               </div>
               <div class="sites ${selected === 'sites' ? 'is-selected' : ''}">
                 <p>
@@ -96,8 +83,6 @@ export default async function decorate(block) {
     block.querySelector('.edit').onclick = () => {
       window?.zaraz?.track('click dashboard edit account', { url: window.location.href });
     };
-
-    block.querySelector('#tour').addEventListener('click', toggleenableTourButton);
 
     aside.addEventListener('click', (event) => {
       if (event.target.closest('a')) {
