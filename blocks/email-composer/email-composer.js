@@ -67,7 +67,7 @@ export default async function decorate(block) {
         </div>
       </div>`;
 
-    const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta?url=${url}`);
+    const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta/${url}`);
     if (reqEmail.ok) {
       const { meta, variables } = await reqEmail.json();
 
@@ -92,7 +92,7 @@ export default async function decorate(block) {
         
         <div class="content">
             <div class="preview">
-                <iframe name="preview" src="${EMAIL_WORKER_API}?url=${url}"></iframe>
+                <iframe name="preview" src="${EMAIL_WORKER_API}/preview/${url}"></iframe>
             </div>
             <aside>
                 <div id="email-subject">
@@ -128,7 +128,7 @@ export default async function decorate(block) {
                 <div id="email-styles">
                 <h2>Styles (Developer)</h2>                
                 <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
-                <form action="${EMAIL_WORKER_API}?url=${url}" method="POST" target="preview">
+                <form action="${EMAIL_WORKER_API}/preview/${url}" method="POST" target="preview">
                     <textarea name="styles" class="styles"></textarea>
                     <div class="button-container">
                         <button type="submit" class="button secondary action">Preview</button>
@@ -190,7 +190,7 @@ export default async function decorate(block) {
             css: btoa(editor.getValue()),
           }),
         });
-        await window.alertDialog(req.ok ? 'Styles successfully updated! Please note style updates can take up to 1 minute to be reflected for all users.' : OOPS);
+        await window.alertDialog(req.ok ? 'Styles successfully updated! Updates can take up to 1 minute to be reflected for all users.' : OOPS);
         saveStyles.classList.remove('is-disabled');
       };
 
@@ -262,9 +262,7 @@ export default async function decorate(block) {
 
         e.preventDefault();
 
-        const copyUrl = new URL(iframe.src);
-        copyUrl.searchParams.set('copy', '');
-        window.open(copyUrl.toString(), '_blank');
+        window.open(iframe.src.replace('/preview/', '/copy/'), '_blank');
       };
 
       // Load codemirror to edit styles
@@ -450,7 +448,7 @@ export default async function decorate(block) {
                 },
                 body: JSON.stringify({
                   styles: block.querySelector('.styles').value,
-                  url: previewSource.searchParams.get('url'),
+                  url: previewSource.pathname.replace('/preview/', ''),
                   variables: customVariables,
                   to: recipientsData.data.filter(({ email }) => selectedRecipients
                     .find((el) => el.dataset.email === email)),
