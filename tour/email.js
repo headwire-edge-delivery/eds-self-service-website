@@ -1,5 +1,10 @@
-function campaignEmailsTour() {
+function campaignEmailsTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        window.location.href = window.location.href.replace('/emails', '/analytics');
+      }
+    },
     steps: [
       {
         title: 'Emails',
@@ -22,8 +27,13 @@ function campaignEmailsTour() {
   return tourData;
 }
 
-function campaignEmailAnalyticsTour() {
+function campaignEmailAnalyticsTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        window.location.href = window.location.href.replace('/analytics', '/settings');
+      }
+    },
     steps: [
       {
         title: 'Email Analytics',

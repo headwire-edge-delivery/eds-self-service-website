@@ -1,6 +1,6 @@
-import { startTour, toggleAutoTour } from './main.js';
+import { startTour } from './main.js';
 
-const helpButton = () => {
+const helpButton = (SCRIPT_API) => {
   const button = document.createElement('button');
   button.id = 'help-btn';
   button.innerText = '?';
@@ -8,18 +8,9 @@ const helpButton = () => {
   button.ariaLabel = 'Help';
   document.querySelector('footer').appendChild(button);
 
-  document.querySelector('.help-btn').addEventListener('click', startTour);
+  document.querySelector('.help-btn').addEventListener('click', () => startTour(SCRIPT_API));
 
-  // MARK: Temp button
-
-  const tempButton = document.createElement('button');
-  tempButton.id = 'temp-btn';
-  tempButton.innerText = 'Temp: Toggle Tour';
-  tempButton.classList.add('temp-btn');
-  tempButton.ariaLabel = 'Temp: Toggle Tour';
-  document.querySelector('footer').appendChild(tempButton);
-
-  document.querySelector('.temp-btn').addEventListener('click', toggleAutoTour);
+  startTour(SCRIPT_API, true);
 };
 
 export default helpButton;

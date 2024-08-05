@@ -1,5 +1,10 @@
-function settingsGeneralTour() {
+function settingsGeneralTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        window.location.href = window.location.href.replace('site/', 'theme/').replace('/settings', '');
+      }
+    },
     steps: [
       {
         title: 'Authors',
@@ -13,7 +18,7 @@ function settingsGeneralTour() {
       },
       {
         title: 'Favicon',
-        description: 'This is where you can upload a favicon for your website. A favicon is a small icon that appears in the browser tab when your website is open. It helps users identify your website easily. <br /> It should be a square and as a filetype .ico.',
+        description: 'This is where you can upload a favicon for your website. A favicon is a small icon that appears in the browser tab when your website is open. It helps users identify your website easily. <br /> It should be a square and as a filetype .ico. <br /> You can convert your image to a .ico file <a href="https://www.icoconverter.com/" target="_blank">here</a>.',
         element: '#favicon',
       },
       {
@@ -61,8 +66,13 @@ function settingsGeneralTour() {
   return tourData;
 }
 
-function settingsThemeTour() {
+function settingsThemeTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        window.location.href = '/dashboard/account';
+      }
+    },
     steps: [
       {
         title: 'Theme Editor',
@@ -79,9 +89,15 @@ function settingsThemeTour() {
         element: '#publish-theme-selector',
       },
       {
+        title: 'Theme Variables',
+        description: 'Here you can change the Theme Variables. <br /> Theme Variables are the basic settings of your Theme.',
+        element: 'aside',
+      },
+      {
         title: 'Save',
         description: 'If you are finished, you can save your changes to your Theme. <br /> There is no automatic saving. Be sure you are satisfied with your changes before saving.',
         element: '#save-button',
+        align: 'end',
       },
     ],
   };

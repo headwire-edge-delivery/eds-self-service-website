@@ -107,10 +107,10 @@ export default async function decorate(block) {
                 <button type="button" aria-label="close">&#x2715;</button>
               </div>
               <div class="button-container">
-                <button id="toggle-editing" class="button action secondary edit-mode" hidden>Editing mode</button>
-                <button id="toggle-preview" class="button action secondary preview-mode">Preview mode</button>
-                <select id="publish-theme-selector" class="button action secondary publish-theme-selector"></select>
-                <button id="save-button" class="button action primary publish-theme">Save</button>
+                <button id="toggle-editing" title="Edit your Theme" class="button action secondary edit-mode" hidden>Editing mode</button>
+                <button id="toggle-preview" title="Preview your theme" class="button action secondary preview-mode">Preview mode</button>
+                <select id="publish-theme-selector" title="Select the previewed page" class="button action secondary publish-theme-selector"></select>
+                <button id="save-button" title="Save your changes" class="button action primary is-disabled publish-theme">Save</button>
               </div>
             </div>
           </div>
@@ -143,49 +143,49 @@ export default async function decorate(block) {
                   <h3>Base</h3>
                   <label>
                     <span>Light</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-light">
                     </div>
                   </label>
                   <label>
                     <span>Dark</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-dark">
                     </div>
                   </label>
                   <label>
                     <span>Lightest</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-lightest">
                     </div>
                   </label>
                   <label>
                     <span>Darkest</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-darkest">
                     </div>
                   </label>
                   <label>
                     <span>Brand primary</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-brand-primary">
                     </div>
                   </label>
                   <label>
                     <span>Brand secondary</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-brand-secondary">
                     </div>
                   </label>
                   <label>
                     <span>Brand tertiary</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-brand-tertiary">
                     </div>
@@ -194,7 +194,7 @@ export default async function decorate(block) {
                   <h3>Elements</h3>
                   <label>
                       <span>Background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="background-color">
                       </div>
@@ -202,7 +202,7 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Header background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="header-background-color">
                       </div>
@@ -210,7 +210,7 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Footer background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="footer-background-color">
                       </div>
@@ -218,7 +218,7 @@ export default async function decorate(block) {
                  
                   <label>
                       <span>Heading text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="heading-color">
                       </div>
@@ -226,7 +226,7 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Body text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="text-color">
                       </div>
@@ -234,14 +234,14 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Links text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="link-color">
                       </div>
                   </label>
                   <label>
                       <span>Links text color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="link-color-hover">
                       </div>
@@ -253,42 +253,42 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-text-color">
                       </div>
                   </label>
                   <label>
                       <span>Background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-background-color">
                       </div>
                   </label>
                   <label>
                       <span>Border color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-border-color">
                       </div>
                   </label>
                   <label>
                       <span>Text color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-text-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Background color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-background-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Border color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-border-color-hover">
                       </div>
@@ -298,42 +298,42 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-text-color">
                       </div>
                   </label>
                   <label>
                       <span>Background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-background-color">
                       </div>
                   </label>
                   <label>
                       <span>Border color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-border-color">
                       </div>
                   </label>
                   <label>
                       <span>Text color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-text-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Background color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-background-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Border color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-border-color-hover">
                       </div>
@@ -343,42 +343,42 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-text-color">
                       </div>
                   </label>
                   <label>
                       <span>Background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-background-color">
                       </div>
                   </label>
                   <label>
                       <span>Border color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-border-color">
                       </div>
                   </label>
                   <label>
                       <span>Text color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-text-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Background color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-background-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Border color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-border-color-hover">
                       </div>
@@ -467,6 +467,7 @@ export default async function decorate(block) {
 
         const editor = window.CodeMirror.fromTextArea(vars);
         editor.on('change', () => {
+          block.querySelector('.publish-theme').classList.remove('is-disabled');
           previewFrame.contentWindow.postMessage({
             type: 'update:styles',
             styles: fonts,
@@ -807,6 +808,7 @@ export default async function decorate(block) {
         // };
       })
       .catch((error) => {
+        // eslint-disable-next-line no-console
         console.log(error);
         block.querySelector('.content p').textContent = OOPS;
       });

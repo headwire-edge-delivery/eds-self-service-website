@@ -67,13 +67,20 @@ function addIconDialogSetup({
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = fileAccept;
+  const faviconDescription = document.createElement('p');
+  faviconDescription.innerHTML = 'Don\'t have an .ico file yet? You can convert your image to a .ico file <a href="https://www.icoconverter.com/" target="_blank">here</a>.';
   const preview = document.createElement('div');
   preview.classList.add('preview');
   if (defaultSrc) {
     preview.innerHTML = `<img alt="favicon" src="${defaultSrc}" loading="lazy" />`;
   }
 
-  dialogContent.append(title, input, preview);
+  if (titleText === 'Favicon') {
+    dialogContent.append(title, faviconDescription, input, preview);
+  } else {
+    dialogContent.append(title, input, preview);
+  }
+
   if (extraHtml) {
     dialogContent.insertAdjacentHTML('beforeend', extraHtml);
   }
@@ -103,7 +110,8 @@ function addIconDialogSetup({
   };
 
   const addButton = document.createElement('button');
-  addButton.innerText = 'Add';
+  addButton.innerText = 'Save';
+  addButton.title = 'Save Icon';
   const dialog = window.createDialog(dialogContent, [addButton]);
   addButton.onclick = async () => {
     window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add submit`, { url: window.location.href });
@@ -352,12 +360,8 @@ function addPageDialogSetup({
   const templateRegex = /^template\s*-\s*(?!.*authoring\s+guide\s*-)/i;
 
   fetch(`${templateUrl}/tools/sidekick/library.json`).then((res) => res.json()).then(({ data }) => {
-    const templates = data.filter((item) => {
-      if (templateRegex.test(item.name)) {
-        return true;
-      }
-      return false;
-    });
+    const templates = data.filter((item) => !!(templateRegex.test(item.name)));
+    // eslint-disable-next-line no-console
     console.log('templates:', templates);
 
     dropdown.innerHTML = '';
@@ -371,9 +375,11 @@ function addPageDialogSetup({
     });
     previewIframe.classList.remove('hidden');
     previewIframe.src = `${templateUrl}${dropdown.value}`;
+    // eslint-disable-next-line no-console
   }).catch((err) => console.error(err));
 
   dropdown.onchange = () => {
+    // eslint-disable-next-line no-console
     console.log('\x1b[34m ~ TEST:');
     previewIframe.src = `${templateUrl}${dropdown.value}`;
   };
@@ -500,6 +506,7 @@ function renderBlocksList(block, { project, headers }) {
       blocks.forEach((item) => blocksList.addItem(item));
     })
     .catch((error) => {
+      // eslint-disable-next-line no-console
       console.log(error);
     });
 }
@@ -527,6 +534,7 @@ function renderIconsList(block, { project, headers, id }) {
     const settingsButton = document.createElement('button');
     settingsButton.classList.add('button', 'secondary', 'icon-settings', 'action');
     settingsButton.innerText = 'Update';
+    settingsButton.title = 'Update Icon';
 
     const copyButton = document.createElement('button');
     copyButton.classList.add('button', 'secondary', 'copy-button', 'action');
@@ -534,6 +542,7 @@ function renderIconsList(block, { project, headers, id }) {
       <img loading="lazy" alt="Copied" hidden src="/icons/check-mark.svg">
       <span>Copy</span>
     `;
+    copyButton.title = 'Copy Icon';
 
     const buttonsContainer = document.createElement('div');
     buttonsContainer.classList.add('buttons-container');
@@ -578,6 +587,7 @@ function renderIconsList(block, { project, headers, id }) {
       icons.forEach((item) => iconsList.addItem(item));
     })
     .catch((error) => {
+      // eslint-disable-next-line no-console
       console.log(error);
     });
 }
@@ -593,6 +603,7 @@ export default async function decorate(block) {
     const split = window.location.pathname.split('/');
     const id = split[2];
     const token = await window.auth0Client.getTokenSilently();
+    const user = await window.auth0Client.getUser();
     const headers = { authorization: `bearer ${token}` };
 
     if (/(^\/site\/|^\/da-site\/)/g.test(window.location.pathname) && split.length === 3) {
@@ -642,11 +653,11 @@ export default async function decorate(block) {
           
           <div class="actions">
             <div class="overview-actions button-container ${selected === 'overview' ? 'is-selected' : ''}">
-                <button id="delete-site-button" class="button secondary delete action">Delete</button>
-                <button id="update-desc-button" class="button secondary update-description action">Update Description</button>
+                <button id="delete-site-button" title="Delete your Project" class="button secondary delete action">Delete</button>
+                <button id="update-desc-button" title="Edit the Project Description" class="button secondary update-description action">Update Description</button>
             </div>
             <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}">
-                <button class="button primary add-page action">Add Page</button>
+                <button id="add-page-button" title="Add a new Page" class="button primary add-page action">Add Page</button>
             </div>
             <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}"></div>
             <div class="monitoring-actions button-container ${selected === 'monitoring' ? 'is-selected' : ''}">
@@ -840,7 +851,7 @@ export default async function decorate(block) {
                             <span>New author</span>
                             <input name="email" type="email" placeholder="person@example.com" />
                           </label>
-                          <button class="button primary action" type="submit">Add</button>
+                          <button id="add-author-button" title="Add a new Author" class="button is-disabled primary action" type="submit">Add</button>
                         </form>
                         <ul class="authors-list"></ul>
                       </div>
@@ -852,7 +863,7 @@ export default async function decorate(block) {
                                 <span>Define which email the contact form submits to.</span>
                                 <input name="email" type="email" placeholder="person@example.com" />
                             </label>    
-                            <button class="button primary action" type="submit">Save</button>
+                            <button id="contact-email-save" title="Update the Contact Email" class="button primary is-disabled action" type="submit">Update</button>
                         </form>
                       </div>
                         
@@ -861,19 +872,19 @@ export default async function decorate(block) {
                         <p>Only <code>.ico</code> files are supported.</p>
                         <div class="favicon-section">
                           <img alt="favicon" src="https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico" loading="lazy">
-                          <button class="button action primary change-favicon">Update</button>     
+                          <button id="change-favicon" title="Change the Favicon. (Only .ico is supported)" class="button action primary change-favicon">Update</button>     
                         </div>
                       </div>
                        
                         <div id="blocks">
                         <h2>Blocks</h2>
-                        <button id="add-block-button" class="button primary action add-block">Add block</button>
+                        <button id="add-block-button" title="Add a new block" class="button primary action add-block">Add block</button>
                         <ul id="blocks-list" class="blocks list"></ul>
                         </div>
 
                         <div id="icons">
                         <h2>Icons</h2>
-                        <button id="add-icon-button" class="button action primary add-icon">Add icon</button>
+                        <button id="add-icon-button" title="Upload a new Icon" class="button action primary add-icon">Add icon</button>
                         <ul id="icons-list" class="icons list"></ul>
                         </div>
                     </div> 
@@ -895,14 +906,14 @@ export default async function decorate(block) {
       actions.querySelector('.overview-actions').insertAdjacentHTML(
         'beforeend',
         `
-        <a href="${project.sidekickSetupUrl}" id="install-sidekick-button" class="button action secondary sidekick" target="_blank">Install sidekick</a>
+        <a href="${project.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>
         ${
   project.authoringGuideUrl
-    ? `<a href="${project.authoringGuideUrl}" id="guides-button" class="button action secondary guides" target="_blank">Guides</a>`
+    ? `<a href="${project.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>`
     : ''
 }
-        <a href="${project.driveUrl}" id="edit-button" class="button action secondary edit" target="_blank">Edit</a>
-        <a href="${project.customLiveUrl}" id="open-button" class="button primary action open" target="_blank">Open</a>
+        <a href="${project.driveUrl}?authuser=${user.email}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
+        <a href="${project.customLiveUrl}" id="open-button" title="Open your Website" class="button primary action open" target="_blank">Open</a>
       `,
       );
 
@@ -977,6 +988,15 @@ export default async function decorate(block) {
         addAuthorForm.classList.remove('is-disabled');
       };
 
+      // Enables the Add button only if the email is different from the current one
+      addAuthorForm.oninput = () => {
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addAuthorForm.querySelector('input').value)) {
+          addAuthorForm.querySelector('#add-author-button').classList.remove('is-disabled');
+        } else {
+          addAuthorForm.querySelector('#add-author-button').classList.add('is-disabled');
+        }
+      };
+
       fetch(`${SCRIPT_API}/authors/${id}`, { headers })
         .then((res) => res.json())
         .then((authors) => {
@@ -987,7 +1007,17 @@ export default async function decorate(block) {
       // MARK: Contact Email
       const contactEmailForm = block.querySelector('.contact-email-form');
       const contactEmailFormInput = contactEmailForm.querySelector('input');
-      contactEmailFormInput.value = project.contactEmail || project.ownerEmail || '';
+      const contactEmail = project.contactEmail || project.ownerEmail || '';
+      const contactEmailButton = contactEmailForm.querySelector('#contact-email-save');
+      contactEmailFormInput.value = contactEmail;
+      // Enables the Update button only if the email is different from the current one
+      contactEmailFormInput.oninput = () => {
+        if (contactEmailFormInput.value === contactEmail) {
+          contactEmailButton.classList.add('is-disabled');
+        } else {
+          contactEmailButton.classList.remove('is-disabled');
+        }
+      };
 
       contactEmailForm.onsubmit = async (event) => {
         window?.zaraz?.track('click site contact submit', { url: window.location.href });
@@ -1236,20 +1266,11 @@ export default async function decorate(block) {
           renderTable(block.querySelector('.emails tbody'), emails, 'emails');
         })
         .catch((error) => {
+          // eslint-disable-next-line no-console
           console.log(error);
         });
 
       // MARK: add page button
-
-      const addPageContainer = document.createElement('div');
-      addPageContainer.classList.add('container', 'add-page-container');
-      block.querySelector('.pages-panel')?.prepend(addPageContainer);
-      const addPageButton = document.createElement('button');
-      addPageButton.classList.add('button', 'action', 'secondary', 'add-page');
-      addPageButton.innerText = 'Add Page';
-      addPageButton.id = 'add-page-button';
-      addPageContainer.append(addPageButton);
-
       block.querySelector('.add-page').onclick = () => {
         addPageDialogSetup({ project, headers });
       };

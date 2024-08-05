@@ -17,7 +17,7 @@ export default async function decorate(block) {
     block.innerHTML = `
         <div class="nav">
           <h1>Dashboard</h1>
-          <a href="/" id="create-new-button" class="button primary new">Create new site</a>
+          <a href="/" id="create-new-button" title="Create new site" class="button primary new">Create new site</a>
           <a href="https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit primary">Edit account</a>
         </div>
         <div class="content">
@@ -133,12 +133,25 @@ export default async function decorate(block) {
         return;
       }
 
+      await fetch(`${SCRIPT_API}/userSettings`, {
+        headers: {
+          'content-type': 'application/json',
+          authorization: `bearer ${token}`,
+        },
+        method: 'POST',
+        body: JSON.stringify(
+          { userSettings: { projects: { google: projects, darkAlley: darkAlleyProjects } } },
+        ),
+        // eslint-disable-next-line no-console
+      }).catch((error) => console.error(error));
+
       sites.innerHTML = '<input type="text" placeholder="Filter sites" class="filter">';
 
       // MARK: dark alley projects
       if (darkAlleyProjects.length) {
         const darkAlleySection = document.createElement('section');
         darkAlleySection.classList.add('dark-alley-section');
+        darkAlleySection.id = 'dark-alley-section';
 
         darkAlleySection.innerHTML = `
           <h3>Dark Alley Sites (Experimental)</h3>
@@ -160,6 +173,7 @@ export default async function decorate(block) {
 
       if (projects.length) {
         const sitesSection = document.createElement('section');
+        sitesSection.id = 'google-drive-section';
         sitesSection.innerHTML = `
           <h3>Google Drive Sites</h3>
           <ul id="my-sites-overview">

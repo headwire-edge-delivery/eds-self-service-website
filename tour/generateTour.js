@@ -1,4 +1,4 @@
-export default function generateTour(tour, toggleAutoTour, showAutoTour, tourData) {
+export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoTour, tourData) {
   const tourSteps = [];
   let isLastStep = false;
 
@@ -29,16 +29,17 @@ export default function generateTour(tour, toggleAutoTour, showAutoTour, tourDat
     disableActiveInteraction: tourData.disableActiveInteraction ?? false,
     progressText: tourData.progressText ?? 'Step {{current}} of {{total}}',
     onNextClick: tourData.onNextClick,
+    onFinished: tourData.onFinished ?? (() => {}),
     steps: tourSteps,
     onDestroyStarted: (element, step, { state }) => {
       isLastStep = state.activeIndex === tourSteps.length - 1;
       const tourObj = tour({
-        doneBtnText: 'Close Tour',
+        doneBtnText: 'Close',
         steps: [
           {
             popover: {
               title: 'Do you want to disable the Tour?',
-              description: '',
+              description: 'This will disable the automatic Tour for all Pages.',
               side: 'bottom',
               align: 'start',
             },
@@ -61,7 +62,7 @@ export default function generateTour(tour, toggleAutoTour, showAutoTour, tourDat
 
           disableTourButton.addEventListener('click', () => {
             tourObj.destroy();
-            toggleAutoTour();
+            toggleAutoTour(SCRIPT_API);
           });
         },
       });

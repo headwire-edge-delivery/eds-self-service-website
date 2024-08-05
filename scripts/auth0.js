@@ -51,6 +51,7 @@ window.auth0.createAuth0Client({
       await auth0Client.getTokenSilently();
       isAuthenticated = true;
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.log(e);
     }
   }

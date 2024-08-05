@@ -1,5 +1,10 @@
-function siteOverviewTour() {
+function siteOverviewTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        window.location.href = window.location.href.replace('/overview', '/pages');
+      }
+    },
     steps: [
       {
         title: 'Overview',
@@ -67,8 +72,13 @@ function siteOverviewTour() {
   return tourData;
 }
 
-function sitePagesTour() {
+function sitePagesTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        window.location.href = window.location.href.replace('/pages', '/monitoring');
+      }
+    },
     steps: [
       {
         title: 'Pages',
@@ -82,7 +92,7 @@ function sitePagesTour() {
       },
       {
         title: 'Pages',
-        description: 'A list of all pages in your site.',
+        description: 'A list of all pages in your site. <br /> Only published pages are shown here.',
         element: '#pages-overview',
       },
       {
@@ -109,8 +119,13 @@ function sitePagesTour() {
   return tourData;
 }
 
-function siteMonitoringTour() {
+function siteMonitoringTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        window.location.href = window.location.href.replace('/monitoring', '/emails');
+      }
+    },
     steps: [
       {
         title: 'Monitoring',

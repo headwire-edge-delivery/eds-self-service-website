@@ -15,7 +15,6 @@ function createTemplateTour() {
         title: 'Define a Slug',
         description: 'It will be automatically generated based on the Site Name. But you can change it here. <br /> A Slug is a part of a URL which identifies a particular page on a website in a form readable by users.',
         element: '#slug-input',
-        elementEvent: () => console.log('Element Event'),
       },
       {
         title: 'Describe your Site',
@@ -31,7 +30,6 @@ function createTemplateTour() {
         title: 'Create your Site',
         description: 'Click here to create your new Site.',
         element: '#create-button',
-        elementEvent: () => console.log('Element Event'),
       },
     ],
   };
