@@ -110,6 +110,11 @@ p {
   line-height: 22px;
 }
 
+p.warning,
+p.warning *{
+  color: var(--orange);
+}
+
 ul,
 ol {
   margin-block: 16px;
@@ -514,6 +519,25 @@ dialog.alert-dialog .dialog-content {
 ::backdrop {
   background: rgba(0 0 0 / 20%);
   backdrop-filter: blur(2px);
+}
+
+
+/* MARK: prev updates */
+
+dialog #revert-form ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+dialog #revert-form label {
+  display: flex;
+  gap: 20px;
+  justify-content: flex-start;
+}
+
+dialog #revert-form label input{
+  flex: 0;
 }
 
 

@@ -597,8 +597,7 @@ const createDocsEl = (html) => `
 // MARK: project updates
 async function renderUpdatesSection(div, { project, headers }) {
   const endpoint = `${SCRIPT_API}/${project.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
-  const versionInfo = await fetch(`${endpoint}/checkUpdates/${project.projectSlug}`, { headers }).then((res) => res.json()).catch(() => null);
-  console.log('versionInfo:', versionInfo);
+  const versionInfo = await fetch(`${endpoint}checkUpdates/${project.projectSlug}`, { headers }).then((res) => res.json()).catch(() => null);
 
   if (!versionInfo) {
     div.innerHTML = '<h3>Could not get update information.</h3>';
@@ -606,7 +605,7 @@ async function renderUpdatesSection(div, { project, headers }) {
   }
 
   if (versionInfo.updateAvailable) {
-    div.innerHTML = /* html */`
+    div.innerHTML = `
       <h3>A new version is available!</h3>
       ${versionInfo.updateLevel === 'major' ? '<p><strong><span>This version is a major update. It is possible some blocks need to be updated.</span></strong></p>' : ''}
     `;
@@ -628,12 +627,12 @@ async function renderUpdatesSection(div, { project, headers }) {
       const projectUpdateDialog = window.createDialog(dialogContent, [confirmUpdateButton, cancelButton]);
 
       confirmUpdateButton.onclick = async () => {
-        window?.zaraz?.track('click site update', { url: window.location.href });
+        window?.zaraz?.track('did site update', { url: window.location.href });
 
         projectUpdateDialog.dataset.loadingText = 'Updating...';
         projectUpdateDialog.setLoading(true);
 
-        const updateResponse = await fetch(`${endpoint}/update/${project.projectSlug}`, { headers });
+        const updateResponse = await fetch(`${endpoint}update/${project.projectSlug}`, { headers });
         if (updateResponse.ok) {
           projectUpdateDialog.renderDialog('Project updated successfully!');
         } else {
@@ -649,10 +648,86 @@ async function renderUpdatesSection(div, { project, headers }) {
     };
 
     div.append(updateButton);
-    return;
+  } else {
+    div.innerHTML += '<h3>No updates available.</h3>';
   }
+}
 
-  div.innerHTML = '<h3>No updates available.</h3>';
+// MARK: revert updates
+async function renderPrevUpdatesSection(div, { project, headers }) {
+  const endpoint = `${SCRIPT_API}/${project.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
+
+  const prevUpdatesButton = document.createElement('button');
+  prevUpdatesButton.classList.add('button', 'action', 'secondary', 'update-button');
+  prevUpdatesButton.innerText = 'Previously applied updates';
+  prevUpdatesButton.onclick = async () => {
+    const dialogContent = document.createElement('div');
+    dialogContent.innerHTML = '<h3>Revert Project</h3><h4>Loading previous updates...</h4>';
+    const revertUpdateDialog = window.createDialog(dialogContent);
+
+    const updateList = await fetch(`${endpoint}appliedUpdates/${project.projectSlug}`, { headers }).then((res) => res.json()).catch(() => null);
+    if (updateList.length > 0) {
+      dialogContent.innerHTML = `
+        <h3>Revert Project</h3>
+        <p class="warning">Keep in mind, any changes made on the options and theme pages after an update will <strong>also</strong> be reverted! <strong>This action cannot be undone!</strong></p>
+        `;
+      const revertForm = document.createElement('form');
+      revertForm.id = 'revert-form';
+      revertForm.innerHTML = `
+        <form id="revert-form">
+          <ul class="applied-update-list">
+            ${updateList.map((update) => `<li><label><input required type="radio" name="update" data-version="${update.version}" value="${update.sha}"><span>Version: <strong>${update.version}</strong></span><span>Updated on: <strong>${new Date(update.date).toLocaleString(undefined, {
+    year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
+  })}</strong></span></label></li>`).join('')}
+          </ul>
+        </form>
+      `;
+      dialogContent.append(revertForm);
+
+      const revertButton = document.createElement('button');
+      revertButton.classList.add('button', 'action', 'secondary', 'update-button');
+      revertButton.setAttribute('form', 'revert-form');
+      revertButton.type = 'submit';
+      revertButton.innerText = 'Revert';
+      revertButton.disabled = true;
+      revertUpdateDialog.renderDialog(dialogContent, [revertButton]);
+
+      let currentSelectedUpdate = null;
+      revertForm.onchange = (event) => {
+        currentSelectedUpdate = event.target.dataset.version;
+        if (currentSelectedUpdate) {
+          revertButton.disabled = null;
+        }
+      };
+
+      revertForm.onsubmit = async (event) => {
+        event.preventDefault();
+        window?.zaraz?.track('did site update revert', { url: window.location.href });
+
+        if (await window.confirmDialog(`<div><p class="warning">Are you sure you want to revert to ${currentSelectedUpdate || 'a previous'} update?</p><p><strong>any changes made on the options and theme pages after an update will also be reverted!</strong></p><p class="warning"><strong>This action cannot be undone!</strong></p></div>`)) {
+          revertUpdateDialog.dataset.loadingText = 'Reverting to previous version...';
+          revertUpdateDialog.setLoading(true);
+          const formData = new FormData(revertForm);
+          const revertUpdateResponse = await fetch(`${endpoint}revert/${project.projectSlug}`, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sha: formData.get('update') }),
+          });
+          if (revertUpdateResponse.ok) {
+            revertUpdateDialog.renderDialog('Project reverted successfully!');
+          } else {
+            revertUpdateDialog.renderDialog(OOPS);
+          }
+          revertUpdateDialog.setLoading(false);
+        }
+      };
+    } else if (updateList.length === 0) {
+      dialogContent.innerHTML = '<h3>Revert Project</h3><h4>No updates to revert to.</h4>';
+    } else {
+      dialogContent.innerHTML = '<h3>Revert Project</h3><h4>Could not get update information.</h4>';
+    }
+  };
+  div.append(prevUpdatesButton);
 }
 
 /**
@@ -976,6 +1051,8 @@ export default async function decorate(block) {
 
                         <h2>Updates</h2>
                         <div class="update-info"></div>
+                        <h3>Previously applied updates</h3>
+                        <div class="prev-update-info"></div>
                     </div> 
                 </div>
             </div>
@@ -1352,8 +1429,9 @@ export default async function decorate(block) {
 
       // project updates
       renderUpdatesSection(block.querySelector('.update-info'), { project, headers });
+      renderPrevUpdatesSection(block.querySelector('.prev-update-info'), { project, headers });
 
-      // Favicon
+      // MARK: Favicon
       block.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
         id,
         headers,
