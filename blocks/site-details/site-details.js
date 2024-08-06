@@ -51,10 +51,15 @@ function addGoogleCalendarLink(calendarId, actionsList) {
   );
 }
 
+function validateFileType(acceptString, fileName) {
+  const fileAcceptArray = acceptString.split(',');
+  const fileExtension = fileName.split('.').pop();
+  return fileAcceptArray.includes(`.${fileExtension}`);
+}
 // MARK: add Icon dialog
 function addIconDialogSetup({
   nameOverride, replaceIconItem,
-  headers, id, itemList, fileAccept = 'image/svg+xml', titleText = 'Add icon',
+  headers, id, itemList, fileAccept = '.svg', titleText = 'Add icon',
   extraHtml = '', uploadEndpoint = `${SCRIPT_API}/icons/${id}`,
   defaultSrc,
 }) {
@@ -83,7 +88,7 @@ function addIconDialogSetup({
   input.onchange = (event) => {
     [file] = event.target.files;
     if (file) {
-      if (!fileAccept.split(',').includes(file.type)) {
+      if (!validateFileType(fileAccept, file.name)) {
         preview.innerHTML = 'Please select a valid file!';
         return;
       }
@@ -112,7 +117,7 @@ function addIconDialogSetup({
       await window.alertDialog('Please select a file');
       return;
     }
-    if (!fileAccept.split(',').includes(file.type)) {
+    if (!validateFileType(fileAccept, file.name)) {
       await window.alertDialog('Please select a valid file!');
       return;
     }
@@ -1291,7 +1296,7 @@ export default async function decorate(block) {
         id,
         headers,
         titleText: 'Favicon',
-        fileAccept: 'image/x-icon,image/*icon',
+        fileAccept: '.ico',
         uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
         defaultSrc: `https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico`,
       });
