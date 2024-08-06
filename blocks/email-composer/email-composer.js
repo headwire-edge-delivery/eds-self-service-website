@@ -274,7 +274,7 @@ export default async function decorate(block) {
       await import('../../libs/codemirror/codemirror.min.js');
       await import('../../libs/codemirror/css.min.js');
 
-      fetch(`${project.customLiveUrl}${meta.styles}`)
+      fetch(`${project.customPreviewUrl}${meta.styles}`)
         .then((resStyles) => {
           if (resStyles.ok) {
             return resStyles.text();
