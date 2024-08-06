@@ -70,6 +70,15 @@ export default async function decorate(block) {
     const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta/${url}`);
     if (reqEmail.ok) {
       const { meta, variables } = await reqEmail.json();
+      let customVariables = {};
+
+      if (window.localStorage[window.location.href]) {
+        try {
+          customVariables = JSON.parse(window.localStorage[window.location.href]);
+        } catch (e) {
+          console.log(e);
+        }
+      }
 
       block.innerHTML = `
         <div class="nav">
@@ -114,11 +123,14 @@ export default async function decorate(block) {
                 ${variables.map((variable) => `
                   <div class="kv">
                       <input type="text" placeholder="Key" value="${variable}" readonly>
-                      <input type="text" placeholder="Value">
+                      <input type="text" placeholder="Value" value="${customVariables[variable] ?? ''}">
                   </div>
                 `).join('')}
                 
-                <button class="button secondary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
+                <div class="button-container">
+                    <button class="button secondary action preview-variables">Preview</button>
+                    <button class="button secondary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
+                </div>
                 
                 <h2>Styles (Developer)</h2>
                 
@@ -136,7 +148,26 @@ export default async function decorate(block) {
 
       const iframe = block.querySelector('.preview iframe');
       const form = block.querySelector('.form');
-      const customVariables = {};
+      const previewVars = block.querySelector('.preview-variables');
+      const saveVars = block.querySelector('.save-variables');
+      let warning;
+      let savedEditorStyles;
+
+      const hideWarning = () => {
+        const JSONVars = JSON.stringify(customVariables);
+        const savedVars = JSONVars === window.localStorage[window.location.href];
+
+        if (!editor) {
+          if (savedVars) {
+            warning.hidden = true;
+          }
+          return;
+        }
+
+        if (editor.getValue() === savedEditorStyles && savedVars) {
+          warning.hidden = true;
+        }
+      };
 
       // Find variable in first selected recipient columns
       const replaceMatches = (value) => {
@@ -167,11 +198,18 @@ export default async function decorate(block) {
 
         event.target.remove();
         editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
+        editor.on('change', () => {
+          warning.hidden = false;
+        });
+
+        savedEditorStyles = editor.getValue();
       };
 
       const saveStyles = block.querySelector('.save-styles');
       saveStyles.onclick = async () => {
         window?.zaraz?.track('click email preview styles', { url: window.location.href });
+
+        savedEditorStyles = editor.getValue();
 
         saveStyles.classList.add('is-disabled');
         const req = await fetch(`${SCRIPT_API}/emailStyles/${id}`, {
@@ -187,10 +225,12 @@ export default async function decorate(block) {
         });
         await window.alertDialog(req.ok ? 'Styles successfully updated! Updates can take up to 1 minute to be reflected for all users.' : OOPS);
         saveStyles.classList.remove('is-disabled');
+
+        hideWarning();
       };
 
       // Render preview with custom variables
-      block.querySelector('.save-variables').onclick = () => {
+      previewVars.onclick = () => {
         window?.zaraz?.track('click email preview variables', { url: window.location.href });
 
         block.querySelectorAll('.kv input:first-child').forEach((input) => {
@@ -198,6 +238,10 @@ export default async function decorate(block) {
           const { value } = input.nextElementSibling;
           customVariables[key] = value;
         });
+
+        if (JSON.stringify(customVariables) !== window.localStorage[window.location.href]) {
+          warning.hidden = false;
+        }
 
         const keys = Object.keys(customVariables);
         const oldSource = new URL(iframe.src);
@@ -219,12 +263,41 @@ export default async function decorate(block) {
         form.action = newSource.toString();
         form.submit();
       };
+      // Re-render with saved variables
+      previewVars.click();
+
+      saveVars.onclick = () => {
+        window?.zaraz?.track('click email save variables', { url: window.location.href });
+
+        previewVars.click();
+        window.localStorage[window.location.href] = JSON.stringify(customVariables);
+
+        hideWarning();
+
+        const text = saveVars.textContent;
+        saveVars.textContent = '✓';
+        setTimeout(() => {
+          saveVars.textContent = text;
+        }, 2000);
+      };
 
       block.querySelector('.actions').innerHTML = `
+            <div class="warning" hidden>
+              <span class="icon icon-info">
+                <img alt src="/icons/info.svg" loading="lazy">  
+              </span>
+              <span>You have unsaved changes</span>
+              <button type="button" aria-label="close">&#x2715;</button>
+            </div>
             <a href="#" target="_blank" class="button secondary action copy">Copy</a>
             <button class="button action secondary edit">Edit</button>
             <button class="button primary action send is-disabled">Send</button>
           `;
+
+      warning = block.querySelector('.warning');
+      warning.querySelector('button').onclick = () => {
+        warning.hidden = true;
+      };
 
       const editButton = block.querySelector('.actions button.edit');
       if (project?.darkAlleyProject) {
@@ -365,7 +438,7 @@ export default async function decorate(block) {
               e.target.closest('tr').classList.add('is-rendering');
 
               // Re-render preview with newly selected recipient
-              block.querySelector('.save-variables').click();
+              previewVars.click();
             } else if (e.target.matches('.remove')) {
               window?.zaraz?.track('click email recipients remove', { url: window.location.href });
 
@@ -434,7 +507,7 @@ export default async function decorate(block) {
             window?.zaraz?.track('click email send', { url: window.location.href });
 
             // Preview to update the iframe source
-            block.querySelector('.save-variables').click();
+            previewVars.click();
 
             const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
 
