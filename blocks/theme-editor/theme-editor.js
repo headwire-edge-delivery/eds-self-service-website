@@ -1,5 +1,10 @@
-import { SCRIPT_API, onAuthenticated, OOPS, KESTREL_ONE } from "../../scripts/scripts.js";
-import { loadCSS } from "../../scripts/aem.js";
+import {
+  SCRIPT_API,
+  onAuthenticated,
+  OOPS,
+  KESTREL_ONE,
+} from '../../scripts/scripts.js';
+import { loadCSS } from '../../scripts/aem.js';
 
 let timer;
 const debounce = (fn) => {
@@ -10,21 +15,20 @@ const debounce = (fn) => {
   timer = setTimeout(() => fn(), 500);
 };
 
-const getCSSVars = (css) =>
-  css
-    .split("\n")
-    .map((s) => {
-      let formatted = s.trim();
-      if (formatted.endsWith(";")) {
-        formatted = formatted.slice(0, -1);
-      }
-      return formatted;
-    })
-    .filter((prop) => prop.startsWith("--"));
+const getCSSVars = (css) => css
+  .split('\n')
+  .map((s) => {
+    let formatted = s.trim();
+    if (formatted.endsWith(';')) {
+      formatted = formatted.slice(0, -1);
+    }
+    return formatted;
+  })
+  .filter((prop) => prop.startsWith('--'));
 
 const findCSSVar = (vars, name, isFont) => {
   const found = vars.find((prop) => {
-    const key = prop.split(":")[0];
+    const key = prop.split(':')[0];
     return key.trim() === `--${name}`;
   });
 
@@ -32,11 +36,11 @@ const findCSSVar = (vars, name, isFont) => {
     return false;
   }
 
-  const fullValue = found.split(":")[1];
+  const fullValue = found.split(':')[1];
 
   let value = fullValue;
   if (isFont) {
-    value = value.split(",")[0].trim();
+    value = value.split(',')[0].trim();
     if (value.startsWith('"') || value.startsWith("'")) {
       value = value.slice(1, -1);
     }
@@ -56,7 +60,7 @@ const findCSSVar = (vars, name, isFont) => {
  */
 export default async function decorate(block) {
   onAuthenticated(async () => {
-    const split = window.location.pathname.split("/");
+    const split = window.location.pathname.split('/');
     const id = split[2];
     const token = await window.auth0Client.getTokenSilently();
     const headers = { authorization: `bearer ${token}` };
@@ -426,17 +430,16 @@ export default async function decorate(block) {
 
         // Get CSS vars
         let cssVars = getCSSVars(css);
-        let fonts = "";
+        let fonts = '';
 
         // Presets
         let presets;
         let selectedPreset;
-        const presetsPicker = block.querySelector(".presets-picker");
-        const customPreset = presetsPicker.querySelector(".custom");
+        const presetsPicker = block.querySelector('.presets-picker');
+        const customPreset = presetsPicker.querySelector('.custom');
 
         // eslint-disable-next-line max-len
-        const findSelectedPreset = () =>
-          presets.find((preset) => preset.vars.every((cssVar) => cssVars.includes(cssVar)));
+        const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => cssVars.includes(cssVar)));
 
         const updatePreset = () => {
           selectedPreset = findSelectedPreset();
@@ -456,8 +459,8 @@ export default async function decorate(block) {
           .then((res) => {
             presets = res;
             presetsPicker.insertAdjacentHTML(
-              "afterbegin",
-              presets.map((preset) => `<option>${preset.name}</option>`).join("")
+              'afterbegin',
+              presets.map((preset) => `<option>${preset.name}</option>`).join(''),
             );
 
             updatePreset();
@@ -465,24 +468,24 @@ export default async function decorate(block) {
             presetsPicker.onchange = () => {
               selectedPreset = presets[presetsPicker.selectedIndex];
 
-              const colorBaseInputs = block.querySelectorAll(".color-picker.base");
-              const colorElementSelects = block.querySelectorAll(".color-picker.elements");
+              const colorBaseInputs = block.querySelectorAll('.color-picker.base');
+              const colorElementSelects = block.querySelectorAll('.color-picker.elements');
 
               colorBaseInputs.forEach((el) => {
-                const input = el.querySelector("input");
+                const input = el.querySelector('input');
                 const { value } = findCSSVar(selectedPreset.vars, input.dataset.var);
 
                 input.value = value;
-                input.dispatchEvent(new Event("input"));
+                input.dispatchEvent(new Event('input'));
               });
 
               colorElementSelects.forEach((el) => {
-                const select = el.querySelector("select");
-                const input = el.querySelector("input");
+                const select = el.querySelector('select');
+                const input = el.querySelector('input');
                 const { value } = findCSSVar(selectedPreset.vars, input.dataset.var);
 
                 select.value = value.slice(6, -1);
-                select.dispatchEvent(new Event("change"));
+                select.dispatchEvent(new Event('change'));
               });
             };
           });
@@ -496,120 +499,120 @@ export default async function decorate(block) {
           .then((res) => res.json())
           .then(({ project }) => {
             if (project.darkAlleyProject) {
-              block.querySelectorAll(".breadcrumbs a").forEach((link) => {
-                if (link.href.includes("/site/")) {
-                  link.href = link.href.replace("/site/", "/da-site/");
+              block.querySelectorAll('.breadcrumbs a').forEach((link) => {
+                if (link.href.includes('/site/')) {
+                  link.href = link.href.replace('/site/', '/da-site/');
                 }
               });
             }
           })
           .catch(() => null);
 
-        const warning = block.querySelector(".warning");
-        warning.querySelector("button").onclick = () => {
+        const warning = block.querySelector('.warning');
+        warning.querySelector('button').onclick = () => {
           warning.hidden = true;
         };
 
         const defaultColors = [
           {
-            label: "Light",
-            value: "color-light",
+            label: 'Light',
+            value: 'color-light',
           },
           {
-            label: "Dark",
-            value: "color-dark",
+            label: 'Dark',
+            value: 'color-dark',
           },
           {
-            label: "Lightest",
-            value: "color-lightest",
+            label: 'Lightest',
+            value: 'color-lightest',
           },
           {
-            label: "Darkest",
-            value: "color-darkest",
+            label: 'Darkest',
+            value: 'color-darkest',
           },
           {
-            label: "Brand primary",
-            value: "color-brand-primary",
+            label: 'Brand primary',
+            value: 'color-brand-primary',
           },
           {
-            label: "Brand secondary",
-            value: "color-brand-secondary",
+            label: 'Brand secondary',
+            value: 'color-brand-secondary',
           },
           {
-            label: "Brand tertiary",
-            value: "color-brand-tertiary",
+            label: 'Brand tertiary',
+            value: 'color-brand-tertiary',
           },
         ];
 
         // Render codemirror
-        const vars = block.querySelector(".vars");
-        const previewContainer = block.querySelector(".preview-container");
-        const previewFrame = block.querySelector(".iframe");
-        previewFrame.addEventListener("load", () => {
+        const vars = block.querySelector('.vars');
+        const previewContainer = block.querySelector('.preview-container');
+        const previewFrame = block.querySelector('.iframe');
+        previewFrame.addEventListener('load', () => {
           // Add loading buffer
           setTimeout(() => {
-            previewFrame.classList.remove("is-loading");
+            previewFrame.classList.remove('is-loading');
           }, 1000);
         });
         // Loading timeout
         setTimeout(() => {
-          previewFrame.classList.remove("is-loading");
+          previewFrame.classList.remove('is-loading');
         }, 2000);
         vars.value = css;
 
         // Load codemirror to edit styles
-        loadCSS("/libs/codemirror/codemirror.min.css");
-        await import("../../libs/codemirror/codemirror.min.js");
-        await import("../../libs/codemirror/css.min.js");
+        loadCSS('/libs/codemirror/codemirror.min.css');
+        await import('../../libs/codemirror/codemirror.min.js');
+        await import('../../libs/codemirror/css.min.js');
 
         const editor = window.CodeMirror.fromTextArea(vars);
-        editor.on("change", () => {
-          block.querySelector(".publish-theme").classList.remove("is-disabled");
+        editor.on('change', () => {
+          block.querySelector('.publish-theme').classList.remove('is-disabled');
           previewFrame.contentWindow.postMessage(
             {
-              type: "update:styles",
+              type: 'update:styles',
               styles: fonts,
-              file: "fonts",
+              file: 'fonts',
             },
-            "*"
+            '*',
           );
 
           previewFrame.contentWindow.postMessage(
             {
-              type: "update:styles",
+              type: 'update:styles',
               styles: editor.getValue(),
-              file: "vars",
+              file: 'vars',
             },
-            "*"
+            '*',
           );
 
           cssVars = getCSSVars(editor.getValue());
         });
 
         // Init Modes
-        const previewMode = block.querySelector(".preview-mode");
-        const editMode = block.querySelector(".edit-mode");
-        const viewers = block.querySelector(".viewers");
+        const previewMode = block.querySelector('.preview-mode');
+        const editMode = block.querySelector('.edit-mode');
+        const viewers = block.querySelector('.viewers');
         previewMode.onclick = () => {
-          previewContainer.classList.add("preview-mode");
+          previewContainer.classList.add('preview-mode');
           previewMode.hidden = true;
           editMode.hidden = false;
           viewers.hidden = false;
           previewFrame.style.width = viewers.querySelector('[aria-checked="true"]').dataset.width;
         };
         editMode.onclick = () => {
-          previewContainer.classList.remove("preview-mode");
+          previewContainer.classList.remove('preview-mode');
           editMode.hidden = true;
           viewers.hidden = true;
           previewMode.hidden = false;
-          previewFrame.style.width = "";
+          previewFrame.style.width = '';
         };
-        viewers.querySelectorAll(".button").forEach((el) => {
+        viewers.querySelectorAll('.button').forEach((el) => {
           el.onclick = () => {
-            if (el.ariaChecked === "false") {
+            if (el.ariaChecked === 'false') {
               const checkedEl = viewers.querySelector('[aria-checked="true"]');
-              checkedEl.ariaChecked = "false";
-              el.ariaChecked = "true";
+              checkedEl.ariaChecked = 'false';
+              el.ariaChecked = 'true';
 
               previewFrame.style.width = el.dataset.width;
             }
@@ -617,22 +620,21 @@ export default async function decorate(block) {
         });
 
         // Init font-weight picker
-        const fontWeights = ["300", "400", "700"];
+        const fontWeights = ['300', '400', '700'];
         const fontWeightLabels = {
-          300: "Light",
-          400: "Regular",
-          700: "Bold",
+          300: 'Light',
+          400: 'Regular',
+          700: 'Bold',
         };
-        block.querySelectorAll(".weight-picker").forEach((el) => {
+        block.querySelectorAll('.weight-picker').forEach((el) => {
           let selectedFontWeight = findCSSVar(cssVars, el.dataset.var);
           el.innerHTML = `${fontWeights
             .map(
-              (weight) =>
-                `<option ${
-                  weight === selectedFontWeight.value ? "selected" : ""
-                } value="${weight}">${fontWeightLabels[weight]}</option>`
+              (weight) => `<option ${
+                weight === selectedFontWeight.value ? 'selected' : ''
+              } value="${weight}">${fontWeightLabels[weight]}</option>`,
             )
-            .join("")}`;
+            .join('')}`;
           el.onchange = () => {
             const newValue = el.value;
             editor.setValue(
@@ -640,8 +642,8 @@ export default async function decorate(block) {
                 .getValue()
                 .replace(
                   `--${selectedFontWeight.name}:${selectedFontWeight.fullValue}`,
-                  `--${selectedFontWeight.name}: ${newValue}`
-                )
+                  `--${selectedFontWeight.name}: ${newValue}`,
+                ),
             );
 
             cssVars = getCSSVars(editor.getValue());
@@ -652,7 +654,7 @@ export default async function decorate(block) {
         });
 
         // Init font-pickers
-        const fontsKey = "AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps";
+        const fontsKey = 'AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps';
         fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${fontsKey}&capability=WOFF2`)
           .then((req) => {
             if (req.ok) {
@@ -662,22 +664,19 @@ export default async function decorate(block) {
           })
           .then(({ items }) => {
             let customFonts = items.filter(
-              ({ subsets, variants }) =>
-                subsets.includes("latin") &&
-                fontWeights.every((weight) =>
-                  variants.includes(weight === "400" ? "regular" : weight)
-                )
+              ({ subsets, variants }) => subsets.includes('latin')
+                && fontWeights.every((weight) => variants.includes(weight === '400' ? 'regular' : weight)),
             );
 
             const defaultFonts = [
-              "Arial",
-              "Verdana",
-              "Tahoma",
-              "Trebuchet MS",
-              "Times New Roman",
-              "Georgia",
-              "Garamond",
-              "Courier New",
+              'Arial',
+              'Verdana',
+              'Tahoma',
+              'Trebuchet MS',
+              'Times New Roman',
+              'Georgia',
+              'Garamond',
+              'Courier New',
             ];
 
             customFonts = [...customFonts, ...defaultFonts.map((font) => ({ family: font }))].sort(
@@ -689,46 +688,46 @@ export default async function decorate(block) {
                   return 1;
                 }
                 return 0;
-              }
+              },
             );
 
             const updateFonts = async (selectedFont, newFont) => {
-              const selectedFonts = [...block.querySelectorAll(".font-picker")].map(
-                (el) => el.value
+              const selectedFonts = [...block.querySelectorAll('.font-picker')].map(
+                (el) => el.value,
               );
               const selectedCustomFonts = selectedFonts.filter(
-                (font) => !defaultFonts.includes(font)
+                (font) => !defaultFonts.includes(font),
               );
 
               if (selectedCustomFonts.length) {
                 const searchParams = new URLSearchParams();
-                searchParams.set("display", "swap");
+                searchParams.set('display', 'swap');
 
                 const fallbackFonts = [];
                 selectedCustomFonts.forEach((customFont) => {
                   const { files } = customFonts.find(({ family }) => customFont === family);
 
-                  searchParams.append("family", `${customFont}:wght@300;400;700`);
+                  searchParams.append('family', `${customFont}:wght@300;400;700`);
 
                   fontWeights.forEach((weight) => {
                     fallbackFonts.push(
                       fetch(`${SCRIPT_API}/font-fallback`, {
-                        method: "POST",
+                        method: 'POST',
                         headers: {
-                          "content-type": "application/json",
+                          'content-type': 'application/json',
                         },
                         body: JSON.stringify({
                           name: customFont,
-                          url: files[weight === "400" ? "regular" : weight],
+                          url: files[weight === '400' ? 'regular' : weight],
                           weight,
                         }),
-                      }).then((res) => res.text())
+                      }).then((res) => res.text()),
                     );
                   });
                 });
 
                 const req = await fetch(
-                  `https://fonts.googleapis.com/css2?${searchParams.toString()}`
+                  `https://fonts.googleapis.com/css2?${searchParams.toString()}`,
                 );
                 if (req.ok) {
                   // Update fonts
@@ -740,8 +739,8 @@ export default async function decorate(block) {
                       .getValue()
                       .replace(
                         `--${selectedFont.name}:${selectedFont.fullValue}`,
-                        `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`
-                      )
+                        `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`,
+                      ),
                   );
 
                   cssVars = getCSSVars(editor.getValue());
@@ -751,16 +750,16 @@ export default async function decorate(block) {
                   let newValue = editor.getValue();
 
                   // Remove fallback fonts
-                  const indexOf = newValue.indexOf("@font-face");
+                  const indexOf = newValue.indexOf('@font-face');
                   if (indexOf !== -1) {
-                    newValue = newValue.substr(0, newValue.indexOf("@font-face"));
+                    newValue = newValue.substr(0, newValue.indexOf('@font-face'));
                   }
 
                   // Add new fallback fonts
                   newValue += `${res
-                    .filter(({ status }) => status === "fulfilled")
+                    .filter(({ status }) => status === 'fulfilled')
                     .map(({ value }) => value)
-                    .join("\n")}`;
+                    .join('\n')}`;
 
                   // Update editor
                   editor.setValue(newValue);
@@ -770,16 +769,15 @@ export default async function decorate(block) {
               }
             };
 
-            block.querySelectorAll(".font-picker").forEach((el) => {
+            block.querySelectorAll('.font-picker').forEach((el) => {
               let selectedFont = findCSSVar(cssVars, el.dataset.var, true);
               el.innerHTML = `${customFonts
                 .map(
-                  ({ family }) =>
-                    `<option ${
-                      family === selectedFont?.value ? "selected" : ""
-                    } value="${family}">${family}</option>`
+                  ({ family }) => `<option ${
+                    family === selectedFont?.value ? 'selected' : ''
+                  } value="${family}">${family}</option>`,
                 )
-                .join("")}`;
+                .join('')}`;
 
               el.onchange = () => {
                 selectedFont = findCSSVar(cssVars, el.dataset.var, true);
@@ -791,14 +789,14 @@ export default async function decorate(block) {
 
         // Init color-pickers
         const regExpVars = /\(([^)]+)\)/;
-        block.querySelectorAll(".color-picker").forEach((el) => {
-          const input = el.querySelector("input");
-          const select = el.querySelector("select");
+        block.querySelectorAll('.color-picker').forEach((el) => {
+          const input = el.querySelector('input');
+          const select = el.querySelector('select');
           let selectedColor = findCSSVar(cssVars, input.dataset.var);
 
-          if (el.classList.contains("base")) {
+          if (el.classList.contains('base')) {
             input.value = selectedColor.value;
-            const span = el.querySelector("span");
+            const span = el.querySelector('span');
             if (span) {
               span.textContent = selectedColor.value.toUpperCase();
             }
@@ -806,7 +804,7 @@ export default async function decorate(block) {
             input.oninput = () => {
               const newValue = input.value.toUpperCase();
               selectedColor = findCSSVar(cssVars, input.dataset.var);
-              el.querySelector("span").textContent = newValue;
+              el.querySelector('span').textContent = newValue;
 
               // Update editor
               editor.setValue(
@@ -814,18 +812,18 @@ export default async function decorate(block) {
                   .getValue()
                   .replace(
                     `--${selectedColor.name}:${selectedColor.fullValue}`,
-                    `--${selectedColor.name}: ${newValue}`
-                  )
+                    `--${selectedColor.name}: ${newValue}`,
+                  ),
               );
 
               // Update Elements
-              const elements = [...block.querySelectorAll(".elements")].filter((element) => {
-                const elSelect = element.querySelector("select");
+              const elements = [...block.querySelectorAll('.elements')].filter((element) => {
+                const elSelect = element.querySelector('select');
                 return elSelect.value === selectedColor.name;
               });
 
               elements.forEach((element) => {
-                const elInput = element.querySelector("input");
+                const elInput = element.querySelector('input');
                 elInput.value = newValue;
               });
 
@@ -833,15 +831,14 @@ export default async function decorate(block) {
 
               debounce(updatePreset);
             };
-          } else if (el.classList.contains("elements")) {
+          } else if (el.classList.contains('elements')) {
             // Find base color
             const varValue = regExpVars.exec(selectedColor.value)[1].slice(2);
             select.innerHTML = `${defaultColors
               .map(
-                ({ label, value }) =>
-                  `<option ${
-                    varValue === value ? "selected" : ""
-                  } value="${value}">${label}</option>`
+                ({ label, value }) => `<option ${
+                  varValue === value ? 'selected' : ''
+                } value="${value}">${label}</option>`,
               )
               .join()}`;
 
@@ -859,18 +856,18 @@ export default async function decorate(block) {
                   .getValue()
                   .replace(
                     `--${selectedColor.name}:${selectedColor.fullValue}`,
-                    `--${selectedColor.name}: var(--${newValue})`
-                  )
+                    `--${selectedColor.name}: var(--${newValue})`,
+                  ),
               );
 
               // Update vars
               previewFrame.contentWindow.postMessage(
                 {
-                  type: "update:styles",
+                  type: 'update:styles',
                   styles: editor.getValue(),
-                  file: "vars",
+                  file: 'vars',
                 },
-                "*"
+                '*',
               );
 
               cssVars = getCSSVars(editor.getValue());
@@ -882,7 +879,7 @@ export default async function decorate(block) {
           }
         });
 
-        const publishThemeSelector = block.querySelector(".publish-theme-selector");
+        const publishThemeSelector = block.querySelector('.publish-theme-selector');
 
         // Load index to list pages
         fetch(`https://preview--${id}.${KESTREL_ONE}/query-index.json?sheet=all`)
@@ -900,66 +897,65 @@ export default async function decorate(block) {
             }
 
             const pages = data.filter(
-              ({ template, robots, path }) =>
-                !template.includes("email") &&
-                !robots.includes("noindex") &&
-                path !== "/footer" &&
-                path !== "/nav"
+              ({ template, robots, path }) => !template.includes('email')
+                && !robots.includes('noindex')
+                && path !== '/footer'
+                && path !== '/nav',
             );
 
             // Theme pages
             publishThemeSelector.innerHTML = `${pages
               .map(({ path }) => `<option value="${path}">Preview: ${path}</option>`)
-              .join("")}`;
+              .join('')}`;
           });
 
         publishThemeSelector.onchange = () => {
-          window?.zaraz?.track("click change theme preview", { url: window.location.href });
+          window?.zaraz?.track('click change theme preview', { url: window.location.href });
 
           if (new URL(previewFrame.src).pathname !== publishThemeSelector.value) {
-            previewFrame.classList.add("is-loading");
+            previewFrame.classList.add('is-loading');
             previewFrame.src = `https://preview--${id}.${KESTREL_ONE}${publishThemeSelector.value}`;
             previewFrame.addEventListener(
-              "load",
+              'load',
               () => {
                 previewFrame.contentWindow.postMessage(
                   {
-                    type: "update:styles",
+                    type: 'update:styles',
                     styles: fonts,
-                    file: "fonts",
+                    file: 'fonts',
                   },
-                  "*"
+                  '*',
                 );
 
                 previewFrame.contentWindow.postMessage(
                   {
-                    type: "update:styles",
+                    type: 'update:styles',
                     styles: editor.getValue(),
-                    file: "vars",
+                    file: 'vars',
                   },
-                  "*"
+                  '*',
                 );
               },
-              { once: true }
+              { once: true },
             );
             // Loading timeout
             setTimeout(() => {
-              previewFrame.classList.remove("is-loading");
+              previewFrame.classList.remove('is-loading');
             }, 2000);
           }
         };
 
-        block.querySelector(".publish-theme").onclick = async () => {
-          window?.zaraz?.track("click site theme submit", { url: window.location.href });
+        block.querySelector('.publish-theme').onclick = async () => {
+          window?.zaraz?.track('click site theme submit', { url: window.location.href });
 
-          block.classList.add("is-saving");
+          block.classList.add('is-saving');
 
-          editor.setOption("readOnly", true);
+          editor.setOption('readOnly', true);
           let failed = false;
           if (fonts) {
             let res = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {
-              method: "POST",
-              headers: { ...headers, "content-type": "application/json" },
+              method: 'POST',
+              headers: { ...headers, 'content-type': 'application/json' },
               body: JSON.stringify({ css: btoa(editor.getValue()) }),
             });
 
@@ -967,8 +963,8 @@ export default async function decorate(block) {
               failed = true;
             } else {
               res = await fetch(`${SCRIPT_API}/cssFonts/${id}`, {
-                method: "POST",
-                headers: { ...headers, "content-type": "application/json" },
+                method: 'POST',
+                headers: { ...headers, 'content-type': 'application/json' },
                 body: JSON.stringify({ css: btoa(fonts) }),
               });
 
@@ -976,8 +972,8 @@ export default async function decorate(block) {
             }
           } else {
             const res = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {
-              method: "POST",
-              headers: { ...headers, "content-type": "application/json" },
+              method: 'POST',
+              headers: { ...headers, 'content-type': 'application/json' },
               body: JSON.stringify({ css: btoa(editor.getValue()) }),
             });
 
@@ -987,12 +983,12 @@ export default async function decorate(block) {
           await window.alertDialog(
             failed
               ? OOPS
-              : "Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages."
+              : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.',
           );
 
-          editor.setOption("readOnly", false);
+          editor.setOption('readOnly', false);
 
-          block.classList.remove("is-saving");
+          block.classList.remove('is-saving');
 
           warning.hidden = true;
         };
@@ -1017,7 +1013,7 @@ export default async function decorate(block) {
       .catch((error) => {
         // eslint-disable-next-line no-console
         console.log(error);
-        block.querySelector(".content p").textContent = OOPS;
+        block.querySelector('.content p').textContent = OOPS;
       });
   });
 }
