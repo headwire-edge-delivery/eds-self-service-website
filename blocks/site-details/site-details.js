@@ -83,7 +83,7 @@ function addIconDialogSetup({
   input.onchange = (event) => {
     [file] = event.target.files;
     if (file) {
-      if (file.type !== fileAccept) {
+      if (!fileAccept.split(',').includes(file.type)) {
         preview.innerHTML = 'Please select a valid file!';
         return;
       }
@@ -112,7 +112,7 @@ function addIconDialogSetup({
       await window.alertDialog('Please select a file');
       return;
     }
-    if (file.type !== fileAccept) {
+    if (!fileAccept.split(',').includes(file.type)) {
       await window.alertDialog('Please select a valid file!');
       return;
     }
@@ -1291,7 +1291,7 @@ export default async function decorate(block) {
         id,
         headers,
         titleText: 'Favicon',
-        fileAccept: 'image/x-icon',
+        fileAccept: 'image/x-icon,image/*icon',
         uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
         defaultSrc: `https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico`,
       });
