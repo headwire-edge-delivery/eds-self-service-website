@@ -83,7 +83,7 @@ export default async function decorate(block) {
             </a>
             <span>&rsaquo;</span>
             <a href="${window.location.href}" aria-current="page">
-              <h1>${meta.subject}</h1>
+              <h1 class="subject">${meta.subject}</h1>
             </a>
           </div>
           
@@ -96,7 +96,7 @@ export default async function decorate(block) {
             </div>
             <aside>
                 <h2>Subject</h2>
-                <input type="text" readonly value="${meta.subject}">
+                <input class="subject" type="text" readonly value="${meta.subject}">
                 
                 <h2>Recipients</h2>
                 
@@ -123,7 +123,7 @@ export default async function decorate(block) {
                 <h2>Styles (Developer)</h2>
                 
                 <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
-                <form action="${EMAIL_WORKER_API}/preview/${url}" method="POST" target="preview">
+                <form class="form" action="${EMAIL_WORKER_API}/preview/${url}" method="POST" target="preview">
                     <textarea name="styles" class="styles"></textarea>
                     <div class="button-container">
                         <button type="submit" class="button secondary action">Preview</button>
@@ -135,6 +135,7 @@ export default async function decorate(block) {
       `;
 
       const iframe = block.querySelector('.preview iframe');
+      const form = block.querySelector('.form');
       const customVariables = {};
 
       // Find variable in first selected recipient columns
@@ -153,7 +154,7 @@ export default async function decorate(block) {
 
           matches.forEach((match) => {
             const matchingCol = Object.keys(selectedRecipient).find((col) => col === match);
-            newValue = value.replace(`{${match}}`, selectedRecipient[matchingCol] ?? '');
+            newValue = value.replace(`{${match}}`, selectedRecipient[matchingCol] ?? `{${match}}`);
           });
         }
 
@@ -199,15 +200,24 @@ export default async function decorate(block) {
         });
 
         const keys = Object.keys(customVariables);
-        if (keys.length) {
-          const source = new URL(iframe.src);
-          keys.forEach((key) => {
-            const newValue = replaceMatches(customVariables[key]);
-            source.searchParams.set(key, newValue);
-          });
+        const oldSource = new URL(iframe.src);
+        const newSource = new URL(`${oldSource.origin}${oldSource.pathname}`);
+        let newSubject = meta.subject;
+        keys.forEach((key) => {
+          const newValue = replaceMatches(customVariables[key]);
+          newSubject = newSubject.replace(`{${key}}`, newValue || `{${key}}`);
 
-          iframe.src = source.toString();
-        }
+          if (newValue) {
+            newSource.searchParams.set(key, newValue);
+          }
+        });
+
+        block.querySelector('h1.subject').textContent = newSubject;
+        block.querySelector('input.subject').value = newSubject;
+
+        iframe.src = newSource.toString();
+        form.action = newSource.toString();
+        form.submit();
       };
 
       block.querySelector('.actions').innerHTML = `
@@ -356,7 +366,6 @@ export default async function decorate(block) {
 
               // Re-render preview with newly selected recipient
               block.querySelector('.save-variables').click();
-              block.querySelector('h1').textContent = replaceMatches(meta.subject);
             } else if (e.target.matches('.remove')) {
               window?.zaraz?.track('click email recipients remove', { url: window.location.href });
 
