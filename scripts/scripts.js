@@ -42,11 +42,11 @@ export function onAuthenticated(cb) {
 
 export const KESTREL_ONE = 'kestrelone.com';
 
-export function getExpirationTime(expirationDays, bufferTime) {
+export function getExpirationTime(expirationDays) {
   const date = new Date();
   date.setDate(date.getDate() + expirationDays);
 
-  return date.getTime() - bufferTime;
+  return date.getTime();
 }
 
 /**

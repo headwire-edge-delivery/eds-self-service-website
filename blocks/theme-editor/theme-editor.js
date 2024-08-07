@@ -3,6 +3,15 @@ import {
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
+let timer;
+const debounce = (fn) => {
+  if (timer) {
+    clearTimeout(timer);
+    timer = undefined;
+  }
+  timer = setTimeout(() => fn(), 500);
+};
+
 const getCSSVars = (css) => css
   .split('\n')
   .map((s) => {
@@ -107,6 +116,20 @@ export default async function decorate(block) {
                 <button type="button" aria-label="close">&#x2715;</button>
               </div>
               <div class="button-container">
+                <div class="viewers" role="radiogroup" hidden>
+                    <button aria-checked="false" title="mobile" aria-label="mobile" data-width="375px" class="button secondary action">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M280-40q-33 0-56.5-23.5T200-120v-720q0-33 23.5-56.5T280-920h400q33 0 56.5 23.5T760-840v720q0 33-23.5 56.5T680-40H280Zm0-120v40h400v-40H280Zm0-80h400v-480H280v480Zm0-560h400v-40H280v40Zm0 0v-40 40Zm0 640v40-40Z"/></svg>
+                    </button>
+                    <button aria-checked="false" title="tablet" aria-label="tablet" data-width="810px" class="button secondary action">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M120-160q-33 0-56.5-23.5T40-240v-480q0-33 23.5-56.5T120-800h720q33 0 56.5 23.5T920-720v480q0 33-23.5 56.5T840-160H120Zm40-560h-40v480h40v-480Zm80 480h480v-480H240v480Zm560-480v480h40v-480h-40Zm0 0h40-40Zm-640 0h-40 40Z"/></svg>
+                    </button>
+                    <button aria-checked="false" title="laptop" aria-label="laptop" data-width="1280px" class="button secondary action">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M40-120v-80h880v80H40Zm120-120q-33 0-56.5-23.5T80-320v-440q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v440q0 33-23.5 56.5T800-240H160Zm0-80h640v-440H160v440Zm0 0v-440 440Z"/></svg>
+                    </button>
+                    <button aria-checked="true" title="desktop" aria-label="desktop" data-width="1440px" class="button secondary action">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M320-120v-80h80v-80H160q-33 0-56.5-23.5T80-360v-400q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v400q0 33-23.5 56.5T800-280H560v80h80v80H320ZM160-360h640v-400H160v400Zm0 0v-400 400Z"/></svg>
+                    </button>
+                </div>
                 <button class="button action secondary edit-mode" hidden>Editing mode</button>
                 <button class="button action secondary preview-mode">Preview mode</button>
                 <select class="button action secondary publish-theme-selector"></select>
@@ -117,8 +140,10 @@ export default async function decorate(block) {
         
           <div class="content">
               <div class="preview">
+                <div class="preview-container">
                   <iframe src="https://preview--${id}.${KESTREL_ONE}" class="iframe is-loading"></iframe>
                   <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+                </div>
               </div>
               <aside>
                   <h2>Typography</h2>
@@ -139,6 +164,14 @@ export default async function decorate(block) {
                   </label>
                   
                   <h2>Colors</h2>
+                  
+                  <h3>Presets</h3>
+                  <label>
+                    <span>Color preset</span>
+                    <select class="presets-picker">
+                        <option class="custom" hidden>Custom</option>
+                    </select>
+                  </label>
                   
                   <h3>Base</h3>
                   <label>
@@ -392,6 +425,65 @@ export default async function decorate(block) {
           </div>
         </div>`;
 
+        // Get CSS vars
+        let cssVars = getCSSVars(css);
+        let fonts = '';
+
+        // Presets
+        let presets;
+        let selectedPreset;
+        const presetsPicker = block.querySelector('.presets-picker');
+        const customPreset = presetsPicker.querySelector('.custom');
+
+        // eslint-disable-next-line max-len
+        const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => cssVars.includes(cssVar)));
+
+        const updatePreset = () => {
+          selectedPreset = findSelectedPreset();
+
+          if (!selectedPreset) {
+            customPreset.hidden = false;
+            customPreset.selected = true;
+          } else {
+            customPreset.hidden = true;
+            presetsPicker.selectedIndex = presets.indexOf(selectedPreset);
+          }
+        };
+
+        // Init theme presets
+        fetch(`https://preview--${id}.${KESTREL_ONE}/themes.json`)
+          .then((res) => res.json())
+          .then((res) => {
+            presets = res;
+            presetsPicker.insertAdjacentHTML('afterbegin', presets.map((preset) => `<option>${preset.name}</option>`).join(''));
+
+            updatePreset();
+
+            presetsPicker.onchange = () => {
+              selectedPreset = presets[presetsPicker.selectedIndex];
+
+              const colorBaseInputs = block.querySelectorAll('.color-picker.base');
+              const colorElementSelects = block.querySelectorAll('.color-picker.elements');
+
+              colorBaseInputs.forEach((el) => {
+                const input = el.querySelector('input');
+                const { value } = findCSSVar(selectedPreset.vars, input.dataset.var);
+
+                input.value = value;
+                input.dispatchEvent(new Event('input'));
+              });
+
+              colorElementSelects.forEach((el) => {
+                const select = el.querySelector('select');
+                const input = el.querySelector('input');
+                const { value } = findCSSVar(selectedPreset.vars, input.dataset.var);
+
+                select.value = value.slice(6, -1);
+                select.dispatchEvent(new Event('change'));
+              });
+            };
+          });
+
         // TODO: remove when we move to dark alley
         fetch(`${SCRIPT_API}/darkAlleyList/${id}`, {
           headers: {
@@ -445,12 +537,9 @@ export default async function decorate(block) {
           },
         ];
 
-        // Get CSS vars
-        let cssVars = getCSSVars(css);
-        let fonts = '';
-
         // Render codemirror
         const vars = block.querySelector('.vars');
+        const previewContainer = block.querySelector('.preview-container');
         const previewFrame = block.querySelector('.iframe');
         previewFrame.addEventListener('load', () => {
           // Add loading buffer
@@ -458,6 +547,10 @@ export default async function decorate(block) {
             previewFrame.classList.remove('is-loading');
           }, 1000);
         });
+        // Loading timeout
+        setTimeout(() => {
+          previewFrame.classList.remove('is-loading');
+        }, 2000);
         vars.value = css;
 
         // Load codemirror to edit styles
@@ -485,16 +578,32 @@ export default async function decorate(block) {
         // Init Modes
         const previewMode = block.querySelector('.preview-mode');
         const editMode = block.querySelector('.edit-mode');
+        const viewers = block.querySelector('.viewers');
         previewMode.onclick = () => {
-          previewFrame.classList.add('preview-mode');
+          previewContainer.classList.add('preview-mode');
           previewMode.hidden = true;
           editMode.hidden = false;
+          viewers.hidden = false;
+          previewFrame.style.width = viewers.querySelector('[aria-checked="true"]').dataset.width;
         };
         editMode.onclick = () => {
-          previewFrame.classList.remove('preview-mode');
+          previewContainer.classList.remove('preview-mode');
           editMode.hidden = true;
+          viewers.hidden = true;
           previewMode.hidden = false;
+          previewFrame.style.width = '';
         };
+        viewers.querySelectorAll('.button').forEach((el) => {
+          el.onclick = () => {
+            if (el.ariaChecked === 'false') {
+              const checkedEl = viewers.querySelector('[aria-checked="true"]');
+              checkedEl.ariaChecked = 'false';
+              el.ariaChecked = 'true';
+
+              previewFrame.style.width = el.dataset.width;
+            }
+          };
+        });
 
         // Init font-weight picker
         const fontWeights = ['300', '400', '700'];
@@ -663,6 +772,8 @@ export default async function decorate(block) {
               });
 
               warning.hidden = false;
+
+              debounce(updatePreset);
             };
           } else if (el.classList.contains('elements')) {
             // Find base color
@@ -690,6 +801,8 @@ export default async function decorate(block) {
               cssVars = getCSSVars(editor.getValue());
 
               warning.hidden = false;
+
+              debounce(updatePreset);
             };
           }
         });
@@ -742,6 +855,10 @@ export default async function decorate(block) {
               },
               { once: true },
             );
+            // Loading timeout
+            setTimeout(() => {
+              previewFrame.classList.remove('is-loading');
+            }, 2000);
           }
         };
 
