@@ -1,4 +1,4 @@
-import { getExpirationTime } from './scripts.js';
+import { getExpirationTime, SCRIPT_API } from './scripts.js';
 
 const unauthenticatedAllowedPaths = {
   '/': true,
@@ -34,6 +34,20 @@ window.auth0.createAuth0Client({
     window?.zaraz?.set('user', user.email);
 
     window.localStorage.sessionExpiration = getExpirationTime(sessionExpirationDays);
+
+    try {
+      const token = await window.auth0Client.getTokenSilently();
+      fetch(`${SCRIPT_API}/welcome`, {
+        headers: {
+          authorization: `bearer ${token}`,
+          'content-type': 'application/json',
+        },
+        body: '',
+        method: 'POST',
+      });
+    } catch (e) {
+      console.log(e);
+    }
 
     if (window.sessionStorage.redirectTo) {
       const { redirectTo } = window.sessionStorage;
