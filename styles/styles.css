@@ -478,8 +478,16 @@ dialog .dialog-content > div:has(> .centered-info),
 dialog .centered-info {
   display: flex;
   flex: 1;
+}
+
+dialog .centered-info {
   align-items: center;
   justify-content: center;
+}
+
+dialog .warning,
+dialog .warning *{
+  color: var(--orange);
 }
 
 @media (width < 768px) {
@@ -514,6 +522,25 @@ dialog.alert-dialog .dialog-content {
 ::backdrop {
   background: rgba(0 0 0 / 20%);
   backdrop-filter: blur(2px);
+}
+
+
+/* MARK: prev updates */
+
+dialog #revert-form ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+dialog #revert-form label {
+  display: flex;
+  gap: 20px;
+  justify-content: flex-start;
+}
+
+dialog #revert-form label input{
+  flex: 0;
 }
 
 

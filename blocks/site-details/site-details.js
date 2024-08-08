@@ -599,6 +599,155 @@ const createDocsEl = (html) => `
   </div>
 `;
 
+// MARK: project updates
+async function renderUpdatesSection(div, { project, headers }) {
+  div.innerHTML = '';
+  const endpoint = `${SCRIPT_API}/${project.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
+  const versionInfo = await fetch(`${endpoint}checkUpdates/${project.projectSlug}`, { headers }).then((res) => res.json()).catch(() => null);
+
+  if (!versionInfo) {
+    div.innerHTML = '<h3>Could not get update information.</h3>';
+    return;
+  }
+
+  if (versionInfo.updateAvailable) {
+    div.innerHTML = `
+      <h3>A new version is available!</h3>
+      ${versionInfo.updateLevel === 'major' ? '<p><strong><span>This version is a major update. It is possible some blocks will need to be updated by authors.</span></strong></p>' : ''}
+    `;
+
+    const updateButton = document.createElement('button');
+    updateButton.classList.add('button', 'action', 'primary', 'update-button');
+    updateButton.innerText = 'Update';
+    updateButton.onclick = async () => {
+      const dialogContent = document.createElement('div');
+      dialogContent.innerHTML = `
+        <h3>Update Project</h3>
+        <p>Are you sure you want to update this project? This will take a short while.</p>
+        ${versionInfo.updateLevel === 'major' ? '<p class="warning"><strong>This is a major update! It is possible some blocks will need to be updated by authors.</strong></p>' : ''}
+        <p>This action can be undone, but changes to icons, blocks, and site theme made after an update, will also be reverted when undone.</p>
+      `;
+      const confirmUpdateButton = document.createElement('button');
+      confirmUpdateButton.classList.add('button', 'action', 'secondary', 'update-button');
+      confirmUpdateButton.innerText = 'Update';
+
+      const cancelButton = document.createElement('button');
+      cancelButton.classList.add('button', 'action', 'primary', 'update-button');
+      cancelButton.innerText = 'Cancel';
+
+      const projectUpdateDialog = window.createDialog(dialogContent, [confirmUpdateButton, cancelButton]);
+
+      confirmUpdateButton.onclick = async () => {
+        window?.zaraz?.track('did site update', { url: window.location.href });
+
+        projectUpdateDialog.dataset.loadingText = 'Updating...';
+        projectUpdateDialog.setLoading(true);
+
+        const updateResponse = await fetch(`${endpoint}update/${project.projectSlug}`, { headers });
+        if (updateResponse.ok) {
+          projectUpdateDialog.renderDialog('<h3 class="centered-info">Project updated successfully!</h3>');
+          // replace update button
+          div.innerHTML = '<h3>Your project is up to date!</h3>';
+        } else {
+          projectUpdateDialog.renderDialog(OOPS);
+        }
+        projectUpdateDialog.setLoading(false);
+      };
+
+      cancelButton.onclick = () => {
+        const dialog = cancelButton.closest('dialog');
+        dialog.close();
+      };
+    };
+
+    div.append(updateButton);
+  } else {
+    div.innerHTML += '<h3>No updates available.</h3>';
+  }
+}
+
+// MARK: revert updates
+async function renderPrevUpdatesSection(div, {
+  project, headers, rerenderUpdatesSection, updateInfoDiv,
+}) {
+  div.innerHTML = '';
+  const endpoint = `${SCRIPT_API}/${project.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
+
+  const prevUpdatesButton = document.createElement('button');
+  prevUpdatesButton.classList.add('button', 'action', 'secondary', 'update-button');
+  prevUpdatesButton.innerText = 'Revert to previous version';
+  prevUpdatesButton.onclick = async () => {
+    const dialogContent = document.createElement('div');
+    dialogContent.innerHTML = '<h3>Revert Project</h3><h4 class="centered-info">Loading previous updates...</h4>';
+    const revertUpdateDialog = window.createDialog(dialogContent, []);
+
+    const updateList = await fetch(`${endpoint}appliedUpdates/${project.projectSlug}`, { headers }).then((res) => res.json()).catch(() => null);
+    if (updateList.length > 0) {
+      dialogContent.innerHTML = `
+        <h3>Revert Updates to Project</h3>
+        <p class="warning">Keep in mind, any changes made on the options and theme pages after an update will <strong>also</strong> be reverted! <strong>This action cannot be undone!</strong></p>
+        `;
+      const revertForm = document.createElement('form');
+      revertForm.id = 'revert-form';
+      revertForm.innerHTML = `
+        <form id="revert-form">
+          <ul class="applied-update-list">
+            ${updateList.map((update) => `<li><label><input required type="radio" name="update" data-version="${update.version}" value="${update.sha}"><span>Version: <strong>${update.version}</strong></span><span>Updated on: <strong>${new Date(update.date).toLocaleString(undefined, {
+    year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
+  })}</strong></span></label></li>`).join('')}
+          </ul>
+        </form>
+      `;
+      dialogContent.append(revertForm);
+
+      const revertButton = document.createElement('button');
+      revertButton.classList.add('button', 'action', 'secondary', 'update-button');
+      revertButton.setAttribute('form', 'revert-form');
+      revertButton.type = 'submit';
+      revertButton.innerText = 'Undo Update';
+      revertButton.disabled = true;
+      revertUpdateDialog.renderDialog(dialogContent, [revertButton]);
+
+      let currentSelectedUpdate = null;
+      revertForm.onchange = (event) => {
+        currentSelectedUpdate = event.target.dataset.version;
+        if (currentSelectedUpdate) {
+          revertButton.disabled = null;
+        }
+      };
+
+      revertForm.onsubmit = async (event) => {
+        event.preventDefault();
+        window?.zaraz?.track('did site update revert', { url: window.location.href });
+
+        if (await window.confirmDialog(`<div><p class="warning">Are you sure you want to revert ${`the ${currentSelectedUpdate}` || 'to before a previous'} update?</p><p><strong>any changes made on the options and theme pages after an update will also be reverted!</strong></p><p class="warning"><strong>This action cannot be undone!</strong></p></div>`)) {
+          revertUpdateDialog.dataset.loadingText = 'Reverting to previous version...';
+          revertUpdateDialog.setLoading(true);
+          const formData = new FormData(revertForm);
+          const revertUpdateResponse = await fetch(`${endpoint}revert/${project.projectSlug}`, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sha: formData.get('update') }),
+          });
+          if (revertUpdateResponse.ok) {
+            revertUpdateDialog.renderDialog('<h3 class="centered-info">Project reverted successfully!</h3>');
+            // rerender update section. Should say an update is available as one has just been reverted
+            rerenderUpdatesSection(updateInfoDiv, { project, headers });
+          } else {
+            revertUpdateDialog.renderDialog(OOPS);
+          }
+          revertUpdateDialog.setLoading(false);
+        }
+      };
+    } else if (updateList.length === 0) {
+      dialogContent.innerHTML = '<h3>Revert Project</h3><h4 class="centered-info">No updates to revert to.</h4>';
+    } else {
+      dialogContent.innerHTML = '<h3>Revert Project</h3><h4 class="centered-info">Could not get update information.</h4>';
+    }
+  };
+  div.append(prevUpdatesButton);
+}
+
 /**
  * MARK: Decorate
  * @param {Element} block
@@ -917,6 +1066,11 @@ export default async function decorate(block) {
                         <h2>Icons</h2>
                         <button class="button action primary add-icon">Add icon</button>
                         <ul class="icons list"></ul>
+
+                        <h2>Updates</h2>
+                        <div class="update-info"></div>
+                        <h3>Previously applied updates</h3>
+                        <div class="prev-update-info"></div>
                     </div> 
                 </div>
             </div>
@@ -1291,7 +1445,15 @@ export default async function decorate(block) {
       // Load site icons
       renderIconsList(block, { project, headers, id });
 
-      // Favicon
+      // project updates
+      const updateInfoDiv = block.querySelector('.update-info');
+      const prevUpdateInfoDiv = block.querySelector('.prev-update-info');
+      renderUpdatesSection(updateInfoDiv, { project, headers });
+      renderPrevUpdatesSection(prevUpdateInfoDiv, {
+        project, headers, rerenderUpdatesSection: renderUpdatesSection, updateInfoDiv,
+      });
+
+      // MARK: Favicon
       block.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
         id,
         headers,
