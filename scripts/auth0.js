@@ -46,6 +46,7 @@ window.auth0.createAuth0Client({
         method: 'POST',
       });
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.log(e);
     }
 
