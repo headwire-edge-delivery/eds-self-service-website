@@ -45,6 +45,8 @@ export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoT
               description: 'This will disable the automatic Tour for all Pages.',
               side: 'bottom',
               align: 'start',
+              buttonClasses: ['button', 'primary', 'action'],
+              removeFooterClass: true,
             },
           },
           {
@@ -54,13 +56,15 @@ export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoT
               description: 'You can always click the help button to start the tour for the current Page.',
               side: 'bottom',
               align: 'start',
+              buttonClasses: ['button', 'primary', 'action'],
+              removeFooterClass: true,
             },
           },
         ],
         onPopoverRender: (popover) => {
           const disableTourButton = document.createElement('button');
           disableTourButton.innerText = 'Disable Tour';
-          disableTourButton.classList.add('button', 'disable-tour-btn');
+          disableTourButton.classList.add('button', 'primary', 'action');
           popover.footerButtons.appendChild(disableTourButton);
 
           disableTourButton.addEventListener('click', () => {

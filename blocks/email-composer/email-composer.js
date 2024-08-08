@@ -70,6 +70,16 @@ export default async function decorate(block) {
     const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta/${url}`);
     if (reqEmail.ok) {
       const { meta, variables } = await reqEmail.json();
+      let customVariables = {};
+
+      if (window.localStorage[window.location.href]) {
+        try {
+          customVariables = JSON.parse(window.localStorage[window.location.href]);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log(e);
+        }
+      }
 
       block.innerHTML = `
         <div class="nav">
@@ -83,7 +93,7 @@ export default async function decorate(block) {
             </a>
             <span>&rsaquo;</span>
             <a href="${window.location.href}" aria-current="page">
-              <h1>${meta.subject}</h1>
+              <h1 class="subject">${meta.subject}</h1>
             </a>
           </div>
           
@@ -102,6 +112,7 @@ export default async function decorate(block) {
                 
                 <div id="email-recipients">
                 <h2>Recipients</h2>
+                
                 <div class="recipients-wrapper">
                     <table class="recipients">
                         <tr>
@@ -118,17 +129,19 @@ export default async function decorate(block) {
                 ${variables.map((variable) => `
                   <div class="kv">
                       <input type="text" placeholder="Key" value="${variable}" readonly>
-                      <input type="text" placeholder="Value">
+                      <input type="text" placeholder="Value" value="${customVariables[variable] ?? ''}">
                   </div>
                 `).join('')}
                 
-                <button class="button secondary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
+                <div class="button-container">
+                    <button class="button secondary action preview-variables">Preview</button>
+                    <button class="button secondary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
                 </div>
 
                 <div id="email-styles">
                 <h2>Styles (Developer)</h2>                
                 <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
-                <form action="${EMAIL_WORKER_API}/preview/${url}" method="POST" target="preview">
+                <form class="form" action="${EMAIL_WORKER_API}/preview/${url}" method="POST" target="preview">
                     <textarea name="styles" class="styles"></textarea>
                     <div class="button-container">
                         <button type="submit" class="button secondary action">Preview</button>
@@ -141,7 +154,27 @@ export default async function decorate(block) {
       `;
 
       const iframe = block.querySelector('.preview iframe');
-      const customVariables = {};
+      const form = block.querySelector('.form');
+      const previewVars = block.querySelector('.preview-variables');
+      const saveVars = block.querySelector('.save-variables');
+      let warning = { hidden: true };
+      let savedEditorStyles;
+
+      const hideWarning = () => {
+        const JSONVars = JSON.stringify(customVariables);
+        const savedVars = JSONVars === window.localStorage[window.location.href];
+
+        if (!editor) {
+          if (savedVars) {
+            warning.hidden = true;
+          }
+          return;
+        }
+
+        if (editor.getValue() === savedEditorStyles && savedVars) {
+          warning.hidden = true;
+        }
+      };
 
       // Find variable in first selected recipient columns
       const replaceMatches = (value) => {
@@ -159,7 +192,7 @@ export default async function decorate(block) {
 
           matches.forEach((match) => {
             const matchingCol = Object.keys(selectedRecipient).find((col) => col === match);
-            newValue = value.replace(`{${match}}`, selectedRecipient[matchingCol] ?? '');
+            newValue = value.replace(`{${match}}`, selectedRecipient[matchingCol] ?? `{${match}}`);
           });
         }
 
@@ -172,11 +205,18 @@ export default async function decorate(block) {
 
         event.target.remove();
         editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
+        editor.on('change', () => {
+          warning.hidden = false;
+        });
+
+        savedEditorStyles = editor.getValue();
       };
 
       const saveStyles = block.querySelector('.save-styles');
       saveStyles.onclick = async () => {
         window?.zaraz?.track('click email preview styles', { url: window.location.href });
+
+        savedEditorStyles = editor.getValue();
 
         saveStyles.classList.add('is-disabled');
         const req = await fetch(`${SCRIPT_API}/emailStyles/${id}`, {
@@ -192,10 +232,12 @@ export default async function decorate(block) {
         });
         await window.alertDialog(req.ok ? 'Styles successfully updated! Updates can take up to 1 minute to be reflected for all users.' : OOPS);
         saveStyles.classList.remove('is-disabled');
+
+        hideWarning();
       };
 
       // Render preview with custom variables
-      block.querySelector('.save-variables').onclick = () => {
+      previewVars.onclick = () => {
         window?.zaraz?.track('click email preview variables', { url: window.location.href });
 
         block.querySelectorAll('.kv input:first-child').forEach((input) => {
@@ -204,23 +246,65 @@ export default async function decorate(block) {
           customVariables[key] = value;
         });
 
-        const keys = Object.keys(customVariables);
-        if (keys.length) {
-          const source = new URL(iframe.src);
-          keys.forEach((key) => {
-            const newValue = replaceMatches(customVariables[key]);
-            source.searchParams.set(key, newValue);
-          });
-
-          iframe.src = source.toString();
+        if (JSON.stringify(customVariables) !== window.localStorage[window.location.href]) {
+          warning.hidden = false;
         }
+
+        const keys = Object.keys(customVariables);
+        const oldSource = new URL(iframe.src);
+        const newSource = new URL(`${oldSource.origin}${oldSource.pathname}`);
+        let newSubject = meta.subject;
+        keys.forEach((key) => {
+          const newValue = replaceMatches(customVariables[key]);
+          newSubject = newSubject.replace(`{${key}}`, newValue || `{${key}}`);
+
+          if (newValue) {
+            newSource.searchParams.set(key, newValue);
+          }
+        });
+
+        block.querySelector('h1.subject').textContent = newSubject;
+        block.querySelector('input.subject').value = newSubject;
+
+        iframe.src = newSource.toString();
+        form.action = newSource.toString();
+        form.submit();
+      };
+      // Re-render with saved variables
+      previewVars.click();
+
+      saveVars.onclick = () => {
+        window?.zaraz?.track('click email save variables', { url: window.location.href });
+
+        previewVars.click();
+        window.localStorage[window.location.href] = JSON.stringify(customVariables);
+
+        hideWarning();
+
+        const text = saveVars.textContent;
+        saveVars.textContent = '✓';
+        setTimeout(() => {
+          saveVars.textContent = text;
+        }, 2000);
       };
 
       block.querySelector('.actions').innerHTML = `
-            <a href="#" id="copy-button" target="_blank" class="button secondary action copy">Copy</a>
+            <div class="warning" hidden>
+              <span class="icon icon-info">
+                <img alt src="/icons/info.svg" loading="lazy">  
+              </span>
+              <span>You have unsaved changes</span>
+              <button type="button" aria-label="close">&#x2715;</button>
+            </div>
+            <a href="#" target="_blank" id="copy-button" class="button secondary action copy">Copy</a>
             <button id="edit-button" class="button action secondary edit">Edit</button>
             <button id="send-button" class="button primary action send is-disabled">Send</button>
           `;
+
+      warning = block.querySelector('.warning');
+      warning.querySelector('button').onclick = () => {
+        warning.hidden = true;
+      };
 
       const editButton = block.querySelector('.actions button.edit');
       if (project?.darkAlleyProject) {
@@ -271,7 +355,7 @@ export default async function decorate(block) {
       await import('../../libs/codemirror/codemirror.min.js');
       await import('../../libs/codemirror/css.min.js');
 
-      fetch(`${project.customLiveUrl}${meta.styles}`)
+      fetch(`${project.customPreviewUrl}${meta.styles}`)
         .then((resStyles) => {
           if (resStyles.ok) {
             return resStyles.text();
@@ -362,8 +446,7 @@ export default async function decorate(block) {
               e.target.closest('tr').classList.add('is-rendering');
 
               // Re-render preview with newly selected recipient
-              block.querySelector('.save-variables').click();
-              block.querySelector('h1').textContent = replaceMatches(meta.subject);
+              previewVars.click();
             } else if (e.target.matches('.remove')) {
               window?.zaraz?.track('click email recipients remove', { url: window.location.href });
 
@@ -432,7 +515,7 @@ export default async function decorate(block) {
             window?.zaraz?.track('click email send', { url: window.location.href });
 
             // Preview to update the iframe source
-            block.querySelector('.save-variables').click();
+            previewVars.click();
 
             const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
 
