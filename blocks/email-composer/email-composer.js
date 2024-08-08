@@ -97,7 +97,7 @@ export default async function decorate(block) {
             <aside>
                 <div id="email-subject">
                 <h2>Subject</h2>
-                <input type="text" readonly value="${meta.subject}">
+                <input class="subject" type="text" readonly value="${meta.subject}">
                 </div>
                 
                 <div id="email-recipients">
@@ -230,6 +230,7 @@ export default async function decorate(block) {
         daEditLink.target = '_blank';
         daEditLink.href = `https://da.live/edit#/da-self-service/${id}${path}`;
         daEditLink.innerText = 'Edit';
+        daEditLink.id = 'edit-button';
         editButton.replaceWith(daEditLink);
       } else {
         // is drive project

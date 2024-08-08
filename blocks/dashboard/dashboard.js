@@ -128,7 +128,9 @@ export default async function decorate(block) {
     if (reqList.ok) {
       const { projects, darkAlleyProjects } = await reqList.json();
 
-      if (!projects.length && !darkAlleyProjects.length) {
+      const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
+
+      if (!projects.length && !hasDarkAlley) {
         sites.innerHTML = '<p>No Sites found</p>';
         return;
       }

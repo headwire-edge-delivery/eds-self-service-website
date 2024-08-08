@@ -68,9 +68,13 @@ const fetchUserSettings = async (SCRIPT_API) => {
 };
 
 const startTour = (SCRIPT_API, isAutoTour = false) => {
+  window.scrollTo(0, 0);
   if (isAutoTour) {
     onAuthenticated(async () => {
       const data = await fetchUserSettings(SCRIPT_API);
+      if (data.showAutoTour === undefined) {
+        data.showAutoTour = true;
+      }
       showAutoTour = data.showAutoTour ?? true;
       userData = data;
       if (showAutoTour) {

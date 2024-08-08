@@ -154,7 +154,7 @@ a:hover {
   text-decoration: underline;
 }
 
-.button-container {
+.button-container, .expedition-popover-navigation-btns {
   display: flex;
   gap: 16px;
   justify-content: center;
@@ -602,38 +602,4 @@ ul.author-list .author .revoke-button {
 
 .help-btn:hover {
   transform: scale(1.1);
-}
-
-/* MARK: Expedition.js */
-.expedition-popover {
-  min-width: 320px !important;
-  max-width: 400px;
-}
-
-.expedition-popover:not(:has(.expedition-popover-arrow)) {
-  margin-left: -60px;
-}
-
-
-#expedition-popover-title, #expedition-popover-footer {
-  background-color: transparent;
-  color: black;
-  height: auto;
-}
-
-.expedition-popover-btn, .expedition-popover-prev-btn, .expedition-popover-next-btn, .disable-tour-btn {
-  border-color: var(--white) !important;
-  text-decoration: none !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  border: 1px solid var(--white) !important;
-  background-color: var(--blue) !important;
-  border-radius: var(--border-radius) !important;
-  padding: 8px 16px !important;
-  cursor: pointer !important;
-  color: var(--white) !important;
-  font-style: normal !important;
-  font-family: var(--font-family) !important;
-  text-shadow: none !important;
 }

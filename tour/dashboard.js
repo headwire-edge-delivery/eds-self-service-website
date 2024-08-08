@@ -1,8 +1,12 @@
 function dashboardSitesTour({ projects, showAutoTour }) {
+  const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
   const tourData = {
+    showDisableTour: !!projects?.google?.length,
     onFinished: () => {
       if (projects?.google?.length && showAutoTour) {
         window.location.href = document.querySelector('#my-sites-overview li a').href;
+      } else if (!projects?.google?.length && showAutoTour) {
+        window.location.href = '/dashboard/account';
       }
     },
     steps: [
@@ -15,7 +19,7 @@ function dashboardSitesTour({ projects, showAutoTour }) {
         title: 'My Sites Overview (Dark Alley)',
         description: `Here you can see all your Dark Alley sites (Currently ${projects?.darkAlley?.length} Sites). <br /> Click on a site to see more details.`,
         element: '#dark-alley-section',
-        skip: !projects?.darkAlley?.length,
+        skip: !projects?.darkAlley?.length || !hasDarkAlley,
       },
       {
         title: 'My Sites Overview',
@@ -39,7 +43,6 @@ function dashboardAccountTour({ showAutoTour }) {
   const currentPlan = document.querySelector('#current-plan').textContent;
   const tourData = {
     onFinished: () => {
-      window.location.href = '/dashboard';
     },
     steps: [
       {

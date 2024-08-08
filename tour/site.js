@@ -1,4 +1,5 @@
 function siteOverviewTour({ showAutoTour }) {
+  const isDarkAlley = window.location.pathname.includes('da-site/');
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
@@ -46,6 +47,7 @@ function siteOverviewTour({ showAutoTour }) {
         title: 'Install Sidekick',
         description: 'Please install the Sidekick Extension. It is mandatory to use the Sidekick Extension. <a href="https://experienceleague.adobe.com/en/docs/experience-manager-cloud-service/content/edge-delivery/resources/sidekick/sidekick" target="_blank">Click here to learn more about Sidekick.</a>',
         element: '#install-sidekick-button',
+        skip: document.querySelector('#install-sidekick-button').hasAttribute('hidden'),
         side: 'left',
       },
       {
@@ -56,7 +58,7 @@ function siteOverviewTour({ showAutoTour }) {
       },
       {
         title: 'Edit your Site',
-        description: 'This will take you directly to your Files inside Google Drive.',
+        description: `This will take you directly to your Files inside ${isDarkAlley ? 'Dark Alley' : 'Google Drive'}.`,
         element: '#edit-button',
         side: 'left',
       },
@@ -73,6 +75,7 @@ function siteOverviewTour({ showAutoTour }) {
 }
 
 function sitePagesTour({ showAutoTour }) {
+  const isDarkAlley = window.location.pathname.includes('da-site/');
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
@@ -97,7 +100,7 @@ function sitePagesTour({ showAutoTour }) {
       },
       {
         title: 'Edit or Open your Page',
-        description: 'You can Edit your Page (which will take you to the Google Drive) or Open your Page in a new tab.',
+        description: `You can Edit your Page (which will take you to ${isDarkAlley ? 'Dark Alley' : 'Google Drive'}) or Open your Page in a new tab.`,
         element: '.table-actions',
         side: 'left',
       },
@@ -109,7 +112,7 @@ function sitePagesTour({ showAutoTour }) {
       },
       {
         title: 'Footer',
-        description: 'Your Footer. It is used for the footer of your site.',
+        description: 'Your Footer. A Footer is a section at the bottom of your site that typically contains information about the site and the site owner.',
         element: '#footer-overview',
         side: 'top',
       },
@@ -159,39 +162,57 @@ function siteMonitoringTour({ showAutoTour }) {
       },
       {
         title: 'Details',
-        description: 'A more detailed view of your Web Analytics.',
+        description: 'A more detailed view of your Web Analytics. <br /> It is divided into 3 different sections.',
         element: '#monitoring-details',
+        align: 'center',
+      },
+      {
+        title: 'Visits Details',
+        description: 'The First Section is the Visits Details.',
+        element: '#visits-details',
+        align: 'center',
+      },
+      {
+        title: 'Page Views Details',
+        description: 'The Second Section is the Page Views Details.',
+        element: '#page-views-details',
+        align: 'center',
+      },
+      {
+        title: 'Pageload Details',
+        description: 'The Third Section is the Pageload Details. <br /> All 3 Sections are sorted in 6 categories.',
+        element: '#pageload-details',
         align: 'center',
       },
       {
         title: 'Sorted by Country',
         description: 'Sorted according to the country of origin of your visitors.',
-        element: '#visits-details-country',
+        element: '#pageload-details-country',
       },
       {
         title: 'Sorted by Referer',
         description: 'Sorted according to the referer of your visitors.',
-        element: '#visits-details-referers',
+        element: '#pageload-details-referers',
       },
       {
         title: 'Sorted by Paths',
         description: 'Sorted according to the paths your visitors took on your website.<br /> This will give you a good overview of the most visited pages.',
-        element: '#visits-details-paths',
+        element: '#pageload-details-paths',
       },
       {
         title: 'Sorted by Browser',
         description: 'Sorted according to the browser your visitors used.',
-        element: '#visits-details-browsers',
+        element: '#pageload-details-browsers',
       },
       {
         title: 'Sorted by Operating System',
         description: 'Sorted according to the operating system your visitors used.',
-        element: '#visits-details-os',
+        element: '#pageload-details-os',
       },
       {
         title: 'Sorted by Device Type',
         description: 'Sorted according to the device type your visitors used. <br /> Are they using a Desktop, Tablet, or Mobile more? You will find the answer here.',
-        element: '#visits-details-devices',
+        element: '#pageload-details-devices',
       },
       {
         title: 'Core Web Vitals',

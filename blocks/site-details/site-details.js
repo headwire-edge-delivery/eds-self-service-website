@@ -47,7 +47,7 @@ function addGoogleCalendarLink(calendarId, actionsList) {
   actionsList.querySelectorAll('.google-calendar-link').forEach((link) => link.remove());
   actionsList.insertAdjacentHTML(
     'afterbegin',
-    `<a class="button action secondary google-calendar-link" target="_blank" href="https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
+    `<a class="button action secondary google-calendar-link" target="_blank" id="google-calendar" href="https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
   );
 }
 
@@ -90,7 +90,7 @@ function addIconDialogSetup({
   input.onchange = (event) => {
     [file] = event.target.files;
     if (file) {
-      if (file.type !== fileAccept) {
+      if (fileAccept.split(',').includes(file.type)) {
         preview.innerHTML = 'Please select a valid file!';
         return;
       }
@@ -848,7 +848,7 @@ export default async function decorate(block) {
                         <h2>Authors</h2>
                         <form class="add-author-form form">
                           <label>
-                            <span>New author</span>
+                            <span>New author <span id="new-author-warning" hidden class="warning">Please enter a valid Email (e.g. person@example.com)</span></span>
                             <input name="email" type="email" placeholder="person@example.com" />
                           </label>
                           <button id="add-author-button" title="Add a new Author" class="button is-disabled primary action" type="submit">Add</button>
@@ -860,7 +860,7 @@ export default async function decorate(block) {
                         <h2>Contact email</h2>
                         <form class="contact-email-form form">
                             <label>
-                                <span>Define which email the contact form submits to.</span>
+                                <span>Define which email the contact form submits to. <span id="contact-email-warning" hidden class="warning">Please enter a valid Email (e.g. person@example.com)</span></span>
                                 <input name="email" type="email" placeholder="person@example.com" />
                             </label>    
                             <button id="contact-email-save" title="Update the Contact Email" class="button primary is-disabled action" type="submit">Update</button>
@@ -887,6 +887,13 @@ export default async function decorate(block) {
                         <button id="add-icon-button" title="Upload a new Icon" class="button action primary add-icon">Add icon</button>
                         <ul id="icons-list" class="icons list"></ul>
                         </div>
+                        
+                        <div id="updates">
+                        <h2>Updates</h2>
+                        <div class="update-info"></div>
+                        <h3>Previously applied updates</h3>
+                        <div class="prev-update-info"></div>
+                        </div>
                     </div> 
                 </div>
             </div>
@@ -906,13 +913,13 @@ export default async function decorate(block) {
       actions.querySelector('.overview-actions').insertAdjacentHTML(
         'beforeend',
         `
-        <a href="${project.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>
+        <a href="${project.sidekickSetupUrl}" ${darkAlleyVariation && 'hidden'} id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>
         ${
   project.authoringGuideUrl
     ? `<a href="${project.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>`
     : ''
 }
-        <a href="${project.driveUrl}?authuser=${user.email}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
+        <a href="${project.driveUrl}${!darkAlleyVariation ? `?authuser=${user.email}` : ''}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
         <a href="${project.customLiveUrl}" id="open-button" title="Open your Website" class="button primary action open" target="_blank">Open</a>
       `,
       );
@@ -988,12 +995,17 @@ export default async function decorate(block) {
         addAuthorForm.classList.remove('is-disabled');
       };
 
-      // Enables the Add button only if the email is different from the current one
+      // Enables the Add button only if the email is in a valid format
       addAuthorForm.oninput = () => {
         if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addAuthorForm.querySelector('input').value)) {
           addAuthorForm.querySelector('#add-author-button').classList.remove('is-disabled');
+          document.querySelector('#new-author-warning').hidden = true;
         } else {
           addAuthorForm.querySelector('#add-author-button').classList.add('is-disabled');
+          document.querySelector('#new-author-warning').hidden = false;
+        }
+        if (addAuthorForm.querySelector('input').value === '') {
+          document.querySelector('#new-author-warning').hidden = true;
         }
       };
 
@@ -1010,12 +1022,14 @@ export default async function decorate(block) {
       const contactEmail = project.contactEmail || project.ownerEmail || '';
       const contactEmailButton = contactEmailForm.querySelector('#contact-email-save');
       contactEmailFormInput.value = contactEmail;
-      // Enables the Update button only if the email is different from the current one
+      // Enables the Update button only if the email is different from the current one and in a valid format
       contactEmailFormInput.oninput = () => {
-        if (contactEmailFormInput.value === contactEmail) {
-          contactEmailButton.classList.add('is-disabled');
-        } else {
+        if (contactEmailFormInput.value === contactEmail || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contactEmailFormInput.value)) {
           contactEmailButton.classList.remove('is-disabled');
+          document.querySelector('#contact-email-warning').hidden = true;
+        } else {
+          contactEmailButton.classList.add('is-disabled');
+          document.querySelector('#contact-email-warning').hidden = false;
         }
       };
 
@@ -1213,8 +1227,8 @@ export default async function decorate(block) {
                       <td>${toDate(item.lastModified).toLocaleString()}</td>
                       <td>
                         <div id="email-open-edit" class="button-container">
-                          <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${project.customLiveUrl}${item.path}" target="_blank">Open</a>
                           <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
+                          <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${project.customLiveUrl}${item.path}" target="_blank">Open</a>
                         </div>
                       </td>
                   </tr>
@@ -1272,7 +1286,7 @@ export default async function decorate(block) {
 
       // MARK: add page button
       block.querySelector('.add-page').onclick = () => {
-        addPageDialogSetup({ project, headers });
+        addPageDialogSetup({ project, headers, darkAlleyVariation });
       };
 
       // Load site blocks
@@ -1286,7 +1300,7 @@ export default async function decorate(block) {
         id,
         headers,
         titleText: 'Favicon',
-        fileAccept: 'image/x-icon',
+        fileAccept: 'image/x-icon,image/*icon',
         uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
         defaultSrc: `https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico`,
       });
@@ -1400,123 +1414,129 @@ export default async function decorate(block) {
           </div>
 
           <div id="monitoring-details">
-          <h2>Visits details</h2>
-          <div class="cards metrics">
-              <div>
+          <div id="visits-details">
+            <h2>Visits details</h2>
+            <div class="cards metrics">
+                <div id="visits-details-country">
+                    <strong>By country</strong>
+                    ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
+                      <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div id="visits-details-referers">
+                    <strong>By referers</strong>
+                    ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
+                      <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div id="visits-details-paths">
+                    <strong>By paths</strong>
+                    ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
+                      <span>${paths.dimensions.metric}: <span>${paths.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div id="visits-details-browsers">
+                    <strong>By browsers</strong>
+                    ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+                      <span>${browsers.dimensions.metric}: <span>${browsers.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div id="visits-details-os">
+                    <strong>By operating systems</strong>
+                    ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
+                      <span>${OSs.dimensions.metric}: <span>${OSs.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div id="visits-details-devices">
+                    <strong>By device type</strong>
+                    ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+                      <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+            </div>
+          </div>
+
+          <div id="page-views-details">
+            <h2>Page views details</h2>
+            <div class="cards metrics">
+              <div id="page-views-details-country">
                   <strong>By country</strong>
                   ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.sum.visits}</span></span>
+                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
                   `).join('')}
               </div>
-              <div>
+              <div id="page-views-details-referers">
                   <strong>By referers</strong>
                   ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
-                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.sum.visits}</span></span>
+                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
                   `).join('')}
               </div>
-              <div>
+              <div id="page-views-details-paths">
                   <strong>By paths</strong>
                   ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
-                    <span>${paths.dimensions.metric}: <span>${paths.sum.visits}</span></span>
+                    <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
                   `).join('')}
               </div>
-              <div>
+              <div id="page-views-details-browsers">
                   <strong>By browsers</strong>
                   ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                    <span>${browsers.dimensions.metric}: <span>${browsers.sum.visits}</span></span>
+                    <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
                   `).join('')}
               </div>
-              <div>
+              <div id="page-views-details-os">
                   <strong>By operating systems</strong>
                   ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
-                    <span>${OSs.dimensions.metric}: <span>${OSs.sum.visits}</span></span>
+                    <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
                   `).join('')}
               </div>
-              <div>
+              <div id="page-views-details-devices">
                   <strong>By device type</strong>
                   ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.sum.visits}</span></span>
+                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
                   `).join('')}
               </div>
-          </div>
-
-          <h2>Page views details</h2>
-          <div class="cards metrics">
-            <div id="visits-details-country">
-                <strong>By country</strong>
-                ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                  <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
-                `).join('')}
-            </div>
-            <div id="visits-details-referers">
-                <strong>By referers</strong>
-                ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
-                  <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
-                `).join('')}
-            </div>
-            <div id="visits-details-paths">
-                <strong>By paths</strong>
-                ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
-                  <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
-                `).join('')}
-            </div>
-            <div id="visits-details-browsers">
-                <strong>By browsers</strong>
-                ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                  <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
-                `).join('')}
-            </div>
-            <div id="visits-details-os">
-                <strong>By operating systems</strong>
-                ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
-                  <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
-                `).join('')}
-            </div>
-            <div id="visits-details-devices">
-                <strong>By device type</strong>
-                ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                  <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
-                `).join('')}
             </div>
           </div>
 
-          <h2>Page load time details</h2>
-          <div class="cards metrics">
-            <div>
-                <strong>By country</strong>
-                ${metrics[3].data.viewer.accounts[0].countries.map((country) => `
-                  <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By referers</strong>
-                ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `
-                  <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By paths</strong>
-                ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `
-                  <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By browsers</strong>
-                ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                  <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By operating systems</strong>
-                ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `
-                  <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By device type</strong>
-                ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                  <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
-                `).join('')}
+          <div id="pageload-details">
+            <h2>Page load time details</h2>
+            <div class="cards metrics">
+              <div id="pageload-details-country">
+                  <strong>By country</strong>
+                  ${metrics[3].data.viewer.accounts[0].countries.map((country) => `
+                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
+                  `).join('')}
+              </div>
+              <div id="pageload-details-referers">
+                  <strong>By referers</strong>
+                  ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `
+                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
+                  `).join('')}
+              </div>
+              <div id="pageload-details-paths">
+                  <strong>By paths</strong>
+                  ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `
+                    <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
+                  `).join('')}
+              </div>
+              <div id="pageload-details-browsers">
+                  <strong>By browsers</strong>
+                  ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+                    <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
+                  `).join('')}
+              </div>
+              <div id="pageload-details-os">
+                  <strong>By operating systems</strong>
+                  ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `
+                    <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
+                  `).join('')}
+              </div>
+              <div id="pageload-details-devices">
+                  <strong>By device type</strong>
+                  ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
+                  `).join('')}
+              </div>
             </div>
           </div>
           </div>

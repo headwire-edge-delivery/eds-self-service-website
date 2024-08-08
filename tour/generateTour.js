@@ -1,6 +1,7 @@
 export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoTour, tourData) {
   const tourSteps = [];
   let isLastStep = false;
+  let showDisableTour = true;
 
   tourData.steps.forEach((step, index) => {
     if (step.skip === true) {
@@ -9,7 +10,7 @@ export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoT
 
     const tourStep = {
       element: step.element,
-      elementEvent: step.elementEvent,
+      elementEvent() { step.elementEvent?.(); showDisableTour = !step.elementEvent; },
       destroyOnClicked: step.destroyOnClicked ?? false,
       popover: {
         title: step.title,
@@ -19,6 +20,8 @@ export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoT
         showProgress: step.showProgress ?? false,
         side: step.side ?? 'bottom',
         align: step.align ?? 'start',
+        buttonClasses: ['button', 'primary', 'action'],
+        removeFooterClass: true,
       },
     };
 
@@ -31,7 +34,7 @@ export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoT
     onNextClick: tourData.onNextClick,
     onFinished: tourData.onFinished ?? (() => {}),
     steps: tourSteps,
-    onDestroyStarted: (element, step, { state }) => {
+    onDestroyed: (element, step, { state }) => {
       isLastStep = state.activeIndex === tourSteps.length - 1;
       const tourObj = tour({
         doneBtnText: 'Close',
@@ -67,8 +70,10 @@ export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoT
         },
       });
 
-      if (showAutoTour && !isLastStep) {
-        tourObj.start();
+      if (showAutoTour && !isLastStep && showDisableTour) {
+        setTimeout(() => {
+          tourObj.start();
+        }, 300);
       } else {
         tourObj.destroy();
       }
