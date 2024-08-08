@@ -86,7 +86,9 @@ window.auth0.createAuth0Client({
       if (now >= Number(window.localStorage.sessionExpiration)) {
         window.clearInterval(sessionInterval);
         document.body.hidden = true;
-        document.querySelector('a[href="#signout"]').click();
+        // document.querySelector('a[href="#signout"]').click();
+        delete window.localStorage.sessionExpiration;
+        window.auth0Client.logout({ logoutParams: { returnTo: window.location.origin } });
       }
     }, 1000);
   } else if (!unauthenticatedAllowedPaths[window.location.pathname]) {
