@@ -613,7 +613,7 @@ async function renderUpdatesSection(div, { project, headers }) {
   if (versionInfo.updateAvailable) {
     div.innerHTML = `
       <h3>A new version is available!</h3>
-      ${versionInfo.updateLevel === 'major' ? '<p><strong><span>This version is a major update. It is possible some blocks need to be updated.</span></strong></p>' : ''}
+      ${versionInfo.updateLevel === 'major' ? '<p><strong><span>This version is a major update. It is possible some blocks will need to be updated by authors.</span></strong></p>' : ''}
     `;
 
     const updateButton = document.createElement('button');
@@ -621,7 +621,12 @@ async function renderUpdatesSection(div, { project, headers }) {
     updateButton.innerText = 'Update';
     updateButton.onclick = async () => {
       const dialogContent = document.createElement('div');
-      dialogContent.innerHTML = '<h3>Update Project</h3><p>Are you sure you want to update this project? This will take a short while.</p><p>This action can be undone, but changes to icons, blocks, and site theme made after an update, will also be reverted when undone.</p>';
+      dialogContent.innerHTML = `
+        <h3>Update Project</h3>
+        <p>Are you sure you want to update this project? This will take a short while.</p>
+        ${versionInfo.updateLevel === 'major' ? '<p class="warning"><strong>This is a major update! It is possible some blocks will need to be updated by authors.</strong></p>' : ''}
+        <p>This action can be undone, but changes to icons, blocks, and site theme made after an update, will also be reverted when undone.</p>
+      `;
       const confirmUpdateButton = document.createElement('button');
       confirmUpdateButton.classList.add('button', 'action', 'secondary', 'update-button');
       confirmUpdateButton.innerText = 'Update';
@@ -673,7 +678,7 @@ async function renderPrevUpdatesSection(div, {
   prevUpdatesButton.innerText = 'Revert to previous version';
   prevUpdatesButton.onclick = async () => {
     const dialogContent = document.createElement('div');
-    dialogContent.innerHTML = '<h3>Revert Project</h3><h4>Loading previous updates...</h4>';
+    dialogContent.innerHTML = '<h3>Revert Project</h3><h4 class="centered-info">Loading previous updates...</h4>';
     const revertUpdateDialog = window.createDialog(dialogContent, []);
 
     const updateList = await fetch(`${endpoint}appliedUpdates/${project.projectSlug}`, { headers }).then((res) => res.json()).catch(() => null);
@@ -726,9 +731,8 @@ async function renderPrevUpdatesSection(div, {
           });
           if (revertUpdateResponse.ok) {
             revertUpdateDialog.renderDialog('<h3 class="centered-info">Project reverted successfully!</h3>');
-            // replace update button/up-to-date message, check for updates after 6sec
-            updateInfoDiv.innerHTML = '<h3>Project reverted successfully!</h3>';
-            setTimeout(() => rerenderUpdatesSection(updateInfoDiv, { project, headers }), 15000);
+            // rerender update section. Should say an update is available as one has just been reverted
+            rerenderUpdatesSection(updateInfoDiv, { project, headers });
           } else {
             revertUpdateDialog.renderDialog(OOPS);
           }
@@ -736,9 +740,9 @@ async function renderPrevUpdatesSection(div, {
         }
       };
     } else if (updateList.length === 0) {
-      dialogContent.innerHTML = '<h3>Revert Project</h3><h4>No updates to revert to.</h4>';
+      dialogContent.innerHTML = '<h3>Revert Project</h3><h4 class="centered-info">No updates to revert to.</h4>';
     } else {
-      dialogContent.innerHTML = '<h3>Revert Project</h3><h4>Could not get update information.</h4>';
+      dialogContent.innerHTML = '<h3>Revert Project</h3><h4 class="centered-info">Could not get update information.</h4>';
     }
   };
   div.append(prevUpdatesButton);

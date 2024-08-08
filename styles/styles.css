@@ -110,11 +110,6 @@ p {
   line-height: 22px;
 }
 
-p.warning,
-p.warning *{
-  color: var(--orange);
-}
-
 ul,
 ol {
   margin-block: 16px;
@@ -483,8 +478,16 @@ dialog .dialog-content > div:has(> .centered-info),
 dialog .centered-info {
   display: flex;
   flex: 1;
+}
+
+dialog .centered-info {
   align-items: center;
   justify-content: center;
+}
+
+dialog .warning,
+dialog .warning *{
+  color: var(--orange);
 }
 
 @media (width < 768px) {
