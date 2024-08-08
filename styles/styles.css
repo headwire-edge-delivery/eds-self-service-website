@@ -562,47 +562,6 @@ img[src="/icons/loading.svg"] {
   filter: invert(1);
 }
 
-/* MARK: Author list */
-ul.author-list {
-  list-style: none;
-  margin: 20px 0;
-  padding: 0;
-}
-
-ul.author-list .author {
-  margin-bottom: 10px;
-  width: 100%;
-  display: flex;
-  gap: 6px;
-}
-
-ul.author-list:empty::after {
-  content: "No external authors yet";
-}
-
-ul.author-list .author .revoke-button {
-  padding: 0;
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: url("/icons/remove-circle.svg") no-repeat center / contain;
-}
-
-.add-author-section {
-  border-top: 1px solid var(--gray);
-  margin-bottom: 24px;
-}
-
-.add-author-section h4 {
-  margin: 6px 0;
-}
-
-.add-author-section form {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
 /* MARK: Help Button */
 .help-btn {
   position: fixed;

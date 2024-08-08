@@ -117,6 +117,7 @@
 
 .wizard.block .template {
     padding: 32px;
+    margin: auto auto 32px;
     min-width: calc(var(--layout-width) / 2.5);
     border-radius: var(--border-radius);
     background-color: var(--dark-blue);
