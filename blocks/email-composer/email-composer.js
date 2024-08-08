@@ -296,6 +296,7 @@ export default async function decorate(block) {
               <span>You have unsaved changes</span>
               <button type="button" aria-label="close">&#x2715;</button>
             </div>
+
             <a href="#" target="_blank" id="copy-button" class="button secondary action copy">Copy</a>
             <button id="edit-button" class="button action secondary edit">Edit</button>
             <button id="send-button" class="button primary action send is-disabled">Send</button>
