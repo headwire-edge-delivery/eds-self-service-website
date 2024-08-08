@@ -33,7 +33,7 @@ function settingsGeneralTour({ showAutoTour }) {
       },
       {
         title: 'Delete a Block',
-        description: 'To add a new block to your website, click here. <br /> This will open a dialog where you can select a block to add to your page.',
+        description: 'To delete a block, click here. <br /> This will open a dialog where you can delete it.',
         element: '#blocks-list > li:first-child',
       },
       {

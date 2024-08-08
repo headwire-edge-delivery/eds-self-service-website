@@ -11,7 +11,7 @@ export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoT
     const tourStep = {
       element: step.element,
       elementEvent() { step.elementEvent?.(); showDisableTour = !step.elementEvent; },
-      destroyOnClicked: step.destroyOnClicked ?? false,
+      destroyOnClicked: step.destroyOnClicked ?? true,
       popover: {
         title: step.title,
         description: step.description,
