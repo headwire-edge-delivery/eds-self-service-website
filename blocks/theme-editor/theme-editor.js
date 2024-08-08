@@ -994,49 +994,72 @@ export default async function decorate(block) {
 
     // MARK: contrast checker
     // elements
+    // BG colors
     const backgroundColorMain = block.querySelector('#background-color-main');
     const backgroundColorHeader = block.querySelector('#background-color-header');
     const backgroundColorFooter = block.querySelector('#background-color-footer');
+    // text colors
     const textColorHeader = block.querySelector('#text-color-header');
     const textColorMain = block.querySelector('#text-color-main');
     const textColorLinks = block.querySelector('#text-color-links');
     const textColorLinksHover = block.querySelector('#text-color-links-hover');
-    // buttons
-    // default
+    // button default
     const buttonColorText = block.querySelector('#button-color-text');
     const buttonColorBackground = block.querySelector('#button-color-background');
     const buttonColorTextHover = block.querySelector('#button-color-text-hover');
     const buttonColorBackgroundHover = block.querySelector('#button-color-background-hover');
-    // primary
+    // button primary
     const buttonPrimaryColorText = block.querySelector('#button-primary-color-text');
     const buttonPrimaryColorBackground = block.querySelector('#button-primary-color-background');
     const buttonPrimaryColorTextHover = block.querySelector('#button-primary-color-text-hover');
     const buttonPrimaryColorBackgroundHover = block.querySelector('#button-primary-color-background-hover');
-    // secondary
+    // button secondary
     const buttonSecondaryColorText = block.querySelector('#button-secondary-color-text');
     const buttonSecondaryColorBackground = block.querySelector('#button-secondary-color-background');
     const buttonSecondaryColorTextHover = block.querySelector('#button-secondary-color-text-hover');
     const buttonSecondaryColorBackgroundHover = block.querySelector('#button-secondary-color-background-hover');
 
-    const contrastGroups = [];
-
-    const contrastMap = {
-      // text
-      textColorMain: {
-        element: textColorMain,
+    const contrastGroups = [
+      // BG colors
+      {
+        element: backgroundColorMain,
+        shouldContrastWith: [
+          textColorHeader,
+          textColorMain,
+          textColorLinks,
+          textColorLinksHover,
+        ],
+      },
+      {
+        element: backgroundColorHeader,
+        shouldContrastWith: [
+          textColorLinks,
+          textColorMain,
+        ],
+      },
+      {
+        element: backgroundColorFooter,
+        shouldContrastWith: [
+          textColorLinks,
+          textColorMain,
+        ],
+      },
+      // text colors
+      {
+        element: textColorHeader,
         shouldContrastWith: [
           backgroundColorMain,
         ],
       },
-      textColorHeader: {
-        element: textColorHeader,
+      {
+        element: textColorMain,
         shouldContrastWith: [
+          backgroundColorMain,
           backgroundColorHeader,
           backgroundColorFooter,
         ],
       },
-      // links
-      textColorLinks: {
+      {
         element: textColorLinks,
         shouldContrastWith: [
           backgroundColorMain,
@@ -1044,7 +1067,7 @@ export default async function decorate(block) {
           backgroundColorFooter,
         ],
       },
-      textColorLinksHover: {
+      {
         element: textColorLinksHover,
         shouldContrastWith: [
           backgroundColorMain,
@@ -1052,78 +1075,240 @@ export default async function decorate(block) {
           backgroundColorFooter,
         ],
       },
-      // buttons
-      buttonColorText: {
+      // button default
+      {
         element: buttonColorText,
         shouldContrastWith: [
           buttonColorBackground,
         ],
       },
-      buttonColorTextHover: {
+      {
+        element: buttonColorBackground,
+        shouldContrastWith: [
+          buttonColorText,
+        ],
+      },
+      {
         element: buttonColorTextHover,
         shouldContrastWith: [
           buttonColorBackgroundHover,
         ],
       },
+      {
+        element: buttonColorBackgroundHover,
+        shouldContrastWith: [
+          buttonColorTextHover,
+        ],
+      },
       // button primary
-      buttonPrimaryColorText: {
+      {
         element: buttonPrimaryColorText,
         shouldContrastWith: [
           buttonPrimaryColorBackground,
         ],
       },
-      buttonPrimaryColorTextHover: {
+      {
+        element: buttonPrimaryColorBackground,
+        shouldContrastWith: [
+          buttonPrimaryColorText,
+        ],
+      },
+      {
         element: buttonPrimaryColorTextHover,
         shouldContrastWith: [
           buttonPrimaryColorBackgroundHover,
         ],
       },
+      {
+        element: buttonPrimaryColorBackgroundHover,
+        shouldContrastWith: [
+          buttonPrimaryColorTextHover,
+        ],
+      },
       // button secondary
-      buttonSecondaryColorText: {
+      {
         element: buttonSecondaryColorText,
         shouldContrastWith: [
           buttonSecondaryColorBackground,
         ],
       },
-      buttonSecondaryColorTextHover: {
+      {
+        element: buttonSecondaryColorBackground,
+        shouldContrastWith: [
+          buttonSecondaryColorText,
+        ],
+      },
+      {
         element: buttonSecondaryColorTextHover,
         shouldContrastWith: [
           buttonSecondaryColorBackgroundHover,
         ],
       },
+      {
+        element: buttonSecondaryColorBackgroundHover,
+        shouldContrastWith: [
+          buttonSecondaryColorTextHover,
+        ],
+      },
+    ];
+
+    contrastGroups.forEach((group) => {
+      const contrastIssueSpan = document.createElement('span');
+      contrastIssueSpan.classList.add('contrast-issue-span');
+      group.element.append(contrastIssueSpan);
+    });
+
+    const writeContrastIssues = (mainEl, contrastEl, remove = false) => {
+      console.log('mainEl:', mainEl);
+      const mainElName = mainEl.children[0].textContent;
+      const contrastElName = contrastEl.children[0].textContent;
+
+      if (remove) {
+        mainEl.dataset.contrastIssue = 'false';
+        contrastEl.dataset.contrastIssue = 'false';
+        mainEl.dataset.contrastIssueWith = mainEl.dataset.contrastIssueWith.replace(`${contrastElName},`, '');
+        contrastEl.dataset.contrastIssueWith = contrastEl.dataset.contrastIssueWith.replace(`${mainElName},`, '');
+      } else {
+        mainEl.dataset.contrastIssue = 'true';
+        contrastEl.dataset.contrastIssue = 'true';
+        mainEl.dataset.contrastIssueWith += `${contrastElName},`;
+        contrastEl.dataset.contrastIssueWith += `${mainElName},`;
+      }
+
+      const mainIssueSpan = mainEl.children[2];
+      const contrastIssueSpan = contrastEl.children[2];
+
+      if (mainEl.dataset.contrastIssueWith?.length) {
+        const mainIssueList = mainEl.dataset.contrastIssueWith.split(',');
+        mainIssueList.pop();
+        mainIssueSpan.innerText = `Contrast well with: ${mainIssueList.join(', ')}`;
+      }
+
+      if (contrastEl.dataset.contrastIssueWith?.length) {
+        const contrastIssueList = contrastEl.dataset.contrastIssueWith.split(',');
+        contrastIssueList.pop();
+        contrastIssueSpan.innerText = `Contrast well with: ${contrastIssueList.join(', ')}`;
+      }
     };
 
-    const contrastMapKeys = Object.keys(contrastMap);
+    for (let i = 0; i < contrastGroups.length; i++) {
+      const { element, shouldContrastWith } = contrastGroups[i];
+      const elementColorInput = element.children[1].children[1];
 
-    let onChangeDebounceTimeout = null;
-    const debouncedContrastCheck = () => {
-      clearTimeout(onChangeDebounceTimeout);
-      onChangeDebounceTimeout = setTimeout(() => {
-        const performanceStart = performance.now();
-        for (let i = 0; i < contrastMapKeys.length; i++) {
-          const colorProperty = contrastMap[contrastMapKeys[i]];
-
-          for (let j = 0; j < colorProperty.shouldContrastWith.length; j++) {
-            const colorPropertyElementInput = colorProperty.element.querySelector('input');
-            const shouldContrastInput = colorProperty.shouldContrastWith[j].querySelector('input');
-            // console.log('shouldContrastInput:', shouldContrastInput);
-            const { ratio, AA, AAA } = calculateContrast(
-              colorPropertyElementInput.value,
-              shouldContrastInput.value,
-            );
-            if (!AA || !AAA) {
-              // console.log('\x1b[31m ~ FAILED:', colorProperty, shouldContrastInput, { ratio, AA, AAA });
-            } else {
-              // console.log('\x1b[31m ~ GOOD:', colorProperty, shouldContrastInput, { ratio, AA, AAA });
-            }
-          }
+      elementColorInput.addEventListener('input', (event) => {
+        for (let j = 0; j < shouldContrastWith.length; j++) {
+          const label = shouldContrastWith[j];
+          const labelColorInput = label.children[1].children[1];
+          const { ratio, AA, AAA } = calculateContrast(elementColorInput.value, labelColorInput.value);
+          writeContrastIssues(element, label, !AA || !AAA);
         }
-        const performanceEnd = performance.now();
-        console.log('\x1b[34m ~ PERF:', performanceEnd - performanceStart);
-      }, 250);
-    };
+      });
+    }
 
-    editor.on('change', debouncedContrastCheck);
+    // const contrastMap = {
+    //   // text
+    //   textColorMain: {
+    //     element: textColorMain,
+    //     shouldContrastWith: [
+    //       backgroundColorMain,
+    //     ],
+    //   },
+    //   textColorHeader: {
+    //     element: textColorHeader,
+    //     shouldContrastWith: [
+    //       backgroundColorHeader,
+    //       backgroundColorFooter,
+    //     ],
+    //   },
+    //   // links
+    //   textColorLinks: {
+    //     element: textColorLinks,
+    //     shouldContrastWith: [
+    //       backgroundColorMain,
+    //       backgroundColorHeader,
+    //       backgroundColorFooter,
+    //     ],
+    //   },
+    //   textColorLinksHover: {
+    //     element: textColorLinksHover,
+    //     shouldContrastWith: [
+    //       backgroundColorMain,
+    //       backgroundColorHeader,
+    //       backgroundColorFooter,
+    //     ],
+    //   },
+    //   // buttons
+    //   buttonColorText: {
+    //     element: buttonColorText,
+    //     shouldContrastWith: [
+    //       buttonColorBackground,
+    //     ],
+    //   },
+    //   buttonColorTextHover: {
+    //     element: buttonColorTextHover,
+    //     shouldContrastWith: [
+    //       buttonColorBackgroundHover,
+    //     ],
+    //   },
+    //   // button primary
+    //   buttonPrimaryColorText: {
+    //     element: buttonPrimaryColorText,
+    //     shouldContrastWith: [
+    //       buttonPrimaryColorBackground,
+    //     ],
+    //   },
+    //   buttonPrimaryColorTextHover: {
+    //     element: buttonPrimaryColorTextHover,
+    //     shouldContrastWith: [
+    //       buttonPrimaryColorBackgroundHover,
+    //     ],
+    //   },
+    //   // button secondary
+    //   buttonSecondaryColorText: {
+    //     element: buttonSecondaryColorText,
+    //     shouldContrastWith: [
+    //       buttonSecondaryColorBackground,
+    //     ],
+    //   },
+    //   buttonSecondaryColorTextHover: {
+    //     element: buttonSecondaryColorTextHover,
+    //     shouldContrastWith: [
+    //       buttonSecondaryColorBackgroundHover,
+    //     ],
+    //   },
+    // };
+
+    // const contrastMapKeys = Object.keys(contrastMap);
+
+    // let onChangeDebounceTimeout = null;
+    // const debouncedContrastCheck = () => {
+    //   clearTimeout(onChangeDebounceTimeout);
+    //   onChangeDebounceTimeout = setTimeout(() => {
+    //     const performanceStart = performance.now();
+    //     for (let i = 0; i < contrastMapKeys.length; i++) {
+    //       const colorProperty = contrastMap[contrastMapKeys[i]];
+
+    //       for (let j = 0; j < colorProperty.shouldContrastWith.length; j++) {
+    //         const colorPropertyElementInput = colorProperty.element.querySelector('input');
+    //         const shouldContrastInput = colorProperty.shouldContrastWith[j].querySelector('input');
+    //         // console.log('shouldContrastInput:', shouldContrastInput);
+    //         const { ratio, AA, AAA } = calculateContrast(
+    //           colorPropertyElementInput.value,
+    //           shouldContrastInput.value,
+    //         );
+    //         if (!AA || !AAA) {
+    //           // console.log('\x1b[31m ~ FAILED:', colorProperty, shouldContrastInput, { ratio, AA, AAA });
+    //         } else {
+    //           // console.log('\x1b[31m ~ GOOD:', colorProperty, shouldContrastInput, { ratio, AA, AAA });
+    //         }
+    //       }
+    //     }
+    //     const performanceEnd = performance.now();
+    //     console.log('\x1b[34m ~ PERF:', performanceEnd - performanceStart);
+    //   }, 250);
+    // };
+
+    // editor.on('change', debouncedContrastCheck);
     // editor.on('change', (event, other) => {
     //   console.log('\x1b[34m ~ TEST:', event);
     // });
