@@ -22,6 +22,7 @@ export const OOPS = 'Oops ! Something went wrong …';
 
 export const defaultBranch = 'main';
 export const projectRepo = 'headwire-self-service';
+export const daProjectRepo = 'da-self-service';
 
 // extra four, for separators
 export const slugMaxLength = 63
@@ -41,11 +42,11 @@ export function onAuthenticated(cb) {
 
 export const KESTREL_ONE = 'kestrelone.com';
 
-export function getExpirationTime(expirationDays, bufferTime) {
+export function getExpirationTime(expirationDays) {
   const date = new Date();
   date.setDate(date.getDate() + expirationDays);
 
-  return date.getTime() - bufferTime;
+  return date.getTime();
 }
 
 /**
@@ -139,9 +140,10 @@ async function loadPage() {
 
 loadPage();
 
-window.createDialog = (contentDiv, buttons, { open, onCloseFn } = { open: true }) => {
+window.createDialog = (contentDiv, buttons, { open = true, onCloseFn, fullscreen } = {}) => {
   const dialog = document.createElement('dialog');
   dialog.classList.add('display-dialog');
+  if (fullscreen) dialog.classList.add('fullscreen');
   const dialogContent = document.createElement('div');
   dialogContent.classList.add('dialog-content');
   dialog.append(dialogContent);

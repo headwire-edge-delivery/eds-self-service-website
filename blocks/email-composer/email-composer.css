@@ -140,6 +140,23 @@
     pointer-events: none;
 }
 
+.email-composer.block .warning {
+    padding-left: 8px;
+    background-color: var(--orange);
+    color: var(--black);
+    border-radius: 4px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.email-composer.block .warning button {
+    background-color: transparent;
+    border-color: transparent;
+    cursor: pointer;
+}
+
 @media (width < 768px) {
     .email-composer.block .content {
         flex-direction: column;

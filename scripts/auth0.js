@@ -1,4 +1,4 @@
-import { getExpirationTime } from './scripts.js';
+import { getExpirationTime, SCRIPT_API } from './scripts.js';
 
 const unauthenticatedAllowedPaths = {
   '/': true,
@@ -7,7 +7,6 @@ const unauthenticatedAllowedPaths = {
   '/privacy-policy': true,
 };
 
-const bufferTime = 120000;
 const sessionExpirationDays = 3;
 
 document.body.style.display = 'none';
@@ -34,8 +33,20 @@ window.auth0.createAuth0Client({
     window?.zaraz?.track('new auth session', { url: window.location.href });
     window?.zaraz?.set('user', user.email);
 
-    if (!window.localStorage.sessionExpiration) {
-      window.localStorage.sessionExpiration = getExpirationTime(sessionExpirationDays, bufferTime);
+    window.localStorage.sessionExpiration = getExpirationTime(sessionExpirationDays);
+
+    try {
+      const token = await window.auth0Client.getTokenSilently();
+      fetch(`${SCRIPT_API}/welcome`, {
+        headers: {
+          authorization: `bearer ${token}`,
+          'content-type': 'application/json',
+        },
+        body: '',
+        method: 'POST',
+      });
+    } catch (e) {
+      console.log(e);
     }
 
     if (window.sessionStorage.redirectTo) {
@@ -65,33 +76,17 @@ window.auth0.createAuth0Client({
       if (user?.email?.endsWith('@headwire.com')) {
         document.body.classList.add('is-headwire');
       }
+      if (user?.email?.endsWith('@adobe.com')) {
+        document.body.classList.add('is-adobe');
+      }
     });
-
-    const sign = (type) => {
-      document.querySelector(`a[href="#sign${type}"]`).click();
-    };
 
     const sessionInterval = window.setInterval(() => {
       const now = new Date().getTime();
       if (now >= Number(window.localStorage.sessionExpiration)) {
         window.clearInterval(sessionInterval);
-        window.setTimeout(() => {
-          sign('out');
-        }, bufferTime);
-
-        const signIn = document.createElement('button');
-        signIn.innerText = 'Sign in';
-        signIn.onclick = () => {
-          sign('in');
-        };
-
-        const signOut = document.createElement('button');
-        signOut.innerText = 'Sign out';
-        signOut.onclick = () => {
-          sign('out');
-        };
-
-        window.createDialog('<h3 class="centered-info">Your session is about to expire</h3><p>Please sign in to keep your session active.</p>', [signIn, signOut]);
+        document.body.hidden = true;
+        document.querySelector('a[href="#signout"]').click();
       }
     }, 1000);
   } else if (!unauthenticatedAllowedPaths[window.location.pathname]) {
