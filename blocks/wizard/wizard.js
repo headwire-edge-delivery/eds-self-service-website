@@ -19,7 +19,7 @@ export default async function decorate(block) {
 
   const prevTemplate = document.createElement('button');
   prevTemplate.className = 'button secondary prev';
-  prevTemplate.textContent = 'Previous';
+  prevTemplate.textContent = 'Go back';
 
   creationSteps.forEach((step, i) => {
     const buttonContainer = step.querySelector('.button-container:last-child');
@@ -177,18 +177,7 @@ export default async function decorate(block) {
           <a href="/templates/${id}" id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
             <p>${description}</p>
-            <div class="carousel">
-                <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
-                <img alt="" src="/assets/${id}/image2.png" loading="lazy"/>
-                <img alt="" src="/assets/${id}/image3.png" loading="lazy"/>
-                <img alt="" src="/assets/${id}/image4.png" loading="lazy"/>
-                <div class="dots">
-                    <div class="dot is-selected"></div>
-                    <div class="dot"></div>
-                    <div class="dot "></div>
-                    <div class="dot"></div>
-                </div>
-            </div>
+            <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
             <iframe class="preview" src="${demo}" loading="lazy"></iframe>
           </a>
         `;
@@ -323,6 +312,7 @@ export default async function decorate(block) {
   const createStep = block.querySelector(':scope > div:has(a[href="#create"])');
   const input = document.createElement('input');
   input.placeholder = 'My Site';
+  input.id = 'site-name';
 
   const slugInputWrapper = document.createElement('label');
   const slugInput = document.createElement('input');
@@ -330,11 +320,13 @@ export default async function decorate(block) {
   slugInputWrapper.append(slugInput);
   slugInput.placeholder = 'my-site';
   slugInputWrapper.dataset.leftoverChars = slugMaxLength;
+  slugInput.id = 'slug-input';
 
   slugInput.dataset.copyName = true;
 
   const createButton = createStep.querySelector('a[href="#create"]');
   createButton.classList.add('is-disabled');
+  createButton.id = 'create-button';
 
   // MARK: Valid slug check
   let createButtonTimer;
@@ -362,6 +354,7 @@ export default async function decorate(block) {
   }
   const descriptionTextarea = document.createElement('textarea');
   descriptionTextarea.placeholder = 'Description';
+  descriptionTextarea.id = 'description-input';
 
   const darkAlleyCheckbox = document.createElement('input');
   darkAlleyCheckbox.type = 'checkbox';
@@ -484,9 +477,6 @@ export default async function decorate(block) {
             finished,
             success,
             failed,
-            driveUrl,
-            sidekickSetupUrl,
-            customLiveUrl,
             projectSlug,
             darkAlleyUrl,
           } = await reqStatus.json();
@@ -495,39 +485,7 @@ export default async function decorate(block) {
 
           if (finished) {
             if (success) {
-              const openSite = block.querySelector('a[href="#open-site"]');
-              const openDrive = block.querySelector('a[href="#open-drive"]');
-              const installSidekick = block.querySelector('a[href="#install-sidekick"]');
-              const openSiteDetails = block.querySelector('a[href="#site-details"]');
-              const makeReady = (linkEl, url) => {
-                if (linkEl && url) {
-                  linkEl.href = url;
-                  linkEl.classList.add('action', 'secondary', 'is-ready');
-                  linkEl.target = '_blank';
-                }
-              };
-
-              makeReady(openSite, customLiveUrl);
-              makeReady(openDrive, driveUrl);
-              makeReady(installSidekick, sidekickSetupUrl);
-
-              if (darkAlleyUrl) {
-                // const openDarkAlley = document.createElement('a');
-                openDrive.href = darkAlleyUrl;
-                // openDarkAlley.href = darkAlleyUrl;
-                openDrive.textContent = 'Open Dark Alley';
-                // openSite.after(openDarkAlley);
-                installSidekick.parentElement.hidden = true;
-              }
-
-              if (openSiteDetails) {
-                openSiteDetails.classList.remove('next');
-                openSiteDetails.href = `/${darkAlleyUrl ? 'da-' : ''}site/${projectSlug}`;
-              }
-
-              const edit = editStep.querySelector('a[href="#edit"]');
-              edit.classList.remove('is-disabled');
-              edit.click();
+              window.location.href = `/${darkAlleyUrl ? 'da-' : ''}site/${projectSlug}`;
             } else if (failed) {
               error();
             } else {

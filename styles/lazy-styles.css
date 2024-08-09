@@ -1,1 +1,26 @@
 /* add global styles that can be loaded post LCP here */
+.add-author-form .warning {
+  color: var(--orange);
+}
+
+/* MARK: Expedition.js */
+.expedition-popover {
+  min-width: 320px !important;
+  max-width: 400px;
+}
+
+.expedition-popover:not(:has(.expedition-popover-arrow)) {
+  margin-left: -60px;
+}
+
+#expedition-popover-title,
+#expedition-popover-footer {
+  background-color: transparent;
+  color: black;
+  height: auto;
+}
+
+footer:has(.expedition-popover-navigation-btns) {
+  height: auto;
+  padding-top: 12px;
+}

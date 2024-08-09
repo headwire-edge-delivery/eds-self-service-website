@@ -47,7 +47,7 @@ function addGoogleCalendarLink(calendarId, actionsList) {
   actionsList.querySelectorAll('.google-calendar-link').forEach((link) => link.remove());
   actionsList.insertAdjacentHTML(
     'afterbegin',
-    `<a class="button action secondary google-calendar-link" target="_blank" href="https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
+    `<a class="button action secondary google-calendar-link" target="_blank" id="google-calendar" href="https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
   );
 }
 
@@ -72,13 +72,20 @@ function addIconDialogSetup({
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = fileAccept;
+  const faviconDescription = document.createElement('p');
+  faviconDescription.innerHTML = 'Don\'t have an .ico file yet? You can convert your image to a .ico file <a href="https://www.icoconverter.com/" target="_blank">here</a>.';
   const preview = document.createElement('div');
   preview.classList.add('preview');
   if (defaultSrc) {
     preview.innerHTML = `<img alt="favicon" src="${defaultSrc}" loading="lazy" />`;
   }
 
-  dialogContent.append(title, input, preview);
+  if (titleText === 'Favicon') {
+    dialogContent.append(title, faviconDescription, input, preview);
+  } else {
+    dialogContent.append(title, input, preview);
+  }
+
   if (extraHtml) {
     dialogContent.insertAdjacentHTML('beforeend', extraHtml);
   }
@@ -108,7 +115,8 @@ function addIconDialogSetup({
   };
 
   const addButton = document.createElement('button');
-  addButton.innerText = 'Add';
+  addButton.innerText = 'Save';
+  addButton.title = 'Save Icon';
   const dialog = window.createDialog(dialogContent, [addButton]);
   addButton.onclick = async () => {
     window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add submit`, { url: window.location.href });
@@ -357,12 +365,8 @@ function addPageDialogSetup({
   const templateRegex = /^template\s*-\s*(?!.*authoring\s+guide\s*-)/i;
 
   fetch(`${templateUrl}/tools/sidekick/library.json`).then((res) => res.json()).then(({ data }) => {
-    const templates = data.filter((item) => {
-      if (templateRegex.test(item.name)) {
-        return true;
-      }
-      return false;
-    });
+    const templates = data.filter((item) => !!(templateRegex.test(item.name)));
+    // eslint-disable-next-line no-console
     console.log('templates:', templates);
 
     dropdown.innerHTML = '';
@@ -376,9 +380,11 @@ function addPageDialogSetup({
     });
     previewIframe.classList.remove('hidden');
     previewIframe.src = `${templateUrl}${dropdown.value}`;
+    // eslint-disable-next-line no-console
   }).catch((err) => console.error(err));
 
   dropdown.onchange = () => {
+    // eslint-disable-next-line no-console
     console.log('\x1b[34m ~ TEST:');
     previewIframe.src = `${templateUrl}${dropdown.value}`;
   };
@@ -505,6 +511,7 @@ function renderBlocksList(block, { project, headers }) {
       blocks.forEach((item) => blocksList.addItem(item));
     })
     .catch((error) => {
+      // eslint-disable-next-line no-console
       console.log(error);
     });
 }
@@ -532,6 +539,7 @@ function renderIconsList(block, { project, headers, id }) {
     const settingsButton = document.createElement('button');
     settingsButton.classList.add('button', 'secondary', 'icon-settings', 'action');
     settingsButton.innerText = 'Update';
+    settingsButton.title = 'Update Icon';
 
     const copyButton = document.createElement('button');
     copyButton.classList.add('button', 'secondary', 'copy-button', 'action');
@@ -539,6 +547,7 @@ function renderIconsList(block, { project, headers, id }) {
       <img loading="lazy" alt="Copied" hidden src="/icons/check-mark.svg">
       <span>Copy</span>
     `;
+    copyButton.title = 'Copy Icon';
 
     const buttonsContainer = document.createElement('div');
     buttonsContainer.classList.add('buttons-container');
@@ -583,21 +592,10 @@ function renderIconsList(block, { project, headers, id }) {
       icons.forEach((item) => iconsList.addItem(item));
     })
     .catch((error) => {
+      // eslint-disable-next-line no-console
       console.log(error);
     });
 }
-
-const createDocsEl = (html) => `
-  <div class="docs">
-    <h2>
-      <span class="icon icon-info">
-        <img alt src="/icons/info.svg" loading="lazy">  
-      </span>
-      Information
-    </h2>
-    ${html}
-  </div>
-`;
 
 // MARK: project updates
 async function renderUpdatesSection(div, { project, headers }) {
@@ -670,7 +668,7 @@ async function renderUpdatesSection(div, { project, headers }) {
 async function renderPrevUpdatesSection(div, {
   project, headers, rerenderUpdatesSection, updateInfoDiv,
 }) {
-  div.innerHTML = '';
+  div.innerHTML = '<h3>Previously applied updates</h3>';
   const endpoint = `${SCRIPT_API}/${project.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
 
   const prevUpdatesButton = document.createElement('button');
@@ -759,6 +757,7 @@ export default async function decorate(block) {
     const split = window.location.pathname.split('/');
     const id = split[2];
     const token = await window.auth0Client.getTokenSilently();
+    const user = await window.auth0Client.getUser();
     const headers = { authorization: `bearer ${token}` };
 
     if (/(^\/site\/|^\/da-site\/)/g.test(window.location.pathname) && split.length === 3) {
@@ -808,11 +807,11 @@ export default async function decorate(block) {
           
           <div class="actions">
             <div class="overview-actions button-container ${selected === 'overview' ? 'is-selected' : ''}">
-                <button class="button secondary delete action">Delete</button>
-                <button class="button secondary update-description action">Update Description</button>
+                <button id="delete-site-button" title="Delete your Project" class="button secondary delete action">Delete</button>
+                <button id="update-desc-button" title="Edit the Project Description" class="button secondary update-description action">Update Description</button>
             </div>
             <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}">
-                <button class="button primary add-page action">Add Page</button>
+                <button id="add-page-button" title="Add a new Page" class="button primary add-page action">Add Page</button>
             </div>
             <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}"></div>
             <div class="monitoring-actions button-container ${selected === 'monitoring' ? 'is-selected' : ''}">
@@ -894,26 +893,22 @@ export default async function decorate(block) {
             </aside>
 
             <div class="details">
-                <div class="overview-panel ${selected === 'overview' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p>Overview serves as your centralized control hub, offering quick access to essential information and actions about your site to help you to stay organized and productive with ease.</p>
-                    `)}
-                    
+                <div class="overview-panel ${selected === 'overview' ? 'is-selected' : ''}">                    
                     <div class="container">
                         <div class="cards">
-                            <div>
+                            <div id="site-id">
                               <strong>Site id</strong>
                               <span>${project.projectSlug}</span>
                           </div>
-                          <div class="project-description card">
+                          <div id="site-description" class="project-description card">
                               <strong>Site description</strong>
                               <span class="project-description span">${project.projectDescription ?? ''}</span>
                           </div>
-                          <div>
+                          <div id="last-updated">
                               <strong>Last update</strong>
                               <span class="last-update"></span>
                           </div>
-                          <div>
+                          <div id="site-template">
                               <strong>Site template</strong>
                               <span>${project.templateName}</span>
                           </div>
@@ -921,15 +916,12 @@ export default async function decorate(block) {
                     </div>
                 </div>
                 
-                <div class="pages-panel ${selected === 'pages' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p>Pages lists all published pages to serve as a comprehensive directory of your website's content. It provides a convenient overview of all accessible pages, enabling easy navigation and exploration of your site.</p>
-                    `)}
-                    
+                <div class="pages-panel ${selected === 'pages' ? 'is-selected' : ''}">                    
                     <div class="container">
+                        <div id="pages-overview">
                         <h2>Pages</h2>
                         <table class="pages">
-                            <thead>
+                          <thead>
                               <tr>
                                 <th>Title</th>
                                 <th>Description</th>
@@ -939,8 +931,10 @@ export default async function decorate(block) {
                               </tr>  
                             </thead>
                             <tbody></tbody>
-                        </table>
+                          </table>
+                        </div>
                         
+                        <div id="nav-overview">
                         <h2>Navigation</h2>
                         <table class="navs">
                             <thead>
@@ -954,7 +948,9 @@ export default async function decorate(block) {
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                         
+                        <div id="footer-overview">
                         <h2>Footer</h2>
                         <table class="footers">
                             <thead>
@@ -968,13 +964,11 @@ export default async function decorate(block) {
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="emails-panel ${selected === 'emails' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p>Emails serves as your toolkit for crafting impactful communication in your online endeavors tailored for various purposes, from newsletters to promotional campaigns streamlining your email creation process.</p>
-                    `)}
                     <div class="container">
                         <table class="emails">
                             <thead>
@@ -991,86 +985,68 @@ export default async function decorate(block) {
                 </div>
                 
                 <div class="monitoring-panel ${selected === 'monitoring' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p>Here, you'll find key insights into your web performance all in one place.</p>
-                      <p><strong>Website key metrics:</strong></p>
-                      <ul>
-                        <li><strong>Visits</strong>: when someone navigates to your website, either directly or from an external referer. One visit can consist of multiple page views.</li>
-                        <li><strong>Page views</strong>: when a page of your website is loaded by the browser.</li>
-                        <li><strong>Page load time</strong>: total amount of time it took to load the page (P50 median).</li>
-                        <li><strong>Core Web Vitals</strong>: an initiative by Google to provide unified guidance for quality signals that are essential to delivering a great user experience on the web.</li>
-                      </ul>
-                    `)}
                     <div class="container">
                         <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
                     </div>
                 </div>
                 
                 <div class="analytics-panel ${selected === 'analytics' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p>Here, you'll find key insights into your campaign performance all in one place.</p>
-                      <p><strong>Campaign key metrics:</strong></p>
-                      <ul>
-                        <li><strong>Delivery rate</strong>: percentage of successfully delivered emails.</li>
-                        <li><strong>Bounce rate</strong>: percentage of emails sent that couldn't be delivered to the recipient's inbox.</li>
-                        <li><strong>Open rate</strong>: percentage of recipients who opened the email.</li>
-                        <li><strong>Click-to-open rate</strong>: percentage of recipients who clicked on a link inside the email after opening.</li>
-                        <li><strong>Spam complaints rate</strong>: percentage of recipients reporting the email as spam.</li>
-                      </ul>
-                    `)}
                     <div class="container">
                         <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
                     </div>
                 </div>
                 
                 <div class="settings-panel ${selected === 'settings' ? 'is-selected' : ''}">
-                    ${createDocsEl(`
-                      <p><strong>Authors</strong> lists all users that have read and write access to the content source of your project. You can add or delete authors by indicating their email address.</p>
-                      <p><strong>Contact email</strong> defines which email the contact form submits to.</p>
-                      <p><strong>Favicon</strong> is the small icon associated with your website displayed within the browser tabs and bookmarks bar.</p>
-                      <p><strong>Blocks</strong> acts as a repository of building blocks for your website. Here, you can explore and select from a variety of available blocks to enhance your web pages.</p>
-                      <p><strong>Icons</strong> is your go-to resource for web assets that add visual flair and functionality to your website. Here, you'll find a curated collection of icons suitable for various purposes, from navigation to social media integration.</p>
-                    `)}
-                    
                     <div class="container">
+                      <div id="authors">
                         <h2>Authors</h2>
                         <form class="add-author-form form">
                           <label>
-                            <span>New author</span>
+                            <span>New author <span id="new-author-warning" hidden class="warning">Please enter a valid Email (e.g. person@example.com)</span></span>
                             <input name="email" type="email" placeholder="person@example.com" />
                           </label>
-                          <button class="button primary action" type="submit">Add</button>
+                          <button id="add-author-button" title="Add a new Author" class="button is-disabled primary action" type="submit">Add</button>
                         </form>
                         <ul class="authors-list"></ul>
+                      </div>
                         
+                      <div id="contact-email">
                         <h2>Contact email</h2>
                         <form class="contact-email-form form">
                             <label>
-                                <span>Define which email the contact form submits to.</span>
+                                <span>Define which email the contact form submits to. <span id="contact-email-warning" hidden class="warning">Please enter a valid Email (e.g. person@example.com)</span></span>
                                 <input name="email" type="email" placeholder="person@example.com" />
                             </label>    
-                            <button class="button primary action" type="submit">Save</button>
+                            <button id="contact-email-save" title="Update the Contact Email" class="button primary is-disabled action" type="submit">Update</button>
                         </form>
+                      </div>
                         
+                      <div id="favicon">
                         <h2>Favicon</h2>
                         <p>Only <code>.ico</code> files are supported.</p>
                         <div class="favicon-section">
                           <img alt="favicon" src="https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico" loading="lazy">
-                          <button class="button action primary change-favicon">Update</button>     
+                          <button id="change-favicon" title="Change the Favicon. (Only .ico is supported)" class="button action primary change-favicon">Update</button>     
                         </div>
+                      </div>
                        
+                        <div id="blocks">
                         <h2>Blocks</h2>
-                        <button class="button primary action add-block">Add block</button>
-                        <ul class="blocks list"></ul>
-                        
-                        <h2>Icons</h2>
-                        <button class="button action primary add-icon">Add icon</button>
-                        <ul class="icons list"></ul>
+                        <button id="add-block-button" title="Add a new block" class="button primary action add-block">Add block</button>
+                        <ul id="blocks-list" class="blocks list"></ul>
+                        </div>
 
+                        <div id="icons">
+                        <h2>Icons</h2>
+                        <button id="add-icon-button" title="Upload a new Icon" class="button action primary add-icon">Add icon</button>
+                        <ul id="icons-list" class="icons list"></ul>
+                        </div>
+                        
+                        <div id="updates">
                         <h2>Updates</h2>
                         <div class="update-info"></div>
-                        <h3>Previously applied updates</h3>
                         <div class="prev-update-info"></div>
+                        </div>
                     </div> 
                 </div>
             </div>
@@ -1090,14 +1066,14 @@ export default async function decorate(block) {
       actions.querySelector('.overview-actions').insertAdjacentHTML(
         'beforeend',
         `
-        <a href="${project.sidekickSetupUrl}" class="button action secondary sidekick" target="_blank">Install sidekick</a>
+        <a href="${project.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>
         ${
   project.authoringGuideUrl
-    ? `<a href="${project.authoringGuideUrl}" class="button action secondary guides" target="_blank">Guides</a>`
+    ? `<a href="${project.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>`
     : ''
 }
-        <a href="${project.driveUrl}" class="button action secondary edit" target="_blank">Edit</a>
-        <a href="${project.customLiveUrl}" class="button primary action open" target="_blank">Open</a>
+        <a href="${project.driveUrl}${!darkAlleyVariation ? `?authuser=${user.email}` : ''}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
+        <a href="${project.customLiveUrl}" id="open-button" title="Open your Website" class="button primary action open" target="_blank">Open</a>
       `,
       );
 
@@ -1172,6 +1148,20 @@ export default async function decorate(block) {
         addAuthorForm.classList.remove('is-disabled');
       };
 
+      // Enables the Add button only if the email is in a valid format
+      addAuthorForm.oninput = () => {
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addAuthorForm.querySelector('input').value)) {
+          addAuthorForm.querySelector('#add-author-button').classList.remove('is-disabled');
+          document.querySelector('#new-author-warning').hidden = true;
+        } else {
+          addAuthorForm.querySelector('#add-author-button').classList.add('is-disabled');
+          document.querySelector('#new-author-warning').hidden = false;
+        }
+        if (addAuthorForm.querySelector('input').value === '') {
+          document.querySelector('#new-author-warning').hidden = true;
+        }
+      };
+
       fetch(`${SCRIPT_API}/authors/${id}`, { headers })
         .then((res) => res.json())
         .then((authors) => {
@@ -1182,7 +1172,19 @@ export default async function decorate(block) {
       // MARK: Contact Email
       const contactEmailForm = block.querySelector('.contact-email-form');
       const contactEmailFormInput = contactEmailForm.querySelector('input');
-      contactEmailFormInput.value = project.contactEmail || project.ownerEmail || '';
+      const contactEmail = project.contactEmail || project.ownerEmail || '';
+      const contactEmailButton = contactEmailForm.querySelector('#contact-email-save');
+      contactEmailFormInput.value = contactEmail;
+      // Enables the Update button only if the email is different from the current one and in a valid format
+      contactEmailFormInput.oninput = () => {
+        if (contactEmailFormInput.value === contactEmail || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contactEmailFormInput.value)) {
+          contactEmailButton.classList.remove('is-disabled');
+          document.querySelector('#contact-email-warning').hidden = true;
+        } else {
+          contactEmailButton.classList.add('is-disabled');
+          document.querySelector('#contact-email-warning').hidden = false;
+        }
+      };
 
       contactEmailForm.onsubmit = async (event) => {
         window?.zaraz?.track('click site contact submit', { url: window.location.href });
@@ -1377,9 +1379,9 @@ export default async function decorate(block) {
                       <td>${description}</td>          
                       <td>${toDate(item.lastModified).toLocaleString()}</td>
                       <td>
-                        <div class="button-container">
-                          <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${project.customLiveUrl}${item.path}" target="_blank">Open</a>
+                        <div id="email-open-edit" class="button-container">
                           <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
+                          <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${project.customLiveUrl}${item.path}" target="_blank">Open</a>
                         </div>
                       </td>
                   </tr>
@@ -1431,6 +1433,7 @@ export default async function decorate(block) {
           renderTable(block.querySelector('.emails tbody'), emails, 'emails');
         })
         .catch((error) => {
+          // eslint-disable-next-line no-console
           console.log(error);
         });
 
@@ -1550,17 +1553,17 @@ export default async function decorate(block) {
 
         container.innerHTML = `
           <div class="cards">
-            <div>
+            <div id="total-visits">
                 <strong>Total visits</strong>
                 <span>${totalVisits}</span>
                 ${visitsDelta !== 0 ? `<span class="${visitsDelta < 0 ? 'red' : 'green'}">${visitsDelta > 0 ? '+' : ''}${visitsDelta}%</span>` : ''}
             </div>
-            <div>
+            <div id="total-page-views">
                 <strong>Total page views</strong>
                 <span>${totalPageViews}</span>
                 ${pageViewsDelta !== 0 ? `<span class="${pageViewsDelta < 0 ? 'red' : 'green'}">${pageViewsDelta > 0 ? '+' : ''}${pageViewsDelta}%</span>` : ''}
             </div>
-            <div>
+            <div id="median-page-load">
                 <strong>Median page load time</strong>
                 <span>${medianPageLoadTime / 1000}ms</span>
                 ${performanceDelta !== 0 ? `<span class="${performanceDelta < 0 ? 'red' : 'green'}">${performanceDelta > 0 ? '+' : ''}${performanceDelta}%</span>` : ''}
@@ -1571,126 +1574,135 @@ export default async function decorate(block) {
               <canvas id="chart" width="600" height="400"></canvas>
           </div>
 
-          <h2>Visits details</h2>
-          <div class="cards metrics">
-              <div>
+          <div id="monitoring-details">
+          <div id="visits-details">
+            <h2>Visits details</h2>
+            <div class="cards metrics">
+                <div id="visits-details-country">
+                    <strong>By country</strong>
+                    ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
+                      <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div id="visits-details-referers">
+                    <strong>By referers</strong>
+                    ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
+                      <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div id="visits-details-paths">
+                    <strong>By paths</strong>
+                    ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
+                      <span>${paths.dimensions.metric}: <span>${paths.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div id="visits-details-browsers">
+                    <strong>By browsers</strong>
+                    ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+                      <span>${browsers.dimensions.metric}: <span>${browsers.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div id="visits-details-os">
+                    <strong>By operating systems</strong>
+                    ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
+                      <span>${OSs.dimensions.metric}: <span>${OSs.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+                <div id="visits-details-devices">
+                    <strong>By device type</strong>
+                    ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+                      <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.sum.visits}</span></span>
+                    `).join('')}
+                </div>
+            </div>
+          </div>
+
+          <div id="page-views-details">
+            <h2>Page views details</h2>
+            <div class="cards metrics">
+              <div id="page-views-details-country">
                   <strong>By country</strong>
                   ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.sum.visits}</span></span>
+                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
                   `).join('')}
               </div>
-              <div>
+              <div id="page-views-details-referers">
                   <strong>By referers</strong>
                   ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
-                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.sum.visits}</span></span>
+                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
                   `).join('')}
               </div>
-              <div>
+              <div id="page-views-details-paths">
                   <strong>By paths</strong>
                   ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
-                    <span>${paths.dimensions.metric}: <span>${paths.sum.visits}</span></span>
+                    <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
                   `).join('')}
               </div>
-              <div>
+              <div id="page-views-details-browsers">
                   <strong>By browsers</strong>
                   ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                    <span>${browsers.dimensions.metric}: <span>${browsers.sum.visits}</span></span>
+                    <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
                   `).join('')}
               </div>
-              <div>
+              <div id="page-views-details-os">
                   <strong>By operating systems</strong>
                   ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
-                    <span>${OSs.dimensions.metric}: <span>${OSs.sum.visits}</span></span>
+                    <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
                   `).join('')}
               </div>
-              <div>
+              <div id="page-views-details-devices">
                   <strong>By device type</strong>
                   ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.sum.visits}</span></span>
+                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
                   `).join('')}
               </div>
-          </div>
-
-          <h2>Page views details</h2>
-          <div class="cards metrics">
-            <div>
-                <strong>By country</strong>
-                ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                  <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By referers</strong>
-                ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
-                  <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By paths</strong>
-                ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
-                  <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By browsers</strong>
-                ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                  <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By operating systems</strong>
-                ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
-                  <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By device type</strong>
-                ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                  <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
-                `).join('')}
             </div>
           </div>
 
-          <h2>Page load time details</h2>
-          <div class="cards metrics">
-            <div>
-                <strong>By country</strong>
-                ${metrics[3].data.viewer.accounts[0].countries.map((country) => `
-                  <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
-                `).join('')}
+          <div id="pageload-details">
+            <h2>Page load time details</h2>
+            <div class="cards metrics">
+              <div id="pageload-details-country">
+                  <strong>By country</strong>
+                  ${metrics[3].data.viewer.accounts[0].countries.map((country) => `
+                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
+                  `).join('')}
+              </div>
+              <div id="pageload-details-referers">
+                  <strong>By referers</strong>
+                  ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `
+                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
+                  `).join('')}
+              </div>
+              <div id="pageload-details-paths">
+                  <strong>By paths</strong>
+                  ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `
+                    <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
+                  `).join('')}
+              </div>
+              <div id="pageload-details-browsers">
+                  <strong>By browsers</strong>
+                  ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+                    <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
+                  `).join('')}
+              </div>
+              <div id="pageload-details-os">
+                  <strong>By operating systems</strong>
+                  ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `
+                    <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
+                  `).join('')}
+              </div>
+              <div id="pageload-details-devices">
+                  <strong>By device type</strong>
+                  ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
+                  `).join('')}
+              </div>
             </div>
-            <div>
-                <strong>By referers</strong>
-                ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `
-                  <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By paths</strong>
-                ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `
-                  <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By browsers</strong>
-                ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                  <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By operating systems</strong>
-                ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `
-                  <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
-                `).join('')}
-            </div>
-            <div>
-                <strong>By device type</strong>
-                ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                  <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
-                `).join('')}
-            </div>
+          </div>
           </div>
           
+          <div id="core-web-vitals">
           <h2>Core Web Vitals</h2>
 
           <div class="cards">
@@ -1703,7 +1715,9 @@ export default async function decorate(block) {
                 </div>
                 `).join('')}
           </div>
+          </div>
           
+          <div id="core-web-vitals-path-browsers">
           <h2>By Path and Browsers</h2>
           
           <div class="cards metrics">
@@ -1759,6 +1773,7 @@ export default async function decorate(block) {
                   </ul>
                 `).join('')}
             </div>
+          </div>
           </div>
         `;
 
@@ -1836,31 +1851,31 @@ export default async function decorate(block) {
           let complainedCount = 0;
 
           block.querySelector('.analytics-panel .container').innerHTML = `
-            <div class="cards metrics">
-              <div>
+            <div id="email-metrics" class="cards metrics">
+              <div id="email-metrics-delivery-rate">
                   <strong>Delivery rate</strong>
                   <span class="delivered-count"></span>
               </div>
-              <div>
+              <div id="email-metrics-bounce-rate">
                   <strong>Bounce rate</strong>
                   <span class="bounced-count"></span>
               </div>
-              <div>
+              <div id="email-metrics-open-rate">
                   <strong>Open rate</strong>
                   <span class="opened-count"></span>
               </div>
-              <div>
+              <div id="email-metrics-cto-rate">
                   <strong>Click-to-open rate</strong>
                   <span class="clicked-count"></span>
               </div>
-              <div>
+              <div id="email-metrics-sc-rate">
                   <strong>Spam complaints rate</strong>
                   <span class="complained-count"></span>
               </div>
             </div>
             
+            <div id="email-details">
             <h2>Email details</h2>
-            
             <table>
                 <thead>
                   <tr>
@@ -1922,6 +1937,7 @@ export default async function decorate(block) {
   `}
                 </tbody>
             </table>
+            </div>
           `;
 
           if (res) {

@@ -1,4 +1,5 @@
 import { SCRIPT_API, onAuthenticated, OOPS } from '../../scripts/scripts.js';
+import { toggleAutoTour, fetchUserSettings } from '../../tour/main.js';
 
 /**
  * @param {Element} block
@@ -17,8 +18,8 @@ export default async function decorate(block) {
     block.innerHTML = `
         <div class="nav">
           <h1>Dashboard</h1>
-          <a href="/" class="button primary new">Create new site</a>
-          <a href="https://myaccount.google.com/" class="button edit primary">Edit account</a>
+          <a href="/" id="create-new-button" title="Create new site" class="button primary new">Create new site</a>
+          <a href="https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit primary">Edit account</a>
         </div>
         <div class="content">
             <aside>
@@ -56,11 +57,14 @@ export default async function decorate(block) {
                       <strong>Last update</strong>
                       <span>${new Date(user.updated_at).toLocaleDateString()}</span>
                   </div>
-                  <div>
+                  <div id="current-plan-wrapper">
                       <strong>Plan</strong>
-                      <span>Free</span>
+                      <span id="current-plan">Free</span>
                   </div>
-                </div>
+                  </div>
+                  <div id="toggle-auto-tour">
+                  <button id="toggle-auto-tour-button" class="button secondary action">Enable Auto Tour</button>
+                  </div>
               </div>
               <div class="sites ${selected === 'sites' ? 'is-selected' : ''}">
                 <p>
@@ -75,6 +79,12 @@ export default async function decorate(block) {
     const aside = block.querySelector('aside');
     const account = block.querySelector('.account');
     const sites = block.querySelector('.sites');
+    const userSettings = await fetchUserSettings(SCRIPT_API);
+    const { showAutoTour } = userSettings;
+
+    if (showAutoTour) {
+      block.querySelector('#toggle-auto-tour-button').textContent = 'Disable Auto Tour';
+    }
 
     block.querySelector('.new').onclick = () => {
       window?.zaraz?.track('click dashboard new site', { url: window.location.href });
@@ -82,6 +92,11 @@ export default async function decorate(block) {
 
     block.querySelector('.edit').onclick = () => {
       window?.zaraz?.track('click dashboard edit account', { url: window.location.href });
+    };
+
+    block.querySelector('#toggle-auto-tour-button').onclick = () => {
+      toggleAutoTour(SCRIPT_API);
+      window.location.reload();
     };
 
     aside.addEventListener('click', (event) => {
@@ -128,10 +143,24 @@ export default async function decorate(block) {
     if (reqList.ok) {
       const { projects, darkAlleyProjects } = await reqList.json();
 
-      if (!projects.length && !darkAlleyProjects.length) {
+      const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
+
+      if (!projects.length && !hasDarkAlley) {
         sites.innerHTML = '<p>No Sites found</p>';
         return;
       }
+
+      await fetch(`${SCRIPT_API}/userSettings`, {
+        headers: {
+          'content-type': 'application/json',
+          authorization: `bearer ${token}`,
+        },
+        method: 'POST',
+        body: JSON.stringify(
+          { userSettings: { projects: { google: projects, darkAlley: darkAlleyProjects } } },
+        ),
+        // eslint-disable-next-line no-console
+      }).catch((error) => console.error(error));
 
       sites.innerHTML = '<input type="text" placeholder="Filter sites" class="filter">';
 
@@ -139,6 +168,7 @@ export default async function decorate(block) {
       if (darkAlleyProjects.length) {
         const darkAlleySection = document.createElement('section');
         darkAlleySection.classList.add('dark-alley-section');
+        darkAlleySection.id = 'dark-alley-section';
 
         darkAlleySection.innerHTML = `
           <h3>Dark Alley Sites (Experimental)</h3>
@@ -160,9 +190,10 @@ export default async function decorate(block) {
 
       if (projects.length) {
         const sitesSection = document.createElement('section');
+        sitesSection.id = 'google-drive-section';
         sitesSection.innerHTML = `
           <h3>Google Drive Sites</h3>
-          <ul>
+          <ul id="my-sites-overview">
             ${projects.map(({ projectSlug, projectName, projectDescription }) => `
               <li>
                 <a href="/site/${projectSlug}">

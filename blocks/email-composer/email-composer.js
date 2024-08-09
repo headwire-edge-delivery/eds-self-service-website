@@ -76,6 +76,7 @@ export default async function decorate(block) {
         try {
           customVariables = JSON.parse(window.localStorage[window.location.href]);
         } catch (e) {
+          // eslint-disable-next-line no-console
           console.log(e);
         }
       }
@@ -104,9 +105,12 @@ export default async function decorate(block) {
                 <iframe name="preview" src="${EMAIL_WORKER_API}/preview/${url}"></iframe>
             </div>
             <aside>
+                <div id="email-subject">
                 <h2>Subject</h2>
                 <input class="subject" type="text" readonly value="${meta.subject}">
+                </div>
                 
+                <div id="email-recipients">
                 <h2>Recipients</h2>
                 
                 <div class="recipients-wrapper">
@@ -118,7 +122,9 @@ export default async function decorate(block) {
                         </tr>
                     </table>
                 </div>
+                </div>
                 
+                <div id="email-variables">
                 <h2>Variables</h2>
                 ${variables.map((variable) => `
                   <div class="kv">
@@ -131,9 +137,9 @@ export default async function decorate(block) {
                     <button class="button secondary action preview-variables">Preview</button>
                     <button class="button secondary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
                 </div>
-                
-                <h2>Styles (Developer)</h2>
-                
+
+                <div id="email-styles">
+                <h2>Styles (Developer)</h2>                
                 <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
                 <form class="form" action="${EMAIL_WORKER_API}/preview/${url}" method="POST" target="preview">
                     <textarea name="styles" class="styles"></textarea>
@@ -142,6 +148,7 @@ export default async function decorate(block) {
                         <button type="button" class="button secondary action save-styles">Save styles</button>
                     </div>
                 </form>
+                </div>
             </aside>
         </div>
       `;
@@ -150,7 +157,7 @@ export default async function decorate(block) {
       const form = block.querySelector('.form');
       const previewVars = block.querySelector('.preview-variables');
       const saveVars = block.querySelector('.save-variables');
-      let warning;
+      let warning = { hidden: true };
       let savedEditorStyles;
 
       const hideWarning = () => {
@@ -289,9 +296,10 @@ export default async function decorate(block) {
               <span>You have unsaved changes</span>
               <button type="button" aria-label="close">&#x2715;</button>
             </div>
-            <a href="#" target="_blank" class="button secondary action copy">Copy</a>
-            <button class="button action secondary edit">Edit</button>
-            <button class="button primary action send is-disabled">Send</button>
+
+            <a href="#" target="_blank" id="copy-button" class="button secondary action copy">Copy</a>
+            <button id="edit-button" class="button action secondary edit">Edit</button>
+            <button id="send-button" class="button primary action send is-disabled">Send</button>
           `;
 
       warning = block.querySelector('.warning');
@@ -307,6 +315,7 @@ export default async function decorate(block) {
         daEditLink.target = '_blank';
         daEditLink.href = `https://da.live/edit#/da-self-service/${id}${path}`;
         daEditLink.innerText = 'Edit';
+        daEditLink.id = 'edit-button';
         editButton.replaceWith(daEditLink);
       } else {
         // is drive project

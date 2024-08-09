@@ -1,5 +1,8 @@
 import {
-  SCRIPT_API, onAuthenticated, OOPS, KESTREL_ONE,
+  SCRIPT_API,
+  onAuthenticated,
+  OOPS,
+  KESTREL_ONE,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -130,10 +133,10 @@ export default async function decorate(block) {
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M320-120v-80h80v-80H160q-33 0-56.5-23.5T80-360v-400q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v400q0 33-23.5 56.5T800-280H560v80h80v80H320ZM160-360h640v-400H160v400Zm0 0v-400 400Z"/></svg>
                     </button>
                 </div>
-                <button class="button action secondary edit-mode" hidden>Editing mode</button>
-                <button class="button action secondary preview-mode">Preview mode</button>
-                <select class="button action secondary publish-theme-selector"></select>
-                <button class="button action primary publish-theme">Save</button>
+                <button id="toggle-editing" title="Edit your Theme" class="button action secondary edit-mode" hidden>Editing mode</button>
+                <button id="toggle-preview" title="Preview your theme" class="button action secondary preview-mode">Preview mode</button>
+                <select id="publish-theme-selector" title="Select the previewed page" class="button action secondary publish-theme-selector"></select>
+                <button id="save-button" title="Save your changes" class="button action primary is-disabled publish-theme">Save</button>
               </div>
             </div>
           </div>
@@ -176,49 +179,49 @@ export default async function decorate(block) {
                   <h3>Base</h3>
                   <label>
                     <span>Light</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-light">
                     </div>
                   </label>
                   <label>
                     <span>Dark</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-dark">
                     </div>
                   </label>
                   <label>
                     <span>Lightest</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-lightest">
                     </div>
                   </label>
                   <label>
                     <span>Darkest</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-darkest">
                     </div>
                   </label>
                   <label>
                     <span>Brand primary</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-brand-primary">
                     </div>
                   </label>
                   <label>
                     <span>Brand secondary</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-brand-secondary">
                     </div>
                   </label>
                   <label>
                     <span>Brand tertiary</span>
-                    <div class="color-picker base">
+                    <div title="Open the color picker" class="color-picker base">
                         <span></span>
                         <input type="color" data-var="color-brand-tertiary">
                     </div>
@@ -227,7 +230,7 @@ export default async function decorate(block) {
                   <h3>Elements</h3>
                   <label>
                       <span>Background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="background-color">
                       </div>
@@ -235,7 +238,7 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Header background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="header-background-color">
                       </div>
@@ -243,7 +246,7 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Footer background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="footer-background-color">
                       </div>
@@ -251,7 +254,7 @@ export default async function decorate(block) {
                  
                   <label>
                       <span>Heading text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="heading-color">
                       </div>
@@ -259,7 +262,7 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Body text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="text-color">
                       </div>
@@ -267,14 +270,14 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Links text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="link-color">
                       </div>
                   </label>
                   <label>
                       <span>Links text color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="link-color-hover">
                       </div>
@@ -286,42 +289,42 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-text-color">
                       </div>
                   </label>
                   <label>
                       <span>Background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-background-color">
                       </div>
                   </label>
                   <label>
                       <span>Border color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-border-color">
                       </div>
                   </label>
                   <label>
                       <span>Text color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-text-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Background color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-background-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Border color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-border-color-hover">
                       </div>
@@ -331,42 +334,42 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-text-color">
                       </div>
                   </label>
                   <label>
                       <span>Background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-background-color">
                       </div>
                   </label>
                   <label>
                       <span>Border color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-border-color">
                       </div>
                   </label>
                   <label>
                       <span>Text color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-text-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Background color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-background-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Border color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-border-color-hover">
                       </div>
@@ -376,42 +379,42 @@ export default async function decorate(block) {
                   
                   <label>
                       <span>Text color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-text-color">
                       </div>
                   </label>
                   <label>
                       <span>Background color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-background-color">
                       </div>
                   </label>
                   <label>
                       <span>Border color</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-border-color">
                       </div>
                   </label>
                   <label>
                       <span>Text color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-text-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Background color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-background-color-hover">
                       </div>
                   </label>
                   <label>
                       <span>Border color on hover</span>
-                      <div class="color-picker elements">
+                      <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-border-color-hover">
                       </div>
@@ -455,7 +458,10 @@ export default async function decorate(block) {
           .then((res) => res.json())
           .then((res) => {
             presets = res;
-            presetsPicker.insertAdjacentHTML('afterbegin', presets.map((preset) => `<option>${preset.name}</option>`).join(''));
+            presetsPicker.insertAdjacentHTML(
+              'afterbegin',
+              presets.map((preset) => `<option>${preset.name}</option>`).join(''),
+            );
 
             updatePreset();
 
@@ -489,7 +495,8 @@ export default async function decorate(block) {
           headers: {
             authorization: `bearer ${token}`,
           },
-        }).then((res) => res.json())
+        })
+          .then((res) => res.json())
           .then(({ project }) => {
             if (project.darkAlleyProject) {
               block.querySelectorAll('.breadcrumbs a').forEach((link) => {
@@ -560,17 +567,24 @@ export default async function decorate(block) {
 
         const editor = window.CodeMirror.fromTextArea(vars);
         editor.on('change', () => {
-          previewFrame.contentWindow.postMessage({
-            type: 'update:styles',
-            styles: fonts,
-            file: 'fonts',
-          }, '*');
+          block.querySelector('.publish-theme').classList.remove('is-disabled');
+          previewFrame.contentWindow.postMessage(
+            {
+              type: 'update:styles',
+              styles: fonts,
+              file: 'fonts',
+            },
+            '*',
+          );
 
-          previewFrame.contentWindow.postMessage({
-            type: 'update:styles',
-            styles: editor.getValue(),
-            file: 'vars',
-          }, '*');
+          previewFrame.contentWindow.postMessage(
+            {
+              type: 'update:styles',
+              styles: editor.getValue(),
+              file: 'vars',
+            },
+            '*',
+          );
 
           cssVars = getCSSVars(editor.getValue());
         });
@@ -614,10 +628,23 @@ export default async function decorate(block) {
         };
         block.querySelectorAll('.weight-picker').forEach((el) => {
           let selectedFontWeight = findCSSVar(cssVars, el.dataset.var);
-          el.innerHTML = `${fontWeights.map((weight) => `<option ${weight === selectedFontWeight.value ? 'selected' : ''} value="${weight}">${fontWeightLabels[weight]}</option>`).join('')}`;
+          el.innerHTML = `${fontWeights
+            .map(
+              (weight) => `<option ${
+                weight === selectedFontWeight.value ? 'selected' : ''
+              } value="${weight}">${fontWeightLabels[weight]}</option>`,
+            )
+            .join('')}`;
           el.onchange = () => {
             const newValue = el.value;
-            editor.setValue(editor.getValue().replace(`--${selectedFontWeight.name}:${selectedFontWeight.fullValue}`, `--${selectedFontWeight.name}: ${newValue}`));
+            editor.setValue(
+              editor
+                .getValue()
+                .replace(
+                  `--${selectedFontWeight.name}:${selectedFontWeight.fullValue}`,
+                  `--${selectedFontWeight.name}: ${newValue}`,
+                ),
+            );
 
             cssVars = getCSSVars(editor.getValue());
             selectedFontWeight = findCSSVar(cssVars, el.dataset.var);
@@ -636,7 +663,10 @@ export default async function decorate(block) {
             return false;
           })
           .then(({ items }) => {
-            let customFonts = items.filter(({ subsets, variants }) => subsets.includes('latin') && fontWeights.every((weight) => variants.includes(weight === '400' ? 'regular' : weight)));
+            let customFonts = items.filter(
+              ({ subsets, variants }) => subsets.includes('latin')
+                && fontWeights.every((weight) => variants.includes(weight === '400' ? 'regular' : weight)),
+            );
 
             const defaultFonts = [
               'Arial',
@@ -649,24 +679,25 @@ export default async function decorate(block) {
               'Courier New',
             ];
 
-            customFonts = [
-              ...customFonts,
-              ...defaultFonts
-                .map((font) => ({ family: font }))].sort((a, b) => {
-              if (a.family < b.family) {
-                return -1;
-              }
-              if (a.family > b.family) {
-                return 1;
-              }
-              return 0;
-            });
+            customFonts = [...customFonts, ...defaultFonts.map((font) => ({ family: font }))].sort(
+              (a, b) => {
+                if (a.family < b.family) {
+                  return -1;
+                }
+                if (a.family > b.family) {
+                  return 1;
+                }
+                return 0;
+              },
+            );
 
             const updateFonts = async (selectedFont, newFont) => {
-              const selectedFonts = [...block.querySelectorAll('.font-picker')]
-                .map((el) => el.value);
-              const selectedCustomFonts = selectedFonts
-                .filter((font) => !defaultFonts.includes(font));
+              const selectedFonts = [...block.querySelectorAll('.font-picker')].map(
+                (el) => el.value,
+              );
+              const selectedCustomFonts = selectedFonts.filter(
+                (font) => !defaultFonts.includes(font),
+              );
 
               if (selectedCustomFonts.length) {
                 const searchParams = new URLSearchParams();
@@ -695,13 +726,22 @@ export default async function decorate(block) {
                   });
                 });
 
-                const req = await fetch(`https://fonts.googleapis.com/css2?${searchParams.toString()}`);
+                const req = await fetch(
+                  `https://fonts.googleapis.com/css2?${searchParams.toString()}`,
+                );
                 if (req.ok) {
                   // Update fonts
                   fonts = await req.text();
 
                   // Update editor
-                  editor.setValue(editor.getValue().replace(`--${selectedFont.name}:${selectedFont.fullValue}`, `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`));
+                  editor.setValue(
+                    editor
+                      .getValue()
+                      .replace(
+                        `--${selectedFont.name}:${selectedFont.fullValue}`,
+                        `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`,
+                      ),
+                  );
 
                   cssVars = getCSSVars(editor.getValue());
                 }
@@ -716,7 +756,10 @@ export default async function decorate(block) {
                   }
 
                   // Add new fallback fonts
-                  newValue += `${res.filter(({ status }) => status === 'fulfilled').map(({ value }) => value).join('\n')}`;
+                  newValue += `${res
+                    .filter(({ status }) => status === 'fulfilled')
+                    .map(({ value }) => value)
+                    .join('\n')}`;
 
                   // Update editor
                   editor.setValue(newValue);
@@ -728,7 +771,13 @@ export default async function decorate(block) {
 
             block.querySelectorAll('.font-picker').forEach((el) => {
               let selectedFont = findCSSVar(cssVars, el.dataset.var, true);
-              el.innerHTML = `${customFonts.map(({ family }) => `<option ${family === selectedFont?.value ? 'selected' : ''} value="${family}">${family}</option>`).join('')}`;
+              el.innerHTML = `${customFonts
+                .map(
+                  ({ family }) => `<option ${
+                    family === selectedFont?.value ? 'selected' : ''
+                  } value="${family}">${family}</option>`,
+                )
+                .join('')}`;
 
               el.onchange = () => {
                 selectedFont = findCSSVar(cssVars, el.dataset.var, true);
@@ -758,7 +807,14 @@ export default async function decorate(block) {
               el.querySelector('span').textContent = newValue;
 
               // Update editor
-              editor.setValue(editor.getValue().replace(`--${selectedColor.name}:${selectedColor.fullValue}`, `--${selectedColor.name}: ${newValue}`));
+              editor.setValue(
+                editor
+                  .getValue()
+                  .replace(
+                    `--${selectedColor.name}:${selectedColor.fullValue}`,
+                    `--${selectedColor.name}: ${newValue}`,
+                  ),
+              );
 
               // Update Elements
               const elements = [...block.querySelectorAll('.elements')].filter((element) => {
@@ -778,7 +834,13 @@ export default async function decorate(block) {
           } else if (el.classList.contains('elements')) {
             // Find base color
             const varValue = regExpVars.exec(selectedColor.value)[1].slice(2);
-            select.innerHTML = `${defaultColors.map(({ label, value }) => `<option ${varValue === value ? 'selected' : ''} value="${value}">${label}</option>`).join()}`;
+            select.innerHTML = `${defaultColors
+              .map(
+                ({ label, value }) => `<option ${
+                  varValue === value ? 'selected' : ''
+                } value="${value}">${label}</option>`,
+              )
+              .join()}`;
 
             input.value = findCSSVar(cssVars, varValue).value.toUpperCase();
 
@@ -789,14 +851,24 @@ export default async function decorate(block) {
               input.value = base.value;
 
               // Update editor
-              editor.setValue(editor.getValue().replace(`--${selectedColor.name}:${selectedColor.fullValue}`, `--${selectedColor.name}: var(--${newValue})`));
+              editor.setValue(
+                editor
+                  .getValue()
+                  .replace(
+                    `--${selectedColor.name}:${selectedColor.fullValue}`,
+                    `--${selectedColor.name}: var(--${newValue})`,
+                  ),
+              );
 
               // Update vars
-              previewFrame.contentWindow.postMessage({
-                type: 'update:styles',
-                styles: editor.getValue(),
-                file: 'vars',
-              }, '*');
+              previewFrame.contentWindow.postMessage(
+                {
+                  type: 'update:styles',
+                  styles: editor.getValue(),
+                  file: 'vars',
+                },
+                '*',
+              );
 
               cssVars = getCSSVars(editor.getValue());
 
@@ -825,11 +897,16 @@ export default async function decorate(block) {
             }
 
             const pages = data.filter(
-              ({ template, robots, path }) => !template.includes('email') && !robots.includes('noindex') && path !== '/footer' && path !== '/nav',
+              ({ template, robots, path }) => !template.includes('email')
+                && !robots.includes('noindex')
+                && path !== '/footer'
+                && path !== '/nav',
             );
 
             // Theme pages
-            publishThemeSelector.innerHTML = `${pages.map(({ path }) => `<option value="${path}">Preview: ${path}</option>`).join('')}`;
+            publishThemeSelector.innerHTML = `${pages
+              .map(({ path }) => `<option value="${path}">Preview: ${path}</option>`)
+              .join('')}`;
           });
 
         publishThemeSelector.onchange = () => {
@@ -841,17 +918,23 @@ export default async function decorate(block) {
             previewFrame.addEventListener(
               'load',
               () => {
-                previewFrame.contentWindow.postMessage({
-                  type: 'update:styles',
-                  styles: fonts,
-                  file: 'fonts',
-                }, '*');
+                previewFrame.contentWindow.postMessage(
+                  {
+                    type: 'update:styles',
+                    styles: fonts,
+                    file: 'fonts',
+                  },
+                  '*',
+                );
 
-                previewFrame.contentWindow.postMessage({
-                  type: 'update:styles',
-                  styles: editor.getValue(),
-                  file: 'vars',
-                }, '*');
+                previewFrame.contentWindow.postMessage(
+                  {
+                    type: 'update:styles',
+                    styles: editor.getValue(),
+                    file: 'vars',
+                  },
+                  '*',
+                );
               },
               { once: true },
             );
@@ -897,7 +980,11 @@ export default async function decorate(block) {
             failed = !res.ok;
           }
 
-          await window.alertDialog(failed ? OOPS : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.');
+          await window.alertDialog(
+            failed
+              ? OOPS
+              : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.',
+          );
 
           editor.setOption('readOnly', false);
 
@@ -924,6 +1011,7 @@ export default async function decorate(block) {
         // };
       })
       .catch((error) => {
+        // eslint-disable-next-line no-console
         console.log(error);
         block.querySelector('.content p').textContent = OOPS;
       });
