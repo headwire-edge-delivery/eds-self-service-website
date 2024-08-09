@@ -1,4 +1,5 @@
 import { SCRIPT_API, onAuthenticated, OOPS } from '../../scripts/scripts.js';
+import { toggleAutoTour, fetchUserSettings } from '../../tour/main.js';
 
 /**
  * @param {Element} block
@@ -60,7 +61,10 @@ export default async function decorate(block) {
                       <strong>Plan</strong>
                       <span id="current-plan">Free</span>
                   </div>
-                </div>
+                  </div>
+                  <div id="toggle-auto-tour">
+                  <button id="toggle-auto-tour-button" class="button secondary action">Enable Auto Tour</button>
+                  </div>
               </div>
               <div class="sites ${selected === 'sites' ? 'is-selected' : ''}">
                 <p>
@@ -75,6 +79,12 @@ export default async function decorate(block) {
     const aside = block.querySelector('aside');
     const account = block.querySelector('.account');
     const sites = block.querySelector('.sites');
+    const userSettings = await fetchUserSettings(SCRIPT_API);
+    const { showAutoTour } = userSettings;
+
+    if (showAutoTour) {
+      block.querySelector('#toggle-auto-tour-button').textContent = 'Disable Auto Tour';
+    }
 
     block.querySelector('.new').onclick = () => {
       window?.zaraz?.track('click dashboard new site', { url: window.location.href });
@@ -82,6 +92,11 @@ export default async function decorate(block) {
 
     block.querySelector('.edit').onclick = () => {
       window?.zaraz?.track('click dashboard edit account', { url: window.location.href });
+    };
+
+    block.querySelector('#toggle-auto-tour-button').onclick = () => {
+      toggleAutoTour(SCRIPT_API);
+      window.location.reload();
     };
 
     aside.addEventListener('click', (event) => {

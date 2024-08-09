@@ -202,4 +202,4 @@ const startTour = (SCRIPT_API, isAutoTour = false, showDisableTour = false) => {
   }
 };
 
-export { startTour, toggleAutoTour };
+export { startTour, toggleAutoTour, fetchUserSettings };
