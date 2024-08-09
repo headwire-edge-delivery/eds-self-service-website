@@ -176,6 +176,11 @@ const startTour = (SCRIPT_API, isAutoTour = false, showDisableTour = false) => {
       case switchCase('/templates/', '/create'):
         getTour(SCRIPT_API, createTemplateTour);
         break;
+      case switchCase('/templates/', '/create/progress'):
+        if (!showAutoTour) {
+          getTour(SCRIPT_API, noTourAvailable);
+        }
+        break;
       case switchCase('/templates/wknd-template'):
         getTour(SCRIPT_API, wkndTemplateTour);
         break;

@@ -2,29 +2,33 @@ function createTemplateTour() {
   const tourData = {
     steps: [
       {
-        title: 'Create your new Page',
-        description: 'Here you can create a new Page with the selected Template.',
+        title: 'Create your new Website',
+        description: 'Here you can create a new Website with the selected Template.',
+        destroyOnClicked: false,
       },
       {
         title: 'Name your Site',
         description: 'Enter a name for your new Site.',
         element: '#site-name',
-        destroyOnClicked: true,
+        destroyOnClicked: false,
       },
       {
         title: 'Define a Slug',
         description: 'It will be automatically generated based on the Site Name. But you can change it here. <br /> A Slug is a part of a URL which identifies a particular page on a website in a form readable by users.',
         element: '#slug-input',
+        destroyOnClicked: false,
       },
       {
         title: 'Describe your Site',
         description: 'Give a short description of your Site.',
         element: '#description-input',
+        destroyOnClicked: false,
       },
       {
         title: 'Dark Alley',
         description: 'By default, Google Drive is used to manage the pages. We also support Dark Alley on an experimental basis. <br /> <a href="https://da.live/docs" target="_blank">Dark Alley</a> is a powerful and flexible Content Management System from Adobe Experience Manager. <br />',
         element: '.dark-alley-label',
+        destroyOnClicked: false,
       },
       {
         title: 'Create your Site',

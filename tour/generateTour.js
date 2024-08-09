@@ -1,7 +1,7 @@
 export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoTour, tourData) {
   const tourSteps = [];
   let isLastStep = false;
-  let showDisableTour = true;
+  let showDisableTour = showAutoTour;
 
   tourData.steps.forEach((step, index) => {
     if (step.skip === true) {
@@ -32,7 +32,12 @@ export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoT
     disableActiveInteraction: tourData.disableActiveInteraction ?? false,
     progressText: tourData.progressText ?? 'Step {{current}} of {{total}}',
     onNextClick: tourData.onNextClick,
-    onFinished: tourData.onFinished ?? (() => {}),
+    onFinished: (() => {
+      if (tourData.onFinished) {
+        showDisableTour = false;
+        tourData.onFinished?.();
+      }
+    }),
     steps: tourSteps,
     onDestroyed: (element, step, { state }) => {
       isLastStep = state.activeIndex === tourSteps.length - 1;
