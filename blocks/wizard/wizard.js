@@ -477,9 +477,6 @@ export default async function decorate(block) {
             finished,
             success,
             failed,
-            driveUrl,
-            sidekickSetupUrl,
-            customLiveUrl,
             projectSlug,
             darkAlleyUrl,
           } = await reqStatus.json();
@@ -488,39 +485,7 @@ export default async function decorate(block) {
 
           if (finished) {
             if (success) {
-              const openSite = block.querySelector('a[href="#open-site"]');
-              const openDrive = block.querySelector('a[href="#open-drive"]');
-              const installSidekick = block.querySelector('a[href="#install-sidekick"]');
-              const openSiteDetails = block.querySelector('a[href="#site-details"]');
-              const makeReady = (linkEl, url) => {
-                if (linkEl && url) {
-                  linkEl.href = url;
-                  linkEl.classList.add('action', 'secondary', 'is-ready');
-                  linkEl.target = '_blank';
-                }
-              };
-
-              makeReady(openSite, customLiveUrl);
-              makeReady(openDrive, driveUrl);
-              makeReady(installSidekick, sidekickSetupUrl);
-
-              if (darkAlleyUrl) {
-                // const openDarkAlley = document.createElement('a');
-                openDrive.href = darkAlleyUrl;
-                // openDarkAlley.href = darkAlleyUrl;
-                openDrive.textContent = 'Open Dark Alley';
-                // openSite.after(openDarkAlley);
-                installSidekick.parentElement.hidden = true;
-              }
-
-              if (openSiteDetails) {
-                openSiteDetails.classList.remove('next');
-                openSiteDetails.href = `/${darkAlleyUrl ? 'da-' : ''}site/${projectSlug}`;
-              }
-
-              const edit = editStep.querySelector('a[href="#edit"]');
-              edit.classList.remove('is-disabled');
-              edit.click();
+              window.location.href = `/${darkAlleyUrl ? 'da-' : ''}site/${projectSlug}`;
             } else if (failed) {
               error();
             } else {
