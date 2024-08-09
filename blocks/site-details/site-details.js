@@ -668,7 +668,7 @@ async function renderUpdatesSection(div, { project, headers }) {
 async function renderPrevUpdatesSection(div, {
   project, headers, rerenderUpdatesSection, updateInfoDiv,
 }) {
-  div.innerHTML = '';
+  div.innerHTML = '<h3>Previously applied updates</h3>';
   const endpoint = `${SCRIPT_API}/${project.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
 
   const prevUpdatesButton = document.createElement('button');
@@ -1045,7 +1045,6 @@ export default async function decorate(block) {
                         <div id="updates">
                         <h2>Updates</h2>
                         <div class="update-info"></div>
-                        <h3>Previously applied updates</h3>
                         <div class="prev-update-info"></div>
                         </div>
                     </div> 
@@ -1067,7 +1066,7 @@ export default async function decorate(block) {
       actions.querySelector('.overview-actions').insertAdjacentHTML(
         'beforeend',
         `
-        <a href="${project.sidekickSetupUrl}" ${darkAlleyVariation && 'hidden'} id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>
+        <a href="${project.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>
         ${
   project.authoringGuideUrl
     ? `<a href="${project.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>`

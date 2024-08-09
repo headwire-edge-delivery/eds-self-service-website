@@ -31,6 +31,27 @@ function onAuthenticated(cb) {
 let showAutoTour = false;
 let userData = {};
 
+// Function to check if all elements are loaded
+function checkAllLoaded() {
+  const elements = document.querySelectorAll('[data-block-status]');
+  return Array.from(elements).every((el) => el.getAttribute('data-block-status') === 'loaded');
+}
+
+function observeBlocks(myFunction) {
+  const loadedObserver = new MutationObserver((mutationsList, observer) => {
+    if (checkAllLoaded()) {
+      myFunction();
+      observer.disconnect();
+    }
+  });
+
+  loadedObserver.observe(document.body, {
+    attributes: true,
+    subtree: true,
+    attributeFilter: ['data-block-status'],
+  });
+}
+
 const toggleAutoTour = (SCRIPT_API) => {
   onAuthenticated(async () => {
     const token = await window.auth0Client.getTokenSilently();
@@ -47,12 +68,11 @@ const toggleAutoTour = (SCRIPT_API) => {
 
 const { tour } = window.expedition.js;
 
-let autoTour = false;
-
 function getTour(SCRIPT_API, siteTour) {
   return setTimeout(() => {
+    // eslint-disable-next-line max-len
     generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoTour, siteTour(userData)).start();
-  }, 300);
+  }, 100);
 }
 
 const fetchUserSettings = async (SCRIPT_API) => {
@@ -67,19 +87,21 @@ const fetchUserSettings = async (SCRIPT_API) => {
   return data;
 };
 
-const startTour = (SCRIPT_API, isAutoTour = false) => {
+const startTour = (SCRIPT_API, isAutoTour = false, showDisableTour = false) => {
   window.scrollTo(0, 0);
   if (isAutoTour) {
     onAuthenticated(async () => {
       const data = await fetchUserSettings(SCRIPT_API);
-      if (data.showAutoTour === undefined) {
-        data.showAutoTour = true;
-      }
-      showAutoTour = data.showAutoTour ?? true;
+      showAutoTour = data.showAutoTour;
       userData = data;
       if (showAutoTour) {
-        autoTour = true;
-        startTour(SCRIPT_API, false);
+        if (checkAllLoaded()) {
+          startTour(SCRIPT_API, false, true);
+        } else {
+          observeBlocks(() => {
+            startTour(SCRIPT_API, false, true);
+          });
+        }
       }
     });
   } else {
@@ -87,6 +109,12 @@ const startTour = (SCRIPT_API, isAutoTour = false) => {
       const data = await fetchUserSettings(SCRIPT_API);
       userData = data;
     });
+
+    if (showDisableTour) {
+      showAutoTour = true;
+    } else {
+      showAutoTour = false;
+    }
 
     const { pathname } = window.location;
     const switchCase = (startPath, endPath = undefined) => {
@@ -161,7 +189,7 @@ const startTour = (SCRIPT_API, isAutoTour = false) => {
         getTour(SCRIPT_API, homepageTour);
         break;
       default:
-        if (!autoTour) {
+        if (!showAutoTour) {
           getTour(SCRIPT_API, noTourAvailable);
         }
         break;

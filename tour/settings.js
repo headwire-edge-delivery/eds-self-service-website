@@ -1,4 +1,5 @@
 function settingsGeneralTour({ showAutoTour }) {
+  const updateInfo = document.querySelector('.update-info')?.textContent;
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
@@ -57,6 +58,42 @@ function settingsGeneralTour({ showAutoTour }) {
         title: 'Copy your Icon',
         description: 'To create a copy of an Icon on your website, click here. <br /> This will create a copy of the Icon.',
         element: '#icons-list > li:first-child > .buttons-container > .copy-button',
+        side: 'left',
+        align: 'end',
+      },
+      {
+        title: 'Updates',
+        description: 'Check if a new Update for your Project is available or revert your Project to a previous version.',
+        element: '#updates',
+      },
+      {
+        title: 'No updates available',
+        description: 'Currently, there are no updates available for your website. <br /> If there are updates available, you can update your website here.',
+        element: '.update-info',
+        side: 'left',
+        align: 'end',
+        skip: updateInfo !== 'No updates available.',
+      },
+      {
+        title: 'Could not get update information',
+        description: 'We are sorry, but we could not get the update information for your website. <br /> Please try again later.',
+        element: '.update-info',
+        side: 'left',
+        align: 'end',
+        skip: updateInfo !== 'Could not get update information.',
+      },
+      {
+        title: 'A new version is available!',
+        description: 'Hurray! An Update for your Project is available. <br /> You can update it here.',
+        element: '.update-info',
+        side: 'left',
+        align: 'end',
+        skip: updateInfo?.search('A new version is available!') < 1,
+      },
+      {
+        title: 'Revert to a previous version',
+        description: 'This opens a Modal where you can revert to a previous version of your website. <br /> This will restore your website to the selected version. <br /> Your Content will not be affected. <br /> <strong>This can not be undone.</strong>',
+        element: '.prev-update-info',
         side: 'left',
         align: 'end',
       },

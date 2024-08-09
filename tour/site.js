@@ -41,13 +41,14 @@ function siteOverviewTour({ showAutoTour }) {
         title: 'Update Site Description',
         description: 'You can easily update your site description here.',
         element: '#update-desc-button',
+        skip: isDarkAlley,
         side: 'left',
       },
       {
         title: 'Install Sidekick',
         description: 'Please install the Sidekick Extension. It is mandatory to use the Sidekick Extension. <a href="https://experienceleague.adobe.com/en/docs/experience-manager-cloud-service/content/edge-delivery/resources/sidekick/sidekick" target="_blank">Click here to learn more about Sidekick.</a>',
         element: '#install-sidekick-button',
-        skip: document.querySelector('#install-sidekick-button').hasAttribute('hidden'),
+        skip: isDarkAlley,
         side: 'left',
       },
       {

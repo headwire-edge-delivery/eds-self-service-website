@@ -45,7 +45,7 @@ export default async function decorate(block) {
   });
 
   onAuthenticated(async () => {
-    const dashboard = document.querySelector('header a[href="/dashboard"]');
+    const dashboard = document.querySelector('header a[href="/dashboard/sites"]');
     if (dashboard) {
       dashboard.id = 'dashboard-button';
       const { picture } = await window.auth0Client.getUser();
