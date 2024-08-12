@@ -200,6 +200,24 @@
     min-width: 50%;
 }
 
+.theme-editor.block span.contrast-issues {
+    padding-top: 0;
+    color: var(--orange);
+    font-weight: 700;
+}
+
+.theme-editor.block span.contrast-issues::after {
+    display: inline-block;
+    content: '';
+    height: 15px;
+    width: 20px;
+    background: url('/icons/info.svg') center / contain no-repeat;
+}
+
+.theme-editor.block span.contrast-issues:empty {
+    display: none;
+}
+
 .theme-editor.block .warning {
     padding-left: 8px;
     background-color: var(--orange);

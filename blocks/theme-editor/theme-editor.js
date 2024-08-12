@@ -230,12 +230,14 @@ export default async function decorate(block) {
                   </label>
                   
                   <h3>Elements</h3>
+                  
                   <label id="background-color-main">
                       <span>Background color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <label id="background-color-header">
@@ -244,6 +246,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="header-background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <label id="background-color-footer">
@@ -252,6 +255,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="footer-background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                  
                   <label id="text-color-header">
@@ -260,6 +264,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="heading-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <label id="text-color-main">
@@ -268,6 +273,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="text-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <label id="text-color-links">
@@ -276,6 +282,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="link-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label id="text-color-links-hover">
                       <span>Links text color on hover</span>
@@ -283,6 +290,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="link-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <h2>Buttons</h2>
@@ -290,136 +298,154 @@ export default async function decorate(block) {
                   <h3>Default</h3>
                   
                   <label id="button-color-text">
-                      <span>Text color</span>
+                      <span>Default Button Text color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-text-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label id="button-color-background">
-                      <span>Background color</span>
+                      <span>Default Button Background color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
-                      <span>Border color</span>
+                      <span>Default Button Border color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-border-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label id="button-color-text-hover">
-                      <span>Text color on hover</span>
+                      <span>Default Button Text color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-text-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label id="button-color-background-hover">
-                      <span>Background color on hover</span>
+                      <span>Default Button Background color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-background-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
-                      <span>Border color on hover</span>
+                      <span>Default Button Border color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-border-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <h3>Primary</h3>
                   
                   <label id="button-primary-color-text">
-                      <span>Text color</span>
+                      <span>Primary Button Text color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-text-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label id="button-primary-color-background">
-                      <span>Background color</span>
+                      <span>Primary Button Background color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
-                      <span>Border color</span>
+                      <span>Primary Button Border color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-border-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label id="button-primary-color-text-hover">
-                      <span>Text color on hover</span>
+                      <span>Primary Button Text color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-text-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label id="button-primary-color-background-hover">
-                      <span>Background color on hover</span>
+                      <span>Primary Button Background color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-background-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
-                      <span>Border color on hover</span>
+                      <span>Primary Button Border color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-primary-border-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <h3>Secondary</h3>
                   
                   <label id="button-secondary-color-text">
-                      <span>Text color</span>
+                      <span>Secondary Button Text color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-text-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label id="button-secondary-color-background">
-                      <span>Background color</span>
+                      <span>Secondary Button Background color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
-                      <span>Border color</span>
+                      <span>Secondary Button Border color</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-border-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label id="button-secondary-color-text-hover">
-                      <span>Text color on hover</span>
+                      <span>Secondary Button Text color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-text-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label id="button-secondary-color-background-hover">
-                      <span>Background color on hover</span>
+                      <span>Secondary Button Background color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-background-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
-                      <span>Border color on hover</span>
+                      <span>Secondary Button Border color on hover</span>
                       <div class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-border-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                
                   <!--<h2>Styles (Developer)</h2>-->
@@ -564,12 +590,51 @@ export default async function decorate(block) {
     await import('../../libs/codemirror/css.min.js');
 
     const contrastCheckerWorker = new Worker('/blocks/theme-editor/contrastWorker.js');
-    contrastCheckerWorker.addEventListener('message', (event) => {
-      console.log('contrastCheck:', event.data);
+
+    let contrastIssuesExist = false;
+
+    const contrastIssueSpans = block.querySelectorAll('span.contrast-issues');
+    contrastIssueSpans.forEach((span) => {
+      span.textContent = '';
+      span.title = 'This variable has a low contrast ratio compared to the listed variables. It fails to meet the WCAG 2.0 AAA or AA standard.\nThis can potentially cause accessibility issues and lower page-ranking on search engines.';
+    });
+
+    const displayContrastIssues = (event) => {
+      if (event.data.type !== 'contrastCheck') {
+        return;
+      }
+      contrastIssueSpans.forEach((span) => { span.textContent = ''; });
+
+      const contrastIssueArray = event.data.contrastIssues;
+
+      if (!contrastIssueArray?.length) {
+        contrastIssuesExist = false;
+        return;
+      }
+      contrastIssuesExist = true;
+
+      for (let index = 0; index < contrastIssueArray.length; index += 1) {
+        const offendingElementInput1 = block.querySelector(`[data-var="${contrastIssueArray[index].var1}"]`);
+        const offendingElementInput2 = block.querySelector(`[data-var="${contrastIssueArray[index].var2}"]`);
+        const item1Name = offendingElementInput1.parentElement.previousElementSibling.textContent;
+        const item2Name = offendingElementInput2.parentElement.previousElementSibling.textContent;
+        const issueSpan1 = offendingElementInput1.parentElement.nextElementSibling;
+        const issueSpan2 = offendingElementInput2.parentElement.nextElementSibling;
+
+        issueSpan1.textContent += issueSpan1.textContent ? `, ${item2Name}` : `Contrast issue with: ${item2Name}`;
+        issueSpan2.textContent += issueSpan2.textContent ? `, ${item1Name}` : `Contrast issue with: ${item1Name}`;
+      }
+    };
+
+    contrastCheckerWorker.addEventListener('message', displayContrastIssues);
+    contrastCheckerWorker.postMessage({
+      type: 'contrastCheck',
+      css: cssVarsData,
     });
 
     const editor = window.CodeMirror.fromTextArea(vars);
     const editorOnChange = () => {
+      const editorValue = editor.getValue();
       previewFrame.contentWindow.postMessage({
         type: 'update:styles',
         styles: fonts,
@@ -578,14 +643,13 @@ export default async function decorate(block) {
 
       previewFrame.contentWindow.postMessage({
         type: 'update:styles',
-        styles: editor.getValue(),
+        styles: editorValue,
         file: 'vars',
       }, '*');
 
-      cssVars = getCSSVars(editor.getValue());
       contrastCheckerWorker.postMessage({
         type: 'contrastCheck',
-        cssVars,
+        css: editorValue,
       });
     };
     let onChangeTimeout;
@@ -884,6 +948,14 @@ export default async function decorate(block) {
 
     block.querySelector('.publish-theme').onclick = async () => {
       window?.zaraz?.track('click site theme submit', { url: window.location.href });
+
+      if (contrastIssuesExist) {
+        if (!(await window.confirmDialog('Contrast issues exist, do you want to continue?'))) {
+          window?.zaraz?.track('cancel site theme submit due to contrast issues', { url: window.location.href });
+          return;
+        }
+        window?.zaraz?.track('confirm site theme submit with contrast issues', { url: window.location.href });
+      }
 
       block.classList.add('is-saving');
 

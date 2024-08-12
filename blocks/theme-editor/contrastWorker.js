@@ -1,13 +1,24 @@
 /* eslint-disable no-restricted-globals */
 
+const getCSSVars = (css) => css
+  .split('\n')
+  .map((s) => {
+    let formatted = s.trim();
+    if (formatted.endsWith(';')) {
+      formatted = formatted.slice(0, -1);
+    }
+    return formatted;
+  })
+  .filter((prop) => prop.startsWith('--'));
+
 function hexToRgb(hexValue) {
-  if (!hexValue) return;
+  if (!hexValue) return null;
 
-  // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+  // Expand shorthand
   const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-  hexValue = hexValue.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+  const fullHexValue = hexValue.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
 
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexValue);
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHexValue);
   return result ? {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
@@ -16,9 +27,9 @@ function hexToRgb(hexValue) {
 }
 
 function luminance(r, g, b) {
-  const a = [r, g, b].map((v) => {
-    v /= 255;
-    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  const a = [r, g, b].map((value) => {
+    const rsValue = value / 255;
+    return rsValue <= 0.03928 ? rsValue / 12.92 : ((rsValue + 0.055) / 1.055) ** 2.4;
   });
   return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
 }
@@ -29,7 +40,7 @@ function contrastRatio(lum1, lum2) {
   return (brighter + 0.05) / (darker + 0.05);
 }
 
-function calculateContrast(hex1, hex2) {
+function calculateContrast(hex1, hex2, aaThreshold = 4.5, aaaThreshold = 7) {
   const rgb1 = hexToRgb(hex1);
   const rgb2 = hexToRgb(hex2);
 
@@ -43,43 +54,191 @@ function calculateContrast(hex1, hex2) {
 
   return {
     ratio: ratio.toFixed(2),
-    AA: ratio >= 4.5,
-    AAA: ratio >= 7,
+    AA: ratio >= aaThreshold,
+    AAA: ratio >= aaaThreshold,
   };
 }
 
-const importantCSSVars = [
-  'background-color-main',
-  'background-color-header',
-  'background-color-footer',
-  'text-color-header',
-  'text-color-main',
-  'text-color-links',
-  'text-color-links-hover',
-  'button-color-text',
-  'button-color-background',
-  'button-color-text-hover',
-  'button-color-background-hover',
-  'button-primary-color-text',
-  'button-primary-color-background',
-  'button-primary-color-text-hover',
-  'button-primary-color-background-hover',
-  'button-secondary-color-text',
-  'button-secondary-color-background',
-  'button-secondary-color-text-hover',
-  'button-secondary-color-background-hover',
-];
+// large text like headings aren't as strict with contrast ratio. https://www.w3.org/TR/WCAG21/#contrast-minimum
+const contrastThresholdMap = {
+  'heading-color': {
+    AA: 3,
+    AAA: 4.5,
+  },
+  default: {
+    AA: 4.5,
+    AAA: 7,
+  },
+};
 
-self.addEventListener('message', (event) => {
+function getRequiredContrastThreshold(name1, name2) {
+  const name1Thresholds = contrastThresholdMap[name1] || contrastThresholdMap.default;
+  const name2Thresholds = contrastThresholdMap[name2] || contrastThresholdMap.default;
+
+  return {
+    AA: Math.min(name1Thresholds.AA, name2Thresholds.AA),
+    AAA: Math.min(name1Thresholds.AAA, name2Thresholds.AAA),
+  };
+}
+
+// Commented out variables are checked by through evaluation of counterparts.
+// They are still here to help visualize relationships between colors.
+const cssVariableMap = {
+  // backgrounds
+  'background-color': {
+    // shouldContrastWith: ['heading-color', 'text-color', 'link-color', 'link-color-hover'],
+  },
+  'header-background-color': {
+    // shouldContrastWith: ['link-color', 'link-color-hover'],
+  },
+  'footer-background-color': {
+    // shouldContrastWith: ['link-color', 'link-color-hover', 'text-color'],
+  },
+  // text colors
+  'heading-color': {
+    shouldContrastWith: ['background-color'],
+  },
+  'text-color': {
+    shouldContrastWith: ['background-color'],
+  },
+  'link-color': {
+    shouldContrastWith: ['background-color', 'header-background-color', 'footer-background-color'],
+  },
+  'link-color-hover': {
+    shouldContrastWith: ['background-color', 'header-background-color', 'footer-background-color'],
+  },
+  // button default
+  'button-text-color': {
+    shouldContrastWith: ['button-background-color'],
+  },
+  'button-background-color': {
+    // shouldContrastWith: ['button-text-color'],
+  },
+  'button-text-color-hover': {
+    shouldContrastWith: ['button-background-color-hover'],
+  },
+  'button-background-color-hover': {
+    // shouldContrastWith: ['button-text-color-hover'],
+  },
+  // button primary
+  'button-primary-text-color': {
+    shouldContrastWith: ['button-primary-background-color'],
+  },
+  'button-primary-background-color': {
+    // shouldContrastWith: ['button-primary-text-color'],
+  },
+  'button-primary-text-color-hover': {
+    shouldContrastWith: ['button-primary-background-color-hover'],
+  },
+  'button-primary-background-color-hover': {
+    // shouldContrastWith: ['button-primary-text-color-hover'],
+  },
+  // button secondary
+  'button-secondary-text-color': {
+    shouldContrastWith: ['button-secondary-background-color'],
+  },
+  'button-secondary-background-color': {
+    // shouldContrastWith: ['button-secondary-text-color'],
+  },
+  'button-secondary-text-color-hover': {
+    shouldContrastWith: ['button-secondary-background-color-hover'],
+  },
+  'button-secondary-background-color-hover': {
+    // shouldContrastWith: ['button-secondary-text-color-hover'],
+  },
+};
+
+function evaluateVariable(obj, value) {
+  if (value?.startsWith('var(')) {
+    const varName = value.replace('var(', '').replace(')', '').trim();
+    const newValue = obj[varName].value;
+
+    if (!newValue) {
+      return null;
+    }
+    if (newValue?.startsWith('var(')) {
+      return evaluateVariable(obj, newValue);
+    }
+    return newValue;
+  }
+
+  return value;
+}
+
+function handler(event) {
   if (event.data.type !== 'contrastCheck') {
     return;
   }
+  const cssVars = getCSSVars(event.data.css);
+  const eventCssVars = cssVars.reduce((output, cssVar) => {
+    let [varName, value] = cssVar.split(':');
+    varName = varName.replaceAll('--', '').trim();
+    value = value.replaceAll('--', '').trim();
 
-  console.log('contrastCheck:', event.data);
-  // console.log(window);
+    // only get values of variables we care about
+    output[varName] = { value };
 
+    return output;
+  }, {});
+
+  const eventVarsKeys = Object.keys(eventCssVars);
+
+  // vars into values
+  for (let index = 0; index < eventVarsKeys.length; index += 1) {
+    const { value } = eventCssVars[eventVarsKeys[index]];
+    const evaluatedValue = evaluateVariable(eventCssVars, value);
+    if (evaluatedValue) {
+      eventCssVars[eventVarsKeys[index]] = { value: evaluatedValue };
+    }
+  }
+
+  // filter out vars we don't care about
+  const filteredCssVars = Object.keys(eventCssVars).reduce((output, key) => {
+    if (cssVariableMap[key]) {
+      output[key] = eventCssVars[key];
+    }
+    return output;
+  }, {});
+
+  const mapKeys = Object.keys(cssVariableMap);
+  const filteredCssVarsKeys = Object.keys(filteredCssVars);
+  if (filteredCssVarsKeys.length !== mapKeys.length) {
+    console.warn('filteredCssVars has missing keys:', mapKeys - filteredCssVarsKeys);
+  }
+
+  const contrastIssues = [];
+
+  for (let index = 0; index < filteredCssVarsKeys.length; index += 1) {
+    const varKey = filteredCssVarsKeys[index];
+
+    const { shouldContrastWith } = cssVariableMap[varKey];
+
+    if (!shouldContrastWith?.length) continue;
+    for (let j = 0; j < shouldContrastWith.length; j += 1) {
+      const requiredThresholds = getRequiredContrastThreshold(varKey, shouldContrastWith[j]);
+      const { ratio, AA, AAA } = calculateContrast(
+        filteredCssVars[varKey].value,
+        filteredCssVars[shouldContrastWith[j]].value,
+        requiredThresholds.AA,
+        requiredThresholds.AAA,
+      );
+
+      if (!AA || !AAA) {
+        contrastIssues.push({
+          var1: varKey,
+          var2: shouldContrastWith[j],
+          ratio,
+          AA,
+          AAA,
+        });
+      }
+    }
+  }
   self.postMessage({
     type: 'contrastCheck',
-    something: 'color',
+    evaluatedCssVars: filteredCssVars,
+    contrastIssues,
   });
-});
+}
+
+self.addEventListener('message', handler);
