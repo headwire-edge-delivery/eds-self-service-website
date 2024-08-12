@@ -9,6 +9,12 @@
   max-width: 400px;
 }
 
+.expedition-popover *,
+.expedition-popover-title,
+.expedition-popover-description {
+  font-family: inherit;
+}
+
 .expedition-popover:not(:has(.expedition-popover-arrow)) {
   margin-left: -60px;
 }
