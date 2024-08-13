@@ -59,7 +59,9 @@ function calculateContrast(hex1, hex2, aaThreshold = 4.5, aaaThreshold = 7) {
   };
 }
 
-// large text like headings aren't as strict with contrast ratio. https://www.w3.org/TR/WCAG21/#contrast-minimum
+// large text like headings aren't as strict with contrast ratio.
+// https://www.w3.org/TR/WCAG21/#contrast-minimum
+// https://www.w3.org/TR/WCAG22/#contrast-enhanced
 const contrastThresholdMap = {
   'heading-color': {
     AA: 3,
