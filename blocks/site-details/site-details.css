@@ -377,7 +377,6 @@ dialog.update-description-dialog button[type="submit"] {
 }
 
 /* MARK: Dark alley */
-.site-details.block.dark-alley .button.update-description,
 .site-details.block.dark-alley .button.sidekick {
     display: none;
 }
