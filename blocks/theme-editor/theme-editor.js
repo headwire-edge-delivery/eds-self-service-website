@@ -234,6 +234,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <label>
@@ -242,6 +243,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="header-background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <label>
@@ -250,6 +252,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="footer-background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                  
                   <label>
@@ -258,6 +261,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="heading-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <label>
@@ -266,6 +270,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="text-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <label>
@@ -274,6 +279,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="link-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Links text color on hover</span>
@@ -281,6 +287,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="link-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <h2>Buttons</h2>
@@ -293,6 +300,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-text-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Background color</span>
@@ -300,6 +308,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Border color</span>
@@ -307,6 +316,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-border-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Text color on hover</span>
@@ -314,6 +324,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-text-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Background color on hover</span>
@@ -321,6 +332,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-background-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Border color on hover</span>
@@ -328,6 +340,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-border-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <h3>Primary</h3>
@@ -338,6 +351,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-primary-text-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Background color</span>
@@ -345,6 +359,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-primary-background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Border color</span>
@@ -352,6 +367,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-primary-border-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Text color on hover</span>
@@ -359,6 +375,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-primary-text-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Background color on hover</span>
@@ -366,6 +383,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-primary-background-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Border color on hover</span>
@@ -373,6 +391,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-primary-border-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   
                   <h3>Secondary</h3>
@@ -383,6 +402,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-text-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Background color</span>
@@ -390,6 +410,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-background-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Border color</span>
@@ -397,6 +418,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-border-color">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Text color on hover</span>
@@ -404,6 +426,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-text-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Background color on hover</span>
@@ -411,6 +434,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-background-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                   <label>
                       <span>Border color on hover</span>
@@ -418,6 +442,7 @@ export default async function decorate(block) {
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-border-color-hover">
                       </div>
+                      <span class="contrast-issues"></span>
                   </label>
                
                   <!--<h2>Styles (Developer)</h2>-->
@@ -565,8 +590,55 @@ export default async function decorate(block) {
         await import('../../libs/codemirror/codemirror.min.js');
         await import('../../libs/codemirror/css.min.js');
 
+        // MARK: contrast checker
+        const contrastCheckerWorker = new Worker('/blocks/theme-editor/contrast-worker.js');
+
+        let contrastIssuesExist = false;
+
+        const contrastIssueSpans = block.querySelectorAll('span.contrast-issues');
+        contrastIssueSpans.forEach((span) => {
+          span.textContent = '';
+          span.title = 'This variable has a low contrast ratio compared to the listed variables. It fails to meet the WCAG 2.0 AAA or AA standard.\nThis can potentially cause accessibility issues and lower page-ranking on search engines.';
+        });
+
+        const displayContrastIssues = (event) => {
+          if (event.data.type !== 'contrastCheck') {
+            return;
+          }
+          contrastIssueSpans.forEach((span) => { span.textContent = ''; });
+
+          const contrastIssueArray = event.data.contrastIssues;
+
+          if (!contrastIssueArray?.length) {
+            contrastIssuesExist = false;
+            return;
+          }
+          contrastIssuesExist = true;
+
+          for (let index = 0; index < contrastIssueArray.length; index += 1) {
+            const offendingElementInput1 = block.querySelector(`[data-var="${contrastIssueArray[index].var1}"]`);
+            const offendingElementInput2 = block.querySelector(`[data-var="${contrastIssueArray[index].var2}"]`);
+            const item1Name = offendingElementInput1.parentElement.previousElementSibling.textContent;
+            const item2Name = offendingElementInput2.parentElement.previousElementSibling.textContent;
+            const issueSpan1 = offendingElementInput1.parentElement.nextElementSibling;
+            const issueSpan2 = offendingElementInput2.parentElement.nextElementSibling;
+
+            issueSpan1.textContent += issueSpan1.textContent ? `, ${item2Name}` : `Contrast issue with: ${item2Name}`;
+            issueSpan2.textContent += issueSpan2.textContent ? `, ${item1Name}` : `Contrast issue with: ${item1Name}`;
+          }
+        };
+
+        contrastCheckerWorker.addEventListener('message', displayContrastIssues);
+        contrastCheckerWorker.postMessage({
+          type: 'contrastCheck',
+          css,
+        });
+        // MARK: onchange
         const editor = window.CodeMirror.fromTextArea(vars);
-        editor.on('change', () => {
+        const editorOnChange = () => {
+          const editorValue = editor.getValue();
+          cssVars = getCSSVars(editorValue);
+
           block.querySelector('.publish-theme').classList.remove('is-disabled');
           previewFrame.contentWindow.postMessage(
             {
@@ -580,14 +652,21 @@ export default async function decorate(block) {
           previewFrame.contentWindow.postMessage(
             {
               type: 'update:styles',
-              styles: editor.getValue(),
+              styles: editorValue,
               file: 'vars',
             },
             '*',
           );
 
-          cssVars = getCSSVars(editor.getValue());
-        });
+          contrastCheckerWorker.postMessage({
+            type: 'contrastCheck',
+            css: editorValue,
+          });
+        };
+
+        // TODO: change this to debounce if needed, & find out how to get correct value
+        // debounce causes weird issues, where editor reverts to value of first change
+        editor.on('change', editorOnChange);
 
         // Init Modes
         const previewMode = block.querySelector('.preview-mode');
@@ -947,6 +1026,14 @@ export default async function decorate(block) {
 
         block.querySelector('.publish-theme').onclick = async () => {
           window?.zaraz?.track('click site theme submit', { url: window.location.href });
+
+          if (contrastIssuesExist) {
+            if (!(await window.confirmDialog('Contrast issues exist, do you want to continue?'))) {
+              window?.zaraz?.track('cancel site theme submit due to contrast issues', { url: window.location.href });
+              return;
+            }
+            window?.zaraz?.track('confirm site theme submit with contrast issues', { url: window.location.href });
+          }
 
           block.classList.add('is-saving');
 
