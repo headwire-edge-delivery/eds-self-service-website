@@ -192,8 +192,6 @@ function handler(event) {
     }
   }
 
-  console.log('\x1b[33m ~ primary:', hexToRgb(eventCssVars['color-brand-primary'].value));
-
   // filter out vars we don't care about
   const filteredCssVars = Object.keys(eventCssVars).reduce((output, key) => {
     if (cssVariableMap[key]) {

@@ -86,15 +86,23 @@ export default async function decorate(block) {
       </div>`;
 
     // Load site theme
-    fetch(`https://preview--${id}.${KESTREL_ONE}/styles/vars.css`)
+    const cssVarsData = await fetch(`https://preview--${id}.${KESTREL_ONE}/styles/vars.css`)
       .then((res) => {
         if (res.ok) {
           return res.text();
         }
         throw new Error(res.status);
-      })
-      .then(async (css) => {
-        block.innerHTML = `
+      }).catch((error) => {
+        console.log('error loading site theme:', error);
+        return null;
+      });
+
+    if (!cssVarsData) {
+      block.querySelector('.content p').textContent = OOPS;
+      return;
+    }
+
+    block.innerHTML = `
           <div class="nav">
             <div class="breadcrumbs">
               <a href="/dashboard">
@@ -453,654 +461,648 @@ export default async function decorate(block) {
           </div>
         </div>`;
 
-        // Get CSS vars
-        let cssVars = getCSSVars(css);
-        let fonts = '';
+    // Get CSS vars
+    let cssVars = getCSSVars(cssVarsData);
+    let fonts = '';
 
-        // Presets
-        let presets;
-        let selectedPreset;
-        const presetsPicker = block.querySelector('.presets-picker');
-        const customPreset = presetsPicker.querySelector('.custom');
+    // Presets
+    let presets;
+    let selectedPreset;
+    const presetsPicker = block.querySelector('.presets-picker');
+    const customPreset = presetsPicker.querySelector('.custom');
 
-        // eslint-disable-next-line max-len
-        const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => cssVars.includes(cssVar)));
+    // eslint-disable-next-line max-len
+    const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => cssVars.includes(cssVar)));
 
-        const updatePreset = () => {
-          selectedPreset = findSelectedPreset();
+    const updatePreset = () => {
+      selectedPreset = findSelectedPreset();
 
-          if (!selectedPreset) {
-            customPreset.hidden = false;
-            customPreset.selected = true;
-          } else {
-            customPreset.hidden = true;
-            presetsPicker.selectedIndex = presets.indexOf(selectedPreset);
-          }
-        };
+      if (!selectedPreset) {
+        customPreset.hidden = false;
+        customPreset.selected = true;
+      } else {
+        customPreset.hidden = true;
+        presetsPicker.selectedIndex = presets.indexOf(selectedPreset);
+      }
+    };
 
-        // Init theme presets
-        fetch(`https://preview--${id}.${KESTREL_ONE}/themes.json`)
-          .then((res) => res.json())
-          .then((res) => {
-            presets = res;
-            presetsPicker.insertAdjacentHTML(
-              'afterbegin',
-              presets.map((preset) => `<option>${preset.name}</option>`).join(''),
-            );
+    // Init theme presets
+    fetch(`https://preview--${id}.${KESTREL_ONE}/themes.json`)
+      .then((res) => res.json())
+      .then((res) => {
+        presets = res;
+        presetsPicker.insertAdjacentHTML(
+          'afterbegin',
+          presets.map((preset) => `<option>${preset.name}</option>`).join(''),
+        );
 
-            updatePreset();
+        updatePreset();
 
-            presetsPicker.onchange = () => {
-              selectedPreset = presets[presetsPicker.selectedIndex];
+        presetsPicker.onchange = () => {
+          selectedPreset = presets[presetsPicker.selectedIndex];
 
-              const colorBaseInputs = block.querySelectorAll('.color-picker.base');
-              const colorElementSelects = block.querySelectorAll('.color-picker.elements');
+          const colorBaseInputs = block.querySelectorAll('.color-picker.base');
+          const colorElementSelects = block.querySelectorAll('.color-picker.elements');
 
-              colorBaseInputs.forEach((el) => {
-                const input = el.querySelector('input');
-                const { value } = findCSSVar(selectedPreset.vars, input.dataset.var);
+          colorBaseInputs.forEach((el) => {
+            const input = el.querySelector('input');
+            const { value } = findCSSVar(selectedPreset.vars, input.dataset.var);
 
-                input.value = value;
-                input.dispatchEvent(new Event('input'));
-              });
-
-              colorElementSelects.forEach((el) => {
-                const select = el.querySelector('select');
-                const input = el.querySelector('input');
-                const { value } = findCSSVar(selectedPreset.vars, input.dataset.var);
-
-                select.value = value.slice(6, -1);
-                select.dispatchEvent(new Event('change'));
-              });
-            };
+            input.value = value;
+            input.dispatchEvent(new Event('input'));
           });
 
-        // TODO: remove when we move to dark alley
-        fetch(`${SCRIPT_API}/darkAlleyList/${id}`, {
-          headers: {
-            authorization: `bearer ${token}`,
-          },
-        })
-          .then((res) => res.json())
-          .then(({ project }) => {
-            if (project.darkAlleyProject) {
-              block.querySelectorAll('.breadcrumbs a').forEach((link) => {
-                if (link.href.includes('/site/')) {
-                  link.href = link.href.replace('/site/', '/da-site/');
-                }
-              });
-            }
-          })
-          .catch(() => null);
+          colorElementSelects.forEach((el) => {
+            const select = el.querySelector('select');
+            const input = el.querySelector('input');
+            const { value } = findCSSVar(selectedPreset.vars, input.dataset.var);
 
-        const warning = block.querySelector('.warning');
-        warning.querySelector('button').onclick = () => {
-          warning.hidden = true;
+            select.value = value.slice(6, -1);
+            select.dispatchEvent(new Event('change'));
+          });
         };
+      });
 
-        const defaultColors = [
-          {
-            label: 'Light',
-            value: 'color-light',
-          },
-          {
-            label: 'Dark',
-            value: 'color-dark',
-          },
-          {
-            label: 'Lightest',
-            value: 'color-lightest',
-          },
-          {
-            label: 'Darkest',
-            value: 'color-darkest',
-          },
-          {
-            label: 'Brand primary',
-            value: 'color-brand-primary',
-          },
-          {
-            label: 'Brand secondary',
-            value: 'color-brand-secondary',
-          },
-          {
-            label: 'Brand tertiary',
-            value: 'color-brand-tertiary',
-          },
+    // TODO: remove when we move to dark alley
+    fetch(`${SCRIPT_API}/darkAlleyList/${id}`, {
+      headers: {
+        authorization: `bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then(({ project }) => {
+        if (project.darkAlleyProject) {
+          block.querySelectorAll('.breadcrumbs a').forEach((link) => {
+            if (link.href.includes('/site/')) {
+              link.href = link.href.replace('/site/', '/da-site/');
+            }
+          });
+        }
+      })
+      .catch(() => null);
+
+    const warning = block.querySelector('.warning');
+    warning.querySelector('button').onclick = () => {
+      warning.hidden = true;
+    };
+
+    const defaultColors = [
+      {
+        label: 'Light',
+        value: 'color-light',
+      },
+      {
+        label: 'Dark',
+        value: 'color-dark',
+      },
+      {
+        label: 'Lightest',
+        value: 'color-lightest',
+      },
+      {
+        label: 'Darkest',
+        value: 'color-darkest',
+      },
+      {
+        label: 'Brand primary',
+        value: 'color-brand-primary',
+      },
+      {
+        label: 'Brand secondary',
+        value: 'color-brand-secondary',
+      },
+      {
+        label: 'Brand tertiary',
+        value: 'color-brand-tertiary',
+      },
+    ];
+
+    // Render codemirror
+    const vars = block.querySelector('.vars');
+    const previewContainer = block.querySelector('.preview-container');
+    const previewFrame = block.querySelector('.iframe');
+    previewFrame.addEventListener('load', () => {
+      // Add loading buffer
+      setTimeout(() => {
+        previewFrame.classList.remove('is-loading');
+      }, 1000);
+    });
+    // Loading timeout
+    setTimeout(() => {
+      previewFrame.classList.remove('is-loading');
+    }, 2000);
+    vars.value = cssVarsData;
+
+    // Load codemirror to edit styles
+    loadCSS('/libs/codemirror/codemirror.min.css');
+    await import('../../libs/codemirror/codemirror.min.js');
+    await import('../../libs/codemirror/css.min.js');
+
+    // MARK: contrast checker
+    const contrastCheckerWorker = new Worker('/blocks/theme-editor/contrast-worker.js');
+
+    let contrastIssuesExist = false;
+
+    const contrastIssueSpans = block.querySelectorAll('span.contrast-issues');
+    contrastIssueSpans.forEach((span) => {
+      span.textContent = '';
+      span.title = 'This variable has a low contrast ratio compared to the listed variables. It fails to meet the WCAG 2.0 AAA or AA standard.\nThis can potentially cause accessibility issues and lower page-ranking on search engines.';
+    });
+
+    const displayContrastIssues = (event) => {
+      if (event.data.type !== 'contrastCheck') {
+        return;
+      }
+      contrastIssueSpans.forEach((span) => { span.textContent = ''; });
+
+      const contrastIssueArray = event.data.contrastIssues;
+
+      if (!contrastIssueArray?.length) {
+        contrastIssuesExist = false;
+        return;
+      }
+      contrastIssuesExist = true;
+
+      for (let index = 0; index < contrastIssueArray.length; index += 1) {
+        const offendingElementInput1 = block.querySelector(`[data-var="${contrastIssueArray[index].var1}"]`);
+        const offendingElementInput2 = block.querySelector(`[data-var="${contrastIssueArray[index].var2}"]`);
+        const item1Name = offendingElementInput1.parentElement.previousElementSibling.textContent;
+        const item2Name = offendingElementInput2.parentElement.previousElementSibling.textContent;
+        const issueSpan1 = offendingElementInput1.parentElement.nextElementSibling;
+        const issueSpan2 = offendingElementInput2.parentElement.nextElementSibling;
+
+        issueSpan1.textContent += issueSpan1.textContent ? `, ${item2Name}` : `Contrast issue with: ${item2Name}`;
+        issueSpan2.textContent += issueSpan2.textContent ? `, ${item1Name}` : `Contrast issue with: ${item1Name}`;
+      }
+    };
+
+    contrastCheckerWorker.addEventListener('message', displayContrastIssues);
+    contrastCheckerWorker.postMessage({
+      type: 'contrastCheck',
+      css: cssVarsData,
+    });
+    // MARK: onchange
+    const editor = window.CodeMirror.fromTextArea(vars);
+    const editorOnChange = () => {
+      const editorValue = editor.getValue();
+      cssVars = getCSSVars(editorValue);
+
+      block.querySelector('.publish-theme').classList.remove('is-disabled');
+      previewFrame.contentWindow.postMessage(
+        {
+          type: 'update:styles',
+          styles: fonts,
+          file: 'fonts',
+        },
+        '*',
+      );
+
+      previewFrame.contentWindow.postMessage(
+        {
+          type: 'update:styles',
+          styles: editorValue,
+          file: 'vars',
+        },
+        '*',
+      );
+
+      contrastCheckerWorker.postMessage({
+        type: 'contrastCheck',
+        css: editorValue,
+      });
+    };
+
+    // TODO: change this to debounce if needed, & find out how to get correct value
+    // debounce causes weird issues, where editor reverts to value of first change
+    editor.on('change', editorOnChange);
+
+    // Init Modes
+    const previewMode = block.querySelector('.preview-mode');
+    const editMode = block.querySelector('.edit-mode');
+    const viewers = block.querySelector('.viewers');
+    previewMode.onclick = () => {
+      previewContainer.classList.add('preview-mode');
+      previewMode.hidden = true;
+      editMode.hidden = false;
+      viewers.hidden = false;
+      previewFrame.style.width = viewers.querySelector('[aria-checked="true"]').dataset.width;
+    };
+    editMode.onclick = () => {
+      previewContainer.classList.remove('preview-mode');
+      editMode.hidden = true;
+      viewers.hidden = true;
+      previewMode.hidden = false;
+      previewFrame.style.width = '';
+    };
+    viewers.querySelectorAll('.button').forEach((el) => {
+      el.onclick = () => {
+        if (el.ariaChecked === 'false') {
+          const checkedEl = viewers.querySelector('[aria-checked="true"]');
+          checkedEl.ariaChecked = 'false';
+          el.ariaChecked = 'true';
+
+          previewFrame.style.width = el.dataset.width;
+        }
+      };
+    });
+
+    // Init font-weight picker
+    const fontWeights = ['300', '400', '700'];
+    const fontWeightLabels = {
+      300: 'Light',
+      400: 'Regular',
+      700: 'Bold',
+    };
+    block.querySelectorAll('.weight-picker').forEach((el) => {
+      let selectedFontWeight = findCSSVar(cssVars, el.dataset.var);
+      el.innerHTML = `${fontWeights
+        .map(
+          (weight) => `<option ${
+            weight === selectedFontWeight.value ? 'selected' : ''
+          } value="${weight}">${fontWeightLabels[weight]}</option>`,
+        )
+        .join('')}`;
+      el.onchange = () => {
+        const newValue = el.value;
+        editor.setValue(
+          editor
+            .getValue()
+            .replace(
+              `--${selectedFontWeight.name}:${selectedFontWeight.fullValue}`,
+              `--${selectedFontWeight.name}: ${newValue}`,
+            ),
+        );
+
+        cssVars = getCSSVars(editor.getValue());
+        selectedFontWeight = findCSSVar(cssVars, el.dataset.var);
+
+        warning.hidden = false;
+      };
+    });
+
+    // Init font-pickers
+    const fontsKey = 'AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps';
+    fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${fontsKey}&capability=WOFF2`)
+      .then((req) => {
+        if (req.ok) {
+          return req.json();
+        }
+        return false;
+      })
+      .then(({ items }) => {
+        let customFonts = items.filter(
+          ({ subsets, variants }) => subsets.includes('latin')
+                && fontWeights.every((weight) => variants.includes(weight === '400' ? 'regular' : weight)),
+        );
+
+        const defaultFonts = [
+          'Arial',
+          'Verdana',
+          'Tahoma',
+          'Trebuchet MS',
+          'Times New Roman',
+          'Georgia',
+          'Garamond',
+          'Courier New',
         ];
 
-        // Render codemirror
-        const vars = block.querySelector('.vars');
-        const previewContainer = block.querySelector('.preview-container');
-        const previewFrame = block.querySelector('.iframe');
-        previewFrame.addEventListener('load', () => {
-          // Add loading buffer
-          setTimeout(() => {
-            previewFrame.classList.remove('is-loading');
-          }, 1000);
-        });
-        // Loading timeout
-        setTimeout(() => {
-          previewFrame.classList.remove('is-loading');
-        }, 2000);
-        vars.value = css;
+        customFonts = [...customFonts, ...defaultFonts.map((font) => ({ family: font }))].sort(
+          (a, b) => {
+            if (a.family < b.family) {
+              return -1;
+            }
+            if (a.family > b.family) {
+              return 1;
+            }
+            return 0;
+          },
+        );
 
-        // Load codemirror to edit styles
-        loadCSS('/libs/codemirror/codemirror.min.css');
-        await import('../../libs/codemirror/codemirror.min.js');
-        await import('../../libs/codemirror/css.min.js');
+        const updateFonts = async (selectedFont, newFont) => {
+          const selectedFonts = [...block.querySelectorAll('.font-picker')].map(
+            (el) => el.value,
+          );
+          const selectedCustomFonts = selectedFonts.filter(
+            (font) => !defaultFonts.includes(font),
+          );
 
-        // MARK: contrast checker
-        const contrastCheckerWorker = new Worker('/blocks/theme-editor/contrast-worker.js');
+          if (selectedCustomFonts.length) {
+            const searchParams = new URLSearchParams();
+            searchParams.set('display', 'swap');
 
-        let contrastIssuesExist = false;
+            const fallbackFonts = [];
+            selectedCustomFonts.forEach((customFont) => {
+              const { files } = customFonts.find(({ family }) => customFont === family);
 
-        const contrastIssueSpans = block.querySelectorAll('span.contrast-issues');
-        contrastIssueSpans.forEach((span) => {
-          span.textContent = '';
-          span.title = 'This variable has a low contrast ratio compared to the listed variables. It fails to meet the WCAG 2.0 AAA or AA standard.\nThis can potentially cause accessibility issues and lower page-ranking on search engines.';
-        });
+              searchParams.append('family', `${customFont}:wght@300;400;700`);
 
-        const displayContrastIssues = (event) => {
-          if (event.data.type !== 'contrastCheck') {
-            return;
-          }
-          contrastIssueSpans.forEach((span) => { span.textContent = ''; });
+              fontWeights.forEach((weight) => {
+                fallbackFonts.push(
+                  fetch(`${SCRIPT_API}/font-fallback`, {
+                    method: 'POST',
+                    headers: {
+                      'content-type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      name: customFont,
+                      url: files[weight === '400' ? 'regular' : weight],
+                      weight,
+                    }),
+                  }).then((res) => res.text()),
+                );
+              });
+            });
 
-          const contrastIssueArray = event.data.contrastIssues;
+            const req = await fetch(
+              `https://fonts.googleapis.com/css2?${searchParams.toString()}`,
+            );
+            if (req.ok) {
+              // Update fonts
+              fonts = await req.text();
 
-          if (!contrastIssueArray?.length) {
-            contrastIssuesExist = false;
-            return;
-          }
-          contrastIssuesExist = true;
+              // Update editor
+              editor.setValue(
+                editor
+                  .getValue()
+                  .replace(
+                    `--${selectedFont.name}:${selectedFont.fullValue}`,
+                    `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`,
+                  ),
+              );
 
-          for (let index = 0; index < contrastIssueArray.length; index += 1) {
-            const offendingElementInput1 = block.querySelector(`[data-var="${contrastIssueArray[index].var1}"]`);
-            const offendingElementInput2 = block.querySelector(`[data-var="${contrastIssueArray[index].var2}"]`);
-            const item1Name = offendingElementInput1.parentElement.previousElementSibling.textContent;
-            const item2Name = offendingElementInput2.parentElement.previousElementSibling.textContent;
-            const issueSpan1 = offendingElementInput1.parentElement.nextElementSibling;
-            const issueSpan2 = offendingElementInput2.parentElement.nextElementSibling;
+              cssVars = getCSSVars(editor.getValue());
+            }
 
-            issueSpan1.textContent += issueSpan1.textContent ? `, ${item2Name}` : `Contrast issue with: ${item2Name}`;
-            issueSpan2.textContent += issueSpan2.textContent ? `, ${item1Name}` : `Contrast issue with: ${item1Name}`;
+            Promise.allSettled(fallbackFonts).then((res) => {
+              let newValue = editor.getValue();
+
+              // Remove fallback fonts
+              const indexOf = newValue.indexOf('@font-face');
+              if (indexOf !== -1) {
+                newValue = newValue.substr(0, newValue.indexOf('@font-face'));
+              }
+
+              // Add new fallback fonts
+              newValue += `${res
+                .filter(({ status }) => status === 'fulfilled')
+                .map(({ value }) => value)
+                .join('\n')}`;
+
+              // Update editor
+              editor.setValue(newValue);
+
+              cssVars = getCSSVars(editor.getValue());
+            });
           }
         };
 
-        contrastCheckerWorker.addEventListener('message', displayContrastIssues);
-        contrastCheckerWorker.postMessage({
-          type: 'contrastCheck',
-          css,
-        });
-        // MARK: onchange
-        const editor = window.CodeMirror.fromTextArea(vars);
-        const editorOnChange = () => {
-          const editorValue = editor.getValue();
-          cssVars = getCSSVars(editorValue);
+        block.querySelectorAll('.font-picker').forEach((el) => {
+          let selectedFont = findCSSVar(cssVars, el.dataset.var, true);
+          el.innerHTML = `${customFonts
+            .map(
+              ({ family }) => `<option ${
+                family === selectedFont?.value ? 'selected' : ''
+              } value="${family}">${family}</option>`,
+            )
+            .join('')}`;
 
-          block.querySelector('.publish-theme').classList.remove('is-disabled');
-          previewFrame.contentWindow.postMessage(
-            {
-              type: 'update:styles',
-              styles: fonts,
-              file: 'fonts',
-            },
-            '*',
+          el.onchange = () => {
+            selectedFont = findCSSVar(cssVars, el.dataset.var, true);
+            updateFonts(selectedFont, el.value);
+            warning.hidden = false;
+          };
+        });
+      });
+
+    // Init color-pickers
+    const regExpVars = /\(([^)]+)\)/;
+    block.querySelectorAll('.color-picker').forEach((el) => {
+      const input = el.querySelector('input');
+      const select = el.querySelector('select');
+      let selectedColor = findCSSVar(cssVars, input.dataset.var);
+
+      if (el.classList.contains('base')) {
+        input.value = selectedColor.value;
+        const span = el.querySelector('span');
+        if (span) {
+          span.textContent = selectedColor.value.toUpperCase();
+        }
+
+        input.oninput = () => {
+          const newValue = input.value.toUpperCase();
+          selectedColor = findCSSVar(cssVars, input.dataset.var);
+          el.querySelector('span').textContent = newValue;
+
+          // Update editor
+          editor.setValue(
+            editor
+              .getValue()
+              .replace(
+                `--${selectedColor.name}:${selectedColor.fullValue}`,
+                `--${selectedColor.name}: ${newValue}`,
+              ),
           );
 
+          // Update Elements
+          const elements = [...block.querySelectorAll('.elements')].filter((element) => {
+            const elSelect = element.querySelector('select');
+            return elSelect.value === selectedColor.name;
+          });
+
+          elements.forEach((element) => {
+            const elInput = element.querySelector('input');
+            elInput.value = newValue;
+          });
+
+          warning.hidden = false;
+
+          debounce(updatePreset);
+        };
+      } else if (el.classList.contains('elements')) {
+        // Find base color
+        const varValue = regExpVars.exec(selectedColor.value)[1].slice(2);
+        select.innerHTML = `${defaultColors
+          .map(
+            ({ label, value }) => `<option ${
+              varValue === value ? 'selected' : ''
+            } value="${value}">${label}</option>`,
+          )
+          .join()}`;
+
+        input.value = findCSSVar(cssVars, varValue).value.toUpperCase();
+
+        select.onchange = () => {
+          const newValue = select.value;
+          selectedColor = findCSSVar(cssVars, input.dataset.var);
+          const base = block.querySelector(`.base input[data-var="${newValue}"]`);
+          input.value = base.value;
+
+          // Update editor
+          editor.setValue(
+            editor
+              .getValue()
+              .replace(
+                `--${selectedColor.name}:${selectedColor.fullValue}`,
+                `--${selectedColor.name}: var(--${newValue})`,
+              ),
+          );
+
+          // Update vars
           previewFrame.contentWindow.postMessage(
             {
               type: 'update:styles',
-              styles: editorValue,
+              styles: editor.getValue(),
               file: 'vars',
             },
             '*',
           );
 
-          contrastCheckerWorker.postMessage({
-            type: 'contrastCheck',
-            css: editorValue,
-          });
+          cssVars = getCSSVars(editor.getValue());
+
+          warning.hidden = false;
+
+          debounce(updatePreset);
         };
+      }
+    });
 
-        // TODO: change this to debounce if needed, & find out how to get correct value
-        // debounce causes weird issues, where editor reverts to value of first change
-        editor.on('change', editorOnChange);
+    const publishThemeSelector = block.querySelector('.publish-theme-selector');
 
-        // Init Modes
-        const previewMode = block.querySelector('.preview-mode');
-        const editMode = block.querySelector('.edit-mode');
-        const viewers = block.querySelector('.viewers');
-        previewMode.onclick = () => {
-          previewContainer.classList.add('preview-mode');
-          previewMode.hidden = true;
-          editMode.hidden = false;
-          viewers.hidden = false;
-          previewFrame.style.width = viewers.querySelector('[aria-checked="true"]').dataset.width;
-        };
-        editMode.onclick = () => {
-          previewContainer.classList.remove('preview-mode');
-          editMode.hidden = true;
-          viewers.hidden = true;
-          previewMode.hidden = false;
-          previewFrame.style.width = '';
-        };
-        viewers.querySelectorAll('.button').forEach((el) => {
-          el.onclick = () => {
-            if (el.ariaChecked === 'false') {
-              const checkedEl = viewers.querySelector('[aria-checked="true"]');
-              checkedEl.ariaChecked = 'false';
-              el.ariaChecked = 'true';
+    // Load index to list pages
+    fetch(`https://preview--${id}.${KESTREL_ONE}/query-index.json?sheet=all`)
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
 
-              previewFrame.style.width = el.dataset.width;
-            }
-          };
-        });
+        throw new Error(res.status);
+      })
+    // Assuming all templates have the all sheet
+      .then(({ data }) => {
+        if (!data.length) {
+          return;
+        }
 
-        // Init font-weight picker
-        const fontWeights = ['300', '400', '700'];
-        const fontWeightLabels = {
-          300: 'Light',
-          400: 'Regular',
-          700: 'Bold',
-        };
-        block.querySelectorAll('.weight-picker').forEach((el) => {
-          let selectedFontWeight = findCSSVar(cssVars, el.dataset.var);
-          el.innerHTML = `${fontWeights
-            .map(
-              (weight) => `<option ${
-                weight === selectedFontWeight.value ? 'selected' : ''
-              } value="${weight}">${fontWeightLabels[weight]}</option>`,
-            )
-            .join('')}`;
-          el.onchange = () => {
-            const newValue = el.value;
-            editor.setValue(
-              editor
-                .getValue()
-                .replace(
-                  `--${selectedFontWeight.name}:${selectedFontWeight.fullValue}`,
-                  `--${selectedFontWeight.name}: ${newValue}`,
-                ),
-            );
-
-            cssVars = getCSSVars(editor.getValue());
-            selectedFontWeight = findCSSVar(cssVars, el.dataset.var);
-
-            warning.hidden = false;
-          };
-        });
-
-        // Init font-pickers
-        const fontsKey = 'AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps';
-        fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${fontsKey}&capability=WOFF2`)
-          .then((req) => {
-            if (req.ok) {
-              return req.json();
-            }
-            return false;
-          })
-          .then(({ items }) => {
-            let customFonts = items.filter(
-              ({ subsets, variants }) => subsets.includes('latin')
-                && fontWeights.every((weight) => variants.includes(weight === '400' ? 'regular' : weight)),
-            );
-
-            const defaultFonts = [
-              'Arial',
-              'Verdana',
-              'Tahoma',
-              'Trebuchet MS',
-              'Times New Roman',
-              'Georgia',
-              'Garamond',
-              'Courier New',
-            ];
-
-            customFonts = [...customFonts, ...defaultFonts.map((font) => ({ family: font }))].sort(
-              (a, b) => {
-                if (a.family < b.family) {
-                  return -1;
-                }
-                if (a.family > b.family) {
-                  return 1;
-                }
-                return 0;
-              },
-            );
-
-            const updateFonts = async (selectedFont, newFont) => {
-              const selectedFonts = [...block.querySelectorAll('.font-picker')].map(
-                (el) => el.value,
-              );
-              const selectedCustomFonts = selectedFonts.filter(
-                (font) => !defaultFonts.includes(font),
-              );
-
-              if (selectedCustomFonts.length) {
-                const searchParams = new URLSearchParams();
-                searchParams.set('display', 'swap');
-
-                const fallbackFonts = [];
-                selectedCustomFonts.forEach((customFont) => {
-                  const { files } = customFonts.find(({ family }) => customFont === family);
-
-                  searchParams.append('family', `${customFont}:wght@300;400;700`);
-
-                  fontWeights.forEach((weight) => {
-                    fallbackFonts.push(
-                      fetch(`${SCRIPT_API}/font-fallback`, {
-                        method: 'POST',
-                        headers: {
-                          'content-type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          name: customFont,
-                          url: files[weight === '400' ? 'regular' : weight],
-                          weight,
-                        }),
-                      }).then((res) => res.text()),
-                    );
-                  });
-                });
-
-                const req = await fetch(
-                  `https://fonts.googleapis.com/css2?${searchParams.toString()}`,
-                );
-                if (req.ok) {
-                  // Update fonts
-                  fonts = await req.text();
-
-                  // Update editor
-                  editor.setValue(
-                    editor
-                      .getValue()
-                      .replace(
-                        `--${selectedFont.name}:${selectedFont.fullValue}`,
-                        `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`,
-                      ),
-                  );
-
-                  cssVars = getCSSVars(editor.getValue());
-                }
-
-                Promise.allSettled(fallbackFonts).then((res) => {
-                  let newValue = editor.getValue();
-
-                  // Remove fallback fonts
-                  const indexOf = newValue.indexOf('@font-face');
-                  if (indexOf !== -1) {
-                    newValue = newValue.substr(0, newValue.indexOf('@font-face'));
-                  }
-
-                  // Add new fallback fonts
-                  newValue += `${res
-                    .filter(({ status }) => status === 'fulfilled')
-                    .map(({ value }) => value)
-                    .join('\n')}`;
-
-                  // Update editor
-                  editor.setValue(newValue);
-
-                  cssVars = getCSSVars(editor.getValue());
-                });
-              }
-            };
-
-            block.querySelectorAll('.font-picker').forEach((el) => {
-              let selectedFont = findCSSVar(cssVars, el.dataset.var, true);
-              el.innerHTML = `${customFonts
-                .map(
-                  ({ family }) => `<option ${
-                    family === selectedFont?.value ? 'selected' : ''
-                  } value="${family}">${family}</option>`,
-                )
-                .join('')}`;
-
-              el.onchange = () => {
-                selectedFont = findCSSVar(cssVars, el.dataset.var, true);
-                updateFonts(selectedFont, el.value);
-                warning.hidden = false;
-              };
-            });
-          });
-
-        // Init color-pickers
-        const regExpVars = /\(([^)]+)\)/;
-        block.querySelectorAll('.color-picker').forEach((el) => {
-          const input = el.querySelector('input');
-          const select = el.querySelector('select');
-          let selectedColor = findCSSVar(cssVars, input.dataset.var);
-
-          if (el.classList.contains('base')) {
-            input.value = selectedColor.value;
-            const span = el.querySelector('span');
-            if (span) {
-              span.textContent = selectedColor.value.toUpperCase();
-            }
-
-            input.oninput = () => {
-              const newValue = input.value.toUpperCase();
-              selectedColor = findCSSVar(cssVars, input.dataset.var);
-              el.querySelector('span').textContent = newValue;
-
-              // Update editor
-              editor.setValue(
-                editor
-                  .getValue()
-                  .replace(
-                    `--${selectedColor.name}:${selectedColor.fullValue}`,
-                    `--${selectedColor.name}: ${newValue}`,
-                  ),
-              );
-
-              // Update Elements
-              const elements = [...block.querySelectorAll('.elements')].filter((element) => {
-                const elSelect = element.querySelector('select');
-                return elSelect.value === selectedColor.name;
-              });
-
-              elements.forEach((element) => {
-                const elInput = element.querySelector('input');
-                elInput.value = newValue;
-              });
-
-              warning.hidden = false;
-
-              debounce(updatePreset);
-            };
-          } else if (el.classList.contains('elements')) {
-            // Find base color
-            const varValue = regExpVars.exec(selectedColor.value)[1].slice(2);
-            select.innerHTML = `${defaultColors
-              .map(
-                ({ label, value }) => `<option ${
-                  varValue === value ? 'selected' : ''
-                } value="${value}">${label}</option>`,
-              )
-              .join()}`;
-
-            input.value = findCSSVar(cssVars, varValue).value.toUpperCase();
-
-            select.onchange = () => {
-              const newValue = select.value;
-              selectedColor = findCSSVar(cssVars, input.dataset.var);
-              const base = block.querySelector(`.base input[data-var="${newValue}"]`);
-              input.value = base.value;
-
-              // Update editor
-              editor.setValue(
-                editor
-                  .getValue()
-                  .replace(
-                    `--${selectedColor.name}:${selectedColor.fullValue}`,
-                    `--${selectedColor.name}: var(--${newValue})`,
-                  ),
-              );
-
-              // Update vars
-              previewFrame.contentWindow.postMessage(
-                {
-                  type: 'update:styles',
-                  styles: editor.getValue(),
-                  file: 'vars',
-                },
-                '*',
-              );
-
-              cssVars = getCSSVars(editor.getValue());
-
-              warning.hidden = false;
-
-              debounce(updatePreset);
-            };
-          }
-        });
-
-        const publishThemeSelector = block.querySelector('.publish-theme-selector');
-
-        // Load index to list pages
-        fetch(`https://preview--${id}.${KESTREL_ONE}/query-index.json?sheet=all`)
-          .then((res) => {
-            if (res.ok) {
-              return res.json();
-            }
-
-            throw new Error(res.status);
-          })
-          // Assuming all templates have the all sheet
-          .then(({ data }) => {
-            if (!data.length) {
-              return;
-            }
-
-            const pages = data.filter(
-              ({ template, robots, path }) => !template.includes('email')
+        const pages = data.filter(
+          ({ template, robots, path }) => !template.includes('email')
                 && !robots.includes('noindex')
                 && path !== '/footer'
                 && path !== '/nav',
+        );
+
+        // Theme pages
+        publishThemeSelector.innerHTML = `${pages
+          .map(({ path }) => `<option value="${path}">Preview: ${path}</option>`)
+          .join('')}`;
+      });
+
+    publishThemeSelector.onchange = () => {
+      window?.zaraz?.track('click change theme preview', { url: window.location.href });
+
+      if (new URL(previewFrame.src).pathname !== publishThemeSelector.value) {
+        previewFrame.classList.add('is-loading');
+        previewFrame.src = `https://preview--${id}.${KESTREL_ONE}${publishThemeSelector.value}`;
+        previewFrame.addEventListener(
+          'load',
+          () => {
+            previewFrame.contentWindow.postMessage(
+              {
+                type: 'update:styles',
+                styles: fonts,
+                file: 'fonts',
+              },
+              '*',
             );
 
-            // Theme pages
-            publishThemeSelector.innerHTML = `${pages
-              .map(({ path }) => `<option value="${path}">Preview: ${path}</option>`)
-              .join('')}`;
+            previewFrame.contentWindow.postMessage(
+              {
+                type: 'update:styles',
+                styles: editor.getValue(),
+                file: 'vars',
+              },
+              '*',
+            );
+          },
+          { once: true },
+        );
+        // Loading timeout
+        setTimeout(() => {
+          previewFrame.classList.remove('is-loading');
+        }, 2000);
+      }
+    };
+
+    block.querySelector('.publish-theme').onclick = async () => {
+      window?.zaraz?.track('click site theme submit', { url: window.location.href });
+
+      if (contrastIssuesExist) {
+        if (!(await window.confirmDialog('Contrast issues exist, do you want to continue?'))) {
+          window?.zaraz?.track('cancel site theme submit due to contrast issues', { url: window.location.href });
+          return;
+        }
+        window?.zaraz?.track('confirm site theme submit with contrast issues', { url: window.location.href });
+      }
+
+      block.classList.add('is-saving');
+
+      editor.setOption('readOnly', true);
+      let failed = false;
+      if (fonts) {
+        let res = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {
+          method: 'POST',
+          headers: { ...headers, 'content-type': 'application/json' },
+          body: JSON.stringify({ css: btoa(editor.getValue()) }),
+        });
+
+        if (!res.ok) {
+          failed = true;
+        } else {
+          res = await fetch(`${SCRIPT_API}/cssFonts/${id}`, {
+            method: 'POST',
+            headers: { ...headers, 'content-type': 'application/json' },
+            body: JSON.stringify({ css: btoa(fonts) }),
           });
 
-        publishThemeSelector.onchange = () => {
-          window?.zaraz?.track('click change theme preview', { url: window.location.href });
+          failed = !res.ok;
+        }
+      } else {
+        const res = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {
+          method: 'POST',
+          headers: { ...headers, 'content-type': 'application/json' },
+          body: JSON.stringify({ css: btoa(editor.getValue()) }),
+        });
 
-          if (new URL(previewFrame.src).pathname !== publishThemeSelector.value) {
-            previewFrame.classList.add('is-loading');
-            previewFrame.src = `https://preview--${id}.${KESTREL_ONE}${publishThemeSelector.value}`;
-            previewFrame.addEventListener(
-              'load',
-              () => {
-                previewFrame.contentWindow.postMessage(
-                  {
-                    type: 'update:styles',
-                    styles: fonts,
-                    file: 'fonts',
-                  },
-                  '*',
-                );
+        failed = !res.ok;
+      }
 
-                previewFrame.contentWindow.postMessage(
-                  {
-                    type: 'update:styles',
-                    styles: editor.getValue(),
-                    file: 'vars',
-                  },
-                  '*',
-                );
-              },
-              { once: true },
-            );
-            // Loading timeout
-            setTimeout(() => {
-              previewFrame.classList.remove('is-loading');
-            }, 2000);
-          }
-        };
+      await window.alertDialog(
+        failed
+          ? OOPS
+          : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.',
+      );
 
-        block.querySelector('.publish-theme').onclick = async () => {
-          window?.zaraz?.track('click site theme submit', { url: window.location.href });
+      editor.setOption('readOnly', false);
 
-          if (contrastIssuesExist) {
-            if (!(await window.confirmDialog('Contrast issues exist, do you want to continue?'))) {
-              window?.zaraz?.track('cancel site theme submit due to contrast issues', { url: window.location.href });
-              return;
-            }
-            window?.zaraz?.track('confirm site theme submit with contrast issues', { url: window.location.href });
-          }
+      block.classList.remove('is-saving');
 
-          block.classList.add('is-saving');
+      warning.hidden = true;
+    };
 
-          editor.setOption('readOnly', true);
-          let failed = false;
-          if (fonts) {
-            let res = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {
-              method: 'POST',
-              headers: { ...headers, 'content-type': 'application/json' },
-              body: JSON.stringify({ css: btoa(editor.getValue()) }),
-            });
-
-            if (!res.ok) {
-              failed = true;
-            } else {
-              res = await fetch(`${SCRIPT_API}/cssFonts/${id}`, {
-                method: 'POST',
-                headers: { ...headers, 'content-type': 'application/json' },
-                body: JSON.stringify({ css: btoa(fonts) }),
-              });
-
-              failed = !res.ok;
-            }
-          } else {
-            const res = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {
-              method: 'POST',
-              headers: { ...headers, 'content-type': 'application/json' },
-              body: JSON.stringify({ css: btoa(editor.getValue()) }),
-            });
-
-            failed = !res.ok;
-          }
-
-          await window.alertDialog(
-            failed
-              ? OOPS
-              : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.',
-          );
-
-          editor.setOption('readOnly', false);
-
-          block.classList.remove('is-saving');
-
-          warning.hidden = true;
-        };
-
-        // block.querySelector('.enable-styles').onclick = (event) => {
-        //   window?.zaraz?.track('click theme styles enable', { url: window.location.href });
-        //
-        //   [...block.querySelectorAll('aside > *')].some((el) => {
-        //     if (el === event.target.previousElementSibling) {
-        //       return true;
-        //     }
-        //
-        //     el.remove();
-        //     return false;
-        //   });
-        //
-        //   event.target.remove();
-        //
-        //   editor.refresh();
-        // };
-      })
-      .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.log(error);
-        block.querySelector('.content p').textContent = OOPS;
-      });
+    // block.querySelector('.enable-styles').onclick = (event) => {
+    //   window?.zaraz?.track('click theme styles enable', { url: window.location.href });
+    //
+    //   [...block.querySelectorAll('aside > *')].some((el) => {
+    //     if (el === event.target.previousElementSibling) {
+    //       return true;
+    //     }
+    //
+    //     el.remove();
+    //     return false;
+    //   });
+    //
+    //   event.target.remove();
+    //
+    //   editor.refresh();
+    // };
   });
 }
