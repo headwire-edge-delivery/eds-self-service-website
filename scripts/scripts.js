@@ -15,8 +15,9 @@ import helpButton from '../tour/helpButton.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
-export const SCRIPT_API = window.location.hostname === 'localhost'
-  ? 'http://localhost:4000' : 'https://eds-self-service-scripts.onrender.com';
+// export const SCRIPT_API = window.location.hostname === 'localhost'
+//   ? 'http://localhost:4000' : 'https://eds-self-service-scripts.onrender.com';
+export const SCRIPT_API = 'https://eds-self-service-scripts.onrender.com';
 export const EMAIL_WORKER_API = 'https://emails.headwire.workers.dev';
 
 export const OOPS = 'Oops ! Something went wrong …';
@@ -215,7 +216,7 @@ function createPromiseDialog(textContent = 'Are you sure?', withConfirm = false)
     dialog.classList.add('alert-dialog');
     const dialogContent = document.createElement('div');
     dialogContent.classList.add('dialog-content');
-    dialogContent.innerHTML = `<h3 class="centered-info" >${textContent}</h3>`;
+    dialogContent.innerHTML = `<h3 class="centered-info">${textContent}</h3>`;
 
     const buttonWrapper = document.createElement('div');
     buttonWrapper.classList.add('dialog-button-container');

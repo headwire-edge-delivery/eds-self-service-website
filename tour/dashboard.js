@@ -1,7 +1,7 @@
 function dashboardSitesTour({ projects, showAutoTour }) {
   const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
   const tourData = {
-    showDisableTour: !!projects?.google?.length,
+    showDisableTour: true,
     onFinished: () => {
       if (projects?.google?.length && showAutoTour) {
         window.location.href = document.querySelector('#my-sites-overview li a').href;
@@ -39,27 +39,42 @@ function dashboardSitesTour({ projects, showAutoTour }) {
   return tourData;
 }
 
-function dashboardAccountTour({ showAutoTour }) {
+function dashboardAccountTour({ projects, showAutoTour }) {
   const currentPlan = document.querySelector('#current-plan').textContent;
+  const hasProjects = !!projects?.google?.length;
   const tourData = {
     onFinished: () => {
+      if (!projects?.google?.length && showAutoTour) {
+        window.location.href = '/';
+      } else if (showAutoTour) {
+        document.querySelector('#toggle-auto-tour-button').click();
+      }
     },
     steps: [
+      {
+        title: 'Edit your Account',
+        description: 'If you want to edit your account, click here. <br /> It will take you directly to google account settings.',
+        element: '#edit-account-button',
+        destroyOnClicked: false,
+      },
       {
         title: 'Account Details',
         description: 'Here you can see your account details.',
         element: '.account-details',
+        destroyOnClicked: false,
+      },
+      {
+        title: 'Disable or Enable the Auto Tour?',
+        description: showAutoTour ? 'You can enable or disable the Auto Tour here.' : 'If you enable the Auto Tour, it will guide you through the Website. <br /> It will display the Tour automatically on every Page.',
+        element: '#toggle-auto-tour-button',
+        destroyOnClicked: false,
       },
       {
         title: 'Upgrade your Plan',
         description: 'If you want to upgrade your free plan, please Contact us.',
         element: '.plans-dialog-wrapper',
         skip: currentPlan !== 'Free',
-      },
-      {
-        title: 'Edit your Account',
-        description: 'If you want to edit your account, click here. <br /> It will take you directly to google account settings.',
-        element: '#edit-account-button',
+        destroyOnClicked: false,
       },
       {
         title: 'Need Help?',
@@ -70,7 +85,12 @@ function dashboardAccountTour({ showAutoTour }) {
       {
         title: 'You\'re ready to go!',
         description: 'You now have all the information you need to get started.',
-        skip: !showAutoTour,
+        skip: !showAutoTour || (!hasProjects && showAutoTour),
+      },
+      {
+        title: 'Let\'s create a Website!',
+        description: 'You don\'t have any sites yet. Let\'s create one! <br /> Click here to create a new site.',
+        skip: hasProjects || !showAutoTour,
       },
     ],
   };
