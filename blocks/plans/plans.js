@@ -13,6 +13,4 @@ export default async function decorate(block) {
       window.auth0Client.loginWithRedirect();
     };
   }
-
-  // document.dispatchEvent(new CustomEvent('block-plans:ready'));
 }

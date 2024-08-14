@@ -45,6 +45,7 @@ export async function loadFragment(path, createInDialog) {
 }
 
 export default async function decorate(block) {
+  console.log('fragment block:', block);
   const isDialogVariation = block.classList.contains('dialog');
   const link = block.querySelector('a');
   const path = link ? link.getAttribute('href') : block.textContent.trim();

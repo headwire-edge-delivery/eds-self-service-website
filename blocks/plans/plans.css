@@ -13,12 +13,17 @@ dialog.plans-dialog {
 .plans.block {
     display: flex;
     gap: 32px;
-    padding: 32px;
+    padding: 32px 0;
     flex-wrap: wrap;
     overflow: auto;
     align-items: stretch;
-    justify-content: center;
+    justify-content: flex-start;
     height: 100%;
+}
+
+.plans-dialog .plans.block {
+    padding: 32px;
+    justify-content: center;
 }
 
 

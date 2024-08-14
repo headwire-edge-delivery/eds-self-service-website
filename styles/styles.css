@@ -306,6 +306,11 @@ input[type="color"] {
   text-transform: none;
 }
 
+.button.destructive {
+  background-color: var(--orange);
+  border-color: var(--orange);
+}
+
 
 
 .button.loading {

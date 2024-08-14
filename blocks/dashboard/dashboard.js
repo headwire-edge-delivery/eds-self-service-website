@@ -123,25 +123,13 @@ export default async function decorate(block) {
       }
     };
 
-    // Add plans
-    const moveFragmentsIntoElement = async (parent) => {
-      const additionalFragments = document.querySelectorAll('main > .fragment-wrapper, main > .section > .fragment-wrapper');
-      additionalFragments.forEach((fragment) => {
-        parent.append(fragment);
-        const fragmentBlock = fragment.querySelector('.block');
-        decorateBlock(fragmentBlock);
-      });
-    };
-    const plans = document.querySelector('.plans-dialog-wrapper');
-    if (!plans) {
-      document.addEventListener('block-plans:ready', () => {
-        // account.append(document.querySelector('.plans-dialog-wrapper'));
-        moveFragmentsIntoElement(account);
-      });
-    } else {
-      // account.append(plans);
-      moveFragmentsIntoElement(account);
-    }
+    // Add plans & account details
+    const additionalFragments = document.querySelectorAll('main > .fragment-wrapper, main > .section > .fragment-wrapper');
+    additionalFragments.forEach((fragment) => {
+      account.append(fragment);
+      const fragmentBlock = fragment.querySelector('.block');
+      decorateBlock(fragmentBlock);
+    });
 
     // List all sites
     const reqList = await fetch(`${SCRIPT_API}/list`, {
