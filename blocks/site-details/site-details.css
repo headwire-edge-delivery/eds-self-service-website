@@ -109,6 +109,7 @@
     text-transform: uppercase;
     border-bottom: 1px solid var(--orange);
     padding-bottom: 4px;
+    font-size: 14px;
 }
 
 .site-details.block .details > :not(.is-selected),
@@ -122,7 +123,14 @@
     padding-bottom: 12px;
 }
 
-.site-details.block .container > h2:first-child {
+.site-details.block h3 {
+    font-size: 13px;
+    margin-top: 8px;
+    padding-block: 8px;
+}
+
+.site-details.block .container > h2:first-child,
+.site-details.block .container > div:first-child > h2:first-child {
     margin-top: 0;
     padding-top: 0;
 }
@@ -169,11 +177,22 @@
 }
 
 .site-details.block .cards .red {
-    color: darkred;
+    color: var(--red);
 }
 
 .site-details.block .cards .green {
-    color: darkgreen;
+    color: var(--green);
+}
+
+.site-details .danger-zone {
+    border: 1px solid var(--red);
+    margin-block: 32px;
+    padding: 32px;
+    border-radius: var(--border-radius);
+}
+
+.site-details .danger-zone .button {
+    color: var(--red);
 }
 
 .site-details.block .list {
@@ -288,9 +307,30 @@
     margin-block: 32px;
 }
 
-.site-details.block :is(.monitoring-panel, .analytics-panel) .container img:only-child {
+.site-details.block :is(.monitoring-panel, .analytics-panel, .audience-panel, .emails-panel) .container img:only-child {
     height: 64px;
     width: 64px;
+}
+
+.site-details.block .emails-panel .container {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.site-details.block .emails-panel .campaign-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0 0 16px;
+}
+
+.site-details.block .emails-panel .campaign-list .button.is-selected {
+    background-color: var(--light-blue);
+    color: white;
+    border-color: var(--light-blue);
 }
 
 .site-details.block .period-selector {
@@ -356,24 +396,6 @@
 .site-details.block .add-page-container {
     display: flex;
     justify-content: flex-end;
-}
-
-/* MARK: description dialog */
-
-dialog.update-description-dialog form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    flex: 1;
-}
-
-dialog.update-description-dialog textarea {
-    height: 220px;
-    resize: vertical;
-}
-
-dialog.update-description-dialog button[type="submit"] {
-    margin-top: auto;
 }
 
 /* MARK: Dark alley */

@@ -3,7 +3,7 @@
 import {
   SCRIPT_API, onAuthenticated, OOPS, EMAIL_WORKER_API,
   daProjectRepo,
-  projectRepo,
+  projectRepo, parseFragment,
 } from '../../scripts/scripts.js';
 
 const protectedBlocks = {
@@ -60,35 +60,29 @@ function validateFileType(acceptString, fileName) {
 function addIconDialogSetup({
   nameOverride, replaceIconItem,
   headers, id, itemList, fileAccept = '.svg', titleText = 'Add icon',
-  extraHtml = '', uploadEndpoint = `${SCRIPT_API}/icons/${id}`,
+  uploadEndpoint = `${SCRIPT_API}/icons/${id}`,
   defaultSrc,
 }) {
   window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add`, { url: window.location.href });
 
-  const dialogContent = document.createElement('div');
+  const submit = parseFragment('<button form="update-icon-form" type="submit" class="button primary action">Save</button>');
+  const content = parseFragment(`
+    <div>
+      <h3>${titleText}</h3>
+      
+      <form id="update-icon-form">
+          <p>${titleText === 'Favicon' ? 'Don\'t have an .ico file yet? You can convert your image to a .ico file <a href="https://www.icoconverter.com/" target="_blank">here</a>.' : 'Upload a new SVG icon.'}</p>
+          <label>
+              <span>File *</span>
+              <input type="file" accept="${fileAccept}" required name="pageName" placeholder="Blog Page"/>
+          </label>
+          <div class="preview">${defaultSrc ? `<img alt="favicon" src="${defaultSrc}" loading="lazy" />` : ''}</div>
+        </form>
+    </div>
+  `);
 
-  const title = document.createElement('h3');
-  title.innerText = titleText;
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = fileAccept;
-  const faviconDescription = document.createElement('p');
-  faviconDescription.innerHTML = 'Don\'t have an .ico file yet? You can convert your image to a .ico file <a href="https://www.icoconverter.com/" target="_blank">here</a>.';
-  const preview = document.createElement('div');
-  preview.classList.add('preview');
-  if (defaultSrc) {
-    preview.innerHTML = `<img alt="favicon" src="${defaultSrc}" loading="lazy" />`;
-  }
-
-  if (titleText === 'Favicon') {
-    dialogContent.append(title, faviconDescription, input, preview);
-  } else {
-    dialogContent.append(title, input, preview);
-  }
-
-  if (extraHtml) {
-    dialogContent.insertAdjacentHTML('beforeend', extraHtml);
-  }
+  const input = content.querySelector('input[type="file"]');
+  const preview = content.querySelector('.preview');
 
   let file = null;
   let fileAsBase64 = null;
@@ -114,21 +108,24 @@ function addIconDialogSetup({
     }
   };
 
-  const addButton = document.createElement('button');
-  addButton.innerText = 'Save';
-  addButton.title = 'Save Icon';
-  const dialog = window.createDialog(dialogContent, [addButton]);
-  addButton.onclick = async () => {
+  const dialog = window.createDialog(content, [submit]);
+
+  const form = document.getElementById('update-icon-form');
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+
     window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add submit`, { url: window.location.href });
 
     if (!file) {
       await window.alertDialog('Please select a file');
       return;
     }
+
     if (!validateFileType(fileAccept, file.name)) {
       await window.alertDialog('Please select a valid file!');
       return;
     }
+
     const formData = new FormData();
     formData.append('file', file);
     dialog.setLoading(true, 'Adding Icon...');
@@ -137,6 +134,7 @@ function addIconDialogSetup({
       body: formData,
       headers,
     });
+
     if (addRequest.ok) {
       dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
       if (replaceIconItem) {
@@ -148,6 +146,7 @@ function addIconDialogSetup({
     } else {
       await window.alertDialog('Something went wrong! Make sure this icon doesn\'t already exist.');
     }
+
     dialog.setLoading(false);
   };
   return dialog;
@@ -159,26 +158,29 @@ function blockIconDialogSetup({
 }) {
   window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`, { url: window.location.href });
 
-  const dialogContent = document.createElement('div');
-  dialogContent.innerHTML = `
-    <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>
-    <p>${deleteWarning || ''}</p>
-    ${iconBase64 ? `<div class="preview"><img class="icon-display" src="${iconBase64}" alt="icon display" /></div>` : ''}
-  `;
+  const formId = `update-${isIcon ? 'icon' : 'block'}-form`;
+  const content = parseFragment(`
+    <div>
+        <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>    
+        <form id="${formId}">
+          <p>${deleteWarning || ''}</p>
+          ${iconBase64 ? `<div class="preview"><img class="icon-display" src="${iconBase64}" alt="icon display" /></div>` : ''}
+          <div class="block-preview"></div>
+        </form>
+    </div>
+  `);
 
   if (showBlockScreenshots) {
-    const blockPreview = document.createElement('div');
-    blockPreview.classList.add('block-preview');
-
     fetch(`${SCRIPT_API}/blockScreenshots/${project.projectSlug}/${name}`)
       .then((response) => response.json())
       .then((data) => {
+        const blockPreview = content.querySelector('.block-preview');
+
         data.forEach((screenshot) => {
-          const img = document.createElement('img');
-          img.src = `http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}`;
-          blockPreview.append(img);
+          blockPreview.insertAdjacentHTML('beforeend', `
+            <img src="http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}" alt="screenshot"/>
+          `);
         });
-        dialogContent.append(blockPreview);
       });
   }
 
@@ -186,8 +188,9 @@ function blockIconDialogSetup({
 
   // MARK: replace icon button
   if (isIcon) {
-    const replaceButton = document.createElement('button');
-    replaceButton.innerText = 'Replace';
+    const replaceButton = parseFragment(`
+      <button class="button action primary">Replace</button>
+    `);
     buttonList.push(replaceButton);
 
     const replaceIconItem = document.querySelector(`[data-icon-name="${name}"`);
@@ -203,39 +206,43 @@ function blockIconDialogSetup({
   }
 
   // MARK: delete block/icon button
-  const deleteButton = document.createElement('button');
-  deleteButton.innerText = 'Delete';
-  buttonList.push(deleteButton);
+  const submit = parseFragment(`
+    <button type="submit" form="${formId}" class="button action ${isIcon ? 'secondary' : 'primary'}">Delete</button>
+  `);
+
+  buttonList.push(submit);
   if (protectedBlocks[name]) {
-    deleteButton.disabled = true;
+    submit.disabled = true;
   }
-  deleteButton.onclick = async (event) => {
+
+  const dialog = window.createDialog(content, buttonList);
+  const form = document.getElementById(formId);
+
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+
     window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} delete submit`, { url: window.location.href });
 
-    const dialogParent = event.target.closest('dialog');
-    deleteButton.disabled = true;
-    dialogParent.classList.add('loading');
-    dialogParent.dataset.loadingText = 'Deleting...';
+    submit.disabled = true;
+    dialog.setLoading(true, 'Deleting...');
+
     const delResponse = await fetch(`${SCRIPT_API}/${isIcon ? 'icons' : 'blocks'}/${project.projectSlug}/${name}`, {
       method: 'DELETE',
       headers,
     });
     if (delResponse.ok) {
-      dialogContent.innerHTML = `
-      <h3 class="centered-info" >${name} deleted</h3>
-      `;
-      deleteButton.remove();
+      dialog.renderDialog(`<h3 class="centered-info" >${name} deleted</h3>`);
+      submit.remove();
       document
         .querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`)
         .forEach((item) => item.remove());
     } else {
       await window.alertDialog(OOPS);
     }
-    deleteButton.disabled = null;
-    dialogParent.classList.remove('loading');
-  };
 
-  window.createDialog(dialogContent, buttonList);
+    submit.disabled = false;
+    dialog.setLoading(false);
+  };
 }
 
 // MARK: add block dialog
@@ -259,23 +266,27 @@ function addBlockDialogSetup({ project, headers, itemList }) {
       return;
     }
 
-    const content = document.createElement('div');
-    content.innerHTML = '<h3>Add block</h3>';
+    const content = parseFragment(`
+      <div>
+        <h3>Add block</h3>
+        <form id="add-block-form">
+          <select class="button secondary action">
+          ${data.map(
+    (blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${
+      blockOption.name
+    }</option>`,
+  ).join('')}
+          </select>
+          
+          <p class="block-info"></p>
+          <div class="block-preview"></div>
+        </form>
+      </div>
+    `);
 
-    const select = document.createElement('select');
-    select.className = 'button secondary action';
-    select.innerHTML = data
-      .map(
-        (blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${
-          blockOption.name
-        }</option>`,
-      )
-      .join('');
-
-    const blockInfo = document.createElement('p');
-    blockInfo.style.width = '100%';
-    const blockPreview = document.createElement('div');
-    blockPreview.classList.add('block-preview');
+    const select = content.querySelector('select');
+    const blockInfo = content.querySelector('.block-info');
+    const blockPreview = content.querySelector('.block-preview');
 
     select.onchange = () => {
       blockInfo.innerText = select.querySelector(`option[value="${select.value}"]`).dataset.blockCreateInfo;
@@ -285,40 +296,46 @@ function addBlockDialogSetup({ project, headers, itemList }) {
         .then((screenshotData) => {
           blockPreview.innerHTML = '';
           screenshotData.forEach((screenshot) => {
-            const img = document.createElement('img');
-            img.src = `http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}`;
-            blockPreview.append(img);
+            blockPreview.insertAdjacentHTML('beforeend', `
+              <img src="http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}" alt="screenshot"/>
+            `);
           });
         });
     };
     select.onchange();
 
-    content.append(select, blockInfo, blockPreview);
+    const submit = parseFragment(`
+      <button type="submit" form="add-block-form" class="button action primary">Add</button>
+    `);
 
-    const addButton = document.createElement('button');
-    addButton.innerText = 'Add';
+    dialog.renderDialog(content, [submit]);
 
-    addButton.onclick = async () => {
+    const form = document.getElementById('add-block-form');
+
+    form.onsubmit = async (event) => {
+      event.preventDefault();
+
       window?.zaraz?.track('click site block add submit', { url: window.location.href });
 
       if (!select.value) {
         await window.alertDialog('Please select a block');
         return;
       }
+
       dialog.setLoading(true, 'Adding Block...');
+
       const addRequest = await fetch(`${SCRIPT_API}/blocks/${project.projectSlug}/${select.value}`, {
         method: 'POST',
         headers,
       });
+
       if (addRequest.ok) {
         const addRequestData = await addRequest.json().catch(() => ({}));
         const buttons = [];
         if (addRequestData.calendarId) {
-          const calendarLink = document.createElement('a');
-          calendarLink.classList.add('button');
-          calendarLink.href = `https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}`;
-          calendarLink.target = '_blank';
-          calendarLink.innerText = 'Google Calendar';
+          const calendarLink = parseFragment(`
+            <a class="button action primary" target="_blank" href="https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}">Google Calendar</a>
+          `);
           buttons.push(calendarLink);
           addGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.settings-actions'));
         }
@@ -328,9 +345,9 @@ function addBlockDialogSetup({ project, headers, itemList }) {
       } else {
         await window.alertDialog(OOPS);
       }
+
       dialog.setLoading(false);
     };
-    dialog.renderDialog(content, [addButton]);
   });
 }
 
@@ -338,28 +355,34 @@ function addBlockDialogSetup({ project, headers, itemList }) {
 function addPageDialogSetup({
   project, headers, darkAlleyVariation,
 }) {
-  const dialogContent = document.createElement('div');
-  dialogContent.classList.add('flex-row');
-  const form = document.createElement('form');
-  form.id = 'add-page-form';
-  const info = document.createElement('p');
-  info.innerHTML = '<strong>The newly created document will appear in the drafts folder. Make sure to move it to your desired path before attempting to publish! Draft files cannot be published.</strong>';
-  const nameLabel = document.createElement('label');
-  nameLabel.innerHTML = '<span>Page Name</span>';
-  const pageNameInput = document.createElement('input');
-  pageNameInput.name = 'pageName';
-  pageNameInput.required = true;
-  nameLabel.append(pageNameInput);
+  const submit = parseFragment('<button form="add-page-form" type="submit" class="button primary action">Create Page</button>');
+  const content = parseFragment(`
+    <div>
+      <h3>Add a new Page</h3>
+      
+      <div class="columns">
+        <form id="add-page-form">
+          <p>The newly created document will appear in the drafts folder. Make sure to move it to your desired path before attempting to publish! Draft files cannot be published.</p>
+          <label>
+              <span>Page Name *</span>
+              <input required name="pageName" placeholder="Blog Page"/>
+          </label>
+          <label>
+            <span>Template *</span>
+            <select required name="templatePath">
+                <option>Loading...</option>
+            </select>
+          </label>
+        </form>
+        
+        <iframe hidden></iframe>
+      </div>
+      
+    </div>
+  `);
 
-  const dropdown = document.createElement('select');
-  dropdown.name = 'templatePath';
-  dropdown.disabled = true;
-  dropdown.innerHTML = '<option>Loading...</option>';
-
-  const previewIframe = document.createElement('iframe');
-  previewIframe.classList.add('template-preview', 'hidden');
-  previewIframe.width = '100%';
-  previewIframe.height = '400';
+  const dropdown = content.querySelector('select[name="templatePath"]');
+  const previewIframe = content.querySelector('iframe');
 
   const templateUrl = `https://main--${project.templateSlug}--headwire-self-service-templates.hlx.live`;
   const templateRegex = /^template\s*-\s*(?!.*authoring\s+guide\s*-)/i;
@@ -378,7 +401,7 @@ function addPageDialogSetup({
       option.innerText = template.templateName;
       dropdown.append(option);
     });
-    previewIframe.classList.remove('hidden');
+    previewIframe.hidden = false;
     previewIframe.src = `${templateUrl}${dropdown.value}`;
     // eslint-disable-next-line no-console
   }).catch((err) => console.error(err));
@@ -389,17 +412,9 @@ function addPageDialogSetup({
     previewIframe.src = `${templateUrl}${dropdown.value}`;
   };
 
-  const submit = document.createElement('button');
-  submit.classList.add('button', 'primary', 'action');
-  submit.type = 'submit';
-  submit.setAttribute('form', 'add-page-form');
-  submit.innerText = 'Create Page';
+  const dialog = window.createDialog(content, [submit], { fullscreen: true });
 
-  form.append(info, nameLabel, dropdown);
-  dialogContent.append(form, previewIframe);
-
-  const dialog = window.createDialog(dialogContent, [submit], { fullscreen: true });
-
+  const form = dialog.querySelector('form');
   // submit.onclick = () => form.dispatchEvent(new Event('submit', { cancelable: true }));
   form.onsubmit = async (event) => {
     event.preventDefault();
@@ -410,10 +425,12 @@ function addPageDialogSetup({
     window.zaraz?.track('click site page add', { url: window.location.href });
 
     dialog.setLoading(true, 'Copying and setting up page...');
+
+    const body = Object.fromEntries(new FormData(form));
     const addPageRequest = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'daAddPage' : 'addPage'}/${project.projectSlug}`, {
       method: 'POST',
       headers: { ...headers, 'content-type': 'application/json' },
-      body: JSON.stringify({ pageName: pageNameInput.value, templatePath: dropdown.value }),
+      body: JSON.stringify(body),
 
     });
     if (addPageRequest.ok) {
@@ -421,20 +438,20 @@ function addPageDialogSetup({
 
       const buttons = [];
 
-      if (responseData?.draftsFolderId) {
+      if (responseData?.folderId) {
         const draftsLink = document.createElement('a');
         draftsLink.classList.add('button', 'secondary', 'action');
-        draftsLink.href = `https://drive.google.com/drive/folders/${responseData.draftsFolderId}`;
+        draftsLink.href = `https://drive.google.com/drive/folders/${responseData.folderId}`;
         draftsLink.target = '_blank';
         draftsLink.innerText = 'Drafts Folder';
 
         buttons.push(draftsLink);
       }
 
-      if (responseData.daDraftsPath) {
+      if (responseData.daPath) {
         const draftsLink = document.createElement('a');
         draftsLink.classList.add('button', 'secondary', 'action');
-        draftsLink.href = `https://da.live/#${responseData.daDraftsPath}`;
+        draftsLink.href = `https://da.live/#${responseData.daPath}`;
         draftsLink.target = '_blank';
         draftsLink.innerText = 'Drafts Folder';
         buttons.push(draftsLink);
@@ -442,9 +459,9 @@ function addPageDialogSetup({
         if (responseData.daNewPageSlug) {
           const editLink = document.createElement('a');
           editLink.classList.add('button', 'primary', 'action');
-          editLink.href = `https://da.live/edit#${responseData.daDraftsPath}/${responseData.daNewPageSlug}`;
+          editLink.href = `https://da.live/edit#${responseData.daPath}/${responseData.daNewPageSlug}`;
           editLink.target = '_blank';
-          editLink.innerText = `Edit ${pageNameInput.value}`;
+          editLink.innerText = `Edit ${body.pageName}`;
           buttons.push(editLink);
         }
       }
@@ -454,12 +471,12 @@ function addPageDialogSetup({
         editLink.classList.add('button', 'primary', 'action');
         editLink.href = `https://docs.google.com/document/d/${responseData.newPageId}/edit`;
         editLink.target = '_blank';
-        editLink.innerText = `Edit ${pageNameInput.value}`;
+        editLink.innerText = `Edit ${body.pageName}`;
 
         buttons.push(editLink);
       }
 
-      dialog.renderDialog(`<h3 class="centered-info" >${pageNameInput.value} page added to drafts</h3>`, buttons);
+      dialog.renderDialog(`<h3 class="centered-info" >${body.pageName} page added to drafts</h3>`, buttons);
     } else {
       await window.alertDialog(OOPS);
     }
@@ -614,24 +631,27 @@ async function renderUpdatesSection(div, { project, headers }) {
       ${versionInfo.updateLevel === 'major' ? '<p><strong><span>This version is a major update. It is possible some blocks will need to be updated by authors.</span></strong></p>' : ''}
     `;
 
-    const updateButton = document.createElement('button');
-    updateButton.classList.add('button', 'action', 'primary', 'update-button');
-    updateButton.innerText = 'Update';
-    updateButton.onclick = async () => {
-      const dialogContent = document.createElement('div');
-      dialogContent.innerHTML = `
-        <h3>Update Project</h3>
-        <p>Are you sure you want to update this project? This will take a short while.</p>
-        ${versionInfo.updateLevel === 'major' ? '<p class="warning"><strong>This is a major update! It is possible some blocks will need to be updated by authors.</strong></p>' : ''}
-        <p>This action can be undone, but changes to icons, blocks, and site theme made after an update, will also be reverted when undone.</p>
-      `;
-      const confirmUpdateButton = document.createElement('button');
-      confirmUpdateButton.classList.add('button', 'action', 'secondary', 'update-button');
-      confirmUpdateButton.innerText = 'Update';
+    const updateButton = parseFragment(`
+      <button class="button action primary update-button">Update</button>
+    `);
 
-      const cancelButton = document.createElement('button');
-      cancelButton.classList.add('button', 'action', 'primary', 'update-button');
-      cancelButton.innerText = 'Cancel';
+    updateButton.onclick = async () => {
+      const dialogContent = parseFragment(`
+        <div>
+          <h3>Update Project</h3>
+          <p>Are you sure you want to update this project? This will take a short while.</p>
+          ${versionInfo.updateLevel === 'major' ? '<p class="warning"><strong>This is a major update! It is possible some blocks will need to be updated by authors.</strong></p>' : ''}
+          <p>This action can be undone, but changes to icons, blocks, and site theme made after an update, will also be reverted when undone.</p>
+        </div>
+      `);
+
+      const confirmUpdateButton = parseFragment(`
+        <button class="button action secondary update-button">Update</button>
+      `);
+
+      const cancelButton = parseFragment(`
+        <button class="button action primary update-button">Cancel</button>
+      `);
 
       const projectUpdateDialog = window.createDialog(dialogContent, [confirmUpdateButton, cancelButton]);
 
@@ -645,7 +665,7 @@ async function renderUpdatesSection(div, { project, headers }) {
         if (updateResponse.ok) {
           projectUpdateDialog.renderDialog('<h3 class="centered-info">Project updated successfully!</h3>');
           // replace update button
-          div.innerHTML = '<h3>Your project is up to date!</h3>';
+          div.innerHTML = '<h3>Your project is up-to-date!</h3>';
         } else {
           projectUpdateDialog.renderDialog(OOPS);
         }
@@ -660,7 +680,7 @@ async function renderUpdatesSection(div, { project, headers }) {
 
     div.append(updateButton);
   } else {
-    div.innerHTML += '<h3>No updates available.</h3>';
+    div.innerHTML += '<h3>No updates available</h3>';
   }
 }
 
@@ -675,42 +695,44 @@ async function renderPrevUpdatesSection(div, {
   prevUpdatesButton.classList.add('button', 'action', 'secondary', 'update-button');
   prevUpdatesButton.innerText = 'Revert to previous version';
   prevUpdatesButton.onclick = async () => {
-    const dialogContent = document.createElement('div');
-    dialogContent.innerHTML = '<h3>Revert Project</h3><h4 class="centered-info">Loading previous updates...</h4>';
-    const revertUpdateDialog = window.createDialog(dialogContent, []);
+    let content = parseFragment(`
+      <div>
+        <h3>Revert Project</h3>
+        <h4 class="centered-info">Loading previous updates...</h4>
+      </div>
+    `);
+    const revertUpdateDialog = window.createDialog(content, []);
 
     const updateList = await fetch(`${endpoint}appliedUpdates/${project.projectSlug}`, { headers }).then((res) => res.json()).catch(() => null);
     if (updateList.length > 0) {
-      dialogContent.innerHTML = `
-        <h3>Revert Updates to Project</h3>
-        <p class="warning">Keep in mind, any changes made on the options and theme pages after an update will <strong>also</strong> be reverted! <strong>This action cannot be undone!</strong></p>
-        `;
-      const revertForm = document.createElement('form');
-      revertForm.id = 'revert-form';
-      revertForm.innerHTML = `
-        <form id="revert-form">
-          <ul class="applied-update-list">
-            ${updateList.map((update) => `<li><label><input required type="radio" name="update" data-version="${update.version}" value="${update.sha}"><span>Version: <strong>${update.version}</strong></span><span>Updated on: <strong>${new Date(update.date).toLocaleString(undefined, {
+      content = parseFragment(`
+        <div>
+            <h3>Revert Updates to Project</h3>
+            
+            <form id="revert-form">
+              <p class="warning">Keep in mind, any changes made on the options and theme pages after an update will <strong>also</strong> be reverted! <strong>This action cannot be undone!</strong></p>
+              <ul class="applied-update-list">
+                ${updateList.map((update) => `<li><label><input required type="radio" name="update" data-version="${update.version}" value="${update.sha}"><span>Version: <strong>${update.version}</strong></span><span>Updated on: <strong>${new Date(update.date).toLocaleString(undefined, {
     year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
   })}</strong></span></label></li>`).join('')}
-          </ul>
-        </form>
-      `;
-      dialogContent.append(revertForm);
+              </ul>
+            </form>
+        </div>
+      `);
 
-      const revertButton = document.createElement('button');
-      revertButton.classList.add('button', 'action', 'secondary', 'update-button');
-      revertButton.setAttribute('form', 'revert-form');
-      revertButton.type = 'submit';
-      revertButton.innerText = 'Undo Update';
-      revertButton.disabled = true;
-      revertUpdateDialog.renderDialog(dialogContent, [revertButton]);
+      const submit = parseFragment(`
+        <button type="submit" form="revert-form" class="button action secondary update-action" disabled>Undo Update</button>
+      `);
+
+      revertUpdateDialog.renderDialog(content, [submit]);
+
+      const revertForm = document.getElementById('revert-form');
 
       let currentSelectedUpdate = null;
       revertForm.onchange = (event) => {
         currentSelectedUpdate = event.target.dataset.version;
         if (currentSelectedUpdate) {
-          revertButton.disabled = null;
+          submit.disabled = null;
         }
       };
 
@@ -718,15 +740,22 @@ async function renderPrevUpdatesSection(div, {
         event.preventDefault();
         window?.zaraz?.track('did site update revert', { url: window.location.href });
 
-        if (await window.confirmDialog(`<div><p class="warning">Are you sure you want to revert ${`the ${currentSelectedUpdate}` || 'to before a previous'} update?</p><p><strong>any changes made on the options and theme pages after an update will also be reverted!</strong></p><p class="warning"><strong>This action cannot be undone!</strong></p></div>`)) {
+        if (await window.confirmDialog(`
+            <div>
+                <h3>Are you sure you want to revert ${`the ${currentSelectedUpdate}` || 'to before a previous'} update?</h3>
+                <p class="error"><strong>any changes made on the options and theme pages after an update will also be reverted!</strong></p>
+                <p class="error">This action cannot be undone!</p>
+            </div>`)) {
           revertUpdateDialog.dataset.loadingText = 'Reverting to previous version...';
           revertUpdateDialog.setLoading(true);
+
           const formData = new FormData(revertForm);
           const revertUpdateResponse = await fetch(`${endpoint}revert/${project.projectSlug}`, {
             method: 'POST',
             headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify({ sha: formData.get('update') }),
           });
+
           if (revertUpdateResponse.ok) {
             revertUpdateDialog.renderDialog('<h3 class="centered-info">Project reverted successfully!</h3>');
             // rerender update section. Should say an update is available as one has just been reverted
@@ -734,13 +763,18 @@ async function renderPrevUpdatesSection(div, {
           } else {
             revertUpdateDialog.renderDialog(OOPS);
           }
+
           revertUpdateDialog.setLoading(false);
         }
       };
     } else if (updateList.length === 0) {
-      dialogContent.innerHTML = '<h3>Revert Project</h3><h4 class="centered-info">No updates to revert to.</h4>';
+      revertUpdateDialog.renderDialog(`
+        <h3>Revert Project</h3><h4 class="centered-info">No updates to revert to.</h4>
+      `);
     } else {
-      dialogContent.innerHTML = '<h3>Revert Project</h3><h4 class="centered-info">Could not get update information.</h4>';
+      revertUpdateDialog.renderDialog(`
+        <h3>Revert Project</h3><h4 class="centered-info">Could not get update information.</h4>
+      `);
     }
   };
   div.append(prevUpdatesButton);
@@ -806,14 +840,16 @@ export default async function decorate(block) {
           </div>
           
           <div class="actions">
-            <div class="overview-actions button-container ${selected === 'overview' ? 'is-selected' : ''}">
-                <button id="delete-site-button" title="Delete your Project" class="button secondary delete action">Delete</button>
-                <button id="update-desc-button" title="Edit the Project Description" class="button secondary update-description action">Update Description</button>
-            </div>
+            <div class="overview-actions button-container ${selected === 'overview' ? 'is-selected' : ''}"></div>
             <div class="pages-actions button-container ${selected === 'pages' ? 'is-selected' : ''}">
                 <button id="add-page-button" title="Add a new Page" class="button primary add-page action">Add Page</button>
             </div>
-            <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}"></div>
+            <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}">
+                <button id="delete-campaign" title="Delete the Campaign" class="button secondary delete-campaign action" hidden>Delete</button>
+                <button id="add-email" title="Add Email" class="button secondary add-email action" hidden>Add Email</button>
+                <button id="new-campaign" title="Start a new Campaign" class="button primary add-campaign action">New Campaign</button>
+            </div>
+            <div class="audience-actions button-container ${selected === 'audience' ? 'is-selected' : ''}"></div>
             <div class="monitoring-actions button-container ${selected === 'monitoring' ? 'is-selected' : ''}">
                 <select class="button action secondary period-selector">
                     <option value="1d" selected>Period: 1 day</option>
@@ -855,13 +891,21 @@ export default async function decorate(block) {
                           Web analytics
                         </a>
                     </li>
-                    <li class="title">Campaign</li>
+                    <li class="title">Campaigns</li>
                     <li>
                         <a href="emails" class="button action secondary ${selected === 'emails' ? 'is-selected' : ''}">
                           <span class="icon icon-email">
                             <img alt src="/icons/email.svg" loading="lazy">  
                           </span>
-                          Emails
+                          Overview
+                        </a>
+                    </li>
+                    <li>
+                        <a href="audience" class="button action secondary ${selected === 'audience' ? 'is-selected' : ''}">
+                          <span class="icon icon-audience">
+                            <img alt src="/icons/audience.svg" loading="lazy">  
+                          </span>
+                          Audience
                         </a>
                     </li>
                     <li>
@@ -869,7 +913,7 @@ export default async function decorate(block) {
                           <span class="icon icon-analytics">
                             <img alt src="/icons/analytics.svg" loading="lazy">  
                           </span>
-                          Email analytics
+                          Campaign analytics
                         </a>
                     </li>
                     <li class="title">Settings</li>
@@ -903,6 +947,7 @@ export default async function decorate(block) {
                           <div id="site-description" class="project-description card">
                               <strong>Site description</strong>
                               <span class="project-description span">${project.projectDescription ?? ''}</span>
+                              <button id="update-desc-button" title="Edit the Project Description" class="button secondary update-description action">Update</button>
                           </div>
                           <div id="last-updated">
                               <strong>Last update</strong>
@@ -912,6 +957,12 @@ export default async function decorate(block) {
                               <strong>Site template</strong>
                               <span>${project.templateName}</span>
                           </div>
+                        </div>
+                        
+                        <div class="danger-zone">
+                            <strong>Danger zone</strong>
+                            <p>Delete this project. Once you delete a project, there is no going back. Please be certain.</p>
+                            <button id="delete-site-button" title="Delete your Project" class="button secondary delete action">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -970,17 +1021,13 @@ export default async function decorate(block) {
                 
                 <div class="emails-panel ${selected === 'emails' ? 'is-selected' : ''}">
                     <div class="container">
-                        <table class="emails">
-                            <thead>
-                              <tr>
-                                <th>Title</th>
-                                <th>Description</th>
-                                <th>Last update</th>
-                                <th></th>
-                              </tr>  
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+                    </div>
+                </div>
+                
+                <div class="audience-panel ${selected === 'audience' ? 'is-selected' : ''}">
+                    <div class="container">
+                        <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
                     </div>
                 </div>
                 
@@ -1063,9 +1110,7 @@ export default async function decorate(block) {
       }
 
       const actions = block.querySelector('.actions');
-      actions.querySelector('.overview-actions').insertAdjacentHTML(
-        'beforeend',
-        `
+      actions.querySelector('.overview-actions').innerHTML = `
         <a href="${project.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>
         ${
   project.authoringGuideUrl
@@ -1074,8 +1119,7 @@ export default async function decorate(block) {
 }
         <a href="${project.driveUrl}${!darkAlleyVariation ? `?authuser=${user.email}` : ''}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
         <a href="${project.customLiveUrl}" id="open-button" title="Open your Website" class="button primary action open" target="_blank">Open</a>
-      `,
-      );
+      `;
 
       // MARK: Share authors
       const authorsList = block.querySelector('.authors-list');
@@ -1223,7 +1267,15 @@ export default async function decorate(block) {
         if (!link.classList.contains('is-selected')) {
           const identifier = link.getAttribute('href');
 
-          window.history.pushState({}, '', `${window.location.pathname.split('/').slice(0, -1).join('/')}/${identifier}`);
+          if (identifier === 'email') {
+            // Delegates navigation
+            const allEmailsLink = block.querySelector('.campaign-list a');
+            if (allEmailsLink) {
+              allEmailsLink.click();
+            }
+          } else {
+            window.history.pushState({}, '', `/site/${id}/${identifier}`);
+          }
 
           aside.querySelector('.is-selected').classList.remove('is-selected');
           block.querySelector('.details > .is-selected').classList.remove('is-selected');
@@ -1237,9 +1289,14 @@ export default async function decorate(block) {
 
       window.onpopstate = () => {
         const identifier = window.location.pathname.split('/').pop();
-        const link = aside.querySelector(`[href="${identifier}"]`).click();
+        let link = aside.querySelector(`[href="${identifier}"]`);
         if (link) {
           link.click();
+        } else {
+          link = block.querySelector(`.campaign-list a[href="${window.location.pathname}"]`);
+          if (link) {
+            link.click();
+          }
         }
       };
 
@@ -1290,38 +1347,44 @@ export default async function decorate(block) {
       block.querySelector('.update-description.action').onclick = async () => {
         window?.zaraz?.track('click update site description', { url: window.location.href });
 
-        const title = document.createElement('h3');
-        title.innerText = 'Update Site Description';
-        const textArea = document.createElement('textarea');
-        textArea.value = project.projectDescription;
-        textArea.placeholder = 'Enter description here';
-        const submit = document.createElement('button');
-        submit.innerText = 'Submit';
-        submit.classList.add('button');
-        submit.type = 'submit';
+        const submit = parseFragment('<button form="update-project-form" type="submit" class="button primary action">Submit</button>');
+        const content = parseFragment(`
+          <div>
+            <h3>Update Site Description</h3>
+            
+            <form id="update-project-form">
+              <label>
+                  <span>Description *</span>
+                  <textarea required name="projectDescription" placeholder="Enter description here">${project.projectDescription}</textarea>
+              </label>
+            </form>
+          </div>
+        `);
 
-        const form = document.createElement('form');
-        form.append(title, textArea, submit);
+        const dialog = window.createDialog(content, [submit]);
 
-        const dialog = window.createDialog(form);
-        dialog.classList.add('update-description-dialog');
+        const form = document.getElementById('update-project-form');
+        const body = Object.fromEntries(new FormData(form));
 
         form.onsubmit = async (event) => {
           event.preventDefault();
+
           dialog.setLoading(true, 'Updating description...');
           const response = await fetch(`${SCRIPT_API}/description/${project.projectSlug}`, {
             headers: { ...headers, 'content-type': 'application/json' },
             method: 'POST',
-            body: JSON.stringify({ projectDescription: textArea.value }),
+            body: JSON.stringify(body),
           });
+
           if (response.ok) {
             dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
-            project.projectDescription = textArea.value;
+            project.projectDescription = body.projectDescription;
             const descriptionSpan = block.querySelector('.project-description.card .project-description.span');
-            if (descriptionSpan) descriptionSpan.textContent = textArea.value;
+            if (descriptionSpan) descriptionSpan.textContent = body.projectDescription;
           } else {
             await window.alertDialog(OOPS);
           }
+
           dialog.setLoading(false);
         };
       };
@@ -1353,7 +1416,7 @@ export default async function decorate(block) {
           const footers = data.filter(({ path }) => path?.endsWith('/footer'));
           const emails = data.filter(({ template }) => template?.includes('email'));
 
-          const renderTable = (tableBody, tableData, type) => {
+          const renderTable = async (tableBody, tableData, type) => {
             const tableRows = tableData.map((item) => {
               const titleEl = document.createElement('div');
               titleEl.innerHTML = item.title;
@@ -1375,13 +1438,14 @@ export default async function decorate(block) {
               if (type === 'emails') {
                 tableRow.innerHTML = `
                   <tr>
+                      <td>${item.path.split('/').pop()}</td>
                       <td>${titleEl.textContent}</td>
                       <td>${description}</td>          
                       <td>${toDate(item.lastModified).toLocaleString()}</td>
                       <td>
                         <div id="email-open-edit" class="button-container">
                           <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
-                          <a class="button action secondary" href="${EMAIL_WORKER_API}?url=${project.customLiveUrl}${item.path}" target="_blank">Open</a>
+                          <a class="button action secondary" href="${EMAIL_WORKER_API}/${project.customLiveUrl}${item.path}" target="_blank">Open</a>
                         </div>
                       </td>
                   </tr>
@@ -1430,11 +1494,380 @@ export default async function decorate(block) {
           renderTable(block.querySelector('.pages tbody'), pages);
           renderTable(block.querySelector('.navs tbody'), navs);
           renderTable(block.querySelector('.footers tbody'), footers);
-          renderTable(block.querySelector('.emails tbody'), emails, 'emails');
+
+          // Fetch campaigns and render emails per campaign
+          fetch(`${SCRIPT_API}/campaigns/${id}`, {
+            headers,
+          }).then((res) => {
+            if (res.ok) {
+              return res.json();
+            }
+            return {};
+          }).then((campaigns) => {
+            const allCampaignSlugs = Object.keys(campaigns);
+            const emailContainer = block.querySelector('.emails-panel .container');
+            if (!allCampaignSlugs.length) {
+              emailContainer.textContent = 'No campaigns found.';
+              return;
+            }
+
+            emailContainer.innerHTML = `
+              <ul class="campaign-list">
+                <li><a class="button action secondary ${window.location.pathname.startsWith(`/site/${id}/emails/`) ? '' : 'is-selected'}" href="/site/${id}/emails">All emails</a></li>
+                ${allCampaignSlugs.map((campaignSlug) => `<li><a class="button action secondary ${window.location.pathname === `/site/${id}/emails/${campaignSlug}` ? 'is-selected' : ''}" href="/site/${id}/emails/${campaignSlug}">${campaigns[campaignSlug].name}</li></a>`).join('')}</a>
+              </ul>
+              <div class="campaign-container"></div>
+            `;
+
+            const campaignList = emailContainer.querySelector('.campaign-list');
+            campaignList.querySelectorAll('a').forEach((link) => {
+              link.onclick = (e) => {
+                e.preventDefault();
+
+                const selectedCampaign = campaignList.querySelector('.is-selected');
+                if (selectedCampaign) {
+                  selectedCampaign.classList.remove('is-selected');
+                }
+                link.classList.add('is-selected');
+
+                const index = [...campaignList.children].indexOf(link.parentElement);
+                emailContainer.querySelector('.campaign:not([hidden])').hidden = true;
+                emailContainer.querySelector(`.campaign:nth-child(${index + 1})`).hidden = false;
+
+                block.querySelectorAll('.delete-campaign, .add-email').forEach((action) => {
+                  action.hidden = index === 0;
+                });
+                block.querySelector('.add-email').hidden = index === 0;
+
+                window.history.pushState({}, '', link.getAttribute('href'));
+              };
+            });
+
+            const campaignContainer = block.querySelector('.campaign-container');
+
+            campaignContainer.innerHTML = `
+              <div class="campaign" ${window.location.pathname.startsWith(`/site/${id}/emails/`) ? 'hidden' : ''}>
+                <table class="emails">
+                   <thead>
+                     <tr>
+                       <th>Name</th>
+                       <th>Title</th>
+                       <th>Description</th>
+                       <th>Last update</th>
+                       <th></th>
+                     </tr>
+                   </thead>
+                   <tbody></tbody>
+                 </table>
+              </div>
+            `;
+
+            renderTable(block.querySelector('.campaign .emails tbody'), emails, 'emails');
+
+            allCampaignSlugs.forEach((campaignSlug) => {
+              const campaign = campaigns[campaignSlug];
+              const campaignEmails = emails.filter(({ path }) => path.startsWith(`/${campaignSlug}/`));
+
+              campaignContainer.insertAdjacentHTML('beforeend', `
+                <div class="campaign campaign-${campaignSlug}" ${window.location.pathname === `/site/${id}/emails/${campaignSlug}` ? '' : 'hidden'}>
+                    <div class="cards">
+                      <div>
+                          <strong>Campaign</strong>
+                          <span>${campaign.name} (${campaignSlug})</span>
+                      </div>
+                      <div>
+                          <strong>Campaign description</strong>
+                          <span class="description">${campaign.description}</span>
+                          <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
+                      </div>
+                      <div>
+                          <strong>Created</strong>
+                          <span>${new Date(campaign.created).toLocaleString()}</span>
+                      </div>
+                      <div>
+                          <strong>Last update</strong>
+                          <span class="last-updated">${new Date(campaign.lastUpdated).toLocaleString()}</span>
+                      </div>
+                    </div>
+                    
+                    <h2>${campaign.name} emails</h2>
+                    <table class="emails">
+                     <thead>
+                       <tr>
+                         <th>Name</th>
+                         <th>Title</th>
+                         <th>Description</th>
+                         <th>Last update</th>
+                         <th></th>
+                       </tr>
+                     </thead>
+                     <tbody></tbody>
+                   </table>
+                </div>
+              `);
+
+              renderTable(block.querySelector(`.campaign-${campaignSlug} .emails tbody`), campaignEmails, 'emails');
+
+              campaignContainer.querySelector('.update-campaign-description').onclick = async () => {
+                window?.zaraz?.track('click update campaign description', { url: window.location.href });
+
+                const submit = parseFragment('<button form="update-campaign-form" type="submit" class="button primary action">Update Campaign</button>');
+                const content = parseFragment(`
+                  <div>
+                    <h3>Update campaign</h3>
+                    
+                    <form id="update-campaign-form">
+                      <label>
+                          <span>Description *</span>
+                          <textarea required name="description" placeholder="All monthly newsletters for subscribers">${campaigns[campaignSlug].description}</textarea>
+                      </label>
+                    </form>
+                  </div>
+                `);
+
+                const dialog = window.createDialog(content, [submit]);
+                const form = document.getElementById('update-campaign-form');
+
+                form.onsubmit = async (event) => {
+                  event.preventDefault();
+
+                  dialog.setLoading(true, 'Updating description...');
+                  const body = Object.fromEntries(new FormData(form));
+                  const reqUpdate = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
+                    headers: { ...headers, 'content-type': 'application/json' },
+                    method: 'PATCH',
+                    body: JSON.stringify(body),
+                  });
+
+                  if (reqUpdate.ok) {
+                    const update = await reqUpdate.json();
+                    dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
+                    campaigns[campaignSlug].description = update.description;
+                    campaigns[campaignSlug].lastUpdated = update.lastUpdated;
+
+                    const updatedCampaign = block.querySelector(`.campaign-${campaignSlug}`);
+                    updatedCampaign.querySelector('.description').textContent = update.description;
+                    updatedCampaign.querySelector('.last-updated').textContent = new Date(update.lastUpdated).toLocaleString();
+                  } else {
+                    await window.alertDialog(OOPS);
+                  }
+
+                  dialog.setLoading(false);
+                };
+              };
+            });
+          });
         })
         .catch((error) => {
           // eslint-disable-next-line no-console
           console.log(error);
+        });
+
+      block.querySelector('.add-campaign').onclick = async () => {
+        const submit = parseFragment('<button form="create-campaign-form" type="submit" class="button primary action">Create Campaign</button>');
+        const content = parseFragment(`
+          <div>
+            <h3>Create a new campaign</h3>
+            
+            <form id="create-campaign-form">
+              <p>
+                  Start your email marketing campaign with individual email messages with specific purposes including the following: downloading a PDF, sign up for a newsletter, or make a purchase.
+              </p>
+              <label>
+                  <span>Name *</span>
+                  <input required name="name" type="text" placeholder="Newsletters">
+                  <p></p>
+              </label>
+              <label>
+                  <span>Description</span>
+                  <textarea name="description" placeholder="All monthly newsletters for subscribers"></textarea>
+              </label>
+            </form>
+          </div>
+        `);
+
+        const dialog = window.createDialog(content, [submit]);
+
+        submit.onclick = async (e) => {
+          e.preventDefault();
+
+          dialog.setLoading(true, 'Creating Campaign...');
+
+          const form = document.getElementById('create-campaign-form');
+          const req = await fetch(`${SCRIPT_API}/campaigns/${id}`, {
+            headers: { ...headers, 'content-type': 'application/json' },
+            method: 'POST',
+            body: JSON.stringify(Object.fromEntries(new FormData(form))),
+          });
+
+          if (!req.ok) {
+            dialog.setLoading(false);
+            await window.alertDialog(await req.text());
+          } else {
+            window.location.href = `/site/${id}/emails/${await req.text()}`;
+          }
+        };
+      };
+
+      const addEmail = block.querySelector('.add-email');
+      addEmail.onclick = async () => {
+        const submit = parseFragment('<button form="add-email-form" type="submit" class="button primary action">Add Email</button>');
+        const content = parseFragment(`
+          <div>
+            <h3>Add email to Campaign</h3>
+            
+            <div class="columns">
+              <form id="add-email-form">
+                <p>Add a newsletter email to your campaign</p>
+                <label>
+                    <span>Name *</span>
+                    <input required name="pageName" type="text" placeholder="Monthly Newsletter">
+                    <p></p>
+                </label>
+                <input type="hidden" name="templatePath" value="/newsletter">
+              </form>
+              <iframe src="${EMAIL_WORKER_API}/preview/https://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/newsletter"></iframe>
+            </div>
+          </div>
+        `);
+
+        const dialog = window.createDialog(content, [submit], { fullscreen: true });
+
+        submit.onclick = async (e) => {
+          e.preventDefault();
+
+          dialog.setLoading(true, 'Adding email...');
+
+          const campaignSlug = window.location.pathname.split('/').pop();
+          const form = document.getElementById('add-email-form');
+          const body = Object.fromEntries(new FormData(form));
+          const req = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
+            headers: { ...headers, 'content-type': 'application/json' },
+            method: 'POST',
+            body: JSON.stringify(body),
+          });
+
+          if (!req.ok) {
+            dialog.setLoading(false);
+            await window.alertDialog(await req.text());
+          } else {
+            dialog.setLoading(false);
+
+            const buttons = [];
+            if (project.darkAlleyProject) {
+              const { daPath, daNewPageSlug } = await req.json();
+
+              const draftsLink = document.createElement('a');
+              draftsLink.classList.add('button', 'secondary', 'action');
+              draftsLink.href = `https://da.live/#${daPath}`;
+              draftsLink.target = '_blank';
+              draftsLink.innerText = 'Drafts Folder';
+              buttons.push(draftsLink);
+
+              const editLink = document.createElement('a');
+              editLink.classList.add('button', 'primary', 'action');
+              editLink.href = `https://da.live/edit#${daPath}/${daNewPageSlug}`;
+              editLink.target = '_blank';
+              editLink.innerText = `Edit ${body.pageName}`;
+              buttons.push(editLink);
+            } else {
+              const { newPageId, folderId } = await req.json();
+
+              const draftsLink = document.createElement('a');
+              draftsLink.classList.add('button', 'secondary', 'action');
+              draftsLink.href = `https://drive.google.com/drive/folders/${folderId}`;
+              draftsLink.target = '_blank';
+              draftsLink.innerText = `Campaign ${campaignSlug} Folder`;
+              buttons.push(draftsLink);
+
+              const editLink = document.createElement('a');
+              editLink.classList.add('button', 'primary', 'action');
+              editLink.href = `https://docs.google.com/document/d/${newPageId}/edit`;
+              editLink.target = '_blank';
+              editLink.innerText = `Edit ${body.pageName}`;
+              buttons.push(editLink);
+            }
+
+            dialog.renderDialog(`<h3 class="centered-info" >${body.pageName} email added to Campaign ${campaignSlug}</h3>`, buttons);
+          }
+        };
+      };
+
+      block.querySelector('.delete-campaign').onclick = async (event) => {
+        const campaignSlug = window.location.pathname.split('/')[4];
+        if (campaignSlug) {
+          if (await window.confirmDialog('Are you sure ?')) {
+            window?.zaraz?.track('click campaign delete submit', { url: window.location.href });
+
+            event.target.classList.add('is-disabled');
+            const deleteReq = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
+              method: 'DELETE',
+              headers,
+            });
+
+            if (deleteReq.ok) {
+              block.querySelector('.campaign-list a.is-selected').remove();
+              block.querySelector('.campaign-list a').click();
+              window.history.replaceState({}, '', `/site/${id}/emails`);
+            } else {
+              await window.alertDialog(OOPS);
+            }
+            event.target.classList.remove('is-disabled');
+          }
+        }
+      };
+
+      block.querySelectorAll('.delete-campaign, .add-email').forEach((action) => {
+        action.hidden = !window.location.pathname.startsWith(`/site/${id}/emails/`);
+      });
+
+      // MARK: audience
+      // Load recipients sheet
+      fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
+        headers: {
+          authorization: `bearer ${token}`,
+        },
+      })
+        .then((res) => {
+          if (res.ok) {
+            return res.json();
+          }
+
+          return false;
+        })
+        .then((recipients) => {
+          const audienceActions = block.querySelector('.audience-actions');
+          if (!audienceActions.querySelector('a')) {
+            audienceActions.insertAdjacentHTML('beforeend', `
+                <a href="${project.darkAlleyProject ? `https://da.live/edit#/da-self-service/${id}/recipients` : `https://docs.google.com/spreadsheets/d/${recipients.id}/edit`}" class="button primary action" target="_blank">Edit</a>
+              `);
+          }
+
+          const audience = block.querySelector('.audience-panel .container');
+          if (!recipients) {
+            audience.textContent = 'No recipients spreadsheet found';
+            return;
+          }
+
+          if (!recipients.data.length) {
+            audience.textContent = 'No audience found';
+            return;
+          }
+
+          audience.innerHTML = `
+              <table>
+                <thead>
+                  <tr>
+                      ${recipients.headers.map((key) => `<th>${key}</th>`).join('')}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${recipients.data.map((row) => `<tr>
+                      ${recipients.headers.map((key) => `<td>${row[key] ? row[key] : ''}</td>`).join('')}
+                  </tr>`).join('')}
+                </tbody>
+              </table>
+            `;
         });
 
       // MARK: add page button
