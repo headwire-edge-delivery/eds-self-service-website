@@ -141,7 +141,9 @@ async function loadPage() {
 
 loadPage();
 
-window.createDialog = (contentDiv, buttons, { open = true, onCloseFn, fullscreen } = {}) => {
+window.createDialog = (contentDiv, buttons, {
+  open = true, onCloseFn, fullscreen, surviveClose = false, 
+} = {}) => {
   const dialog = document.createElement('dialog');
   dialog.classList.add('display-dialog');
   if (fullscreen) dialog.classList.add('fullscreen');
@@ -175,6 +177,7 @@ window.createDialog = (contentDiv, buttons, { open = true, onCloseFn, fullscreen
     close.className = 'button close';
     close.innerHTML = '&#x2715;';
     close.ariaLabel = 'close';
+
     close.onclick = () => {
       dialog.close();
     };
@@ -196,12 +199,16 @@ window.createDialog = (contentDiv, buttons, { open = true, onCloseFn, fullscreen
       dialog.close();
     }
   };
-  dialog.onclose = () => {
-    dialog.remove();
-    if (typeof onCloseFn === 'function') {
-      onCloseFn();
-    }
-  };
+
+  if (!surviveClose) {
+    dialog.addEventListener('close', () => {
+      dialog.remove();
+      if (typeof onCloseFn === 'function') {
+        onCloseFn();
+      }
+    }, { once: true });
+  }
+
   document.body.append(dialog);
   if (open) {
     dialog.showModal();

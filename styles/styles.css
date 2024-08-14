@@ -41,6 +41,10 @@ html {
   color: var(--black);
 }
 
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -304,13 +308,13 @@ input[type="color"] {
 
 
 
-.button.edit.loading {
+.button.loading {
   pointer-events: none;
   position: relative;
   color: transparent;
 }
 
-.button.edit.loading::after {
+.button.loading::after {
   content: "";
   position: absolute;
   top: 0;
@@ -451,6 +455,10 @@ dialog .dialog-content .dialog-button-container {
   padding-top: 16px;
   overflow: visible;
   flex: 0;
+}
+
+dialog .dialog-content .dialog-button-container:empty {
+  display: none;
 }
 
 dialog .dialog-content .dialog-button-container > * {

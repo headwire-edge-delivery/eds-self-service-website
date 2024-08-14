@@ -1,40 +1,28 @@
-.plans-dialog {
-    overflow: visible;
-    height: 90%;
-    max-height: 500px;
+dialog.plans-dialog {
+    min-height: 500px;
+    width: auto;
+    max-width: 80vw;
 }
 
 @media (width < 768px) {
     .plans-dialog {
-        max-height: none;
+        min-height: unset;
     }
 }
 
-.plans-dialog-wrapper {
+.plans.block {
     display: flex;
     gap: 32px;
     padding: 32px;
     flex-wrap: wrap;
     overflow: auto;
-    align-items: flex-start;
+    align-items: stretch;
+    justify-content: center;
     height: 100%;
 }
 
-dialog .plans-dialog-wrapper {
-    justify-content: center;
-    align-items: center;
-}
 
-.plans-dialog-wrapper .close {
-    position: absolute;
-    top: -16px;
-    right: -16px;
-    border-radius: 50%;
-    height: 36px;
-    width: 36px;
-}
-
-.plans-dialog-wrapper > div {
+.plans.block > div {
     width: 300px;
     border: 1px solid var(--gray);
     padding: 16px;
@@ -43,15 +31,15 @@ dialog .plans-dialog-wrapper {
     color: var(--white);
 }
 
-.plans-dialog-wrapper > div :is(h2, strong) {
+.plans.block > div :is(h2, strong) {
     color: var(--white);
 }
 
-.is-authenticated .plans-dialog-wrapper > div:first-child {
+.is-authenticated .plans.block > div:first-child {
     display: none;
 }
 
-.plans-dialog-wrapper .button-container {
+.plans.block .button-container {
     justify-content: flex-start;
     margin-block: 32px;
 }

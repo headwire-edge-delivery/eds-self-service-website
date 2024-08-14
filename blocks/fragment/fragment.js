@@ -17,7 +17,7 @@ import {
  * @param {string} path The path to the fragment
  * @returns {HTMLElement} The root element of the fragment
  */
-export async function loadFragment(path) {
+export async function loadFragment(path, createInDialog) {
   if (path && path.startsWith('/')) {
     const resp = await fetch(`${path}.plain.html`);
     if (resp.ok) {
@@ -33,6 +33,9 @@ export async function loadFragment(path) {
       resetAttributeBase('img', 'src');
       resetAttributeBase('source', 'srcset');
 
+      if (createInDialog) {
+        window.createDialog(main, [], { open: false, surviveClose: true });
+      }
       decorateMain(main);
       await loadBlocks(main);
       return main;
@@ -42,9 +45,15 @@ export async function loadFragment(path) {
 }
 
 export default async function decorate(block) {
+  const isDialogVariation = block.classList.contains('dialog');
   const link = block.querySelector('a');
   const path = link ? link.getAttribute('href') : block.textContent.trim();
-  const fragment = await loadFragment(path);
+  const fragment = await loadFragment(path, isDialogVariation);
+  if (isDialogVariation) {
+    // content in dialog, remove block with link
+    block.remove();
+    return;
+  }
   if (fragment) {
     const fragmentSection = fragment.querySelector(':scope .section');
     if (fragmentSection) {
