@@ -1,0 +1,7 @@
+.block.account-settings .action-list {
+  margin: 20px 0;
+  padding: 0;
+  display: flex;
+  list-style: none;
+  gap: 20px;
+}

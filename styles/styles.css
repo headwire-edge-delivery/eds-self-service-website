@@ -556,6 +556,15 @@ dialog #revert-form label input{
   flex: 0;
 }
 
+/* MARK: headwire */
+.headwire-only {
+  display: none;
+}
+
+.is-headwire .headwire-only {
+  display: block;
+}
+
 
 /* MARK: Icons */
 .icon {

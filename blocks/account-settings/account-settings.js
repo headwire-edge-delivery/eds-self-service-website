@@ -16,13 +16,26 @@ function generateProjectListHtml(projectsList) {
     ? ''
     : `
       <p>
-        <span><strong>The following projects will <strong>not</strong> be deleted:</strong></span>
+        <span>The following projects will <strong>not</strong> be deleted, but you will lose access:</span>
         <ul>
           ${projectsList.shared.map((projectSlug) => `<li>${projectSlug}</li>`).join('')}
         </ul>
       </p>
       `;
   return exclusiveHtml + sharedHtml;
+}
+
+function afterDeleteAccount() {
+  Object.keys(window.localStorage).forEach((key) => {
+    if (key.startsWith('@@auth0')) {
+      window.localStorage.removeItem(key);
+    }
+    if (key === 'sessionExpiration') {
+      window.localStorage.removeItem(key);
+    }
+  });
+
+  window.location.pathname = '/account-deleted';
 }
 
 // MARK: text lookup
@@ -51,7 +64,7 @@ const textLookup = {
   },
 };
 
-// MARK: dialog
+// MARK: dialog setup
 async function createDeleteDialog(event, deleteAccount = false) {
   const lookupStr = deleteAccount ? 'account' : 'projects';
   const deleteAccountButton = event.target;
@@ -67,7 +80,6 @@ async function createDeleteDialog(event, deleteAccount = false) {
   })
     .then((res) => res.json())
     .catch(() => null);
-  console.log('projectsList:', projectsList);
 
   const deleteAccountContent = `
     ${textLookup[lookupStr].dialog}
@@ -89,22 +101,27 @@ async function createDeleteDialog(event, deleteAccount = false) {
   closeButton.classList.add('action', 'button', 'secondary');
   closeButton.textContent = 'Close';
 
-  const deleteAccountDialog = window.createDialog(deleteAccountContent, [cancelButton, confirmButton]);
+  const deleteDialog = window.createDialog(deleteAccountContent, [cancelButton, confirmButton]);
 
   closeButton.addEventListener('click', () => {
-    deleteAccountDialog.close();
+    deleteDialog.close();
   });
 
   confirmButton.addEventListener('click', async () => {
     if (
       !(await window.confirmDialog(textLookup[lookupStr].confirmDialog))
     ) {
-      deleteAccountDialog.close();
+      deleteDialog.close();
       return;
     }
+
+    if (deleteAccount) {
+      window?.zaraz?.track('delete account confirmed', { url: window.location.href });
+    } else {
+      window?.zaraz?.track('delete all sites confirmed', { url: window.location.href });
+    }
     // delete account
-    deleteAccountDialog.setLoading(true, textLookup[lookupStr].loading);
-    // TODO: delete account request
+    deleteDialog.setLoading(true, textLookup[lookupStr].loading);
 
     const deleteResponse = await fetch(`${SCRIPT_API}/userControls/${textLookup[lookupStr].endpoint}`, {
       body: JSON.stringify({
@@ -117,16 +134,23 @@ async function createDeleteDialog(event, deleteAccount = false) {
       },
     });
 
-    deleteAccountDialog.setLoading(false);
     if (deleteResponse.ok) {
-      deleteAccountDialog.renderDialog(textLookup[lookupStr].success, [closeButton]);
+      deleteDialog.renderDialog(textLookup[lookupStr].success, [closeButton]);
+      if (deleteAccount) {
+        // delete session
+        // route to account deleted page
+        deleteDialog.addEventListener('close', afterDeleteAccount);
+        setTimeout(afterDeleteAccount, 5000);
+      }
     } else {
-      deleteAccountDialog.renderDialog(textLookup[lookupStr].error, [closeButton]);
+      const errorText = await deleteResponse.text();
+      deleteDialog.renderDialog(`<div class="centered-info">${errorText}</div>`, [closeButton]);
     }
+    deleteDialog.setLoading(false);
   });
 
   cancelButton.addEventListener('click', () => {
-    deleteAccountDialog.close();
+    deleteDialog.close();
   });
 
   deleteAccountButton.classList.remove('loading');
@@ -134,7 +158,6 @@ async function createDeleteDialog(event, deleteAccount = false) {
 
 // MARK: decorate
 export default async function decorate(block) {
-  const authorization = `bearer ${await window.auth0Client.getTokenSilently()}`;
   block.innerHTML = /* html */ `
     <div class="section">
       <h2>Danger Zone</h2>
@@ -147,8 +170,14 @@ export default async function decorate(block) {
   `;
 
   const deleteAccountButton = block.querySelector('#delete-account-button');
-  deleteAccountButton.addEventListener('click', async (event) => createDeleteDialog(event, true));
+  deleteAccountButton.addEventListener('click', async (event) => {
+    window?.zaraz?.track('open delete account dialog', { url: window.location.href });
+    createDeleteDialog(event, true);
+  });
 
   const deleteAllProjectsButton = block.querySelector('#delete-all-projects-button');
-  deleteAllProjectsButton.addEventListener('click', async (event) => createDeleteDialog(event, false));
+  deleteAllProjectsButton.addEventListener('click', async (event) => {
+    window?.zaraz?.track('open delete all sites dialog', { url: window.location.href });
+    createDeleteDialog(event, false);
+  });
 }

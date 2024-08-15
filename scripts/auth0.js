@@ -3,6 +3,7 @@ import { getExpirationTime, SCRIPT_API } from './scripts.js';
 const unauthenticatedAllowedPaths = {
   '/': true,
   '/feedback': true,
+  '/account-deleted': true,
   '/contact-sales': true,
   '/privacy-policy': true,
 };
@@ -88,7 +89,10 @@ window.auth0.createAuth0Client({
       if (now >= Number(window.localStorage.sessionExpiration)) {
         window.clearInterval(sessionInterval);
         document.body.hidden = true;
-        document.querySelector('a[href="#signout"]').click();
+        window?.zaraz?.track('logout due to session expiration', { url: window.location.href });
+        window?.zaraz?.set('user', undefined);
+        delete window.localStorage.sessionExpiration;
+        window.auth0Client.logout({ logoutParams: { returnTo: window.location.origin } });
       }
     }, 1000);
   } else if (!unauthenticatedAllowedPaths[window.location.pathname]) {
