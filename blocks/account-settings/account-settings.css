@@ -1,0 +1,14 @@
+.block.account-settings .action-list {
+  margin: 20px 0 0;
+  padding: 0;
+  display: flex;
+  list-style: none;
+  gap: 20px;
+}
+
+.block.account-settings .danger-zone {
+  border: 1px solid var(--red);
+  margin-block: 32px;
+  padding: 32px;
+  border-radius: var(--border-radius);
+}

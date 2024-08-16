@@ -43,6 +43,10 @@ html {
   color: var(--black);
 }
 
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -77,6 +81,12 @@ header {
 
 main {
   padding-top: var(--header-height);
+}
+
+/* main of fragments */
+dialog main,
+main main {
+  padding-top: 0;
 }
 
 .freeform main {
@@ -307,15 +317,25 @@ input[type="color"] {
   text-transform: none;
 }
 
+.button.destructive {
+  background-color: var(--red);
+  border-color: var(--red);
+}
+
+.button.destructive:hover {
+  background-color: var(--gray);
+  color: var(--black);
+}
 
 
-.button.edit.loading {
+
+.button.loading {
   pointer-events: none;
   position: relative;
   color: transparent;
 }
 
-.button.edit.loading::after {
+.button.loading::after {
   content: "";
   position: absolute;
   top: 0;
@@ -454,6 +474,10 @@ dialog .dialog-content .dialog-button-container {
   flex: 0;
 }
 
+dialog .dialog-content .dialog-button-container:empty {
+  display: none;
+}
+
 dialog .dialog-content .dialog-button-container > * {
   align-items: flex-start;
 }
@@ -581,6 +605,15 @@ dialog #revert-form label {
 
 dialog #revert-form label input{
   flex: 0;
+}
+
+/* MARK: headwire */
+.headwire-only {
+  display: none;
+}
+
+.is-headwire .headwire-only {
+  display: block;
 }
 
 
