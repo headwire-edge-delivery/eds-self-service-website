@@ -83,6 +83,12 @@ main {
   padding-top: var(--header-height);
 }
 
+/* main of fragments */
+dialog main,
+main main {
+  padding-top: 0;
+}
+
 .freeform main {
   padding-inline: 32px;
 }
@@ -312,8 +318,13 @@ input[type="color"] {
 }
 
 .button.destructive {
-  background-color: var(--orange);
-  border-color: var(--orange);
+  background-color: var(--red);
+  border-color: var(--red);
+}
+
+.button.destructive:hover {
+  background-color: var(--gray);
+  color: var(--black);
 }
 
 

@@ -944,7 +944,7 @@ export default async function decorate(block) {
                         <div class="danger-zone">
                             <strong>Danger zone</strong>
                             <p>Delete this project. Once you delete a project, there is no going back. Please be certain.</p>
-                            <button id="delete-site-button" title="Delete your Project" class="button secondary delete action">Delete</button>
+                            <button id="delete-site-button" title="Delete your Project" class="button delete action destructive">Delete</button>
                         </div>
                     </div>
                 </div>

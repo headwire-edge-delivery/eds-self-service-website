@@ -159,12 +159,12 @@ async function createDeleteDialog(event, deleteAccount = false) {
 // MARK: decorate
 export default async function decorate(block) {
   block.innerHTML = /* html */ `
-    <div class="section">
+    <div class="section danger-zone">
       <h2>Danger Zone</h2>
 
       <ul class="action-list">
-        <li><button id="delete-account-button" class="action primary button destructive">Delete Account</button></li>
-        <li><button id="delete-all-projects-button" class="action primary button destructive">Delete All Projects</button></li>
+        <li><button id="delete-account-button" class="action button destructive">Delete Account</button></li>
+        <li><button id="delete-all-projects-button" class="action button destructive">Delete All Projects</button></li>
       </ul>
     </div>
   `;

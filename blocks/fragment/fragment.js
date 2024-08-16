@@ -52,8 +52,8 @@ export default async function decorate(block) {
   const fragment = await loadFragment(path, isDialogVariation);
   if (isDialogVariation) {
     // content in dialog, remove block with link
-    block.remove();
     updateSectionsStatus(block.closest('main'));
+    block.remove();
     return;
   }
   if (fragment) {
