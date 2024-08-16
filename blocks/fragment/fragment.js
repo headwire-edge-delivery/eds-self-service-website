@@ -10,6 +10,7 @@ import {
 
 import {
   loadBlocks,
+  updateSectionsStatus,
 } from '../../scripts/aem.js';
 
 /**
@@ -52,6 +53,7 @@ export default async function decorate(block) {
   if (isDialogVariation) {
     // content in dialog, remove block with link
     block.remove();
+    updateSectionsStatus(block.closest('main'));
     return;
   }
   if (fragment) {
