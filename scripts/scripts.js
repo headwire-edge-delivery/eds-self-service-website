@@ -240,7 +240,7 @@ function createPromiseDialog(textContent = 'Are you sure?', withConfirm = false)
     dialog.classList.add('alert-dialog');
     const dialogContent = document.createElement('div');
     dialogContent.classList.add('dialog-content');
-    dialogContent.innerHTML = `<h3 class="centered-info" >${textContent}</h3>`;
+    dialogContent.innerHTML = `<h3 class="centered-info">${textContent}</h3>`;
 
     const buttonWrapper = document.createElement('div');
     buttonWrapper.classList.add('dialog-button-container');

@@ -29,7 +29,6 @@ export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoT
   });
 
   return tour({
-    disableActiveInteraction: tourData.disableActiveInteraction ?? false,
     progressText: tourData.progressText ?? 'Step {{current}} of {{total}}',
     onNextClick: tourData.onNextClick,
     onFinished: (() => {

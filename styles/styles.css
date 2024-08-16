@@ -320,6 +320,7 @@ input[type="color"] {
 .button.destructive {
   background-color: var(--red);
   border-color: var(--red);
+  color: var(--white);
 }
 
 .button.destructive:hover {

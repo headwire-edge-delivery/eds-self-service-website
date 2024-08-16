@@ -1296,7 +1296,7 @@ export default async function decorate(block) {
         window?.zaraz?.track('click site delete', { url: window.location.href });
 
         block.classList.add('is-deleting');
-        if (await window.confirmDialog('Are you sure ?')) {
+        if (await window.confirmDialog('Are you sure you want to delete your site? (This can\'t be undone)')) {
           window?.zaraz?.track('click site delete submit', { url: window.location.href });
 
           const reqDelete = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'da-' : ''}delete/${project.projectSlug}`, {
@@ -1353,7 +1353,7 @@ export default async function decorate(block) {
           });
 
           if (response.ok) {
-            dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
+            dialog.renderDialog('<h3 class="centered-info">Description successfully updated</h3>');
             project.projectDescription = body.projectDescription;
             const descriptionSpan = block.querySelector('.project-description.card .project-description.span');
             if (descriptionSpan) descriptionSpan.textContent = body.projectDescription;

@@ -1,5 +1,7 @@
 function createTemplateTour() {
+  const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
   const tourData = {
+    onFinished: () => {},
     steps: [
       {
         title: 'Create your new Website',
@@ -29,6 +31,7 @@ function createTemplateTour() {
         description: 'By default, Google Drive is used to manage the pages. We also support Dark Alley on an experimental basis. <br /> <a href="https://da.live/docs" target="_blank">Dark Alley</a> is a powerful and flexible Content Management System from Adobe Experience Manager. <br />',
         element: '.dark-alley-label',
         destroyOnClicked: false,
+        skip: !hasDarkAlley,
       },
       {
         title: 'Create your Site',
@@ -41,8 +44,13 @@ function createTemplateTour() {
   return tourData;
 }
 
-function wkndTemplateTour() {
+function wkndTemplateTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        document.querySelector('#back-button').click();
+      }
+    },
     steps: [
       {
         title: 'Welcome to the WKND Template',
@@ -51,16 +59,19 @@ function wkndTemplateTour() {
       {
         title: 'Preview of the WKND Template',
         description: 'Here you can see a preview of the WKND Template.',
+        element: '.preview',
       },
       {
         title: 'Want to start with the WKND Template?',
         description: 'If you want to create a Site with the WKND Template, continue here.',
         element: '#select-template-button',
+        elementEvent: () => {},
       },
       {
         title: 'Want to go back?',
         description: 'Click here to go back to the Overview.',
         element: '#back-button',
+        elementEvent: () => {},
       },
     ],
   };
@@ -68,8 +79,13 @@ function wkndTemplateTour() {
   return tourData;
 }
 
-function sportsTemplateTour() {
+function sportsTemplateTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        document.querySelector('#back-button').click();
+      }
+    },
     steps: [
       {
         title: 'Welcome to the Sports Template',
@@ -84,11 +100,13 @@ function sportsTemplateTour() {
         title: 'Want to start with the Sports Template?',
         description: 'If you want to create a Site with the Sports Template, continue here.',
         element: '#select-template-button',
+        elementEvent: () => {},
       },
       {
         title: 'Want to go back?',
         description: 'Click here to go back to the Overview.',
         element: '#back-button',
+        elementEvent: () => {},
       },
     ],
   };
@@ -96,8 +114,13 @@ function sportsTemplateTour() {
   return tourData;
 }
 
-function clubTemplateTour() {
+function clubTemplateTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        document.querySelector('#back-button').click();
+      }
+    },
     steps: [
       {
         title: 'Welcome to the Club Template',
@@ -112,11 +135,13 @@ function clubTemplateTour() {
         title: 'Want to start with the Club Template?',
         description: 'If you want to create a Site with the Club Template, continue here.',
         element: '#select-template-button',
+        elementEvent: () => {},
       },
       {
         title: 'Want to go back?',
         description: 'Click here to go back to the Overview.',
         element: '#back-button',
+        elementEvent: () => {},
       },
     ],
   };
