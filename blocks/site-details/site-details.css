@@ -315,7 +315,7 @@
 .site-details.block .emails-panel .container {
     display: flex;
     gap: 16px;
-    flex-wrap: wrap;
+    flex-flow: column wrap;
 }
 
 .site-details.block .emails-panel .campaign-list {
@@ -352,6 +352,10 @@
     padding: 32px;
     font-weight: bold;
     font-size: 11px;
+}
+
+dialog .clicked-links li {
+    margin-block: 8px;
 }
 
 .site-details.block .form {

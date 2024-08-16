@@ -1490,10 +1490,6 @@ export default async function decorate(block) {
           }).then((campaigns) => {
             const allCampaignSlugs = Object.keys(campaigns);
             const emailContainer = block.querySelector('.emails-panel .container');
-            if (!allCampaignSlugs.length) {
-              emailContainer.textContent = 'No campaigns found.';
-              return;
-            }
 
             emailContainer.innerHTML = `
               <ul class="campaign-list">
@@ -2315,7 +2311,8 @@ export default async function decorate(block) {
           let clickedCount = 0;
           let complainedCount = 0;
 
-          block.querySelector('.analytics-panel .container').innerHTML = `
+          const analyticsContainer = block.querySelector('.analytics-panel .container');
+          analyticsContainer.innerHTML = `
             <div id="email-metrics" class="cards metrics">
               <div id="email-metrics-delivery-rate">
                   <strong>Delivery rate</strong>
@@ -2344,7 +2341,7 @@ export default async function decorate(block) {
             <table>
                 <thead>
                   <tr>
-                    <th>Subject</th>
+                    <th>Email</th>
                     <th>To</th>
                     <th>Sent</th>
                     <th>Delivered</th>
@@ -2352,11 +2349,17 @@ export default async function decorate(block) {
                     <th>Complained</th>
                     <th>Opened</th>
                     <th>Clicked</th>
-                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                    ${res ? Object.keys(res).map((emailId) => {
+                    ${res ? Object.keys(res).sort((emailIdA, emailIdB) => {
+    const sentA = res[emailIdA].find(({ type }) => type === 'email.sent');
+    const sentB = res[emailIdB].find(({ type }) => type === 'email.sent');
+    if (sentA && sentB) {
+      return new Date(sentB.created_at) - new Date(sentA.created_at);
+    }
+    return 0;
+  }).map((emailId) => {
     const reverse = res[emailId].reverse();
 
     const sent = res[emailId].find(({ type }) => type === 'email.sent');
@@ -2385,16 +2388,18 @@ export default async function decorate(block) {
       clickedCount += 1;
     }
 
+    const emailURL = res[emailId][0].data.headers.find(({ name }) => name === 'X-Email-Url')?.value;
+
     return `
                       <tr>
-                        <td>${res[emailId][0].data.subject}</td>
+                        <td>${emailURL ? `<a href="${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${res[emailId][0].data.subject}</a>` : `${res[emailId][0].data.subject}`}</td>
                         <td>${res[emailId][0].data.to.join(',')}</td>
                         <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
                         <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
                         <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
                         <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
                         <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
-                        <td>${clicks.map((clicked) => `<p>Clicked <a href="${clicked.data.click.link}" target="_blank">link</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</p>`).join('')}</td>
+                        <td>${clicks.length ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button><div hidden><ul class="clicked-links">${clicks.map((clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${clicked.data.click.link}</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</li>`).join('')}</ul></div>` : ''}</td>
                       </tr>
                     `;
   }).join('') : `
@@ -2405,12 +2410,26 @@ export default async function decorate(block) {
             </div>
           `;
 
+          analyticsContainer.querySelectorAll('.click-details').forEach((el) => {
+            el.onclick = () => {
+              const clone = el.nextElementSibling.cloneNode(true);
+              clone.hidden = false;
+              const content = parseFragment(`
+                <div>
+                    <h3>${el.textContent}</h3>
+                    ${clone.outerHTML}    
+                </div>
+              `);
+              window.createDialog(content);
+            };
+          });
+
           if (res) {
-            block.querySelector('.delivered-count').textContent = deliveredCount === 0 ? '0%' : `${(deliveredCount / sentCount) * 100}%`;
-            block.querySelector('.bounced-count').textContent = bouncedCount === 0 ? '0%' : `${(bouncedCount / sentCount) * 100}%`;
-            block.querySelector('.opened-count').textContent = openedCount === 0 ? '0%' : `${(openedCount / deliveredCount) * 100}%`;
-            block.querySelector('.clicked-count').textContent = clickedCount === 0 ? '0%' : `${(clickedCount / openedCount) * 100}%`;
-            block.querySelector('.complained-count').textContent = complainedCount === 0 ? '0%' : `${(complainedCount / deliveredCount) * 100}%`;
+            block.querySelector('.delivered-count').textContent = deliveredCount === 0 ? '0%' : `${((deliveredCount / sentCount) * 100).toFixed(2)}%`;
+            block.querySelector('.bounced-count').textContent = bouncedCount === 0 ? '0%' : `${((bouncedCount / sentCount) * 100).toFixed(2)}%`;
+            block.querySelector('.opened-count').textContent = openedCount === 0 ? '0%' : `${((openedCount / deliveredCount) * 100).toFixed(2)}%`;
+            block.querySelector('.clicked-count').textContent = clickedCount === 0 ? '0%' : `${((clickedCount / openedCount) * 100).toFixed(2)}%`;
+            block.querySelector('.complained-count').textContent = complainedCount === 0 ? '0%' : `${((complainedCount / deliveredCount) * 100).toFixed(2)}%`;
           } else {
             block.querySelectorAll('.analytics-panel .metrics span').forEach((el) => el.remove());
           }
