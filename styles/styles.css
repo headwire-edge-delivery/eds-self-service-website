@@ -5,6 +5,8 @@
   --dark-blue: rgb(63 92 133);
   --light-blue: rgb(80 146 188);
   --orange: rgb(218 123 64);
+  --red: rgb(200 0 0);
+  --green: rgb(50 200 100);
   --gray: #bbb;
   --white: #fff;
   --black: #000;
@@ -166,6 +168,10 @@ a:hover {
   flex-wrap: wrap;
 }
 
+table .button-container {
+  flex-wrap: nowrap;
+}
+
 .button-container:has(.button.action) {
   gap: 12px;
 }
@@ -238,7 +244,6 @@ input[type="file"]::file-selector-button,
 }
 
 input[type="file"] {
-  margin: 20px 0;
   border: 1px solid var(--gray);
   width: 100%;
   padding: 0;
@@ -400,11 +405,6 @@ dialog .dialog-content > div {
   flex: 1;
 }
 
-dialog select {
-  width: 100%;
-  margin: 20px 0;
-}
-
 dialog .preview {
   --preview-max-height: 300px;
 
@@ -412,6 +412,8 @@ dialog .preview {
   max-height: var(--preview-max-height);
   max-width: 100%;
   overflow: hidden;
+  display: flex;
+  justify-content: center;
 }
 
 dialog .preview:empty {
@@ -433,7 +435,6 @@ dialog .block-preview .block-iframe {
   width: 100%;
   height: 60vh;
 }
-
 
 dialog.loading {
   pointer-events: none;
@@ -470,27 +471,11 @@ dialog .dialog-content .dialog-button-container > * {
   align-items: flex-start;
 }
 
-dialog .dialog-content .template-preview {
-  border: none;
-  flex: 1;
-  height: auto;
-  min-height: 400px;
-}
-
-dialog .dialog-content > .flex-row {
-  display: flex;
-  flex-flow: row wrap;
-  gap: 10px;
-}
-
-dialog .dialog-content > .flex-row > * {
-  flex: 1;
-}
-
 dialog .dialog-content > div:has(> .centered-info),
 dialog .centered-info {
   display: flex;
   flex: 1;
+  text-align: center;
 }
 
 dialog .centered-info {
@@ -499,8 +484,13 @@ dialog .centered-info {
 }
 
 dialog .warning,
-dialog .warning *{
+dialog .warning * {
   color: var(--orange);
+}
+
+dialog .error,
+dialog .error * {
+  color: var(--red);
 }
 
 @media (width < 768px) {
@@ -530,6 +520,56 @@ dialog.alert-dialog button {
 
 dialog.alert-dialog .dialog-content {
   min-height: 200px;
+}
+
+dialog h3 {
+  text-align: center;
+}
+
+dialog form {
+  max-width: 400px;
+  width: 100%;
+}
+
+dialog form:last-child {
+  margin: auto;
+}
+
+dialog label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+dialog textarea {
+  min-height: 100px;
+  resize: none;
+  max-height: 400px;
+}
+
+dialog .columns {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  height: 100%;
+  justify-content: center;
+}
+
+dialog .columns > * {
+  flex: 1;
+}
+
+dialog .columns iframe {
+  border: none;
+  height: auto;
+  max-width: 600px;
+  min-height: 400px;
+}
+
+@media (width < 768px) {
+  dialog .columns iframe {
+    display: none;
+  }
 }
 
 ::backdrop {
