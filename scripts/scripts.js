@@ -14,6 +14,7 @@ import {
 import helpButton from '../tour/helpButton.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
+const range = document.createRange();
 
 // export const SCRIPT_API = window.location.hostname === 'localhost'
 //   ? 'http://localhost:4000' : 'https://eds-self-service-scripts.onrender.com';
@@ -49,6 +50,20 @@ export function getExpirationTime(expirationDays) {
   date.setDate(date.getDate() + expirationDays);
 
   return date.getTime();
+}
+
+/**
+ * Parse HTML fragment
+ * @param {String} fragmentString
+ * @returns {HTMLElement|NodeList}
+ */
+export function parseFragment(fragmentString) {
+  const doc = range.createContextualFragment(fragmentString);
+  if (doc.firstElementChild === doc.lastElementChild) {
+    return doc.firstElementChild;
+  }
+
+  return doc.childNodes;
 }
 
 /**
@@ -166,7 +181,10 @@ window.createDialog = (contentDiv, buttons, { open = true, onCloseFn, fullscreen
     if (Array.isArray(buttonsArray)) {
       buttonsArray.forEach((button) => {
         buttonWrapper.append(button);
-        button.classList.add('button', 'secondary');
+        button.classList.add('button');
+        if (!button.classList.contains('primary')) {
+          button.classList.add('secondary');
+        }
       });
     }
 

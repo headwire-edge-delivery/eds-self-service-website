@@ -131,6 +131,10 @@
     flex-wrap: nowrap;
 }
 
+.email-composer #email-styles {
+    margin-top: 16px;
+}
+
 .email-composer .enable-styles ~ * {
     display: none;
 }
