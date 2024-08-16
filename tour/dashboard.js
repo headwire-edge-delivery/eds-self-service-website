@@ -55,6 +55,7 @@ function dashboardAccountTour({ projects, showAutoTour }) {
         title: 'Edit your Account',
         description: 'If you want to edit your account, click here. <br /> It will take you directly to google account settings.',
         element: '#edit-account-button',
+        side: 'right',
         destroyOnClicked: false,
       },
       {
@@ -75,6 +76,20 @@ function dashboardAccountTour({ projects, showAutoTour }) {
         element: '.plans.block',
         skip: currentPlan !== 'Free',
         destroyOnClicked: false,
+      },
+      {
+        title: 'Delete your Account',
+        description: 'If you really want to delete your account, click here. <br /> If you delete your account, all your sites that exclusively belong to you will be deleted too. <br /> If you have shared sites, they will be removed from your account, but not deleted. <br /> You can always re-join to Fast Sites again.',
+        element: '#delete-account-button',
+        destroyOnClicked: true,
+        side: 'top',
+      },
+      {
+        title: 'Delete all Projects',
+        description: 'If you really want to delete <strong>all</strong> your projects, click here. <br /> This will delete all your projects that are exclusively yours. <br /> If you have shared projects, they will not be deleted.',
+        element: '#delete-all-projects-button',
+        destroyOnClicked: true,
+        side: 'top',
       },
       {
         title: 'Need Help?',
