@@ -1,3 +1,4 @@
+import { decorateBlock } from '../../scripts/aem.js';
 import { SCRIPT_API, onAuthenticated, OOPS } from '../../scripts/scripts.js';
 import { toggleAutoTour, fetchUserSettings } from '../../tour/main.js';
 
@@ -122,15 +123,13 @@ export default async function decorate(block) {
       }
     };
 
-    // Add plans
-    const plans = document.querySelector('.plans-dialog-wrapper');
-    if (!plans) {
-      document.addEventListener('block-plans:ready', () => {
-        account.append(document.querySelector('.plans-dialog-wrapper'));
-      });
-    } else {
-      account.append(plans);
-    }
+    // Add plans & account details
+    const additionalFragments = document.querySelectorAll('main > .fragment-wrapper, main > .section > .fragment-wrapper');
+    additionalFragments.forEach((fragment) => {
+      account.append(fragment);
+      const fragmentBlock = fragment.querySelector('.block');
+      decorateBlock(fragmentBlock);
+    });
 
     // List all sites
     const reqList = await fetch(`${SCRIPT_API}/list`, {

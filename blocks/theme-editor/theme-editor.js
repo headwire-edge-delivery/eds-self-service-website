@@ -93,6 +93,7 @@ export default async function decorate(block) {
         }
         throw new Error(res.status);
       }).catch((error) => {
+        // eslint-disable-next-line no-console
         console.log('error loading site theme:', error);
         return null;
       });
