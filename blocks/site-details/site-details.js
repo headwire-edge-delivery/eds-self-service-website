@@ -1112,8 +1112,9 @@ export default async function decorate(block) {
         const isOwner = author.owner;
 
         const listItem = parseFragment(`
-          <li class="author" data-author-email="${authorEmail}">
+          <li class="author ${isOwner ? 'is-owner' : ''}" data-author-email="${authorEmail}">
             <span>${authorEmail}</span>
+            <button ${isOwner ? 'disabled' : ''} class="transfer-button button action secondary">Make Owner</button>
             <button ${isOwner ? 'disabled' : ''} class="revoke-button button action secondary">Revoke</button>
           </li>
         `);
@@ -1122,7 +1123,6 @@ export default async function decorate(block) {
         revoke.onclick = async () => {
           window?.zaraz?.track('click site share delete', { url: window.location.href });
 
-          if (isOwner) return;
           if (await window.confirmDialog('Are you sure ?')) {
             window?.zaraz?.track('click site share delete submit', { url: window.location.href });
 
@@ -1133,6 +1133,35 @@ export default async function decorate(block) {
             });
             if (revokeResponse.ok) {
               authorsList.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
+            } else {
+              await window.alertDialog(OOPS);
+            }
+            authorsList.classList.remove('is-disabled');
+          }
+        };
+
+        const changeOwnerButton = listItem.querySelector('.transfer-button');
+        changeOwnerButton.onclick = async () => {
+          window?.zaraz?.track('click site share make owner', { url: window.location.href });
+
+          if (await window.confirmDialog('Are you sure ?')) {
+            window?.zaraz?.track('click site share make owner submit', { url: window.location.href });
+
+            authorsList.classList.add('is-disabled');
+            const changeOwnerResponse = await fetch(`${SCRIPT_API}/updateOwner/${id}/${authorEmail}`, {
+              method: 'POST',
+              headers,
+            });
+            if (changeOwnerResponse.ok) {
+              const prevOwner = authorsList.querySelector('li.is-owner');
+              if (prevOwner) {
+                prevOwner.classList.remove('is-owner');
+                prevOwner.querySelectorAll('button[disabled]').forEach((button) => { button.disabled = null; });
+              }
+
+              revoke.disabled = true;
+              changeOwnerButton.disabled = true;
+              listItem.classList.add('is-owner');
             } else {
               await window.alertDialog(OOPS);
             }
