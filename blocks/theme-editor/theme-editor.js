@@ -254,15 +254,6 @@ export default async function decorate(block) {
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
-                  
-                  <label>
-                      <span>Footer background color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        <input type="color" disabled data-var="footer-background-color">
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
                  
                   <label>
                       <span>Heading text color</span>
@@ -450,6 +441,44 @@ export default async function decorate(block) {
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
                         <input type="color" disabled data-var="button-secondary-border-color-hover">
+                      </div>
+                      <span class="contrast-issues"></span>
+                  </label>
+
+                  <h2>Footer</h2>
+                 
+                  <label>
+                      <span>Footer background color</span>
+                      <div title="Open the color picker" class="color-picker elements">
+                        <select></select>
+                        <input type="color" disabled data-var="footer-background-color">
+                      </div>
+                      <span class="contrast-issues"></span>
+                  </label>
+
+                  <label>
+                      <span>Footer text color</span>
+                      <div title="Open the color picker" class="color-picker elements">
+                        <select></select>
+                        <input type="color" disabled data-var="footer-text-color">
+                      </div>
+                      <span class="contrast-issues"></span>
+                  </label>
+
+                  <label>
+                      <span>Footer Links text color</span>
+                      <div title="Open the color picker" class="color-picker elements">
+                        <select></select>
+                        <input type="color" disabled data-var="footer-link-color">
+                      </div>
+                      <span class="contrast-issues"></span>
+                  </label>
+
+                  <label>
+                      <span>Footer Links text color on hover</span>
+                      <div title="Open the color picker" class="color-picker elements">
+                        <select></select>
+                        <input type="color" disabled data-var="footer-link-color-hover">
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -921,7 +950,7 @@ export default async function decorate(block) {
         };
       } else if (el.classList.contains('elements')) {
         // Find base color
-        const varValue = regExpVars.exec(selectedColor.value)[1].slice(2);
+        const varValue = regExpVars.exec(selectedColor.value)?.[1].slice(2);
         select.innerHTML = `${defaultColors
           .map(
             ({ label, value }) => `<option ${
@@ -930,7 +959,7 @@ export default async function decorate(block) {
           )
           .join()}`;
 
-        input.value = findCSSVar(cssVars, varValue).value.toUpperCase();
+        input.value = findCSSVar(cssVars, varValue).value?.toUpperCase();
 
         select.onchange = () => {
           const newValue = select.value;

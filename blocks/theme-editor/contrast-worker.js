@@ -93,9 +93,6 @@ const cssVariableMap = {
   'header-background-color': {
     // shouldContrastWith: ['link-color', 'link-color-hover'],
   },
-  'footer-background-color': {
-    // shouldContrastWith: ['link-color', 'link-color-hover', 'text-color'],
-  },
   // text colors
   'heading-color': {
     shouldContrastWith: ['background-color'],
@@ -104,10 +101,10 @@ const cssVariableMap = {
     shouldContrastWith: ['background-color'],
   },
   'link-color': {
-    shouldContrastWith: ['background-color', 'header-background-color', 'footer-background-color'],
+    shouldContrastWith: ['background-color', 'header-background-color'],
   },
   'link-color-hover': {
-    shouldContrastWith: ['background-color', 'header-background-color', 'footer-background-color'],
+    shouldContrastWith: ['background-color', 'header-background-color'],
   },
   // button default
   'button-text-color': {
@@ -147,6 +144,19 @@ const cssVariableMap = {
   },
   'button-secondary-background-color-hover': {
     // shouldContrastWith: ['button-secondary-text-color-hover'],
+  },
+  // footer
+  'footer-background-color': {
+    shouldContrastWith: ['footer-link-color', 'footer-link-color-hover', 'footer-text-color'],
+  },
+  'footer-link-color': {
+    shouldContrastWith: ['footer-background-color'],
+  },
+  'footer-link-color-hover': {
+    shouldContrastWith: ['footer-background-color'],
+  },
+  'footer-text-color': {
+    shouldContrastWith: ['footer-background-color'],
   },
 };
 
