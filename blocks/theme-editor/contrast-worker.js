@@ -205,6 +205,7 @@ function handler(event) {
   const mapKeys = Object.keys(cssVariableMap);
   const filteredCssVarsKeys = Object.keys(filteredCssVars);
   if (filteredCssVarsKeys.length !== mapKeys.length) {
+    // eslint-disable-next-line no-console
     console.warn('filteredCssVars has missing keys:', mapKeys - filteredCssVarsKeys);
   }
 

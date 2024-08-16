@@ -53,7 +53,7 @@ function dashboardAccountTour({ showAutoTour }) {
       {
         title: 'Upgrade your Plan',
         description: 'If you want to upgrade your free plan, please Contact us.',
-        element: '.plans-dialog-wrapper',
+        element: '.plans.block',
         skip: currentPlan !== 'Free',
       },
       {

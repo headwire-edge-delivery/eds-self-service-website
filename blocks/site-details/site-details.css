@@ -191,10 +191,6 @@
     border-radius: var(--border-radius);
 }
 
-.site-details .danger-zone .button {
-    color: var(--red);
-}
-
 .site-details.block .list {
     list-style: none;
     padding: 0;

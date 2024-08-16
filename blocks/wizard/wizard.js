@@ -237,11 +237,16 @@ export default async function decorate(block) {
               };
 
               if (document.body.classList.contains('is-anonymous')) {
-                selectTemplate.onclick = (e) => {
+                selectTemplate.onclick = async (e) => {
                   e.preventDefault();
-                  document.querySelector('.plans-dialog').showModal();
-
                   window.sessionStorage.redirectTo = `${window.location.href}/create`;
+                  const plansDialog = document.querySelector('.plans-dialog');
+                  if (plansDialog) {
+                    plansDialog.showModal();
+                  } else if (await window.confirmDialog('Please login to continue')) {
+                    // fallback if plans isn't found
+                    window.auth0Client.loginWithRedirect();
+                  }
                 };
               } else {
                 selectTemplate.onclick = (e) => {
