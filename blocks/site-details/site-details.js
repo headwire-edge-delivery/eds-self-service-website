@@ -1429,7 +1429,7 @@ export default async function decorate(block) {
                       <td>
                         <div id="email-open-edit" class="button-container">
                           <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
-                          <a class="button action secondary" href="${EMAIL_WORKER_API}/${project.customLiveUrl}${item.path}" target="_blank">Open</a>
+                          <a class="button action secondary" href="${EMAIL_WORKER_API}/preview/${project.customLiveUrl}${item.path}" target="_blank">Open</a>
                         </div>
                       </td>
                   </tr>
