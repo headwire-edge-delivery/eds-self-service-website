@@ -183,7 +183,7 @@ window.createDialog = (contentDiv, buttons, {
       buttonsArray.forEach((button) => {
         buttonWrapper.append(button);
         button.classList.add('button');
-        if (!button.classList.contains('primary')) {
+        if (!button.classList.contains('primary') && !button.classList.contains('destructive')) {
           button.classList.add('secondary');
         }
       });
