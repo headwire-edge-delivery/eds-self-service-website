@@ -11,6 +11,7 @@ import {
   sitePagesTour,
   siteMonitoringTour,
   campaignEmailsTour,
+  campaignEmailsAudienceTour,
   campaignEmailAnalyticsTour,
   emailTour,
   settingsGeneralTour,
@@ -148,6 +149,12 @@ const startTour = (SCRIPT_API, isAutoTour = false, showDisableTour = false) => {
         break;
       case switchCase('/da-site/', '/emails'):
         getTour(SCRIPT_API, campaignEmailsTour);
+        break;
+      case switchCase('/da-site/', '/audience'):
+        getTour(SCRIPT_API, campaignEmailsAudienceTour);
+        break;
+      case switchCase('/site/', '/audience'):
+        getTour(SCRIPT_API, campaignEmailsAudienceTour);
         break;
       case switchCase('/site/', '/analytics'):
         getTour(SCRIPT_API, campaignEmailAnalyticsTour);

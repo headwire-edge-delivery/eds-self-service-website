@@ -2,7 +2,7 @@ function campaignEmailsTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        window.location.href = window.location.href.replace('/emails', '/analytics');
+        window.location.href = window.location.href.replace('/emails', '/audience');
       }
     },
     steps: [
@@ -19,6 +19,30 @@ function campaignEmailsTour({ showAutoTour }) {
         title: 'Edit or Open your Email',
         description: 'You can Edit your Email in our Editor or Open a Preview in a new tab.',
         element: '#email-open-edit',
+        side: 'left',
+      },
+    ],
+  };
+
+  return tourData;
+}
+
+function campaignEmailsAudienceTour({ showAutoTour }) {
+  const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        window.location.href = window.location.href.replace('/audience', '/analytics');
+      }
+    },
+    steps: [
+      {
+        title: 'Audience',
+        description: 'Audience description',
+      },
+      {
+        title: 'Edit',
+        description: 'Edit your Recipients List.',
+        element: '.audience-actions',
         side: 'left',
       },
     ],
@@ -131,4 +155,9 @@ function emailTour() {
   return tourData;
 }
 
-export { campaignEmailsTour, campaignEmailAnalyticsTour, emailTour };
+export {
+  campaignEmailsTour,
+  campaignEmailsAudienceTour,
+  campaignEmailAnalyticsTour,
+  emailTour,
+};
