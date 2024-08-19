@@ -12,7 +12,9 @@ import {
   sitePagesTour,
   siteMonitoringTour,
 } from './site.js';
-import { campaignEmailsTour, campaignEmailAnalyticsTour, emailTour } from './email.js';
+import {
+  campaignEmailsTour, campaignEmailsAudienceTour, campaignEmailAnalyticsTour, emailTour,
+} from './email.js';
 import { settingsGeneralTour, settingsThemeTour } from './settings.js';
 
 export {
@@ -28,6 +30,7 @@ export {
   sitePagesTour,
   siteMonitoringTour,
   campaignEmailsTour,
+  campaignEmailsAudienceTour,
   campaignEmailAnalyticsTour,
   emailTour,
   settingsGeneralTour,
