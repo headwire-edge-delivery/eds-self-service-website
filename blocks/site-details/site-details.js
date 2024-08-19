@@ -1367,13 +1367,13 @@ export default async function decorate(block) {
         const dialog = window.createDialog(content, [submit]);
 
         const form = document.getElementById('update-project-form');
-        const body = Object.fromEntries(new FormData(form));
 
         form.onsubmit = async (event) => {
           window.zaraz?.track('click project update', { url: window.location.href });
 
           event.preventDefault();
 
+          const body = Object.fromEntries(new FormData(form));
           dialog.setLoading(true, 'Updating description...');
           const response = await fetch(`${SCRIPT_API}/description/${project.projectSlug}`, {
             headers: { ...headers, 'content-type': 'application/json' },
