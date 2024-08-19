@@ -52,7 +52,7 @@ function observeBlocks(myFunction) {
   });
 }
 
-const toggleAutoTour = (SCRIPT_API) => {
+const toggleAutoTour = (SCRIPT_API, setTo = !showAutoTour) => new Promise((resolve, reject) => {
   onAuthenticated(async () => {
     const token = await window.auth0Client.getTokenSilently();
     const headers = { authorization: `bearer ${token}` };
@@ -60,11 +60,22 @@ const toggleAutoTour = (SCRIPT_API) => {
     await fetch(`${SCRIPT_API}/userSettings`, {
       headers: { ...headers, 'content-type': 'application/json' },
       method: 'POST',
-      body: JSON.stringify({ userSettings: { showAutoTour: !showAutoTour } }),
-    // eslint-disable-next-line no-console
-    }).catch((error) => console.error(error));
+      body: JSON.stringify({ userSettings: { showAutoTour: setTo } }),
+      // eslint-disable-next-line no-console
+    })
+      .then((response) => {
+        if (response.ok) {
+          resolve(response);
+        } else {
+          reject(response);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        reject();
+      });
   });
-};
+});
 
 const { tour } = window.expedition.js;
 

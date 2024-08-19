@@ -3,7 +3,8 @@ function settingsGeneralTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        window.location.href = window.location.href.replace('site/', 'theme/').replace('/settings', '');
+        const themePath = document.querySelector('main .site-details.block aside a[href^="/theme"]')?.getAttribute('href');
+        window.location.pathname = themePath;
       }
     },
     steps: [
@@ -27,37 +28,31 @@ function settingsGeneralTour({ showAutoTour }) {
         title: 'Favicon',
         description: 'This is where you can upload a favicon for your website. A favicon is a small icon that appears in the browser tab when your website is open. It helps users identify your website easily. <br /> It should be a square and as a filetype .ico. <br /> You can convert your image to a .ico file <a href="https://www.icoconverter.com/" target="_blank">here</a>.',
         element: '#favicon',
-        elementEvent: () => {},
       },
       {
         title: 'Blocks',
         description: 'This acts as a repository of building blocks for your website. Here, you can explore and select from a variety of available blocks to enhance your web pages.',
         element: '#blocks',
-        elementEvent: () => {},
       },
       {
         title: 'Add a Block',
         description: 'To add a new block to your website, click here. <br /> This will open a dialog where you can select a block to add to your page.',
         element: '#add-block-button',
-        elementEvent: () => {},
       },
       {
         title: 'Delete a Block',
         description: 'To delete a block, click on the Block you want to delete. <br /> This will open a dialog where you can delete it.',
         element: '#blocks-list > li:first-child',
-        elementEvent: () => {},
       },
       {
         title: 'Icons',
         description: 'This is your go-to resource for web assets that add visual flair and functionality to your website. Here, you\'ll find a curated collection of icons suitable for various purposes, from navigation to social media integration.',
         element: '#icons',
-        elementEvent: () => {},
       },
       {
         title: 'Add an Icon',
         description: 'To add a new Icon to your website, click here. <br /> This will open a dialog where you can upload a new icon to your page.',
         element: '#add-icon-button',
-        elementEvent: () => {},
       },
       {
         title: 'Delete or replace an Icon',
@@ -65,7 +60,6 @@ function settingsGeneralTour({ showAutoTour }) {
         element: '#icons-list > li:first-child > .buttons-container > .icon-settings',
         side: 'right',
         align: 'end',
-        elementEvent: () => {},
       },
       {
         title: 'Copy your Icon',
@@ -79,7 +73,6 @@ function settingsGeneralTour({ showAutoTour }) {
         title: 'Updates',
         description: 'Check if a new Update for your Project is available or revert your Project to a previous version.',
         element: '#updates',
-        elementEvent: () => {},
       },
       {
         title: 'No updates available',
@@ -111,7 +104,6 @@ function settingsGeneralTour({ showAutoTour }) {
         element: '.prev-update-info',
         side: 'left',
         align: 'end',
-        elementEvent: () => {},
       },
     ],
   };
@@ -120,7 +112,6 @@ function settingsGeneralTour({ showAutoTour }) {
 }
 
 function settingsThemeTour({ showAutoTour }) {
-  const contrastIssues = document.querySelectorAll('aside .contrast-issues:not(:empty)').length;
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
@@ -136,7 +127,6 @@ function settingsThemeTour({ showAutoTour }) {
         title: 'Toggle between Editing and Preview Mode',
         description: 'You can toggle here between Editing and Preview Mode. <br /> In Editing Mode, you can edit your Theme. <br /> In Preview Mode, you can see how your Theme looks like. <br /> Default is Editing Mode.',
         element: '#toggle-preview',
-        elementEvent: () => {},
       },
       {
         title: 'Preview your Page',
@@ -152,23 +142,22 @@ function settingsThemeTour({ showAutoTour }) {
       },
       {
         title: 'Contrast Issues',
-        description: `You have currently ${contrastIssues} Contrast issues, they will be shown under the corresponding Variable. <br /> You should avoid Contrast Issues to make your website accessible for everyone.`,
+        description: `You have currently ${document.querySelectorAll('aside .contrast-issues:not(:empty)').length} Contrast issues, they will be shown under the corresponding Variable. <br /> You should avoid Contrast Issues to make your website accessible for everyone.`,
         element: 'aside .contrast-issues:not(:empty)',
         destroyOnClicked: false,
-        skip: contrastIssues === 0,
+        skip: document.querySelectorAll('aside .contrast-issues:not(:empty)').length === 0,
       },
       {
         title: 'No Contrast Issues found',
         description: 'Congratulations! You have no Contrast Issues in your Theme. <br /> This means your website is accessible for everyone. <br /> If we find any Contrast Issues, they will be shown under the corresponding Variable.',
         destroyOnClicked: false,
-        skip: contrastIssues > 0,
+        skip: document.querySelectorAll('aside .contrast-issues:not(:empty)').length > 0,
       },
       {
         title: 'Save',
         description: 'If you are finished, you can save your changes to your Theme. <br /> There is no automatic saving. Be sure you are satisfied with your changes before saving.',
         element: '#save-button',
         align: 'end',
-        elementEvent: () => {},
       },
     ],
   };

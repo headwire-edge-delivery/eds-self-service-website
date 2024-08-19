@@ -2,7 +2,7 @@ function campaignEmailsTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        window.location.href = window.location.href.replace('/emails', '/analytics');
+        document.querySelector('main .site-details.block aside a[href="analytics"]')?.click();
       }
     },
     steps: [
@@ -33,7 +33,7 @@ function campaignEmailAnalyticsTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        window.location.href = window.location.href.replace('/analytics', '/settings');
+        document.querySelector('main .site-details.block aside a[href="settings"]')?.click();
       }
     },
     steps: [

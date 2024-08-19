@@ -1,7 +1,7 @@
 function createTemplateTour() {
   const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
   const tourData = {
-    onFinished: () => {},
+    onFinished: () => { /* prevent "do you want to disable tour?" from showing */ },
     steps: [
       {
         title: 'Create your new Website',
@@ -46,11 +46,7 @@ function createTemplateTour() {
 
 function wkndTemplateTour({ showAutoTour }) {
   const tourData = {
-    onFinished: () => {
-      if (showAutoTour) {
-        document.querySelector('#back-button').click();
-      }
-    },
+    onFinished: () => { /* prevent "do you want to disable tour?" from showing */ },
     steps: [
       {
         title: 'Welcome to the WKND Template',
@@ -65,13 +61,11 @@ function wkndTemplateTour({ showAutoTour }) {
         title: 'Want to start with the WKND Template?',
         description: 'If you want to create a Site with the WKND Template, continue here.',
         element: '#select-template-button',
-        elementEvent: () => {},
       },
       {
         title: 'Want to go back?',
         description: 'Click here to go back to the Overview.',
         element: '#back-button',
-        elementEvent: () => {},
       },
     ],
   };
@@ -81,11 +75,7 @@ function wkndTemplateTour({ showAutoTour }) {
 
 function sportsTemplateTour({ showAutoTour }) {
   const tourData = {
-    onFinished: () => {
-      if (showAutoTour) {
-        document.querySelector('#back-button').click();
-      }
-    },
+    onFinished: () => { /* prevent "do you want to disable tour?" from showing */ },
     steps: [
       {
         title: 'Welcome to the Sports Template',
@@ -100,13 +90,11 @@ function sportsTemplateTour({ showAutoTour }) {
         title: 'Want to start with the Sports Template?',
         description: 'If you want to create a Site with the Sports Template, continue here.',
         element: '#select-template-button',
-        elementEvent: () => {},
       },
       {
         title: 'Want to go back?',
         description: 'Click here to go back to the Overview.',
         element: '#back-button',
-        elementEvent: () => {},
       },
     ],
   };
@@ -116,11 +104,7 @@ function sportsTemplateTour({ showAutoTour }) {
 
 function clubTemplateTour({ showAutoTour }) {
   const tourData = {
-    onFinished: () => {
-      if (showAutoTour) {
-        document.querySelector('#back-button').click();
-      }
-    },
+    onFinished: () => { /* prevent "do you want to disable tour?" from showing */ },
     steps: [
       {
         title: 'Welcome to the Club Template',
@@ -135,13 +119,11 @@ function clubTemplateTour({ showAutoTour }) {
         title: 'Want to start with the Club Template?',
         description: 'If you want to create a Site with the Club Template, continue here.',
         element: '#select-template-button',
-        elementEvent: () => {},
       },
       {
         title: 'Want to go back?',
         description: 'Click here to go back to the Overview.',
         element: '#back-button',
-        elementEvent: () => {},
       },
     ],
   };

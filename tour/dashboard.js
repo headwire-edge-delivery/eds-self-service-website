@@ -1,12 +1,15 @@
-function dashboardSitesTour({ projects, showAutoTour }) {
+function dashboardSitesTour({ showAutoTour }) {
   const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
+  const driveProjectList = document.querySelector('#google-drive-section > ul');
+  const darkAlleyProjectList = document.querySelector('#dark-alley-section > ul');
   const tourData = {
     showDisableTour: true,
     onFinished: () => {
-      if (projects?.google?.length && showAutoTour) {
+      if (driveProjectList?.children?.length && showAutoTour) {
         window.location.href = document.querySelector('#my-sites-overview li a').href;
-      } else if (!projects?.google?.length && showAutoTour) {
-        window.location.href = '/dashboard/account';
+      } else if (showAutoTour) {
+        // user has no projects, and is doing the auto tour. Create a site with them!
+        window.location.pathname = '/';
       }
     },
     steps: [
@@ -17,21 +20,26 @@ function dashboardSitesTour({ projects, showAutoTour }) {
       },
       {
         title: 'My Sites Overview (Dark Alley)',
-        description: `Here you can see all your Dark Alley sites (Currently ${projects?.darkAlley?.length} Sites). <br /> Click on a site to see more details.`,
+        description: `Here you can see all your Dark Alley sites (Currently ${darkAlleyProjectList?.children?.length} Sites). <br /> Click on a site to see more details.`,
         element: '#dark-alley-section',
-        skip: !projects?.darkAlley?.length || !hasDarkAlley,
+        skip: !darkAlleyProjectList?.children?.length || !hasDarkAlley,
       },
       {
         title: 'My Sites Overview',
-        description: `Here you can see all your sites (Currently ${projects?.google?.length} Sites). <br /> Click on a site to see more details.`,
+        description: `Here you can see all your sites (Currently ${driveProjectList?.children?.length} Sites). <br /> Click on a site to see more details.`,
         element: '#google-drive-section',
-        skip: !projects?.google?.length,
+        skip: !driveProjectList?.children?.length,
       },
       {
         title: 'Filter My Sites Overview',
         description: 'Here you can filter the sites by name. <br /> Just type the name of the site you want to filter.',
         element: '.filter',
-        skip: !projects?.google?.length,
+        skip: !driveProjectList?.children?.length,
+      },
+      {
+        title: 'Let\'s create a Website!',
+        description: 'You don\'t have any sites yet. Let\'s create one! <br /> Click here to create a new site.',
+        skip: driveProjectList?.children?.length > 0 || !showAutoTour,
       },
     ],
   };
@@ -39,12 +47,12 @@ function dashboardSitesTour({ projects, showAutoTour }) {
   return tourData;
 }
 
-function dashboardAccountTour({ projects, showAutoTour }) {
+function dashboardAccountTour({ showAutoTour }) {
   const currentPlan = document.querySelector('#current-plan').textContent;
-  const hasProjects = !!projects?.google?.length;
+  const driveProjectList = document.querySelector('#google-drive-section > ul');
   const tourData = {
     onFinished: () => {
-      if (!projects?.google?.length && showAutoTour) {
+      if (!driveProjectList?.children?.length && showAutoTour) {
         window.location.href = '/';
       } else if (showAutoTour) {
         document.querySelector('#toggle-auto-tour-button').click();
@@ -100,12 +108,7 @@ function dashboardAccountTour({ projects, showAutoTour }) {
       {
         title: 'You\'re ready to go!',
         description: 'You now have all the information you need to get started.',
-        skip: !showAutoTour || (!hasProjects && showAutoTour),
-      },
-      {
-        title: 'Let\'s create a Website!',
-        description: 'You don\'t have any sites yet. Let\'s create one! <br /> Click here to create a new site.',
-        skip: hasProjects || !showAutoTour,
+        skip: !showAutoTour || (!driveProjectList?.children?.length && showAutoTour),
       },
     ],
   };
