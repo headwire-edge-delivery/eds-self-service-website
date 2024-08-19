@@ -13,12 +13,14 @@ function campaignEmailsTour({ showAutoTour }) {
       {
         title: 'Emails',
         description: 'A list of all available emails.',
+        destroyOnClicked: false,
         element: '.emails',
       },
       {
         title: 'Edit or Open your Email',
         description: 'You can Edit your Email in our Editor or Open a Preview in a new tab.',
         element: '#email-open-edit',
+        destroyOnClicked: false,
         side: 'left',
       },
     ],
@@ -82,6 +84,7 @@ function campaignEmailAnalyticsTour({ showAutoTour }) {
 
 function emailTour() {
   const tourData = {
+    onFinished: () => {},
     steps: [
       {
         title: 'Email Editor',
@@ -89,40 +92,47 @@ function emailTour() {
       },
       {
         title: 'Copy your Email Template',
-        description: 'Copy your Email Template to create a new Template.',
+        description: 'Copy your Email Template as Text or HTML.',
         element: '#copy-button',
+        destroyOnClicked: false,
         side: 'left',
       },
       {
         title: 'Edit Email Template',
         description: 'Edit your Email Template in Google Drive.',
         element: '#edit-button',
+        destroyOnClicked: false,
         side: 'left',
       },
       {
         title: 'Email Subject',
         description: 'Edit your Email Subject. Subject is the first thing your customers will see. Make it catchy!',
         element: '#email-subject',
+        destroyOnClicked: false,
       },
       {
         title: 'Recipients',
         description: 'Add your Email Recipients. You can add multiple Email addresses.',
         element: '#email-recipients',
+        destroyOnClicked: false,
       },
       {
         title: 'Variables',
         description: 'Add here all Variables you are using in your Email Template. For Example, you can use {headline} in your Template to replace it with a "headline".',
         element: '#email-variables',
+        destroyOnClicked: false,
       },
       {
         title: 'Styles',
         description: 'If you are familiar with CSS, you can add your Email Styles here. It will open a Textarea where you can modify the CSS. <br /> If you\'re not familiar with CSS, you can <a href="https://www.w3schools.com/css/" target="_blank">learn more about CSS here</a>. <br /> Only change the CSS if you know what you are doing.',
         element: '#email-styles',
+        destroyOnClicked: false,
       },
       {
         title: 'Send your Email',
         description: 'If you are ready, you can easily send your Email to your customers.',
         element: '#send-button',
+        destroyOnClicked: false,
         side: 'left',
       },
     ],

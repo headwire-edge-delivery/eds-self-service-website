@@ -780,6 +780,7 @@ export default async function decorate(block) {
       window.history.replaceState({}, '', `${window.location.pathname}/overview`);
     }
 
+    const siteType = window.location.pathname.split('/')[1];
     const selected = window.location.pathname.split('/')[3];
 
     block.innerHTML = `
@@ -816,7 +817,7 @@ export default async function decorate(block) {
               Dashboard
             </a>
             <span>&rsaquo;</span>
-            <a href="/site/${project.projectSlug}" aria-current="page">
+            <a href="/${siteType}/${project.projectSlug}" aria-current="page">
               <h1>${project.projectName}</h1>
             </a>
           </div>
@@ -1082,15 +1083,6 @@ export default async function decorate(block) {
         </div>
     `;
 
-      // TODO: remove when we move to dark alley
-      if (project.darkAlleyProject) {
-        block.querySelectorAll('.breadcrumbs a').forEach((link) => {
-          if (link.href.includes('/site/')) {
-            link.href = link.href.replace('/site/', '/da-site/');
-          }
-        });
-      }
-
       const actions = block.querySelector('.actions');
       actions.querySelector('.overview-actions').innerHTML = `
         <a href="${project.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>
@@ -1285,7 +1277,7 @@ export default async function decorate(block) {
               allEmailsLink.click();
             }
           } else {
-            window.history.pushState({}, '', `/site/${id}/${identifier}`);
+            window.history.pushState({}, '', `/${siteType}/${id}/${identifier}`);
           }
 
           aside.querySelector('.is-selected').classList.remove('is-selected');
@@ -1333,7 +1325,7 @@ export default async function decorate(block) {
         window?.zaraz?.track('click site delete', { url: window.location.href });
 
         block.classList.add('is-deleting');
-        if (await window.confirmDialog('Are you sure ?')) {
+        if (await window.confirmDialog('Are you sure you want to delete your site? (This can\'t be undone)')) {
           window?.zaraz?.track('click site delete submit', { url: window.location.href });
 
           const reqDelete = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'da-' : ''}delete/${project.projectSlug}`, {
@@ -1390,7 +1382,7 @@ export default async function decorate(block) {
           });
 
           if (response.ok) {
-            dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
+            dialog.renderDialog('<h3 class="centered-info">Description successfully updated</h3>');
             project.projectDescription = body.projectDescription;
             const descriptionSpan = block.querySelector('.project-description.card .project-description.span');
             if (descriptionSpan) descriptionSpan.textContent = body.projectDescription;
@@ -1458,7 +1450,7 @@ export default async function decorate(block) {
                       <td>
                         <div id="email-open-edit" class="button-container">
                           <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
-                          <a class="button action secondary" href="${EMAIL_WORKER_API}/${project.customLiveUrl}${item.path}" target="_blank">Open</a>
+                          <a class="button action secondary" href="${EMAIL_WORKER_API}/preview/${project.customLiveUrl}${item.path}" target="_blank">Open</a>
                         </div>
                       </td>
                   </tr>
@@ -1522,8 +1514,8 @@ export default async function decorate(block) {
 
             emailContainer.innerHTML = `
               <ul class="campaign-list">
-                <li><a class="button action secondary ${window.location.pathname.startsWith(`/site/${id}/emails/`) ? '' : 'is-selected'}" href="/site/${id}/emails">All emails</a></li>
-                ${allCampaignSlugs.map((campaignSlug) => `<li><a class="button action secondary ${window.location.pathname === `/site/${id}/emails/${campaignSlug}` ? 'is-selected' : ''}" href="/site/${id}/emails/${campaignSlug}">${campaigns[campaignSlug].name}</li></a>`).join('')}</a>
+                <li><a class="button action secondary ${window.location.pathname.startsWith(`/${siteType}/${id}/emails/`) ? '' : 'is-selected'}" href="/${siteType}/${id}/emails">All emails</a></li>
+                ${allCampaignSlugs.map((campaignSlug) => `<li><a class="button action secondary ${window.location.pathname === `/${siteType}/${id}/emails/${campaignSlug}` ? 'is-selected' : ''}" href="/${siteType}/${id}/emails/${campaignSlug}">${campaigns[campaignSlug].name}</li></a>`).join('')}</a>
               </ul>
               <div class="campaign-container"></div>
             `;
@@ -1555,7 +1547,7 @@ export default async function decorate(block) {
 
             const campaignContainer = block.querySelector('.campaign-container');
             campaignContainer.innerHTML = `
-              <div class="campaign" ${window.location.pathname.startsWith(`/site/${id}/emails/`) ? 'hidden' : ''}>
+              <div class="campaign" ${window.location.pathname.startsWith(`/${siteType}/${id}/emails/`) ? 'hidden' : ''}>
                 <table class="emails">
                    <thead>
                      <tr>
@@ -1578,7 +1570,7 @@ export default async function decorate(block) {
               const campaignEmails = emails.filter(({ path }) => path.startsWith(`/${campaignSlug}/`));
 
               campaignContainer.insertAdjacentHTML('beforeend', `
-                <div data-campaign="${campaignSlug}" class="campaign campaign-${campaignSlug}" ${window.location.pathname === `/site/${id}/emails/${campaignSlug}` ? '' : 'hidden'}>
+                <div data-campaign="${campaignSlug}" class="campaign campaign-${campaignSlug}" ${window.location.pathname === `/${siteType}/${id}/emails/${campaignSlug}` ? '' : 'hidden'}>
                   <div class="cards">
                     <div>
                         <strong>Campaign</strong>
@@ -1716,7 +1708,7 @@ export default async function decorate(block) {
                   const newCampaign = await req.json();
 
                   campaignList.insertAdjacentHTML('beforeend', `
-                    <li><a class="button action secondary" href="/site/${id}/emails/${newCampaign.slug}">${newCampaign.name}</li></a>
+                    <li><a class="button action secondary" href="/${siteType}/${id}/emails/${newCampaign.slug}">${newCampaign.name}</li></a>
                   `);
 
                   campaignContainer.insertAdjacentHTML('beforeend', `
@@ -1859,7 +1851,7 @@ export default async function decorate(block) {
                   if (deleteReq.ok) {
                     block.querySelector('.campaign-list a.is-selected').remove();
                     block.querySelector('.campaign-list a').click();
-                    window.history.replaceState({}, '', `/site/${id}/emails`);
+                    window.history.replaceState({}, '', `/${siteType}/${id}/emails`);
                   } else {
                     await window.alertDialog(OOPS);
                   }
@@ -1869,7 +1861,7 @@ export default async function decorate(block) {
             };
 
             block.querySelectorAll('.delete-campaign, .add-email').forEach((action) => {
-              action.hidden = !window.location.pathname.startsWith(`/site/${id}/emails/`);
+              action.hidden = !window.location.pathname.startsWith(`/${siteType}/${id}/emails/`);
             });
           });
         })
