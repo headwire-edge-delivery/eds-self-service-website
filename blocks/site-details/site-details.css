@@ -376,11 +376,15 @@ dialog .clicked-links li {
     border-top: 1px solid var(--gray);
     padding-block: 8px;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
 }
 
 .site-details.block .author:first-child {
     border-top: none;
+}
+
+.site-details.block .author *:first-child {
+    margin-right: auto;
 }
 
 .site-details.block .authors-list {
