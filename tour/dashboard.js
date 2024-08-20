@@ -1,11 +1,11 @@
 function dashboardSitesTour({ showAutoTour }) {
   const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
-  const driveProjectList = document.querySelector('#google-drive-section > ul');
-  const darkAlleyProjectList = document.querySelector('#dark-alley-section > ul');
+  const driveProjectListQuery = '#google-drive-section > ul';
+  const darkAlleyProjectListQuery = '#dark-alley-section > ul';
   const tourData = {
     showDisableTour: true,
     onFinished: () => {
-      if (driveProjectList?.children?.length && showAutoTour) {
+      if (document.querySelector(driveProjectListQuery)?.children?.length && showAutoTour) {
         window.location.href = document.querySelector('#my-sites-overview li a').href;
       } else if (showAutoTour) {
         // user has no projects, and is doing the auto tour. Create a site with them!
@@ -20,26 +20,26 @@ function dashboardSitesTour({ showAutoTour }) {
       },
       {
         title: 'My Sites Overview (Dark Alley)',
-        description: `Here you can see all your Dark Alley sites (Currently ${darkAlleyProjectList?.children?.length} Sites). <br /> Click on a site to see more details.`,
+        description: `Here you can see all your Dark Alley sites (Currently ${document.querySelector(darkAlleyProjectListQuery)?.children?.length} Sites). <br /> Click on a site to see more details.`,
         element: '#dark-alley-section',
-        skip: !darkAlleyProjectList?.children?.length || !hasDarkAlley,
+        skip: !document.querySelector(darkAlleyProjectListQuery)?.children?.length || !hasDarkAlley,
       },
       {
         title: 'My Sites Overview',
-        description: `Here you can see all your sites (Currently ${driveProjectList?.children?.length} Sites). <br /> Click on a site to see more details.`,
+        description: `Here you can see all your sites (Currently ${document.querySelector(driveProjectListQuery)?.children?.length} Sites). <br /> Click on a site to see more details.`,
         element: '#google-drive-section',
-        skip: !driveProjectList?.children?.length,
+        skip: !document.querySelector(driveProjectListQuery)?.children?.length,
       },
       {
         title: 'Filter My Sites Overview',
         description: 'Here you can filter the sites by name. <br /> Just type the name of the site you want to filter.',
         element: '.filter',
-        skip: !driveProjectList?.children?.length,
+        skip: !document.querySelector(driveProjectListQuery)?.children?.length,
       },
       {
         title: 'Let\'s create a Website!',
         description: 'You don\'t have any sites yet. Let\'s create one! <br /> Click here to create a new site.',
-        skip: driveProjectList?.children?.length > 0 || !showAutoTour,
+        skip: document.querySelector(driveProjectListQuery)?.children?.length > 0 || !showAutoTour,
       },
     ],
   };
@@ -49,10 +49,15 @@ function dashboardSitesTour({ showAutoTour }) {
 
 function dashboardAccountTour({ showAutoTour }) {
   const currentPlan = document.querySelector('#current-plan').textContent;
-  const driveProjectList = document.querySelector('#google-drive-section > ul');
+  /* TODO: if projects response is slow,
+    its possible the account tour will loop back to project creation.
+    we could set some kind of messaging system up to only start tours after content is loaded.
+    for now checking during the tour seems to work every time.
+  */
+  const driveProjectListQuery = '#google-drive-section > ul';
   const tourData = {
     onFinished: () => {
-      if (!driveProjectList?.children?.length && showAutoTour) {
+      if (!document.querySelector(driveProjectListQuery)?.children?.length && showAutoTour) {
         window.location.href = '/';
       } else if (showAutoTour) {
         document.querySelector('#toggle-auto-tour-button').click();
@@ -108,7 +113,7 @@ function dashboardAccountTour({ showAutoTour }) {
       {
         title: 'You\'re ready to go!',
         description: 'You now have all the information you need to get started.',
-        skip: !showAutoTour || (!driveProjectList?.children?.length && showAutoTour),
+        skip: !showAutoTour || (!document.querySelector(driveProjectListQuery)?.children?.length && showAutoTour),
       },
     ],
   };

@@ -86,7 +86,11 @@ function getTour(SCRIPT_API, siteTour) {
   }, 100);
 }
 
+let cachedUserSettings = null;
 const fetchUserSettings = async (SCRIPT_API) => {
+  if (cachedUserSettings) {
+    return cachedUserSettings;
+  }
   const token = await window.auth0Client.getTokenSilently();
   const headers = { authorization: `bearer ${token}`, 'content-type': 'application/json' };
 
@@ -95,8 +99,13 @@ const fetchUserSettings = async (SCRIPT_API) => {
     method: 'GET',
   });
   const data = await response.json();
+  cachedUserSettings = data;
   return data;
 };
+
+export function updateCachedUserData(newUserData) {
+  cachedUserSettings = { ...cachedUserSettings, ...newUserData };
+}
 
 const startTour = (SCRIPT_API, isAutoTour = false, showDisableTour = false) => {
   window.scrollTo(0, 0);
