@@ -37,6 +37,7 @@ function createTemplateTour() {
         title: 'Create your Site',
         description: 'Click here to create your new Site.',
         element: '#create-button',
+        destroyOnClicked: false,
       },
     ],
   };

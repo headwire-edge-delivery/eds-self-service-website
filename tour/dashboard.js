@@ -2,14 +2,21 @@ function dashboardSitesTour({ showAutoTour }) {
   const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
   const driveProjectListQuery = '#google-drive-section > ul';
   const darkAlleyProjectListQuery = '#dark-alley-section > ul';
+  /* TODO: on this tour project list is often loaded before
+    site list. This causes the site list and filter to be skipped.
+    We need to wait on loading the site list response before starting the tour.
+  */
   const tourData = {
     showDisableTour: true,
     onFinished: () => {
-      if (document.querySelector(driveProjectListQuery)?.children?.length && showAutoTour) {
-        window.location.href = document.querySelector('#my-sites-overview li a').href;
-      } else if (showAutoTour) {
-        // user has no projects, and is doing the auto tour. Create a site with them!
-        window.location.pathname = '/';
+      if (showAutoTour) {
+        if (document.querySelector(driveProjectListQuery)?.children?.length) {
+          // has projects, show account settings
+          document.querySelector('main .dashboard.block aside a[href="account"]')?.click();
+        } else {
+          // user has no projects, and is doing the auto tour. Create a site with them!
+          window.location.pathname = '/';
+        }
       }
     },
     steps: [

@@ -115,7 +115,7 @@ function settingsThemeTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        window.location.href = '/dashboard/account';
+        window.location.href = '/dashboard';
       }
     },
     steps: [
