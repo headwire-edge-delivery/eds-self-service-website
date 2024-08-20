@@ -2,17 +2,27 @@ function campaignEmailsTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        document.querySelector('main .site-details.block aside a[href="analytics"]')?.click();
+        document.querySelector('main .site-details.block aside a[href="audience"]')?.click();
       }
     },
     steps: [
       {
-        title: 'Emails',
-        description: 'Emails serves as your toolkit for crafting impactful communication in your online endeavors tailored for various purposes, from newsletters to promotional campaigns streamlining your email creation process.',
+        title: 'Campaigns',
+        description: 'Campaigns serves as your toolkit for crafting impactful communication in your online endeavors tailored for various purposes, from newsletters to promotional campaigns streamlining your email creation process.',
+      },
+      {
+        title: 'Campaigns filter',
+        description: 'A list of all campaigns. Click on a campaign to filter your emails.',
+        element: '.emails-panel .campaign-list',
+      },
+      {
+        title: 'New Campaign',
+        description: 'Start a new campaign for emails.',
+        element: '#new-campaign',
       },
       {
         title: 'Emails',
-        description: 'A list of all available emails.',
+        description: 'A list of all published emails.',
         destroyOnClicked: false,
         element: '.emails',
       },
@@ -21,6 +31,35 @@ function campaignEmailsTour({ showAutoTour }) {
         description: 'You can Edit your Email in our Editor or Open a Preview in a new tab.',
         element: '#email-open-edit',
         destroyOnClicked: false,
+        side: 'left',
+      },
+    ],
+  };
+
+  return tourData;
+}
+
+function campaignEmailsAudienceTour({ showAutoTour }) {
+  const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        document.querySelector('main .site-details.block aside a[href="analytics"]')?.click();
+      }
+    },
+    steps: [
+      {
+        title: 'Audience',
+        description: 'Manage your audience here. Add, update, retrieve and remove subscribers.',
+      },
+      {
+        title: 'Audience members',
+        description: 'List of your audience members.',
+        element: '.audience-panel',
+      },
+      {
+        title: 'Edit audience',
+        description: 'Edit your audience directly from a sheet.',
+        element: '.audience-actions',
         side: 'left',
       },
     ],
@@ -38,8 +77,13 @@ function campaignEmailAnalyticsTour({ showAutoTour }) {
     },
     steps: [
       {
-        title: 'Email Analytics',
+        title: 'Campaign Analytics',
         description: 'Here, you\'ll find key insights into your campaign performance all in one place. <br /> <strong>Campaign key metrics:</strong> <br /> <ul><li><strong>Delivery rate</strong>: percentage of successfully delivered emails.</li><li><strong>Bounce rate</strong>: percentage of emails sent that couldn\'t be delivered to the recipient\'s inbox.</li><li><strong>Open rate</strong>: percentage of recipients who opened the email.</li><li><strong>Click-to-open rate</strong>: percentage of recipients who clicked on a link inside the email after opening.</li><li><strong>Spam complaints rate</strong>: percentage of recipients reporting the email as spam.</li></ul>',
+      },
+      {
+        title: 'Campaigns filter',
+        description: 'A list of all campaigns. Click on a campaign to filter your email analytics.',
+        element: '.analytics-panel .campaign-list',
       },
       {
         title: 'Email Metrics',
@@ -141,4 +185,6 @@ function emailTour() {
   return tourData;
 }
 
-export { campaignEmailsTour, campaignEmailAnalyticsTour, emailTour };
+export {
+  campaignEmailsTour, campaignEmailsAudienceTour, campaignEmailAnalyticsTour, emailTour,
+};
