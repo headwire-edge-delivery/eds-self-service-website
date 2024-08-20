@@ -440,7 +440,7 @@ function addPageDialogSetup({
       let draftsHref;
       let editHref;
 
-      if (project.darkAlleyVariation) {
+      if (project.darkAlleyProject) {
         draftsHref = `https://da.live/#${responseData.daPath}`;
         editHref = `https://da.live/edit#${responseData.daPath}/${responseData.daNewPageSlug}`;
       } else {
@@ -830,6 +830,7 @@ export default async function decorate(block) {
             <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}">
                 <button id="delete-campaign" title="Delete the Campaign" class="button secondary delete-campaign action" hidden>Delete</button>
                 <button id="add-email" title="Add Email" class="button secondary add-email action" hidden>Add Email</button>
+                <a target="_blank" href="#" id="open-campaign" title="Open Campaign" class="button secondary open-campaign action" hidden>Open</a>
                 <button id="new-campaign" title="Start a new Campaign" class="button primary add-campaign action">New Campaign</button>
             </div>
             <div class="audience-actions button-container ${selected === 'audience' ? 'is-selected' : ''}"></div>
@@ -1732,6 +1733,14 @@ export default async function decorate(block) {
               <div class="campaign-container"></div>
             `;
 
+            const setCampaignLink = (action, campaign) => {
+              if (project.darkAlleyProject) {
+                action.href = `https://da.live/#/${daProjectRepo}/${id}/${campaign}`;
+              } else {
+                action.href = `https://drive.google.com/drive/u/1/search?q=title:${campaign}%20parent:${project.driveId}%20type:folder`;
+              }
+            };
+
             const campaignList = emailContainer.querySelector('.campaign-list');
             campaignList.onclick = (event) => {
               if (event.target.matches('a')) {
@@ -1744,12 +1753,17 @@ export default async function decorate(block) {
                 }
                 link.classList.add('is-selected');
 
+                const newSelectedCampaign = link.closest('[data-campaign]');
                 const index = [...campaignList.children].indexOf(link.parentElement);
                 emailContainer.querySelector('.campaign:not([hidden])').hidden = true;
                 emailContainer.querySelector(`.campaign:nth-child(${index + 1})`).hidden = false;
 
-                block.querySelectorAll('.delete-campaign, .add-email').forEach((action) => {
+                block.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
                   action.hidden = index === 0;
+
+                  if (action.classList.contains('open-campaign') && !action.hidden) {
+                    setCampaignLink(action, newSelectedCampaign.dataset.campaign);
+                  }
                 });
 
                 window.history.pushState({}, '', link.getAttribute('href'));
@@ -2080,8 +2094,11 @@ export default async function decorate(block) {
               }
             };
 
-            block.querySelectorAll('.delete-campaign, .add-email').forEach((action) => {
+            block.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
               action.hidden = !window.location.pathname.startsWith(`/${siteType}/${id}/emails/`);
+              if (action.classList.contains('open-campaign') && !action.hidden) {
+                setCampaignLink(action, window.location.pathname.split('/').pop());
+              }
             });
           });
         })
