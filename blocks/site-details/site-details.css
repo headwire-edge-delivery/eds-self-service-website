@@ -308,13 +308,13 @@
     width: 64px;
 }
 
-.site-details.block .emails-panel .container {
+.site-details.block :is(.emails-panel, .analytics-panel) .container {
     display: flex;
     gap: 16px;
     flex-flow: column wrap;
 }
 
-.site-details.block .emails-panel .campaign-list {
+.site-details.block :is(.emails-panel, .analytics-panel) .campaign-list {
     list-style: none;
     padding: 0;
     display: flex;
@@ -323,7 +323,7 @@
     margin: 0 0 16px;
 }
 
-.site-details.block .emails-panel .campaign-list .button.is-selected {
+.site-details.block :is(.emails-panel, .analytics-panel) .campaign-list .button.is-selected {
     background-color: var(--light-blue);
     color: white;
     border-color: var(--light-blue);
@@ -342,7 +342,7 @@
     margin-bottom: 0;
 }
 
-.site-details.block .analytics-panel table td.empty {
+.site-details.block table td.empty {
     text-align: center;
     text-transform: uppercase;
     padding: 32px;

@@ -440,7 +440,7 @@ function addPageDialogSetup({
       let draftsHref;
       let editHref;
 
-      if (project.darkAlleyVariation) {
+      if (project.darkAlleyProject) {
         draftsHref = `https://da.live/#${responseData.daPath}`;
         editHref = `https://da.live/edit#${responseData.daPath}/${responseData.daNewPageSlug}`;
       } else {
@@ -830,6 +830,7 @@ export default async function decorate(block) {
             <div class="emails-actions button-container ${selected === 'emails' ? 'is-selected' : ''}">
                 <button id="delete-campaign" title="Delete the Campaign" class="button secondary delete-campaign action" hidden>Delete</button>
                 <button id="add-email" title="Add Email" class="button secondary add-email action" hidden>Add Email</button>
+                <a target="_blank" href="#" id="open-campaign" title="Open Campaign" class="button secondary open-campaign action" hidden>Open</a>
                 <button id="new-campaign" title="Start a new Campaign" class="button primary add-campaign action">New Campaign</button>
             </div>
             <div class="audience-actions button-container ${selected === 'audience' ? 'is-selected' : ''}"></div>
@@ -1095,6 +1096,204 @@ export default async function decorate(block) {
         <a href="${project.customLiveUrl}" id="open-button" title="Open your Website" class="button primary action open" target="_blank">Open</a>
       `;
 
+      // MARK: Campaign analytics
+      document.addEventListener('campaigns:ready', ({ detail: { campaigns } }) => {
+        fetch(`${SCRIPT_API}/email/${project.projectSlug}`, { headers })
+          .then((req) => {
+            if (req.ok) {
+              return req.json();
+            }
+
+            return false;
+          })
+          .then((campaignAnalytics) => {
+            const analyticsContainer = block.querySelector('.analytics-panel .container');
+            analyticsContainer.innerHTML = `
+            <ul class="campaign-list" data-type="analytics">
+              <li><a class="button action secondary ${window.location.pathname.startsWith(`/${siteType}/${id}/analytics/`) ? '' : 'is-selected'}" href="/${siteType}/${id}/analytics">All emails</a></li>
+              ${Object.keys(campaigns).map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button action secondary ${window.location.pathname === `/${siteType}/${id}/analytics/${campaignSlug}` ? 'is-selected' : ''}" href="/${siteType}/${id}/analytics/${campaignSlug}">${campaigns[campaignSlug].name}</li></a>`).join('')}</a>
+            </ul>
+              
+            <div id="email-metrics" class="cards metrics">
+              <div id="email-metrics-delivery-rate">
+                  <strong>Delivery rate</strong>
+                  <span class="delivered-count"></span>
+              </div>
+              <div id="email-metrics-bounce-rate">
+                  <strong>Bounce rate</strong>
+                  <span class="bounced-count"></span>
+              </div>
+              <div id="email-metrics-open-rate">
+                  <strong>Open rate</strong>
+                  <span class="opened-count"></span>
+              </div>
+              <div id="email-metrics-cto-rate">
+                  <strong>Click-to-open rate</strong>
+                  <span class="clicked-count"></span>
+              </div>
+              <div id="email-metrics-sc-rate">
+                  <strong>Spam complaints rate</strong>
+                  <span class="complained-count"></span>
+              </div>
+            </div>
+            
+            <div id="email-details">
+            <h2>Email details</h2>
+            <table>
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>To</th>
+                    <th>Sent</th>
+                    <th>Delivered</th>
+                    <th>Bounced</th>
+                    <th>Complained</th>
+                    <th>Opened</th>
+                    <th>Clicked</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    ${campaignAnalytics ? Object.keys(campaignAnalytics).sort((emailIdA, emailIdB) => {
+    const sentA = campaignAnalytics[emailIdA].find(({ type }) => type === 'email.sent');
+    const sentB = campaignAnalytics[emailIdB].find(({ type }) => type === 'email.sent');
+    if (sentA && sentB) {
+      return new Date(sentB.created_at) - new Date(sentA.created_at);
+    }
+    return 0;
+  }).map((emailId) => {
+    const reverse = campaignAnalytics[emailId].reverse();
+
+    const sent = campaignAnalytics[emailId].find(({ type }) => type === 'email.sent');
+    const delivered = reverse.find(({ type }) => type === 'email.delivered');
+    const complained = campaignAnalytics[emailId].find(({ type }) => type === 'email.complained');
+    const bounced = campaignAnalytics[emailId].find(({ type }) => type === 'email.bounced');
+    const opened = reverse.find(({ type }) => type === 'email.opened');
+    const clicks = campaignAnalytics[emailId].filter(({ type }) => type === 'email.clicked');
+
+    const emailURL = campaignAnalytics[emailId][0].data.headers.find(({ name }) => name === 'X-Email-Url')?.value;
+
+    let campaign;
+    if (emailURL) {
+      // eslint-disable-next-line prefer-destructuring
+      campaign = new URL(emailURL).pathname.split('/')[1];
+    }
+
+    let campaignSlug;
+    if (window.location.pathname.includes('/analytics/')) {
+      campaignSlug = window.location.pathname.split('/').pop();
+    }
+
+    return `
+                      <tr data-email="${emailId}" data-campaign="${campaign}" ${campaignSlug && campaignSlug !== campaign ? 'hidden' : ''}>
+                        <td>${emailURL ? `<a href="${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${campaignAnalytics[emailId][0].data.subject}</a>` : `${campaignAnalytics[emailId][0].data.subject}`}</td>
+                        <td>${campaignAnalytics[emailId][0].data.to.join(',')}</td>
+                        <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
+                        <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
+                        <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
+                        <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
+                        <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
+                        <td>${clicks.length ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button><div hidden><ul class="clicked-links">${clicks.map((clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${clicked.data.click.link}</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</li>`).join('')}</ul></div>` : ''}</td>
+                      </tr>
+                    `;
+  }).join('') : `
+    <tr><td class="empty" colspan="8">Not enough data</td></tr>
+  `}
+                </tbody>
+            </table>
+            </div>
+          `;
+
+            const calculateCampaignStats = (hasCampaign) => {
+              let sentCount = 0;
+              let deliveredCount = 0;
+              let bouncedCount = 0;
+              let openedCount = 0;
+              let clickedCount = 0;
+              let complainedCount = 0;
+
+              const selector = hasCampaign ? 'tr[data-campaign]:not([hidden])' : 'tbody tr';
+              analyticsContainer.querySelectorAll(selector).forEach((tr) => {
+                const emailId = tr.dataset.email;
+                if (emailId) {
+                  const reverse = campaignAnalytics[emailId].reverse();
+
+                  const sent = campaignAnalytics[emailId].find(({ type }) => type === 'email.sent');
+                  const delivered = reverse.find(({ type }) => type === 'email.delivered');
+                  const complained = campaignAnalytics[emailId].find(({ type }) => type === 'email.complained');
+                  const bounced = campaignAnalytics[emailId].find(({ type }) => type === 'email.bounced');
+                  const opened = reverse.find(({ type }) => type === 'email.opened');
+                  const clicks = campaignAnalytics[emailId].filter(({ type }) => type === 'email.clicked');
+
+                  if (sent) {
+                    sentCount += 1;
+                  }
+                  if (delivered) {
+                    deliveredCount += 1;
+                  }
+                  if (complained) {
+                    complainedCount += 1;
+                  }
+                  if (bounced) {
+                    bouncedCount += 1;
+                  }
+                  if (opened) {
+                    openedCount += 1;
+                  }
+                  if (clicks.length) {
+                    clickedCount += 1;
+                  }
+                }
+              });
+
+              block.querySelector('.delivered-count').textContent = deliveredCount === 0 ? '0%' : `${((deliveredCount / sentCount) * 100).toFixed(2)}%`;
+              block.querySelector('.bounced-count').textContent = bouncedCount === 0 ? '0%' : `${((bouncedCount / sentCount) * 100).toFixed(2)}%`;
+              block.querySelector('.opened-count').textContent = openedCount === 0 ? '0%' : `${((openedCount / deliveredCount) * 100).toFixed(2)}%`;
+              block.querySelector('.clicked-count').textContent = clickedCount === 0 ? '0%' : `${((clickedCount / openedCount) * 100).toFixed(2)}%`;
+              block.querySelector('.complained-count').textContent = complainedCount === 0 ? '0%' : `${((complainedCount / deliveredCount) * 100).toFixed(2)}%`;
+            };
+
+            const campaignList = analyticsContainer.querySelector('.campaign-list');
+            campaignList.onclick = (event) => {
+              if (event.target.matches('a')) {
+                event.preventDefault();
+
+                const link = event.target;
+                const selectedCampaign = campaignList.querySelector('.is-selected');
+                if (selectedCampaign) {
+                  selectedCampaign.classList.remove('is-selected');
+                }
+                link.classList.add('is-selected');
+
+                const li = link.parentElement;
+                const hasCampaign = li.matches('[data-campaign]');
+                analyticsContainer.querySelectorAll('tr[data-campaign]').forEach((tr) => {
+                  tr.hidden = hasCampaign ? tr.dataset.campaign !== li.dataset.campaign : false;
+                });
+
+                calculateCampaignStats(hasCampaign);
+
+                window.history.pushState({}, '', link.getAttribute('href'));
+              }
+            };
+
+            analyticsContainer.querySelectorAll('.click-details').forEach((el) => {
+              el.onclick = () => {
+                const clone = el.nextElementSibling.cloneNode(true);
+                clone.hidden = false;
+                const content = parseFragment(`
+                <div>
+                    <h3>${el.textContent}</h3>
+                    ${clone.outerHTML}    
+                </div>
+              `);
+                window.createDialog(content);
+              };
+            });
+
+            calculateCampaignStats(window.location.pathname.startsWith(`/${siteType}/${id}/analytics/`));
+          });
+      });
+
       // MARK: Share authors
       const authorsList = block.querySelector('.authors-list');
       const addAuthorListItem = (author) => {
@@ -1267,15 +1466,19 @@ export default async function decorate(block) {
 
         event.preventDefault();
 
-        if (!link.classList.contains('is-selected')) {
-          const identifier = link.getAttribute('href');
+        const identifier = link.getAttribute('href');
+        // Delegates navigation
+        const clickSubNav = () => {
+          const allEmailsLink = block.querySelector(`.campaign-list[data-type="${identifier}"] a`);
+          if (allEmailsLink) {
+            allEmailsLink.click();
+          }
+        };
 
-          if (identifier === 'email') {
+        if (!link.classList.contains('is-selected')) {
+          if (identifier === 'emails' || identifier === 'analytics') {
             // Delegates navigation
-            const allEmailsLink = block.querySelector('.campaign-list a');
-            if (allEmailsLink) {
-              allEmailsLink.click();
-            }
+            clickSubNav();
           } else {
             window.history.pushState({}, '', `/${siteType}/${id}/${identifier}`);
           }
@@ -1287,16 +1490,20 @@ export default async function decorate(block) {
           block.querySelector(`.details .${identifier}-panel`).classList.add('is-selected');
           block.querySelector(`.actions .${identifier}-actions`).classList.add('is-selected');
           link.classList.add('is-selected');
+        } else if (identifier === 'emails' || identifier === 'analytics') {
+          clickSubNav();
         }
       });
 
       window.onpopstate = () => {
-        const identifier = window.location.pathname.split('/').pop();
+        const pathSplit = window.location.pathname.split('/');
+        const identifier = pathSplit.pop();
         let link = aside.querySelector(`[href="${identifier}"]`);
         if (link) {
           link.click();
         } else {
-          link = block.querySelector(`.campaign-list a[href="${window.location.pathname}"]`);
+          const type = pathSplit.pop();
+          link = block.querySelector(`.campaign-list[data-type="${type}"] a[href="${window.location.pathname}"]`);
           if (link) {
             link.click();
           }
@@ -1494,6 +1701,10 @@ export default async function decorate(block) {
               return tableRow;
             });
             tableBody.append(...tableRows);
+            if (tableBody.matches(':empty')) {
+              const cols = tableBody.closest('table').querySelectorAll('th').length;
+              tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;
+            }
           };
 
           renderTable(block.querySelector('.pages tbody'), pages);
@@ -1509,16 +1720,26 @@ export default async function decorate(block) {
             }
             return {};
           }).then((campaigns) => {
+            document.dispatchEvent(new CustomEvent('campaigns:ready', { detail: { campaigns } }));
+
             const allCampaignSlugs = Object.keys(campaigns);
             const emailContainer = block.querySelector('.emails-panel .container');
 
             emailContainer.innerHTML = `
-              <ul class="campaign-list">
+              <ul class="campaign-list" data-type="emails">
                 <li><a class="button action secondary ${window.location.pathname.startsWith(`/${siteType}/${id}/emails/`) ? '' : 'is-selected'}" href="/${siteType}/${id}/emails">All emails</a></li>
-                ${allCampaignSlugs.map((campaignSlug) => `<li><a class="button action secondary ${window.location.pathname === `/${siteType}/${id}/emails/${campaignSlug}` ? 'is-selected' : ''}" href="/${siteType}/${id}/emails/${campaignSlug}">${campaigns[campaignSlug].name}</li></a>`).join('')}</a>
+                ${allCampaignSlugs.map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button action secondary ${window.location.pathname === `/${siteType}/${id}/emails/${campaignSlug}` ? 'is-selected' : ''}" href="/${siteType}/${id}/emails/${campaignSlug}">${campaigns[campaignSlug].name}</li></a>`).join('')}</a>
               </ul>
               <div class="campaign-container"></div>
             `;
+
+            const setCampaignLink = (action, campaign) => {
+              if (project.darkAlleyProject) {
+                action.href = `https://da.live/#/${daProjectRepo}/${id}/${campaign}`;
+              } else {
+                action.href = `https://drive.google.com/drive/u/1/search?q=title:${campaign}%20parent:${project.driveId}%20type:folder`;
+              }
+            };
 
             const campaignList = emailContainer.querySelector('.campaign-list');
             campaignList.onclick = (event) => {
@@ -1532,14 +1753,18 @@ export default async function decorate(block) {
                 }
                 link.classList.add('is-selected');
 
+                const newSelectedCampaign = link.closest('[data-campaign]');
                 const index = [...campaignList.children].indexOf(link.parentElement);
                 emailContainer.querySelector('.campaign:not([hidden])').hidden = true;
                 emailContainer.querySelector(`.campaign:nth-child(${index + 1})`).hidden = false;
 
-                block.querySelectorAll('.delete-campaign, .add-email').forEach((action) => {
+                block.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
                   action.hidden = index === 0;
+
+                  if (action.classList.contains('open-campaign') && !action.hidden) {
+                    setCampaignLink(action, newSelectedCampaign.dataset.campaign);
+                  }
                 });
-                block.querySelector('.add-email').hidden = index === 0;
 
                 window.history.pushState({}, '', link.getAttribute('href'));
               }
@@ -1707,9 +1932,11 @@ export default async function decorate(block) {
                 } else {
                   const newCampaign = await req.json();
 
-                  campaignList.insertAdjacentHTML('beforeend', `
-                    <li><a class="button action secondary" href="/${siteType}/${id}/emails/${newCampaign.slug}">${newCampaign.name}</li></a>
-                  `);
+                  block.querySelectorAll('.campaign-list').forEach((el) => {
+                    el.insertAdjacentHTML('beforeend', `
+                      <li data-campaign="${newCampaign.slug}"><a class="button action secondary" href="/${siteType}/${id}/${el.dataset.type}/${newCampaign.slug}">${newCampaign.name}</li></a>
+                    `);
+                  });
 
                   campaignContainer.insertAdjacentHTML('beforeend', `
                     <div class="campaign campaign-${newCampaign.slug}" hidden>
@@ -1849,8 +2076,15 @@ export default async function decorate(block) {
                   });
 
                   if (deleteReq.ok) {
-                    block.querySelector('.campaign-list a.is-selected').remove();
-                    block.querySelector('.campaign-list a').click();
+                    block.querySelector(`.campaign-list[data-type="emails"] li[data-campaign="${campaignSlug}"]`).remove();
+                    block.querySelector('.campaign-list[data-type="emails"] a').click();
+
+                    const li = block.querySelector(`.campaign-list[data-type="analytics"] li[data-campaign="${campaignSlug}"]`);
+                    if (li.querySelector('.is-selected')) {
+                      li.parentElement.firstElementChild.querySelector('a').classList.add('is-selected');
+                    }
+                    li.remove();
+
                     window.history.replaceState({}, '', `/${siteType}/${id}/emails`);
                   } else {
                     await window.alertDialog(OOPS);
@@ -1860,8 +2094,11 @@ export default async function decorate(block) {
               }
             };
 
-            block.querySelectorAll('.delete-campaign, .add-email').forEach((action) => {
+            block.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
               action.hidden = !window.location.pathname.startsWith(`/${siteType}/${id}/emails/`);
+              if (action.classList.contains('open-campaign') && !action.hidden) {
+                setCampaignLink(action, window.location.pathname.split('/').pop());
+              }
             });
           });
         })
@@ -2314,147 +2551,6 @@ export default async function decorate(block) {
       };
 
       renderWebAnalytics(analytics);
-
-      // Load email analytics
-      fetch(`${SCRIPT_API}/email/${project.projectSlug}`, { headers })
-        .then((req) => {
-          if (req.ok) {
-            return req.json();
-          }
-
-          return false;
-        })
-        .then((res) => {
-          let sentCount = 0;
-          let deliveredCount = 0;
-          let bouncedCount = 0;
-          let openedCount = 0;
-          let clickedCount = 0;
-          let complainedCount = 0;
-
-          const analyticsContainer = block.querySelector('.analytics-panel .container');
-          analyticsContainer.innerHTML = `
-            <div id="email-metrics" class="cards metrics">
-              <div id="email-metrics-delivery-rate">
-                  <strong>Delivery rate</strong>
-                  <span class="delivered-count"></span>
-              </div>
-              <div id="email-metrics-bounce-rate">
-                  <strong>Bounce rate</strong>
-                  <span class="bounced-count"></span>
-              </div>
-              <div id="email-metrics-open-rate">
-                  <strong>Open rate</strong>
-                  <span class="opened-count"></span>
-              </div>
-              <div id="email-metrics-cto-rate">
-                  <strong>Click-to-open rate</strong>
-                  <span class="clicked-count"></span>
-              </div>
-              <div id="email-metrics-sc-rate">
-                  <strong>Spam complaints rate</strong>
-                  <span class="complained-count"></span>
-              </div>
-            </div>
-            
-            <div id="email-details">
-            <h2>Email details</h2>
-            <table>
-                <thead>
-                  <tr>
-                    <th>Email</th>
-                    <th>To</th>
-                    <th>Sent</th>
-                    <th>Delivered</th>
-                    <th>Bounced</th>
-                    <th>Complained</th>
-                    <th>Opened</th>
-                    <th>Clicked</th>
-                  </tr>
-                </thead>
-                <tbody>
-                    ${res ? Object.keys(res).sort((emailIdA, emailIdB) => {
-    const sentA = res[emailIdA].find(({ type }) => type === 'email.sent');
-    const sentB = res[emailIdB].find(({ type }) => type === 'email.sent');
-    if (sentA && sentB) {
-      return new Date(sentB.created_at) - new Date(sentA.created_at);
-    }
-    return 0;
-  }).map((emailId) => {
-    const reverse = res[emailId].reverse();
-
-    const sent = res[emailId].find(({ type }) => type === 'email.sent');
-    const delivered = reverse.find(({ type }) => type === 'email.delivered');
-    const complained = res[emailId].find(({ type }) => type === 'email.complained');
-    const bounced = res[emailId].find(({ type }) => type === 'email.bounced');
-    const opened = reverse.find(({ type }) => type === 'email.opened');
-    const clicks = res[emailId].filter(({ type }) => type === 'email.clicked');
-
-    if (sent) {
-      sentCount += 1;
-    }
-    if (delivered) {
-      deliveredCount += 1;
-    }
-    if (complained) {
-      complainedCount += 1;
-    }
-    if (bounced) {
-      bouncedCount += 1;
-    }
-    if (opened) {
-      openedCount += 1;
-    }
-    if (clicks.length) {
-      clickedCount += 1;
-    }
-
-    const emailURL = res[emailId][0].data.headers.find(({ name }) => name === 'X-Email-Url')?.value;
-
-    return `
-                      <tr>
-                        <td>${emailURL ? `<a href="${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${res[emailId][0].data.subject}</a>` : `${res[emailId][0].data.subject}`}</td>
-                        <td>${res[emailId][0].data.to.join(',')}</td>
-                        <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
-                        <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
-                        <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
-                        <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
-                        <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
-                        <td>${clicks.length ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button><div hidden><ul class="clicked-links">${clicks.map((clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${clicked.data.click.link}</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</li>`).join('')}</ul></div>` : ''}</td>
-                      </tr>
-                    `;
-  }).join('') : `
-    <tr><td class="empty" colspan="8">Not enough data</td></tr>
-  `}
-                </tbody>
-            </table>
-            </div>
-          `;
-
-          analyticsContainer.querySelectorAll('.click-details').forEach((el) => {
-            el.onclick = () => {
-              const clone = el.nextElementSibling.cloneNode(true);
-              clone.hidden = false;
-              const content = parseFragment(`
-                <div>
-                    <h3>${el.textContent}</h3>
-                    ${clone.outerHTML}    
-                </div>
-              `);
-              window.createDialog(content);
-            };
-          });
-
-          if (res) {
-            block.querySelector('.delivered-count').textContent = deliveredCount === 0 ? '0%' : `${((deliveredCount / sentCount) * 100).toFixed(2)}%`;
-            block.querySelector('.bounced-count').textContent = bouncedCount === 0 ? '0%' : `${((bouncedCount / sentCount) * 100).toFixed(2)}%`;
-            block.querySelector('.opened-count').textContent = openedCount === 0 ? '0%' : `${((openedCount / deliveredCount) * 100).toFixed(2)}%`;
-            block.querySelector('.clicked-count').textContent = clickedCount === 0 ? '0%' : `${((clickedCount / openedCount) * 100).toFixed(2)}%`;
-            block.querySelector('.complained-count').textContent = complainedCount === 0 ? '0%' : `${((complainedCount / deliveredCount) * 100).toFixed(2)}%`;
-          } else {
-            block.querySelectorAll('.analytics-panel .metrics span').forEach((el) => el.remove());
-          }
-        });
     } else if (reqDetails.status === 404) {
       block.querySelector('.content p').innerHTML = `<p>Project "${id}" not found. Create it <a href="/">here!</a></p>`;
     } else {
