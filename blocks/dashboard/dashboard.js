@@ -1,5 +1,6 @@
-import { SCRIPT_API, onAuthenticated, OOPS } from '../../scripts/scripts.js';
-import { toggleAutoTour, fetchUserSettings, updateCachedUserData } from '../../tour/main.js';
+import {
+  SCRIPT_API, onAuthenticated, OOPS, updateUserSettings, getUserSettings,
+} from '../../scripts/scripts.js';
 
 /**
  * @param {Element} block
@@ -79,7 +80,7 @@ export default async function decorate(block) {
     const aside = block.querySelector('aside');
     const account = block.querySelector('.account');
     const sites = block.querySelector('.sites');
-    const userSettings = await fetchUserSettings(SCRIPT_API);
+    const userSettings = await getUserSettings(SCRIPT_API);
     // const { showAutoTour } = userSettings;
     const toggleAutoTourButton = block.querySelector('#toggle-auto-tour-button');
 
@@ -97,10 +98,9 @@ export default async function decorate(block) {
 
     toggleAutoTourButton.onclick = async () => {
       toggleAutoTourButton.classList.add('loading');
-      const toggleAutoTourResponse = await toggleAutoTour(SCRIPT_API, !userSettings.showAutoTour);
-      if (toggleAutoTourResponse?.ok) {
+      const success = await updateUserSettings({ showAutoTour: !userSettings.showAutoTour });
+      if (success) {
         userSettings.showAutoTour = !userSettings.showAutoTour;
-        updateCachedUserData(userSettings);
         toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
       }
       toggleAutoTourButton.classList.remove('loading');

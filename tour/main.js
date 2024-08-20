@@ -18,6 +18,7 @@ import {
   settingsThemeTour,
 } from './index.js';
 import generateTour from './generateTour.js';
+import { getUserSettings } from '../scripts/scripts.js';
 
 function onAuthenticated(cb) {
   if (document.body.classList.contains('is-authenticated')) {
@@ -53,82 +54,82 @@ function observeBlocks(myFunction) {
   });
 }
 
-const toggleAutoTour = (SCRIPT_API, setTo = !showAutoTour) => new Promise((resolve, reject) => {
-  onAuthenticated(async () => {
-    const token = await window.auth0Client.getTokenSilently();
-    const headers = { authorization: `bearer ${token}` };
+// const toggleAutoTour = (SCRIPT_API, setTo = !showAutoTour) => new Promise((resolve, reject) => {
+//   onAuthenticated(async () => {
+//     const token = await window.auth0Client.getTokenSilently();
+//     const headers = { authorization: `bearer ${token}` };
 
-    await fetch(`${SCRIPT_API}/userSettings`, {
-      headers: { ...headers, 'content-type': 'application/json' },
-      method: 'POST',
-      body: JSON.stringify({ userSettings: { showAutoTour: setTo } }),
-      // eslint-disable-next-line no-console
-    })
-      .then((response) => {
-        if (response.ok) {
-          resolve(response);
-        } else {
-          reject(response);
-        }
-      })
-      .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(error);
-        reject();
-      });
-  });
-});
+//     await fetch(`${SCRIPT_API}/userSettings`, {
+//       headers: { ...headers, 'content-type': 'application/json' },
+//       method: 'POST',
+//       body: JSON.stringify({ userSettings: { showAutoTour: setTo } }),
+//       // eslint-disable-next-line no-console
+//     })
+//       .then((response) => {
+//         if (response.ok) {
+//           resolve(response);
+//         } else {
+//           reject(response);
+//         }
+//       })
+//       .catch((error) => {
+//         // eslint-disable-next-line no-console
+//         console.error(error);
+//         reject();
+//       });
+//   });
+// });
 
 const { tour } = window.expedition.js;
 
-function getTour(SCRIPT_API, siteTour) {
+function getTour(siteTour) {
   return setTimeout(() => {
     // eslint-disable-next-line max-len
-    generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoTour, siteTour(userData)).start();
+    generateTour(tour, showAutoTour, siteTour(userData)).start();
   }, 100);
 }
 
-let cachedUserSettings = null;
-const fetchUserSettings = async (SCRIPT_API) => {
-  if (cachedUserSettings) {
-    return cachedUserSettings;
-  }
-  const token = await window.auth0Client.getTokenSilently();
-  const headers = { authorization: `bearer ${token}`, 'content-type': 'application/json' };
+// const fetchUserSettings = async (SCRIPT_API) => {
+//   if (cachedUserSettings) {
+//     return cachedUserSettings;
+//   }
+//   const token = await window.auth0Client.getTokenSilently();
+//   const headers = { authorization: `bearer ${token}`, 'content-type': 'application/json' };
 
-  const response = await fetch(`${SCRIPT_API}/userSettings`, {
-    headers,
-    method: 'GET',
-  });
-  const data = await response.json();
-  cachedUserSettings = data;
-  return data;
-};
+//   const response = await fetch(`${SCRIPT_API}/userSettings`, {
+//     headers,
+//     method: 'GET',
+//   });
+//   const data = await response.json();
+//   cachedUserSettings = data;
+//   return data;
+// };
 
-export function updateCachedUserData(newUserData) {
-  cachedUserSettings = { ...cachedUserSettings, ...newUserData };
-}
+// export function updateCachedUserData(newUserData) {
+//   cachedUserSettings = { ...cachedUserSettings, ...newUserData };
+// }
 
-const startTour = (SCRIPT_API, isAutoTour = false, showDisableTour = false) => {
+// eslint-disable-next-line import/prefer-default-export
+export const startTour = (isAutoTour = false, showDisableTour = false) => {
   window.scrollTo(0, 0);
   if (isAutoTour) {
     onAuthenticated(async () => {
-      const data = await fetchUserSettings(SCRIPT_API);
+      const data = await getUserSettings();
       showAutoTour = data.showAutoTour;
       userData = data;
       if (showAutoTour) {
         if (checkAllLoaded()) {
-          startTour(SCRIPT_API, false, true);
+          startTour(false, true);
         } else {
           observeBlocks(() => {
-            startTour(SCRIPT_API, false, true);
+            startTour(false, true);
           });
         }
       }
     });
   } else {
     onAuthenticated(async () => {
-      const data = await fetchUserSettings(SCRIPT_API);
+      const data = await getUserSettings();
       userData = data;
     });
 
@@ -148,86 +149,84 @@ const startTour = (SCRIPT_API, isAutoTour = false, showDisableTour = false) => {
 
     switch (true) {
       case switchCase('/site/', '/overview'):
-        getTour(SCRIPT_API, siteOverviewTour);
+        getTour(siteOverviewTour);
         break;
       case switchCase('/da-site/', '/overview'):
-        getTour(SCRIPT_API, siteOverviewTour);
+        getTour(siteOverviewTour);
         break;
       case switchCase('/site/', '/pages'):
-        getTour(SCRIPT_API, sitePagesTour);
+        getTour(sitePagesTour);
         break;
       case switchCase('/da-site/', '/pages'):
-        getTour(SCRIPT_API, sitePagesTour);
+        getTour(sitePagesTour);
         break;
       case switchCase('/site/', '/monitoring'):
-        getTour(SCRIPT_API, siteMonitoringTour);
+        getTour(siteMonitoringTour);
         break;
       case switchCase('/da-site/', '/monitoring'):
-        getTour(SCRIPT_API, siteMonitoringTour);
+        getTour(siteMonitoringTour);
         break;
       case switchCase('/site/', '/emails'):
-        getTour(SCRIPT_API, campaignEmailsTour);
+        getTour(campaignEmailsTour);
         break;
       case switchCase('/da-site/', '/emails'):
-        getTour(SCRIPT_API, campaignEmailsTour);
+        getTour(campaignEmailsTour);
         break;
       case switchCase('/da-site/', '/audience'):
-        getTour(SCRIPT_API, campaignEmailsAudienceTour);
+        getTour(campaignEmailsAudienceTour);
         break;
       case switchCase('/site/', '/audience'):
-        getTour(SCRIPT_API, campaignEmailsAudienceTour);
+        getTour(campaignEmailsAudienceTour);
         break;
       case switchCase('/site/', '/analytics'):
-        getTour(SCRIPT_API, campaignEmailAnalyticsTour);
+        getTour(campaignEmailAnalyticsTour);
         break;
       case switchCase('/da-site/', '/analytics'):
-        getTour(SCRIPT_API, campaignEmailAnalyticsTour);
+        getTour(campaignEmailAnalyticsTour);
         break;
       case switchCase('/site/', '/settings'):
-        getTour(SCRIPT_API, settingsGeneralTour);
+        getTour(settingsGeneralTour);
         break;
       case switchCase('/da-site/', '/settings'):
-        getTour(SCRIPT_API, settingsGeneralTour);
+        getTour(settingsGeneralTour);
         break;
       case switchCase('/theme/'):
-        getTour(SCRIPT_API, settingsThemeTour);
+        getTour(settingsThemeTour);
         break;
       case switchCase('/email/'):
-        getTour(SCRIPT_API, emailTour);
+        getTour(emailTour);
         break;
       case switchCase('/dashboard/sites'):
-        getTour(SCRIPT_API, dashboardSitesTour);
+        getTour(dashboardSitesTour);
         break;
       case switchCase('/dashboard/account'):
-        getTour(SCRIPT_API, dashboardAccountTour);
+        getTour(dashboardAccountTour);
         break;
       case switchCase('/templates/', '/create'):
-        getTour(SCRIPT_API, createTemplateTour);
+        getTour(createTemplateTour);
         break;
       case switchCase('/templates/', '/create/progress'):
         if (!showAutoTour) {
-          getTour(SCRIPT_API, noTourAvailable);
+          getTour(noTourAvailable);
         }
         break;
       case switchCase('/templates/wknd-template'):
-        getTour(SCRIPT_API, wkndTemplateTour);
+        getTour(wkndTemplateTour);
         break;
       case switchCase('/templates/sports-template'):
-        getTour(SCRIPT_API, sportsTemplateTour);
+        getTour(sportsTemplateTour);
         break;
       case switchCase('/templates/club-template'):
-        getTour(SCRIPT_API, clubTemplateTour);
+        getTour(clubTemplateTour);
         break;
       case pathname === '/' || switchCase('/templates/'):
-        getTour(SCRIPT_API, homepageTour);
+        getTour(homepageTour);
         break;
       default:
         if (!showAutoTour) {
-          getTour(SCRIPT_API, noTourAvailable);
+          getTour(noTourAvailable);
         }
         break;
     }
   }
 };
-
-export { startTour, toggleAutoTour, fetchUserSettings };

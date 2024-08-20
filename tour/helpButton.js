@@ -1,6 +1,6 @@
 import { startTour } from './main.js';
 
-const helpButton = (SCRIPT_API) => {
+const helpButton = () => {
   const button = document.createElement('button');
   button.id = 'help-btn';
   button.innerText = '?';
@@ -8,7 +8,7 @@ const helpButton = (SCRIPT_API) => {
   button.ariaLabel = 'Help';
   document.querySelector('footer').appendChild(button);
 
-  document.querySelector('.help-btn').addEventListener('click', () => startTour(SCRIPT_API, false));
+  document.querySelector('.help-btn').addEventListener('click', () => startTour(false));
 
   // Checks if the Url changes and starts the AutoTour
   const originalPushState = window.history.pushState;
@@ -16,17 +16,17 @@ const helpButton = (SCRIPT_API) => {
 
   // eslint-disable-next-line func-names
   window.history.pushState = function (...args) {
-    startTour(SCRIPT_API, true, true);
+    startTour(true, true);
     return originalPushState.apply(this, args);
   };
 
   // eslint-disable-next-line func-names
   window.history.replaceState = function (...args) {
-    startTour(SCRIPT_API, true, true);
+    startTour(true, true);
     return originalReplaceState.apply(this, args);
   };
 
-  startTour(SCRIPT_API, true, true);
+  startTour(true, true);
 };
 
-export default helpButton;
+helpButton();

@@ -11,7 +11,6 @@ import {
   loadCSS,
   fetchPlaceholders,
 } from './aem.js';
-import helpButton from '../tour/helpButton.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 const range = document.createRange();
@@ -19,7 +18,6 @@ const range = document.createRange();
 export const SCRIPT_API = window.location.hostname === 'localhost'
   ? 'http://localhost:4000' : 'https://eds-self-service-scripts.onrender.com';
 export const EMAIL_WORKER_API = 'https://emails.headwire.workers.dev';
-
 export const OOPS = 'Oops ! Something went wrong …';
 
 export const defaultBranch = 'main';
@@ -40,6 +38,49 @@ export function onAuthenticated(cb) {
       cb();
     });
   }
+}
+export async function waitForAuthenticated() {
+  await new Promise((resolve) => {
+    onAuthenticated(resolve);
+  });
+}
+
+let cachedUserSettings = null;
+export async function getUserSettings() {
+  if (cachedUserSettings) {
+    return cachedUserSettings;
+  }
+  await waitForAuthenticated();
+
+  const token = await window.auth0Client.getTokenSilently();
+  const headers = { authorization: `bearer ${token}` };
+
+  const data = await fetch(`${SCRIPT_API}/userSettings`, {
+    headers,
+  }).then((response) => response.json()).catch(() => null);
+
+  if (data) {
+    cachedUserSettings = data;
+  }
+  return data;
+}
+
+export async function updateUserSettings(newSettingsData) {
+  await waitForAuthenticated();
+
+  const token = await window.auth0Client.getTokenSilently();
+  const headers = { authorization: `bearer ${token}`, 'content-type': 'application/json' };
+
+  const response = await fetch(`${SCRIPT_API}/userSettings`, {
+    headers,
+    method: 'POST',
+    body: JSON.stringify({ userSettings: newSettingsData }),
+  });
+  if (response.ok) {
+    cachedUserSettings = newSettingsData;
+    return true;
+  }
+  return false;
 }
 
 export const KESTREL_ONE = 'kestrelone.com';
@@ -278,5 +319,3 @@ function createPromiseDialog(textContent = 'Are you sure?', withConfirm = false)
 
 window.alertDialog = (text = 'ALERT') => createPromiseDialog(text);
 window.confirmDialog = (text = 'Are you sure?') => createPromiseDialog(text, true);
-
-helpButton(SCRIPT_API);
