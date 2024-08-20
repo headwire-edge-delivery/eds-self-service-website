@@ -54,32 +54,6 @@ function observeBlocks(myFunction) {
   });
 }
 
-// const toggleAutoTour = (SCRIPT_API, setTo = !showAutoTour) => new Promise((resolve, reject) => {
-//   onAuthenticated(async () => {
-//     const token = await window.auth0Client.getTokenSilently();
-//     const headers = { authorization: `bearer ${token}` };
-
-//     await fetch(`${SCRIPT_API}/userSettings`, {
-//       headers: { ...headers, 'content-type': 'application/json' },
-//       method: 'POST',
-//       body: JSON.stringify({ userSettings: { showAutoTour: setTo } }),
-//       // eslint-disable-next-line no-console
-//     })
-//       .then((response) => {
-//         if (response.ok) {
-//           resolve(response);
-//         } else {
-//           reject(response);
-//         }
-//       })
-//       .catch((error) => {
-//         // eslint-disable-next-line no-console
-//         console.error(error);
-//         reject();
-//       });
-//   });
-// });
-
 const { tour } = window.expedition.js;
 
 function getTour(siteTour) {
@@ -88,26 +62,6 @@ function getTour(siteTour) {
     generateTour(tour, showAutoTour, siteTour(userData)).start();
   }, 100);
 }
-
-// const fetchUserSettings = async (SCRIPT_API) => {
-//   if (cachedUserSettings) {
-//     return cachedUserSettings;
-//   }
-//   const token = await window.auth0Client.getTokenSilently();
-//   const headers = { authorization: `bearer ${token}`, 'content-type': 'application/json' };
-
-//   const response = await fetch(`${SCRIPT_API}/userSettings`, {
-//     headers,
-//     method: 'GET',
-//   });
-//   const data = await response.json();
-//   cachedUserSettings = data;
-//   return data;
-// };
-
-// export function updateCachedUserData(newUserData) {
-//   cachedUserSettings = { ...cachedUserSettings, ...newUserData };
-// }
 
 // eslint-disable-next-line import/prefer-default-export
 export const startTour = (isAutoTour = false, showDisableTour = false) => {
