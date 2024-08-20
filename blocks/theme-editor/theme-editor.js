@@ -1014,7 +1014,7 @@ export default async function decorate(block) {
         }
 
         const pages = data.filter(
-          ({ template, robots, path }) => !template.includes('email')
+          ({ template, robots, path }) => !template?.includes('email')
                 && !robots.includes('noindex')
                 && path !== '/footer'
                 && path !== '/nav',
