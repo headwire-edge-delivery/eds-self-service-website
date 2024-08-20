@@ -120,7 +120,8 @@ function dashboardAccountTour({ showAutoTour }) {
       {
         title: 'You\'re ready to go!',
         description: 'You now have all the information you need to get started.',
-        skip: !showAutoTour || (!document.querySelector(driveProjectListQuery)?.children?.length && showAutoTour),
+        skip: !showAutoTour
+          || (!document.querySelector(driveProjectListQuery)?.children?.length && showAutoTour),
       },
     ],
   };

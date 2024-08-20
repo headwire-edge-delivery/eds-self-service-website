@@ -45,7 +45,7 @@ function createTemplateTour() {
   return tourData;
 }
 
-function wkndTemplateTour({ showAutoTour }) {
+function wkndTemplateTour() {
   const tourData = {
     onFinished: () => { /* prevent "do you want to disable tour?" from showing */ },
     steps: [
@@ -74,7 +74,7 @@ function wkndTemplateTour({ showAutoTour }) {
   return tourData;
 }
 
-function sportsTemplateTour({ showAutoTour }) {
+function sportsTemplateTour() {
   const tourData = {
     onFinished: () => { /* prevent "do you want to disable tour?" from showing */ },
     steps: [
@@ -103,7 +103,7 @@ function sportsTemplateTour({ showAutoTour }) {
   return tourData;
 }
 
-function clubTemplateTour({ showAutoTour }) {
+function clubTemplateTour() {
   const tourData = {
     onFinished: () => { /* prevent "do you want to disable tour?" from showing */ },
     steps: [

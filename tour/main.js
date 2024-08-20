@@ -71,6 +71,7 @@ const toggleAutoTour = (SCRIPT_API, setTo = !showAutoTour) => new Promise((resol
         }
       })
       .catch((error) => {
+        // eslint-disable-next-line no-console
         console.error(error);
         reject();
       });

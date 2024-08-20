@@ -1,4 +1,4 @@
-export default function homepageTour({ driveProjects, darkAlleyProjects, showAutoTour }) {
+export default function homepageTour() {
   const userIsAuthenticated = document.body.classList.contains('is-authenticated');
   const tourData = {
     onFinished: () => {
