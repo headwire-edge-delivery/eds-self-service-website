@@ -3,7 +3,7 @@ function siteOverviewTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        window.location.href = window.location.href.replace('/overview', '/pages');
+        document.querySelector('main .site-details.block aside a[href="pages"]')?.click();
       }
     },
     steps: [
@@ -13,7 +13,7 @@ function siteOverviewTour({ showAutoTour }) {
       },
       {
         title: 'Install Sidekick',
-        description: 'Please install the Sidekick Extension. It is mandatory to use the Sidekick Extension. <a href="https://experienceleague.adobe.com/en/docs/experience-manager-cloud-service/content/edge-delivery/resources/sidekick/sidekick" target="_blank">Click here to learn more about Sidekick.</a>',
+        description: 'Please install the Sidekick Extension. It is mandatory to use the Sidekick Extension. <a href="https://www.aem.live/docs/sidekick-extension" target="_blank">Click here to learn more about Sidekick.</a>',
         element: '#install-sidekick-button',
         skip: isDarkAlley,
         destroyOnClicked: false,
@@ -54,8 +54,6 @@ function siteOverviewTour({ showAutoTour }) {
         title: 'Update Site Description',
         description: 'You can easily update your site description here.',
         element: '#update-desc-button',
-        skip: isDarkAlley,
-        elementEvent: () => {},
         side: 'left',
       },
       {
@@ -91,7 +89,7 @@ function sitePagesTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        window.location.href = window.location.href.replace('/pages', '/monitoring');
+        document.querySelector('main .site-details.block aside a[href="monitoring"]')?.click();
       }
     },
     steps: [
@@ -103,7 +101,6 @@ function sitePagesTour({ showAutoTour }) {
         title: 'Add a new Page',
         description: 'If you want to create a new page, click here. <br /> It will open a dialog where you can define a Page name and choose between the Templates. <br /> It\'s the easiest way to create a new page.',
         element: '#add-page-button',
-        elementEvent: () => {},
         side: 'left',
       },
       {
@@ -143,7 +140,7 @@ function siteMonitoringTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        window.location.href = window.location.href.replace('/monitoring', '/emails');
+        document.querySelector('main .site-details.block aside a[href="emails"]')?.click();
       }
     },
     steps: [

@@ -1,6 +1,6 @@
-import { decorateBlock } from '../../scripts/aem.js';
-import { SCRIPT_API, onAuthenticated, OOPS } from '../../scripts/scripts.js';
-import { toggleAutoTour, fetchUserSettings } from '../../tour/main.js';
+import {
+  SCRIPT_API, onAuthenticated, OOPS, updateUserSettings, getUserSettings,
+} from '../../scripts/scripts.js';
 
 /**
  * @param {Element} block
@@ -80,11 +80,12 @@ export default async function decorate(block) {
     const aside = block.querySelector('aside');
     const account = block.querySelector('.account');
     const sites = block.querySelector('.sites');
-    const userSettings = await fetchUserSettings(SCRIPT_API);
-    const { showAutoTour } = userSettings;
+    const userSettings = await getUserSettings(SCRIPT_API);
+    // const { showAutoTour } = userSettings;
+    const toggleAutoTourButton = block.querySelector('#toggle-auto-tour-button');
 
-    if (showAutoTour) {
-      block.querySelector('#toggle-auto-tour-button').textContent = 'Disable Auto Tour';
+    if (userSettings.showAutoTour) {
+      toggleAutoTourButton.textContent = 'Disable Auto Tour';
     }
 
     block.querySelector('.new').onclick = () => {
@@ -95,9 +96,14 @@ export default async function decorate(block) {
       window?.zaraz?.track('click dashboard edit account', { url: window.location.href });
     };
 
-    block.querySelector('#toggle-auto-tour-button').onclick = () => {
-      toggleAutoTour(SCRIPT_API);
-      window.location.reload();
+    toggleAutoTourButton.onclick = async () => {
+      toggleAutoTourButton.classList.add('loading');
+      const success = await updateUserSettings({ showAutoTour: !userSettings.showAutoTour });
+      if (success) {
+        userSettings.showAutoTour = !userSettings.showAutoTour;
+        toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
+      }
+      toggleAutoTourButton.classList.remove('loading');
     };
 
     aside.addEventListener('click', (event) => {
@@ -127,8 +133,6 @@ export default async function decorate(block) {
     const additionalFragments = document.querySelectorAll('main > .fragment-wrapper, main > .section > .fragment-wrapper');
     additionalFragments.forEach((fragment) => {
       account.append(fragment);
-      const fragmentBlock = fragment.querySelector('.block');
-      decorateBlock(fragmentBlock);
     });
 
     // List all sites
@@ -148,18 +152,6 @@ export default async function decorate(block) {
         sites.innerHTML = '<p>No Sites found</p>';
         return;
       }
-
-      await fetch(`${SCRIPT_API}/userSettings`, {
-        headers: {
-          'content-type': 'application/json',
-          authorization: `bearer ${token}`,
-        },
-        method: 'POST',
-        body: JSON.stringify(
-          { userSettings: { projects: { google: projects, darkAlley: darkAlleyProjects } } },
-        ),
-        // eslint-disable-next-line no-console
-      }).catch((error) => console.error(error));
 
       sites.innerHTML = '<input type="text" placeholder="Filter sites" class="filter">';
 

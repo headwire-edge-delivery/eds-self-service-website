@@ -1,4 +1,6 @@
-export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoTour, tourData) {
+import { updateUserSettings } from '../scripts/scripts.js';
+
+export default function generateTour(tour, showAutoTour, tourData) {
   const tourSteps = [];
   let isLastStep = false;
   let showDisableTour = showAutoTour;
@@ -73,7 +75,7 @@ export default function generateTour(tour, toggleAutoTour, SCRIPT_API, showAutoT
 
           disableTourButton.addEventListener('click', () => {
             tourObj.destroy();
-            toggleAutoTour(SCRIPT_API);
+            updateUserSettings({ showAutoTour: false });
           });
         },
       });

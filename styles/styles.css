@@ -54,9 +54,13 @@ html:has(dialog[open]) {
 body {
   margin: 0;
   overflow-x: hidden;
-  display: flex;
+  display: none;
   flex-direction: column;
   min-height: 100vh;
+}
+
+body.appear {
+  display: flex;
 }
 
 body.is-template-previewing {
