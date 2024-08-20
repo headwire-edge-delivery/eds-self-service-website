@@ -405,9 +405,17 @@ export default async function decorate(block) {
                     <td>
                         <div class="button-container">
                           <button class="button secondary action render">Preview</button>
+                          <button class="button secondary action remove">Remove</button>
                         </div>
                     </td>
                 </tr>`).join('')}
+                <tr>
+                    <td></td>
+                    ${recipientsData.headers.map(() => '<td><input type="text"></td>').join('')}
+                    <td>
+                        <button class="button secondary action add is-disabled">Add</button>
+                    </td>
+                </tr>
               </tbody>
             `;
 
@@ -440,7 +448,68 @@ export default async function decorate(block) {
 
               // Re-render preview with newly selected recipient
               previewVars.click();
+            } else if (e.target.matches('.remove')) {
+              window?.zaraz?.track('click email recipients remove', { url: window.location.href });
+
+              const tr = e.target.closest('tr');
+              const index = [...tr.parentElement.children].indexOf(tr);
+              tr.remove();
+
+              toggleSendDisabled();
+
+              fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients&row=${index}`, {
+                method: 'DELETE',
+                headers: {
+                  authorization: `bearer ${token}`,
+                },
+              });
             }
+          };
+
+          const add = recipients.querySelector('.add');
+          const addInputs = [...recipients.querySelectorAll('tbody tr:last-child input')];
+          addInputs.forEach((input) => {
+            input.onkeydown = () => {
+              const values = addInputs.map((addInput) => addInput.value).join('');
+              add.classList.toggle('is-disabled', values.length === 0);
+            };
+          });
+
+          add.onclick = () => {
+            window?.zaraz?.track('click email recipients add', { url: window.location.href });
+
+            const newRecipient = {};
+            recipientsData.headers.forEach((key, index) => {
+              newRecipient[key] = addInputs[index].value;
+            });
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="checkbox" class="select"></td>
+                ${addInputs.map((input) => `<td>${input.value}</td>`).join('')}   
+                <td>
+                    <div class="button-container">
+                        <button class="button secondary action render">Preview</button>
+                        <button class="button secondary action remove">Remove</button>
+                    </div>
+                </td>
+              `;
+            recipientsData.data.push(newRecipient);
+            tr.dataset.email = newRecipient.email;
+            add.closest('tr').before(tr);
+
+            // Reset
+            addInputs.forEach((input) => {
+              input.value = '';
+            });
+
+            fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
+              method: 'POST',
+              headers: {
+                authorization: `bearer ${token}`,
+                'content-type': 'application/json',
+              },
+              body: JSON.stringify(newRecipient),
+            });
           };
 
           send.onclick = async () => {
