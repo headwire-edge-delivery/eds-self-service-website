@@ -11,6 +11,7 @@
     "lint:windows": "npm run lint:js-fix && npm run lint:css"
   },
   "devDependencies": {
+    "@adobe/aem-cli": "^16.5.17",
     "@babel/core": "7.24.3",
     "@babel/eslint-parser": "7.24.1",
     "chai": "5.1.0",
