@@ -1540,10 +1540,7 @@ export default async function decorate(block) {
             headers,
           });
           if (reqDelete.ok) {
-            // Adding 2s delay to make sure project is deleted from drive
-            setTimeout(() => {
-              window.location.href = '/dashboard';
-            }, 2000);
+            window.location.href = '/dashboard';
           } else {
             await window.alertDialog(OOPS);
             block.classList.remove('is-deleting');
