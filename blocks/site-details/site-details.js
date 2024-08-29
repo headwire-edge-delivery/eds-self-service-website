@@ -475,6 +475,7 @@ function renderBlocksList(block, { project, headers }) {
   blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
     const li = document.createElement('li');
     li.dataset.blockName = name;
+    li.setAttribute('data-protected-block', protectedBlocks[name] || '');
     li.dataset.createInfo = createInfo || '';
     li.dataset.deleteWarning = deleteWarning || '';
     li.tabIndex = 0;
