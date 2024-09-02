@@ -63,18 +63,20 @@ function addIconDialogSetup({
   uploadEndpoint = `${SCRIPT_API}/icons/${id}`,
   defaultSrc,
 }) {
-  window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add`, { url: window.location.href });
+  const isFavicon = titleText === 'Favicon';
+  window?.zaraz?.track(`click site ${isFavicon ? 'favicon' : 'icon'} add`, { url: window.location.href });
 
-  const submit = parseFragment('<button form="update-icon-form" type="submit" class="button primary action">Save</button>');
+  const formId = `${nameOverride ? 'update' : 'add'}-${isFavicon ? 'favicon' : 'icon'}-form`;
+  const submit = parseFragment(`<button form="${formId}" type="submit" class="button primary action">Save</button>`);
   const content = parseFragment(`
     <div>
       <h3>${titleText}</h3>
       
-      <form id="update-icon-form">
-          <p>${titleText === 'Favicon' ? 'Don\'t have an .ico file yet? You can convert your image to a .ico file <a href="https://www.icoconverter.com/" target="_blank">here</a>.' : 'Upload a new SVG icon.'}</p>
+      <form id="${formId}">
+          <p>${isFavicon ? 'Don\'t have an .ico file yet? You can convert your image to a .ico file <a href="https://www.icoconverter.com/" target="_blank">here</a>.' : 'Upload a new SVG icon.'}</p>
           <label>
               <span>File *</span>
-              <input type="file" accept="${fileAccept}" required name="pageName" placeholder="Blog Page"/>
+              <input type="file" accept="${fileAccept}" required/>
           </label>
           <div class="preview">${defaultSrc ? `<img alt="favicon" src="${defaultSrc}" loading="lazy" />` : ''}</div>
         </form>
@@ -110,11 +112,11 @@ function addIconDialogSetup({
 
   const dialog = window.createDialog(content, [submit]);
 
-  const form = document.getElementById('update-icon-form');
+  const form = document.getElementById(formId);
   form.onsubmit = async (event) => {
     event.preventDefault();
 
-    window?.zaraz?.track(`click site ${titleText === 'Favicon' ? 'favicon' : 'icon'} add submit`, { url: window.location.href });
+    window?.zaraz?.track(`click site ${isFavicon ? 'favicon' : 'icon'} add submit`, { url: window.location.href });
 
     if (!file) {
       await window.alertDialog('Please select a file');
@@ -158,7 +160,7 @@ function blockIconDialogSetup({
 }) {
   window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`, { url: window.location.href });
 
-  const formId = `update-${isIcon ? 'icon' : 'block'}-form`;
+  const formId = `change-${isIcon ? 'icon' : 'block'}-form`;
   const content = parseFragment(`
     <div>
         <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>    
