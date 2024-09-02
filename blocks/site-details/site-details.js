@@ -477,6 +477,7 @@ function renderBlocksList(block, { project, headers }) {
   blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
     const li = document.createElement('li');
     li.dataset.blockName = name;
+    li.setAttribute('data-protected-block', protectedBlocks[name] || '');
     li.dataset.createInfo = createInfo || '';
     li.dataset.deleteWarning = deleteWarning || '';
     li.tabIndex = 0;
@@ -1542,10 +1543,7 @@ export default async function decorate(block) {
             headers,
           });
           if (reqDelete.ok) {
-            // Adding 2s delay to make sure project is deleted from drive
-            setTimeout(() => {
-              window.location.href = '/dashboard';
-            }, 2000);
+            window.location.href = '/dashboard';
           } else {
             await window.alertDialog(OOPS);
             block.classList.remove('is-deleting');
