@@ -1376,8 +1376,13 @@ export default async function decorate(block) {
 
         event.preventDefault();
 
-        addAuthorForm.classList.add('is-disabled');
         const email = event.target.email.value;
+        if (authorsList.querySelector(`[data-author-email="${email}"]`)) {
+          window.alertDialog('Author already exists');
+          return;
+        }
+
+        addAuthorForm.classList.add('is-disabled');
         const isValid = /^(?!@).*@.*(?<!@)$/.test(email);
         if (!isValid) {
           await window.alertDialog('Please enter a valid email.');
