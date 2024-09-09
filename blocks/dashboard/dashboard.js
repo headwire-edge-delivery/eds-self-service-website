@@ -1,5 +1,6 @@
 import {
   SCRIPT_API, onAuthenticated, OOPS, updateUserSettings, getUserSettings,
+  hasDarkAlleyAccess,
 } from '../../scripts/scripts.js';
 
 /**
@@ -146,7 +147,7 @@ export default async function decorate(block) {
     if (reqList.ok) {
       const { projects, darkAlleyProjects } = await reqList.json();
 
-      const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
+      const hasDarkAlley = hasDarkAlleyAccess();
 
       if (!projects.length && !hasDarkAlley) {
         sites.innerHTML = '<p>No Sites found</p>';

@@ -1,5 +1,7 @@
+import { hasDarkAlleyAccess } from '../scripts/scripts.js';
+
 function dashboardSitesTour({ showAutoTour }) {
-  const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
+  const hasDarkAlley = hasDarkAlleyAccess();
   const driveProjectListQuery = '#google-drive-section > ul';
   const darkAlleyProjectListQuery = '#dark-alley-section > ul';
   /* TODO: on this tour project list is often loaded before

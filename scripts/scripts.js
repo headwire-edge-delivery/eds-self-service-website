@@ -30,6 +30,11 @@ export const slugMaxLength = 63
   - projectRepo.length
   - 4;
 
+const daClassRegex = /\b(is-headwire|is-adobe|is-test-user)\b/i;
+export function hasDarkAlleyAccess() {
+  return daClassRegex.test(document.body.className);
+}
+
 export function onAuthenticated(cb) {
   if (document.body.classList.contains('is-authenticated')) {
     cb();

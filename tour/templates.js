@@ -1,5 +1,7 @@
+import { hasDarkAlleyAccess } from '../scripts/scripts.js';
+
 function createTemplateTour() {
-  const hasDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe');
+  const hasDarkAlley = hasDarkAlleyAccess();
   const tourData = {
     onFinished: () => { /* prevent "do you want to disable tour?" from showing */ },
     steps: [

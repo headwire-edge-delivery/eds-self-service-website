@@ -196,6 +196,6 @@
     display: none;
 }
 
-body:is(.is-headwire, .is-adobe) .dashboard.block .dark-alley-section {
+body:is(.is-headwire, .is-adobe, .is-test-user) .dashboard.block .dark-alley-section {
     display: block;
 }
