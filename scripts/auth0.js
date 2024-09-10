@@ -82,6 +82,9 @@ window.auth0.createAuth0Client({
       if (user?.email?.endsWith('@adobe.com')) {
         document.body.classList.add('is-adobe');
       }
+      if (user?.email?.toLowerCase() === 'self.service.test.user@gmail.com') {
+        document.body.classList.add('is-test-user');
+      }
     });
 
     const sessionInterval = window.setInterval(() => {
