@@ -42,9 +42,10 @@ const BLOCK_ICON_LOOKUP = {
 
 const iconBase64Prefix = 'data:image/svg+xml;base64,';
 
-function addGoogleCalendarLink(calendarId, actionsList) {
+function manageGoogleCalendarLink(calendarId, actionsList, remove = false) {
   // resetting in case
   actionsList.querySelectorAll('.google-calendar-link').forEach((link) => link.remove());
+  if (remove) return;
   actionsList.insertAdjacentHTML(
     'afterbegin',
     `<a class="button action secondary google-calendar-link" target="_blank" id="google-calendar" href="https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
@@ -238,6 +239,9 @@ function blockIconDialogSetup({
       document
         .querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`)
         .forEach((item) => item.remove());
+      if (name === 'schedule') {
+        manageGoogleCalendarLink(null, document.querySelector('.block .settings-actions'), true);
+      }
     } else {
       await window.alertDialog(OOPS);
     }
@@ -339,7 +343,7 @@ function addBlockDialogSetup({ project, headers, itemList }) {
             <a class="button action primary" target="_blank" href="https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}">Google Calendar</a>
           `);
           buttons.push(calendarLink);
-          addGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.settings-actions'));
+          manageGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.settings-actions'));
         }
 
         dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`, buttons);
@@ -2192,7 +2196,7 @@ export default async function decorate(block) {
 
       // calendar link
       if (project.calendarId) {
-        addGoogleCalendarLink(project.calendarId, block.querySelector('.settings-actions'));
+        manageGoogleCalendarLink(project.calendarId, block.querySelector('.settings-actions'));
       }
 
       // Load web analytics
