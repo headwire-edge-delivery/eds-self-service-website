@@ -26,6 +26,7 @@ function dashboardSitesTour({ showAutoTour }) {
         title: 'Create a new Site',
         description: 'If you want to create a new site, click here. <br /> It will take you to the template selection where you can choose a template.',
         element: '#create-new-button',
+        side: 'right',
       },
       {
         title: 'My Sites Overview (Dark Alley)',
@@ -43,7 +44,8 @@ function dashboardSitesTour({ showAutoTour }) {
         title: 'Filter My Sites Overview',
         description: 'Here you can filter the sites by name. <br /> Just type the name of the site you want to filter.',
         element: '.filter',
-        skip: !document.querySelector(driveProjectListQuery)?.children?.length,
+        skip: !document.querySelector(driveProjectListQuery)?.children?.length
+        && !document.querySelector(darkAlleyProjectListQuery)?.children?.length,
       },
       {
         title: 'Let\'s create a Website!',

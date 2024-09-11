@@ -36,6 +36,13 @@ let userData = {};
 // Function to check if all elements are loaded
 function checkAllLoaded() {
   const elements = document.querySelectorAll('[data-block-status]');
+  const loadingImages = document.querySelectorAll('img[alt="loading"]');
+  if (loadingImages.length > 0) {
+    setTimeout(checkAllLoaded, 100);
+    return false;
+  }
+  document.querySelector('#help-btn').style.display = 'flex';
+  document.querySelector('#help-btn').setAttribute('data-block-status', 'loaded');
   return Array.from(elements).every((el) => el.getAttribute('data-block-status') === 'loaded');
 }
 
@@ -53,6 +60,8 @@ function observeBlocks(myFunction) {
     attributeFilter: ['data-block-status'],
   });
 }
+
+observeBlocks(() => {});
 
 const { tour } = window.expedition.js;
 

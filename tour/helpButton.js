@@ -2,6 +2,7 @@ import { startTour } from './main.js';
 
 const helpButton = () => {
   const button = document.createElement('button');
+  button.style.display = 'none';
   button.id = 'help-btn';
   button.innerText = '?';
   button.classList.add('help-btn');
