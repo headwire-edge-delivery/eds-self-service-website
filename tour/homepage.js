@@ -1,7 +1,6 @@
 export default function homepageTour() {
   const userIsAuthenticated = document.body.classList.contains('is-authenticated');
   let isMobile = window.innerWidth < 768;
-  // the isMobile should change when the window is resized
   window.addEventListener('resize', () => {
     isMobile = window.innerWidth < 768;
   });
