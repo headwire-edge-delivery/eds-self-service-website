@@ -1,5 +1,10 @@
 export default function homepageTour() {
   const userIsAuthenticated = document.body.classList.contains('is-authenticated');
+  let isMobile = window.innerWidth < 768;
+  window.addEventListener('resize', () => {
+    isMobile = window.innerWidth < 768;
+  });
+
   const tourData = {
     onFinished: () => {
     },
@@ -13,6 +18,8 @@ export default function homepageTour() {
         description: 'You are already logged in. Go to the dashboard to manage existing your websites.',
         element: '#dashboard-button',
         skip: !userIsAuthenticated,
+        side: isMobile ? 'bottom' : 'right',
+        align: isMobile ? 'center' : 'start',
       },
       {
         title: 'Sign in',

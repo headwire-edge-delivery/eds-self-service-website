@@ -36,15 +36,38 @@ let userData = {};
 // Function to check if all elements are loaded
 function checkAllLoaded() {
   const elements = document.querySelectorAll('[data-block-status]');
+  const loadingImages = document.querySelectorAll('img[alt="loading"]');
+
+  if (loadingImages.length > 0) {
+    setTimeout(checkAllLoaded, 100);
+    document.querySelector('#help-btn').style.display = 'none';
+    document.querySelector('#help-btn').setAttribute('data-loaded', 'false');
+    return false;
+  }
+
+  document.querySelector('#help-btn').style.display = 'flex';
+  document.querySelector('#help-btn').setAttribute('data-loaded', 'true');
   return Array.from(elements).every((el) => el.getAttribute('data-block-status') === 'loaded');
 }
 
+// Function to observe blocks
 function observeBlocks(myFunction) {
+  const helpBtn = document.querySelector('#help-btn');
   const loadedObserver = new MutationObserver((mutationsList, observer) => {
-    if (checkAllLoaded()) {
-      myFunction();
-      observer.disconnect();
-    }
+    mutationsList.forEach((mutation) => {
+      if (mutation.attributeName === 'data-loaded' && mutation.target.id === 'help-btn') {
+        if (helpBtn.getAttribute('data-loaded') === 'true') {
+          myFunction();
+          observer.disconnect();
+        }
+        return;
+      }
+
+      if (checkAllLoaded()) {
+        myFunction();
+        observer.disconnect();
+      }
+    });
   });
 
   loadedObserver.observe(document.body, {
@@ -52,7 +75,16 @@ function observeBlocks(myFunction) {
     subtree: true,
     attributeFilter: ['data-block-status'],
   });
+
+  if (helpBtn) {
+    loadedObserver.observe(helpBtn, {
+      attributes: true,
+      attributeFilter: ['data-loaded'],
+    });
+  }
 }
+
+observeBlocks(() => {});
 
 const { tour } = window.expedition.js;
 

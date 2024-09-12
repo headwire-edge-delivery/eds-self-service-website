@@ -57,6 +57,7 @@
 }
 
 .dashboard.block .sites li a {
+    height: 100%;
     display: block;
     max-width: 300px;
     padding: 32px;

@@ -4,10 +4,6 @@ function dashboardSitesTour({ showAutoTour }) {
   const hasDarkAlley = hasDarkAlleyAccess();
   const driveProjectListQuery = '#google-drive-section > ul';
   const darkAlleyProjectListQuery = '#dark-alley-section > ul';
-  /* TODO: on this tour project list is often loaded before
-    site list. This causes the site list and filter to be skipped.
-    We need to wait on loading the site list response before starting the tour.
-  */
   const tourData = {
     showDisableTour: true,
     onFinished: () => {
@@ -26,6 +22,7 @@ function dashboardSitesTour({ showAutoTour }) {
         title: 'Create a new Site',
         description: 'If you want to create a new site, click here. <br /> It will take you to the template selection where you can choose a template.',
         element: '#create-new-button',
+        side: 'right',
       },
       {
         title: 'My Sites Overview (Dark Alley)',
@@ -43,7 +40,8 @@ function dashboardSitesTour({ showAutoTour }) {
         title: 'Filter My Sites Overview',
         description: 'Here you can filter the sites by name. <br /> Just type the name of the site you want to filter.',
         element: '.filter',
-        skip: !document.querySelector(driveProjectListQuery)?.children?.length,
+        skip: !document.querySelector(driveProjectListQuery)?.children?.length
+        && !document.querySelector(darkAlleyProjectListQuery)?.children?.length,
       },
       {
         title: 'Let\'s create a Website!',
@@ -58,11 +56,6 @@ function dashboardSitesTour({ showAutoTour }) {
 
 function dashboardAccountTour({ showAutoTour }) {
   const currentPlan = document.querySelector('#current-plan').textContent;
-  /* TODO: if projects response is slow,
-    its possible the account tour will loop back to project creation.
-    we could set some kind of messaging system up to only start tours after content is loaded.
-    for now checking during the tour seems to work every time.
-  */
   const driveProjectListQuery = '#google-drive-section > ul';
   const tourData = {
     onFinished: () => {
