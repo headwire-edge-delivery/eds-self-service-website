@@ -4,10 +4,6 @@ function dashboardSitesTour({ showAutoTour }) {
   const hasDarkAlley = hasDarkAlleyAccess();
   const driveProjectListQuery = '#google-drive-section > ul';
   const darkAlleyProjectListQuery = '#dark-alley-section > ul';
-  /* TODO: on this tour project list is often loaded before
-    site list. This causes the site list and filter to be skipped.
-    We need to wait on loading the site list response before starting the tour.
-  */
   const tourData = {
     showDisableTour: true,
     onFinished: () => {
@@ -60,11 +56,6 @@ function dashboardSitesTour({ showAutoTour }) {
 
 function dashboardAccountTour({ showAutoTour }) {
   const currentPlan = document.querySelector('#current-plan').textContent;
-  /* TODO: if projects response is slow,
-    its possible the account tour will loop back to project creation.
-    we could set some kind of messaging system up to only start tours after content is loaded.
-    for now checking during the tour seems to work every time.
-  */
   const driveProjectListQuery = '#google-drive-section > ul';
   const tourData = {
     onFinished: () => {
