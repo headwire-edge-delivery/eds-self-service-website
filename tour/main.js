@@ -101,7 +101,7 @@ export const startTour = (isAutoTour = false, showDisableTour = false) => {
   if (isAutoTour) {
     onAuthenticated(async () => {
       const data = await getUserSettings();
-      showAutoTour = data.showAutoTour;
+      showAutoTour = data?.showAutoTour;
       userData = data;
       if (showAutoTour) {
         if (checkAllLoaded()) {

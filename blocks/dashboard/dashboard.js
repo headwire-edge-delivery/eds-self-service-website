@@ -85,7 +85,7 @@ export default async function decorate(block) {
     // const { showAutoTour } = userSettings;
     const toggleAutoTourButton = block.querySelector('#toggle-auto-tour-button');
 
-    if (userSettings.showAutoTour) {
+    if (userSettings?.showAutoTour) {
       toggleAutoTourButton.textContent = 'Disable Auto Tour';
     }
 
