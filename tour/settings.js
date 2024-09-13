@@ -80,7 +80,7 @@ function settingsGeneralTour({ showAutoTour }) {
         element: '.update-info',
         side: 'left',
         align: 'end',
-        skip: updateInfo !== 'No updates available.',
+        skip: updateInfo !== 'No updates available',
       },
       {
         title: 'Could not get update information',
@@ -88,7 +88,7 @@ function settingsGeneralTour({ showAutoTour }) {
         element: '.update-info',
         side: 'left',
         align: 'end',
-        skip: updateInfo !== 'Could not get update information.',
+        skip: updateInfo !== 'Could not get update information',
       },
       {
         title: 'A new version is available!',
