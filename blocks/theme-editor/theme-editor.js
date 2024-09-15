@@ -154,7 +154,7 @@ export default async function decorate(block) {
               <div class="preview">
                 <div class="preview-container">
                   <iframe src="https://preview--${id}.${KESTREL_ONE}" class="iframe is-loading"></iframe>
-                  <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+                  <img src="/icons/loading.svg" alt="loading" id="iframe-loader" loading="lazy"/>
                 </div>
               </div>
               <aside>
@@ -615,11 +615,13 @@ export default async function decorate(block) {
       // Add loading buffer
       setTimeout(() => {
         previewFrame.classList.remove('is-loading');
+        document.querySelector('#iframe-loader').remove();
       }, 1000);
     });
     // Loading timeout
     setTimeout(() => {
       previewFrame.classList.remove('is-loading');
+      document.querySelector('#iframe-loader').remove();
     }, 2000);
     vars.value = cssVarsData;
 
@@ -1058,6 +1060,7 @@ export default async function decorate(block) {
         // Loading timeout
         setTimeout(() => {
           previewFrame.classList.remove('is-loading');
+          document.querySelector('#iframe-loader').remove();
         }, 2000);
       }
     };

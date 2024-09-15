@@ -36,7 +36,7 @@ let userData = {};
 // Function to check if all elements are loaded
 function checkAllLoaded() {
   const elements = document.querySelectorAll('[data-block-status]');
-  const loadingImages = document.querySelectorAll('img[alt="loading"]');
+  const loadingImages = document.querySelectorAll('.is-selected img[alt="loading"]');
 
   if (loadingImages.length > 0) {
     setTimeout(checkAllLoaded, 100);
@@ -45,10 +45,19 @@ function checkAllLoaded() {
     return false;
   }
 
-  document.querySelector('#help-btn').style.display = 'flex';
-  document.querySelector('#help-btn').setAttribute('data-loaded', 'true');
+  setTimeout(() => {
+    document.querySelector('#help-btn').style.display = 'flex';
+    document.querySelector('#help-btn').setAttribute('data-loaded', 'true');
+  }, 500);
   return Array.from(elements).every((el) => el.getAttribute('data-block-status') === 'loaded');
 }
+
+// Force data-loaded to "true" after 8 seconds, regardless of loading images
+setTimeout(() => {
+  const helpBtn = document.querySelector('#help-btn');
+  helpBtn.style.display = 'flex';
+  helpBtn.setAttribute('data-loaded', 'true');
+}, 8000);
 
 // Function to observe blocks
 function observeBlocks(myFunction) {
@@ -56,7 +65,7 @@ function observeBlocks(myFunction) {
   const loadedObserver = new MutationObserver((mutationsList, observer) => {
     mutationsList.forEach((mutation) => {
       if (mutation.attributeName === 'data-loaded' && mutation.target.id === 'help-btn') {
-        if (helpBtn.getAttribute('data-loaded') === 'true') {
+        if (helpBtn && helpBtn.getAttribute('data-loaded') === 'true') {
           myFunction();
           observer.disconnect();
         }
@@ -70,12 +79,14 @@ function observeBlocks(myFunction) {
     });
   });
 
+  // Observe the body for data-block-status changes
   loadedObserver.observe(document.body, {
     attributes: true,
     subtree: true,
     attributeFilter: ['data-block-status'],
   });
 
+  // Observe helpBtn for data-loaded changes if it exists
   if (helpBtn) {
     loadedObserver.observe(helpBtn, {
       attributes: true,
