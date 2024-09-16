@@ -4,6 +4,7 @@ import {
   SCRIPT_API, onAuthenticated, OOPS, EMAIL_WORKER_API,
   daProjectRepo,
   projectRepo, parseFragment,
+  slugify,
 } from '../../scripts/scripts.js';
 
 const protectedBlocks = {
@@ -812,9 +813,9 @@ export default async function decorate(block) {
       {
         headers,
       },
-    );
+    ).catch(() => null);
 
-    if (reqDetails.ok) {
+    if (reqDetails?.ok) {
       const { project } = await reqDetails.json();
 
       block.innerHTML = /* html */`
@@ -1920,7 +1921,25 @@ export default async function decorate(block) {
               `);
 
               const dialog = window.createDialog(content, [submit]);
+              const existingCampaigns = [...campaignList.querySelectorAll('li[data-campaign]')].map((el) => el.dataset.campaign);
               const form = document.getElementById('create-campaign-form');
+              const nameInput = form.querySelector('input[name="name"]');
+              nameInput.oninput = (event) => {
+                const value = slugify(event?.target?.value || '');
+                if (!value) {
+                  submit.disabled = true;
+                  event.target.setCustomValidity('Please enter a name');
+                  return;
+                }
+
+                if (existingCampaigns.includes(value)) {
+                  event.target.setCustomValidity('Campaign already exists');
+                  return;
+                }
+                submit.disabled = false;
+                event.target.setCustomValidity('');
+              };
+              nameInput.oninput();
 
               form.onsubmit = async (e) => {
                 window.zaraz?.track('click create campaign', { url: window.location.href });
@@ -2560,7 +2579,7 @@ export default async function decorate(block) {
       };
 
       renderWebAnalytics(analytics);
-    } else if (reqDetails.status === 404) {
+    } else if (reqDetails?.status === 404) {
       block.querySelector('.content p').innerHTML = `<p>Project "${id}" not found. Create it <a href="/">here!</a></p>`;
     } else {
       block.querySelector('.content p').textContent = OOPS;

@@ -52,6 +52,7 @@ const textLookup = {
     error: '<div class="centered-info">Something went wrong. Please try again later. Contact support if the issue persists.</div>',
   },
   projects: {
+    noProjectsDialog: '<h4 class="centered-info">You have no projects.</h4>',
     dialog:
     '<h2>Delete All Projects?</h2><p class="warning">Are you want to delete all of your projects? This action cannot be undone!</p>',
     button: 'Delete All Projects',
@@ -81,7 +82,7 @@ async function createDeleteDialog(event, deleteAccount = false) {
     .then((res) => res.json())
     .catch(() => null);
 
-  const deleteAccountContent = `
+  let deleteAccountContent = `
     ${textLookup[lookupStr].dialog}
     <p>All projects that exclusively belong to this account will be deleted.</p>
     <p class="headwire-only">Dark Alley projects will not be deleted. They currently do not have any permissions/ownership.</p>
@@ -91,6 +92,11 @@ async function createDeleteDialog(event, deleteAccount = false) {
   const confirmButton = document.createElement('button');
   confirmButton.classList.add('action', 'button', 'destructive');
   confirmButton.textContent = textLookup[lookupStr].button;
+  if (lookupStr === 'projects' && projectsList?.exclusive?.length === 0 && projectsList?.shared?.length === 0) {
+    confirmButton.disabled = true;
+    confirmButton.classList.add('is-disabled');
+    deleteAccountContent = textLookup[lookupStr].noProjectsDialog;
+  }
 
   const cancelButton = document.createElement('button');
   cancelButton.classList.add('action', 'button');
