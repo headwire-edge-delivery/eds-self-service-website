@@ -1922,9 +1922,9 @@ export default async function decorate(block) {
 
               const dialog = window.createDialog(content, [submit]);
               const existingCampaigns = [...campaignList.querySelectorAll('li[data-campaign]')].map((el) => el.dataset.campaign);
-              const form = document.getElementById('create-campaign-form');
+              const form = content.querySelector('#create-campaign-form');
               const nameInput = form.querySelector('input[name="name"]');
-              nameInput.oninput = (event) => {
+              nameInput.oninput = (event = { target: nameInput }) => {
                 const value = slugify(event?.target?.value || '');
                 if (!value) {
                   submit.disabled = true;
