@@ -934,11 +934,11 @@ export default async function decorate(block) {
                         <div class="cards">
                             <div id="site-id">
                               <strong>Site id</strong>
-                              <span>${project.projectSlug}</span>
+                              <span title=${project.projectSlug}>${project.projectSlug}</span>
                           </div>
                           <div id="site-description" class="project-description card">
                               <strong>Site description</strong>
-                              <span class="project-description span">${project.projectDescription ?? ''}</span>
+                              <span id="project-description" class="project-description span">${project.projectDescription ?? ''}</span>
                               <button id="update-desc-button" title="Edit the Project Description" class="button secondary update-description action">Update</button>
                           </div>
                           <div id="last-updated">

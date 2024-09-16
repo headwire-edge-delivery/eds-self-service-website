@@ -191,7 +191,7 @@ export default async function decorate(block) {
                 <a href="/site/${projectSlug}">
                   <h2>${projectName}</h2>
                   <p><strong>${projectSlug}</strong></p>
-                  <p>${projectDescription || ''}</p>
+                  <p class="project-description">${projectDescription || ''}</p>
                 </a>
               </li>
             `).join('')}

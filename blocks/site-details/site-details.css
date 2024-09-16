@@ -143,6 +143,14 @@
 
 .site-details.block .cards span {
     font-weight: 300;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.site-details.block .cards #project-description {
+    line-height: 1.5;
+    max-height: calc(1.5em * 3);
+    overflow-y: auto;
 }
 
 .site-details.block .cards.metrics span {
@@ -311,7 +319,7 @@
 .site-details.block :is(.emails-panel, .analytics-panel) .container {
     display: flex;
     gap: 16px;
-    flex-flow: column wrap;
+    flex-flow: column;
 }
 
 .site-details.block :is(.emails-panel, .analytics-panel) .campaign-list {
@@ -332,6 +340,10 @@
 .site-details.block .period-selector {
     padding-block: 6.5px;
     width: auto;
+}
+
+#email-details {
+    overflow-x: auto;
 }
 
 .site-details.block .analytics-panel table td p:first-child {
