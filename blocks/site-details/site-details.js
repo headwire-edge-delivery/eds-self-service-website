@@ -137,9 +137,9 @@ function addIconDialogSetup({
       method: 'POST',
       body: formData,
       headers,
-    });
+    }).catch(() => null);
 
-    if (addRequest.ok) {
+    if (addRequest?.ok) {
       dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
       if (replaceIconItem) {
         const iconImage = replaceIconItem.querySelector('img');
@@ -233,8 +233,8 @@ function blockIconDialogSetup({
     const delResponse = await fetch(`${SCRIPT_API}/${isIcon ? 'icons' : 'blocks'}/${project.projectSlug}/${name}`, {
       method: 'DELETE',
       headers,
-    });
-    if (delResponse.ok) {
+    }).catch(() => null);
+    if (delResponse?.ok) {
       dialog.renderDialog(`<h3 class="centered-info" >${name} deleted</h3>`);
       submit.remove();
       document
@@ -334,9 +334,9 @@ function addBlockDialogSetup({ project, headers, itemList }) {
       const addRequest = await fetch(`${SCRIPT_API}/blocks/${project.projectSlug}/${select.value}`, {
         method: 'POST',
         headers,
-      });
+      }).catch(() => null);
 
-      if (addRequest.ok) {
+      if (addRequest?.ok) {
         const addRequestData = await addRequest.json().catch(() => ({}));
         const buttons = [];
         if (addRequestData.calendarId) {
@@ -439,8 +439,8 @@ function addPageDialogSetup({
       headers: { ...headers, 'content-type': 'application/json' },
       body: JSON.stringify(body),
 
-    });
-    if (addPageRequest.ok) {
+    }).catch(() => null);
+    if (addPageRequest?.ok) {
       const responseData = await addPageRequest.json().catch(() => ({}));
 
       const buttons = [];
@@ -651,8 +651,8 @@ async function renderUpdatesSection(div, { project, headers }) {
         projectUpdateDialog.dataset.loadingText = 'Updating...';
         projectUpdateDialog.setLoading(true);
 
-        const updateResponse = await fetch(`${endpoint}update/${project.projectSlug}`, { headers });
-        if (updateResponse.ok) {
+        const updateResponse = await fetch(`${endpoint}update/${project.projectSlug}`, { headers }).catch(() => null);
+        if (updateResponse?.ok) {
           projectUpdateDialog.renderDialog('<h3 class="centered-info">Project updated successfully!</h3>');
           // replace update button
           div.innerHTML = '<h3>Your project is up-to-date!</h3>';
@@ -744,9 +744,9 @@ async function renderPrevUpdatesSection(div, {
             method: 'POST',
             headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify({ sha: formData.get('update') }),
-          });
+          }).catch(() => null);
 
-          if (revertUpdateResponse.ok) {
+          if (revertUpdateResponse?.ok) {
             revertUpdateDialog.renderDialog('<h3 class="centered-info">Project reverted successfully!</h3>');
             // rerender update section. Should say an update is available as one has just been reverted
             rerenderUpdatesSection(updateInfoDiv, { project, headers });
@@ -1329,8 +1329,8 @@ export default async function decorate(block) {
             const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
               method: 'DELETE',
               headers,
-            });
-            if (revokeResponse.ok) {
+            }).catch(() => null);
+            if (revokeResponse?.ok) {
               authorsList.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
             } else {
               await window.alertDialog(OOPS);
@@ -1350,8 +1350,8 @@ export default async function decorate(block) {
             const changeOwnerResponse = await fetch(`${SCRIPT_API}/updateOwner/${id}/${authorEmail}`, {
               method: 'POST',
               headers,
-            });
-            if (changeOwnerResponse.ok) {
+            }).catch(() => null);
+            if (changeOwnerResponse?.ok) {
               const prevOwner = authorsList.querySelector('li.is-owner');
               if (prevOwner) {
                 prevOwner.classList.remove('is-owner');
@@ -1397,8 +1397,8 @@ export default async function decorate(block) {
         const response = await fetch(`${SCRIPT_API}/authors/${id}/${email}`, {
           method: 'POST',
           headers,
-        });
-        if (response.ok) {
+        }).catch(() => null);
+        if (response?.ok) {
           addAuthorListItem({ email });
           event.target.email.value = '';
         } else {
@@ -1458,8 +1458,8 @@ export default async function decorate(block) {
           headers: { ...headers, 'content-type': 'application/json' },
           method: 'POST',
           body: JSON.stringify({ contactEmail: contactEmailFormInput.value }),
-        });
-        if (response.ok) {
+        }).catch(() => null);
+        if (response?.ok) {
           await window.alertDialog('Contact email updated!');
           project.contactEmail = contactEmailFormInput.value;
         } else {
@@ -1551,8 +1551,8 @@ export default async function decorate(block) {
           const reqDelete = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'da-' : ''}delete/${project.projectSlug}`, {
             method: 'DELETE',
             headers,
-          });
-          if (reqDelete.ok) {
+          }).catch(() => null);
+          if (reqDelete?.ok) {
             window.location.href = '/dashboard';
           } else {
             await window.alertDialog(OOPS);
@@ -1596,9 +1596,9 @@ export default async function decorate(block) {
             headers: { ...headers, 'content-type': 'application/json' },
             method: 'POST',
             body: JSON.stringify(body),
-          });
+          }).catch(() => null);
 
-          if (response.ok) {
+          if (response?.ok) {
             dialog.renderDialog('<h3 class="centered-info">Description successfully updated</h3>');
             project.projectDescription = body.projectDescription;
             const descriptionSpan = block.querySelector('.project-description.card .project-description.span');
@@ -1881,9 +1881,9 @@ export default async function decorate(block) {
                     headers: { ...headers, 'content-type': 'application/json' },
                     method: 'PATCH',
                     body: JSON.stringify(body),
-                  });
+                  }).catch(() => null);
 
-                  if (reqUpdate.ok) {
+                  if (reqUpdate?.ok) {
                     const update = await reqUpdate.json();
                     dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
 
@@ -1952,11 +1952,11 @@ export default async function decorate(block) {
                   headers: { ...headers, 'content-type': 'application/json' },
                   method: 'POST',
                   body: JSON.stringify(Object.fromEntries(new FormData(form))),
-                });
+                }).catch(() => null);
 
-                if (!req.ok) {
+                if (!req?.ok) {
                   dialog.setLoading(false);
-                  await window.alertDialog(await req.text());
+                  await window.alertDialog(OOPS);
                 } else {
                   const newCampaign = await req.json();
 
@@ -2054,11 +2054,11 @@ export default async function decorate(block) {
                   headers: { ...headers, 'content-type': 'application/json' },
                   method: 'POST',
                   body: JSON.stringify(body),
-                });
+                }).catch(() => null);
 
-                if (!req.ok) {
+                if (!req?.ok) {
                   dialog.setLoading(false);
-                  await window.alertDialog(await req.text());
+                  await window.alertDialog(OOPS);
                 } else {
                   dialog.setLoading(false);
 
@@ -2101,9 +2101,9 @@ export default async function decorate(block) {
                   const deleteReq = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
                     method: 'DELETE',
                     headers,
-                  });
+                  }).catch(() => null);
 
-                  if (deleteReq.ok) {
+                  if (deleteReq?.ok) {
                     block.querySelector(`.campaign-list[data-type="emails"] li[data-campaign="${campaignSlug}"]`).remove();
                     block.querySelector('.campaign-list[data-type="emails"] a').click();
 
@@ -2223,9 +2223,9 @@ export default async function decorate(block) {
         `${SCRIPT_API}/monitoring/${project.projectSlug}?period=${interval}`,
         `${SCRIPT_API}/cww/${project.projectSlug}?period=${interval}`,
       ].map(async (url) => {
-        const req = await fetch(url, { headers });
-        if (!req.ok) {
-          throw new Error(req.status);
+        const req = await fetch(url, { headers }).catch(() => null);
+        if (!req?.ok) {
+          throw new Error(req?.status || OOPS);
         }
         return req.json();
       }));
