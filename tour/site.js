@@ -95,7 +95,7 @@ function sitePagesTour({ showAutoTour }) {
     steps: [
       {
         title: 'Pages',
-        description: 'Pages lists all published pages to serve as a comprehensive directory of your website\'s content. It provides a convenient overview of all accessible pages, enabling easy navigation and exploration of your site.',
+        description: 'Pages lists all pages to serve as a comprehensive directory of your website\'s content. It provides a convenient overview of all accessible pages, enabling easy navigation and exploration of your site.',
       },
       {
         title: 'Add a new Page',
@@ -105,7 +105,7 @@ function sitePagesTour({ showAutoTour }) {
       },
       {
         title: 'Pages',
-        description: 'A list of all pages in your site. <br /> Only published pages are shown here.',
+        description: 'A list of all pages in your site',
         destroyOnClicked: false,
         element: '#pages-overview',
       },
@@ -127,6 +127,13 @@ function sitePagesTour({ showAutoTour }) {
         title: 'Footer',
         description: 'Your Footer. A Footer is a section at the bottom of your site that typically contains information about the site and the site owner.',
         element: '#footer-overview',
+        destroyOnClicked: false,
+        side: 'top',
+      },
+      {
+        title: 'Drafts',
+        description: 'A list of all your draft pages. Draft pages are useful when proposing content changes.',
+        element: '#drafts-overview',
         destroyOnClicked: false,
         side: 'top',
       },

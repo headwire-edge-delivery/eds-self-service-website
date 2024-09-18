@@ -999,7 +999,7 @@ export default async function decorate(block) {
     const publishThemeSelector = block.querySelector('.publish-theme-selector');
 
     // Load index to list pages
-    fetch(`https://preview--${id}.${KESTREL_ONE}/query-index.json?sheet=all`)
+    fetch(`${SCRIPT_API}/index/${id}`)
       .then((res) => {
         if (res.ok) {
           return res.json();
@@ -1013,16 +1013,15 @@ export default async function decorate(block) {
           return;
         }
 
-        const pages = data.filter(
-          ({ template, robots, path }) => !template?.includes('email')
-                && !robots?.includes('noindex')
-                && path !== '/footer'
-                && path !== '/nav',
-        );
+        const pages = data.filter(({ path }) => !path.startsWith('/drafts/')
+          && !path.startsWith('/emails/')
+          && path !== '/footer'
+          && path !== '/nav'
+          && path !== '/newsletter');
 
         // Theme pages
         publishThemeSelector.innerHTML = `${pages
-          .map(({ path }) => `<option value="${path}">Preview: ${path}</option>`)
+          .map(({ path }) => `<option ${path === '/' ? 'selected' : ''} value="${path}">Preview: ${path}</option>`)
           .join('')}`;
       });
 
