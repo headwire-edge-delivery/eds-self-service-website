@@ -226,7 +226,7 @@ export default async function decorate(block) {
             'content-type': 'application/json',
           },
           body: JSON.stringify({
-            fileName: meta.styles.replace('/styles/email/', '').replace('.css', ''),
+            filePath: meta.styles,
             css: btoa(editor.getValue()),
           }),
         });

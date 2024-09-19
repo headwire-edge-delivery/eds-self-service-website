@@ -216,6 +216,11 @@
     margin: 3px;
 }
 
+.site-details.block table img[alt="loading"] {
+    height: 64px;
+    width: 64px;
+}
+
 @media (width < 768px) {
     .site-details.block .content aside {
         width: 100%;

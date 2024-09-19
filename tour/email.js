@@ -22,7 +22,7 @@ function campaignEmailsTour({ showAutoTour }) {
       },
       {
         title: 'Emails',
-        description: 'A list of all published emails.',
+        description: 'A list of all emails.',
         destroyOnClicked: false,
         element: '.emails',
       },
