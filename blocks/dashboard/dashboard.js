@@ -7,6 +7,7 @@ import {
  * @param {Element} block
  */
 export default async function decorate(block) {
+  block.innerHTML = '<div class="is-selected"><img src="/icons/loading.svg" alt="loading" loading="lazy"/></div>';
   onAuthenticated(async () => {
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();
