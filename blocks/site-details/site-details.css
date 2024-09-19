@@ -129,6 +129,11 @@
     padding-block: 8px;
 }
 
+.site-details.block .container {
+    width: 100%;
+    overflow: auto;
+}
+
 .site-details.block .container > h2:first-child,
 .site-details.block .container > div:first-child > h2:first-child {
     margin-top: 0;
@@ -137,8 +142,57 @@
 
 .site-details.block .cards {
     display: flex;
-    gap: 32px;
     flex-wrap: wrap;
+    gap: 32px;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.site-details.block .cards .box {
+    flex: 1 1 300px;
+    min-width: 200px;
+    max-width: 300px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
+}
+
+.site-details.block .cards .cwp-box {
+    flex: 1 1 calc(25% - 32px);
+    min-width: 200px;
+    max-width: 300px;
+    box-sizing: border-box;
+    text-align: center;
+    word-wrap: break-word;
+}
+    
+.site-details.block .cards .box p {
+    display: flex;
+    justify-content: space-between;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.site-details.block .cards .box p span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    max-width: 75%;
+    display: inline-block;
+    white-space: nowrap;
+    position: relative;
+    padding-right: 4px;
+}
+
+.site-details.block .cards .box p span:first-child::after {
+    content: ':';
+    position: absolute;
+    right: 0;
 }
 
 .site-details.block .cards span {
@@ -147,7 +201,7 @@
     overflow: hidden;
 }
 
-.site-details.block .cards #project-description {
+.site-details.block .cards .description {
     line-height: 1.5;
     max-height: calc(1.5em * 3);
     overflow-y: auto;
@@ -166,6 +220,7 @@
 
 .site-details.block .cards.metrics > div > strong:only-child::after {
     content: ' (Not enough data)';
+    display: block;
     font-size: 11px;
 }
 
@@ -173,8 +228,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    min-width: 200px;
-    max-width: 200px;
     border: 1px solid var(--gray);
     padding: 16px;
     border-radius: var(--border-radius);
@@ -212,6 +265,18 @@
     display: none !important;
 }
 
+.site-details.block table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.site-details.block table th,
+.site-details.block table td {
+    max-width: 100%;
+    overflow: auto;
+    word-wrap: break-word;
+}
+
 .site-details.block table td:first-child {
     font-weight: 500;
 }
@@ -222,6 +287,13 @@
 
 .site-details.block table .table-actions > .button {
     margin: 3px;
+}
+
+@media (width <= 1200px) {
+    .site-details.block .cards .box,
+    .site-details.block .cards .cwp-box {
+        flex: 1 1 calc(50% - 32px) !important;
+    }
 }
 
 @media (width < 768px) {
@@ -248,6 +320,12 @@
     .site-details.block .button-container {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .site-details.block .cards .box,
+    .site-details.block .cards .cwp-box {
+        flex: 1 1 100% !important;
+        max-width: 100% !important;
     }
 }
 

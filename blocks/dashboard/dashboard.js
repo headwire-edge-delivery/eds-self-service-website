@@ -49,11 +49,11 @@ export default async function decorate(block) {
                 <div class="account-details">
                   <div>
                       <strong>Name</strong>
-                      <span>${user.name}</span>
+                      <span title="${user.name}">${user.name}</span>
                   </div>
                   <div>
                       <strong>Email</strong>
-                      <span>${user.email}</span>
+                      <span title="${user.email}">${user.email}</span>
                   </div>
                   <div>
                       <strong>Last update</strong>
@@ -189,9 +189,9 @@ export default async function decorate(block) {
             ${projects.map(({ projectSlug, projectName, projectDescription }) => `
               <li>
                 <a href="/site/${projectSlug}">
-                  <h2>${projectName}</h2>
-                  <p><strong>${projectSlug}</strong></p>
-                  <p class="project-description">${projectDescription || ''}</p>
+                  <h2 title="${projectName}">${projectName}</h2>
+                  <p title="${projectSlug}"><strong>${projectSlug}</strong></p>
+                  <p class="project-description" title="${projectDescription || ''}">${projectDescription || ''}</p>
                 </a>
               </li>
             `).join('')}
