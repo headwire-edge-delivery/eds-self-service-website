@@ -1669,7 +1669,8 @@ export default async function decorate(block) {
                 <td>${new Date(item.lastModified).toLocaleString()}</td>
                 <td class="table-actions">
                     <a class="button action secondary" href="${darkAlleyVariation ? `https://da.live/edit#/${daProjectRepo}/${id}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
-                    <a class="button action secondary" href="${project.customPreviewUrl}${item.path}" target="_blank">Open</a>
+                    <a class="button action secondary" href="${project.customPreviewUrl}${item.path}" target="_blank">Preview</a>
+                    <a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Live</a>
                 </td>
               `;
 
