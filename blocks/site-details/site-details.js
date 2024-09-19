@@ -794,6 +794,7 @@ async function renderPrevUpdatesSection(div, {
  * @param {Element} block
  */
 export default async function decorate(block) {
+  block.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
   const darkAlleyVariation = block.classList.contains('dark-alley');
 
   onAuthenticated(async () => {

@@ -36,7 +36,7 @@ let userData = {};
 // Function to check if all elements are loaded
 function checkAllLoaded() {
   const elements = document.querySelectorAll('[data-block-status]');
-  const loadingImages = document.querySelectorAll('.is-selected img[alt="loading"]');
+  const loadingImages = document.querySelectorAll('.is-selected img[alt="loading"], .site-details img[alt="loading"]');
 
   if (loadingImages.length > 0) {
     setTimeout(checkAllLoaded, 100);
