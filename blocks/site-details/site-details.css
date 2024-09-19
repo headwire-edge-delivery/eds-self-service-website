@@ -294,6 +294,9 @@
     .site-details.block .cards .cwp-box {
         flex: 1 1 calc(50% - 32px) !important;
     }
+.site-details.block table img[alt="loading"] {
+    height: 64px;
+    width: 64px;
 }
 
 @media (width < 768px) {

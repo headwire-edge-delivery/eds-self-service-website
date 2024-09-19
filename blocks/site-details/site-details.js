@@ -3,7 +3,7 @@
 import {
   SCRIPT_API, onAuthenticated, OOPS, EMAIL_WORKER_API,
   daProjectRepo,
-  projectRepo, parseFragment,
+  parseFragment,
   slugify,
 } from '../../scripts/scripts.js';
 
@@ -137,9 +137,9 @@ function addIconDialogSetup({
       method: 'POST',
       body: formData,
       headers,
-    });
+    }).catch(() => null);
 
-    if (addRequest.ok) {
+    if (addRequest?.ok) {
       dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
       if (replaceIconItem) {
         const iconImage = replaceIconItem.querySelector('img');
@@ -233,8 +233,8 @@ function blockIconDialogSetup({
     const delResponse = await fetch(`${SCRIPT_API}/${isIcon ? 'icons' : 'blocks'}/${project.projectSlug}/${name}`, {
       method: 'DELETE',
       headers,
-    });
-    if (delResponse.ok) {
+    }).catch(() => null);
+    if (delResponse?.ok) {
       dialog.renderDialog(`<h3 class="centered-info" >${name} deleted</h3>`);
       submit.remove();
       document
@@ -334,9 +334,9 @@ function addBlockDialogSetup({ project, headers, itemList }) {
       const addRequest = await fetch(`${SCRIPT_API}/blocks/${project.projectSlug}/${select.value}`, {
         method: 'POST',
         headers,
-      });
+      }).catch(() => null);
 
-      if (addRequest.ok) {
+      if (addRequest?.ok) {
         const addRequestData = await addRequest.json().catch(() => ({}));
         const buttons = [];
         if (addRequestData.calendarId) {
@@ -360,7 +360,7 @@ function addBlockDialogSetup({ project, headers, itemList }) {
 
 // MARK: add page dialog
 function addPageDialogSetup({
-  project, headers, darkAlleyVariation,
+  project, headers, darkAlleyVariation, user,
 }) {
   const submit = parseFragment('<button form="add-page-form" type="submit" class="button primary action">Create Page</button>');
   const content = parseFragment(`
@@ -439,8 +439,8 @@ function addPageDialogSetup({
       headers: { ...headers, 'content-type': 'application/json' },
       body: JSON.stringify(body),
 
-    });
-    if (addPageRequest.ok) {
+    }).catch(() => null);
+    if (addPageRequest?.ok) {
       const responseData = await addPageRequest.json().catch(() => ({}));
 
       const buttons = [];
@@ -451,7 +451,7 @@ function addPageDialogSetup({
         draftsHref = `https://da.live/#${responseData.daPath}`;
         editHref = `https://da.live/edit#${responseData.daPath}/${responseData.daNewPageSlug}`;
       } else {
-        draftsHref = `https://drive.google.com/drive/folders/${responseData.folderId}`;
+        draftsHref = `https://drive.google.com/drive/folders/${responseData.folderId}?authuser=${user.email}`;
         editHref = `https://docs.google.com/document/d/${responseData.newPageId}/edit`;
       }
 
@@ -466,6 +466,25 @@ function addPageDialogSetup({
       buttons.push(editLink);
 
       dialog.renderDialog(`<h3 class="centered-info" >${body.pageName} page added to drafts</h3>`, buttons);
+
+      // Update drafts table
+      const tableBody = document.body.querySelector('table.drafts tbody');
+      const empty = tableBody.querySelector('tr:has(.empty)');
+      if (empty) {
+        empty.remove();
+      }
+
+      tableBody.insertAdjacentHTML('afterbegin', `
+        <tr>
+            <td>${body.pageName}</td>
+            <td>/drafts/${responseData.pageSlug}</td>
+            <td>Just now</td>
+            <td class="table-actions">
+                <a class="button action secondary" href="${editHref}" target="_blank">Edit</a>
+                <a class="button action secondary" href="${project.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Open</a>
+            </td>
+        </tr>
+      `);
     } else {
       await window.alertDialog(OOPS);
     }
@@ -651,8 +670,8 @@ async function renderUpdatesSection(div, { project, headers }) {
         projectUpdateDialog.dataset.loadingText = 'Updating...';
         projectUpdateDialog.setLoading(true);
 
-        const updateResponse = await fetch(`${endpoint}update/${project.projectSlug}`, { headers });
-        if (updateResponse.ok) {
+        const updateResponse = await fetch(`${endpoint}update/${project.projectSlug}`, { headers }).catch(() => null);
+        if (updateResponse?.ok) {
           projectUpdateDialog.renderDialog('<h3 class="centered-info">Project updated successfully!</h3>');
           // replace update button
           div.innerHTML = '<h3>Your project is up-to-date!</h3>';
@@ -744,9 +763,9 @@ async function renderPrevUpdatesSection(div, {
             method: 'POST',
             headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify({ sha: formData.get('update') }),
-          });
+          }).catch(() => null);
 
-          if (revertUpdateResponse.ok) {
+          if (revertUpdateResponse?.ok) {
             revertUpdateDialog.renderDialog('<h3 class="centered-info">Project reverted successfully!</h3>');
             // rerender update section. Should say an update is available as one has just been reverted
             rerenderUpdatesSection(updateInfoDiv, { project, headers });
@@ -962,51 +981,23 @@ export default async function decorate(block) {
                 <div class="pages-panel ${selected === 'pages' ? 'is-selected' : ''}">                    
                     <div class="container">
                         <div id="pages-overview">
-                        <h2>Pages</h2>
-                        <table class="pages">
-                          <thead>
-                              <tr>
-                                <th>Title</th>
-                                <th>Description</th>
-                                <th>Path</th>
-                                <th>Last update</th>
-                                <th></th>
-                              </tr>  
-                            </thead>
-                            <tbody></tbody>
-                          </table>
+                          <h2>Pages</h2>
+                          <table class="pages"><tr><td><img src="/icons/loading.svg" alt="loading" loading="lazy"/></td></tr></table>
                         </div>
                         
                         <div id="nav-overview">
-                        <h2>Navigation</h2>
-                        <table class="navs">
-                            <thead>
-                              <tr>
-                                <th>Title</th>
-                                <th>Description</th>
-                                <th>Path</th>
-                                <th>Last update</th>
-                                <th></th>
-                              </tr>  
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                          <h2>Navigation</h2>
+                          <table class="navs"><tr><td><img src="/icons/loading.svg" alt="loading" loading="lazy"/></td></tr></table>
                         </div>
                         
                         <div id="footer-overview">
-                        <h2>Footer</h2>
-                        <table class="footers">
-                            <thead>
-                              <tr>
-                                <th>Title</th>
-                                <th>Description</th>
-                                <th>Path</th>
-                                <th>Last update</th>
-                                <th></th>
-                              </tr>  
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                          <h2>Footer</h2>
+                          <table class="footers"><tr><td><img src="/icons/loading.svg" alt="loading" loading="lazy"/></td></tr></table>
+                        </div>
+                        
+                        <div id="drafts-overview">
+                          <h2>Drafts</h2>
+                          <table class="drafts"><tr><td><img src="/icons/loading.svg" alt="loading" loading="lazy"/></td></tr></table>
                         </div>
                     </div>
                 </div>
@@ -1329,8 +1320,8 @@ export default async function decorate(block) {
             const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
               method: 'DELETE',
               headers,
-            });
-            if (revokeResponse.ok) {
+            }).catch(() => null);
+            if (revokeResponse?.ok) {
               authorsList.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
             } else {
               await window.alertDialog(OOPS);
@@ -1350,8 +1341,8 @@ export default async function decorate(block) {
             const changeOwnerResponse = await fetch(`${SCRIPT_API}/updateOwner/${id}/${authorEmail}`, {
               method: 'POST',
               headers,
-            });
-            if (changeOwnerResponse.ok) {
+            }).catch(() => null);
+            if (changeOwnerResponse?.ok) {
               const prevOwner = authorsList.querySelector('li.is-owner');
               if (prevOwner) {
                 prevOwner.classList.remove('is-owner');
@@ -1397,8 +1388,8 @@ export default async function decorate(block) {
         const response = await fetch(`${SCRIPT_API}/authors/${id}/${email}`, {
           method: 'POST',
           headers,
-        });
-        if (response.ok) {
+        }).catch(() => null);
+        if (response?.ok) {
           addAuthorListItem({ email });
           event.target.email.value = '';
         } else {
@@ -1458,8 +1449,8 @@ export default async function decorate(block) {
           headers: { ...headers, 'content-type': 'application/json' },
           method: 'POST',
           body: JSON.stringify({ contactEmail: contactEmailFormInput.value }),
-        });
-        if (response.ok) {
+        }).catch(() => null);
+        if (response?.ok) {
           await window.alertDialog('Contact email updated!');
           project.contactEmail = contactEmailFormInput.value;
         } else {
@@ -1551,8 +1542,8 @@ export default async function decorate(block) {
           const reqDelete = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'da-' : ''}delete/${project.projectSlug}`, {
             method: 'DELETE',
             headers,
-          });
-          if (reqDelete.ok) {
+          }).catch(() => null);
+          if (reqDelete?.ok) {
             window.location.href = '/dashboard';
           } else {
             await window.alertDialog(OOPS);
@@ -1596,9 +1587,9 @@ export default async function decorate(block) {
             headers: { ...headers, 'content-type': 'application/json' },
             method: 'POST',
             body: JSON.stringify(body),
-          });
+          }).catch(() => null);
 
-          if (response.ok) {
+          if (response?.ok) {
             dialog.renderDialog('<h3 class="centered-info">Description successfully updated</h3>');
             project.projectDescription = body.projectDescription;
             const descriptionSpan = block.querySelector('.project-description.card .project-description.span');
@@ -1613,7 +1604,7 @@ export default async function decorate(block) {
 
       // MARK: page list
       // Load index to list pages
-      fetch(`${project.customLiveUrl}/query-index.json?sheet=all`)
+      fetch(`${SCRIPT_API}/index/${id}`)
         .then((res) => {
           if (res.ok) {
             return res.json();
@@ -1621,53 +1612,50 @@ export default async function decorate(block) {
 
           throw new Error(res.status);
         })
-        // Assuming all templates have the all sheet
         .then(({ data }) => {
           if (!data.length) {
             return;
           }
 
-          const toDate = (lastModified) => new Date(Number(lastModified) * 1000);
-          const lastUpdate = Math.max(...data.map(({ lastModified }) => toDate(lastModified)));
+          const lastUpdate = Math.max(...data.map(({ lastModified }) => new Date(lastModified).getTime()));
           block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
-          const pages = data.filter(
-            ({ template, robots }) => !template?.includes('email') && !robots?.includes('noindex'),
-          );
-          const navs = data.filter(({ path }) => path?.endsWith('/nav'));
-          const footers = data.filter(({ path }) => path?.endsWith('/footer'));
-          const emails = data.filter(({ template }) => template?.includes('email'));
+          const pages = data.filter(({ path }) => !path.startsWith('/drafts/')
+            && !path.startsWith('/emails/')
+            && !path.endsWith('/nav')
+            && !path.endsWith('/footer')
+            && path !== '/newsletter');
+          const navs = data.filter(({ path }) => path.endsWith('/nav'));
+          const footers = data.filter(({ path }) => path.endsWith('/footer'));
+          const drafts = data.filter(({ path }) => path.startsWith('/drafts/'));
+          const emails = data.filter(({ path }) => path.startsWith('/emails/') || path === '/newsletter');
 
-          const renderTable = async (tableBody, tableData, type) => {
+          const renderTable = (table, tableData, type) => {
+            table.innerHTML = `
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Path</th>
+                  <th>Last update</th>
+                  <th></th>
+                </tr>  
+              </thead>
+              <tbody></tbody>
+            `;
+
             const tableRows = tableData.map((item) => {
-              const titleEl = document.createElement('div');
-              titleEl.innerHTML = item.title;
-
-              const descriptionEl = document.createElement('div');
-              descriptionEl.innerHTML = item.description;
-
-              let description = '';
-              if (descriptionEl.textContent) {
-                if (descriptionEl.textContent.length > 100) {
-                  description = `${descriptionEl.textContent.substring(0, 100)}…`;
-                } else {
-                  description = descriptionEl.textContent;
-                }
-              }
-
               const tableRow = document.createElement('tr');
 
               if (type === 'emails') {
                 tableRow.innerHTML = `
                   <tr>
-                      <td>${item.path.split('/').pop()}</td>
-                      <td>${titleEl.textContent}</td>
-                      <td>${description}</td>          
-                      <td>${toDate(item.lastModified).toLocaleString()}</td>
+                      <td>${item.name}</td>
+                      <td>${item.path}</td>
+                      <td>${new Date(item.lastModified).toLocaleString()}</td>          
                       <td>
                         <div id="email-open-edit" class="button-container">
                           <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
-                          <a class="button action secondary" href="${EMAIL_WORKER_API}/preview/${project.customLiveUrl}${item.path}" target="_blank">Open</a>
+                          <a class="button action secondary" href="${EMAIL_WORKER_API}/preview/${project.customPreviewUrl}${item.path}" target="_blank">Open</a>
                         </div>
                       </td>
                   </tr>
@@ -1676,50 +1664,30 @@ export default async function decorate(block) {
               }
 
               tableRow.innerHTML = `
-                <td>${titleEl.textContent}</td>
-                <td>${description}</td>
-                <td>${item.path}</td>          
-                <td>${new Date(Number(item.lastModified) * 1000).toLocaleString()}</td>
-                <td class="table-actions"><a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Open</a></td>
-                `;
-
-              // add edit button
-              const editButton = document.createElement('button');
-              editButton.classList.add('button', 'action', 'secondary', 'edit-page', 'edit');
-              editButton.target = '_blank';
-              editButton.innerText = 'Edit';
-              tableRow.lastElementChild.prepend(editButton);
-
-              // TODO: change to link if we drop drive support
-              if (!darkAlleyVariation) {
-                editButton.onclick = async () => {
-                  editButton.classList.add('loading');
-                  const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${project.projectSlug}/main${item.path}?editUrl=auto`).then((res) => res.json()).catch(() => null);
-                  if (statusData?.edit?.url) {
-                    window.open(statusData.edit.url, '_blank');
-                  } else {
-                    window.open(project.driveUrl, '_blank');
-                  }
-                  editButton.classList.remove('loading');
-                };
-              } else {
-                editButton.onclick = () => {
-                  window.open(`https://da.live/edit#/${daProjectRepo}/${id}${item.path.endsWith('/') ? `${item.path}index` : item.path}`, '_blank');
-                };
-              }
+                <td>${item.name}</td>
+                <td>${item.path}</td>
+                <td>${new Date(item.lastModified).toLocaleString()}</td>
+                <td class="table-actions">
+                    <a class="button action secondary" href="${darkAlleyVariation ? `https://da.live/edit#/${daProjectRepo}/${id}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+                    <a class="button action secondary" href="${project.customPreviewUrl}${item.path}" target="_blank">Open</a>
+                </td>
+              `;
 
               return tableRow;
             });
+
+            const tableBody = table.tBodies[0];
             tableBody.append(...tableRows);
             if (tableBody.matches(':empty')) {
-              const cols = tableBody.closest('table').querySelectorAll('th').length;
+              const cols = table.querySelectorAll('th').length;
               tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;
             }
           };
 
-          renderTable(block.querySelector('.pages tbody'), pages);
-          renderTable(block.querySelector('.navs tbody'), navs);
-          renderTable(block.querySelector('.footers tbody'), footers);
+          renderTable(block.querySelector('.pages'), pages);
+          renderTable(block.querySelector('.navs'), navs);
+          renderTable(block.querySelector('.footers'), footers);
+          renderTable(block.querySelector('.drafts'), drafts);
 
           // Fetch campaigns and render emails per campaign
           fetch(`${SCRIPT_API}/campaigns/${id}`, {
@@ -1747,7 +1715,7 @@ export default async function decorate(block) {
               if (project.darkAlleyProject) {
                 action.href = `https://da.live/#/${daProjectRepo}/${id}/${campaign}`;
               } else {
-                action.href = `https://drive.google.com/drive/u/1/search?q=title:${campaign}%20parent:${project.driveId}%20type:folder`;
+                action.href = `https://drive.google.com/drive/u/1/search?q=title:${campaign}%20parent:${project.driveId}%20type:folder&authuser=${user.email}`;
               }
             };
 
@@ -1783,26 +1751,15 @@ export default async function decorate(block) {
             const campaignContainer = block.querySelector('.campaign-container');
             campaignContainer.innerHTML = `
               <div class="campaign" ${window.location.pathname.startsWith(`/${siteType}/${id}/emails/`) ? 'hidden' : ''}>
-                <table class="emails">
-                   <thead>
-                     <tr>
-                       <th>Name</th>
-                       <th>Title</th>
-                       <th>Description</th>
-                       <th>Last update</th>
-                       <th></th>
-                     </tr>
-                   </thead>
-                   <tbody></tbody>
-                 </table>
+                <table class="emails"></table>
               </div>
             `;
 
-            renderTable(block.querySelector('.campaign .emails tbody'), emails, 'emails');
+            renderTable(block.querySelector('.campaign .emails'), emails, 'emails');
 
             allCampaignSlugs.forEach((campaignSlug) => {
               const campaign = campaigns[campaignSlug];
-              const campaignEmails = emails.filter(({ path }) => path.startsWith(`/${campaignSlug}/`));
+              const campaignEmails = emails.filter(({ path }) => path.startsWith(`/emails/${campaignSlug}/`));
 
               campaignContainer.insertAdjacentHTML('beforeend', `
                 <div data-campaign="${campaignSlug}" class="campaign campaign-${campaignSlug}" ${window.location.pathname === `/${siteType}/${id}/emails/${campaignSlug}` ? '' : 'hidden'}>
@@ -1827,22 +1784,11 @@ export default async function decorate(block) {
                   </div>
                   
                   <h2>${campaign.name} emails</h2>
-                  <table class="emails">
-                   <thead>
-                     <tr>
-                       <th>Name</th>
-                       <th>Title</th>
-                       <th>Description</th>
-                       <th>Last update</th>
-                       <th></th>
-                     </tr>
-                   </thead>
-                   <tbody></tbody>
-                 </table>
+                  <table class="emails"></table>
                 </div>
               `);
 
-              renderTable(block.querySelector(`.campaign-${campaignSlug} .emails tbody`), campaignEmails, 'emails');
+              renderTable(block.querySelector(`.campaign-${campaignSlug} .emails`), campaignEmails, 'emails');
             });
 
             campaignContainer.onclick = async (event) => {
@@ -1881,9 +1827,9 @@ export default async function decorate(block) {
                     headers: { ...headers, 'content-type': 'application/json' },
                     method: 'PATCH',
                     body: JSON.stringify(body),
-                  });
+                  }).catch(() => null);
 
-                  if (reqUpdate.ok) {
+                  if (reqUpdate?.ok) {
                     const update = await reqUpdate.json();
                     dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
 
@@ -1952,11 +1898,11 @@ export default async function decorate(block) {
                   headers: { ...headers, 'content-type': 'application/json' },
                   method: 'POST',
                   body: JSON.stringify(Object.fromEntries(new FormData(form))),
-                });
+                }).catch(() => null);
 
-                if (!req.ok) {
+                if (!req?.ok) {
                   dialog.setLoading(false);
-                  await window.alertDialog(await req.text());
+                  await window.alertDialog(OOPS);
                 } else {
                   const newCampaign = await req.json();
 
@@ -1989,23 +1935,12 @@ export default async function decorate(block) {
                       </div>
                       
                       <h2>${newCampaign.name} emails</h2>
-                      <table class="emails">
-                       <thead>
-                         <tr>
-                           <th>Name</th>
-                           <th>Title</th>
-                           <th>Description</th>
-                           <th>Last update</th>
-                           <th></th>
-                         </tr>
-                       </thead>
-                       <tbody></tbody>
-                     </table>
+                      <table class="emails"></table>
                     </div>
                   `);
 
-                  const newCampaignEmails = emails.filter(({ path }) => path.startsWith(`/${newCampaign.slug}/`));
-                  renderTable(campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails tbody`), newCampaignEmails, 'emails');
+                  const newCampaignEmails = emails.filter(({ path }) => path.startsWith(`/emails/${newCampaign.slug}/`));
+                  renderTable(campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`), newCampaignEmails, 'emails');
 
                   campaignList.querySelector('li:last-child a').click();
 
@@ -2054,39 +1989,16 @@ export default async function decorate(block) {
                   headers: { ...headers, 'content-type': 'application/json' },
                   method: 'POST',
                   body: JSON.stringify(body),
-                });
+                }).catch(() => null);
 
-                if (!req.ok) {
+                if (!req?.ok) {
                   dialog.setLoading(false);
-                  await window.alertDialog(await req.text());
+                  await window.alertDialog(OOPS);
                 } else {
                   dialog.setLoading(false);
-
-                  const buttons = [];
-                  let draftHref;
-                  let editHref;
-
-                  if (project.darkAlleyProject) {
-                    const { daPath, daNewPageSlug } = await req.json();
-                    draftHref = `https://da.live/#${daPath}`;
-                    editHref = `https://da.live/edit#${daPath}/${daNewPageSlug}`;
-                  } else {
-                    const { newPageId, folderId } = await req.json();
-                    draftHref = `https://drive.google.com/drive/folders/${folderId}`;
-                    editHref = `https://docs.google.com/document/d/${newPageId}/edit`;
-                  }
-
-                  const draftsLink = parseFragment(`
-                    <a class="button secondary action" href="${draftHref}" target="_blank">Campaign ${campaignSlug} Folder</a>
-                  `);
-                  buttons.push(draftsLink);
-
-                  const editLink = parseFragment(`
-                    <a class="button primary action" href="${editHref}" target="_blank">Edit ${body.pageName}</a>
-                  `);
-                  buttons.push(editLink);
-
-                  dialog.renderDialog(`<h3 class="centered-info" >${body.pageName} email added to Campaign ${campaignSlug}</h3>`, buttons);
+                  dialog.close();
+                  const { pageSlug, daNewPageSlug } = await req.json();
+                  window.location.href = `/email/${id}/emails/${campaignSlug}/${pageSlug || daNewPageSlug}`;
                 }
               };
             };
@@ -2101,9 +2013,9 @@ export default async function decorate(block) {
                   const deleteReq = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
                     method: 'DELETE',
                     headers,
-                  });
+                  }).catch(() => null);
 
-                  if (deleteReq.ok) {
+                  if (deleteReq?.ok) {
                     block.querySelector(`.campaign-list[data-type="emails"] li[data-campaign="${campaignSlug}"]`).remove();
                     block.querySelector('.campaign-list[data-type="emails"] a').click();
 
@@ -2186,7 +2098,9 @@ export default async function decorate(block) {
 
       // MARK: add page button
       block.querySelector('.add-page').onclick = () => {
-        addPageDialogSetup({ project, headers, darkAlleyVariation });
+        addPageDialogSetup({
+          project, headers, darkAlleyVariation, user,
+        });
       };
 
       // Load site blocks
@@ -2223,9 +2137,9 @@ export default async function decorate(block) {
         `${SCRIPT_API}/monitoring/${project.projectSlug}?period=${interval}`,
         `${SCRIPT_API}/cww/${project.projectSlug}?period=${interval}`,
       ].map(async (url) => {
-        const req = await fetch(url, { headers });
-        if (!req.ok) {
-          throw new Error(req.status);
+        const req = await fetch(url, { headers }).catch(() => null);
+        if (!req?.ok) {
+          throw new Error(req?.status || OOPS);
         }
         return req.json();
       }));

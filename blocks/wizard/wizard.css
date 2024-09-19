@@ -13,6 +13,11 @@
     min-height: 50vh;
 }
 
+/* User is redirected to dashboard automatically */
+.wizard.block a[href="#site-details"] {
+    display: none !important;
+}
+
 .wizard.block .button-container:has(a[href="#template"]) {
     display: none !important;
 }
