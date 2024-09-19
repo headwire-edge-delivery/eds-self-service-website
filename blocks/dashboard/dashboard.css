@@ -79,6 +79,14 @@
 
 .dashboard.block .sites ul a :is(h2, strong, p) {
     color: var(--white);
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.dashboard.block .sites ul a .project-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .dashboard.block .sites > p:only-child {
@@ -150,13 +158,18 @@
 
 .dashboard.block .account-details span {
     font-weight: 300;
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dashboard.block .account-details > div {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-width: calc(var(--layout-width) / 4);
+    max-width: 25%;
 }
 
 .dashboard.block .account-details > div strong {

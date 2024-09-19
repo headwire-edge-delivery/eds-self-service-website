@@ -951,20 +951,20 @@ export default async function decorate(block) {
                 <div class="overview-panel ${selected === 'overview' ? 'is-selected' : ''}">                    
                     <div class="container">
                         <div class="cards">
-                            <div id="site-id">
+                            <div id="site-id" class="box">
                               <strong>Site id</strong>
-                              <span>${project.projectSlug}</span>
+                              <span title="${project.projectSlug}">${project.projectSlug}</span>
                           </div>
-                          <div id="site-description" class="project-description card">
+                          <div id="site-description" class="project-description card box">
                               <strong>Site description</strong>
-                              <span class="project-description span">${project.projectDescription ?? ''}</span>
+                              <span class="project-description description span">${project.projectDescription ?? ''}</span>
                               <button id="update-desc-button" title="Edit the Project Description" class="button secondary update-description action">Update</button>
                           </div>
-                          <div id="last-updated">
+                          <div id="last-updated" class="box">
                               <strong>Last update</strong>
                               <span class="last-update"></span>
                           </div>
-                          <div id="site-template">
+                          <div id="site-template" class="box">
                               <strong>Site template</strong>
                               <span>${project.templateName}</span>
                           </div>
@@ -1114,23 +1114,23 @@ export default async function decorate(block) {
             </ul>
               
             <div id="email-metrics" class="cards metrics">
-              <div id="email-metrics-delivery-rate">
+              <div id="email-metrics-delivery-rate" class="box">
                   <strong>Delivery rate</strong>
                   <span class="delivered-count"></span>
               </div>
-              <div id="email-metrics-bounce-rate">
+              <div id="email-metrics-bounce-rate" class="box">
                   <strong>Bounce rate</strong>
                   <span class="bounced-count"></span>
               </div>
-              <div id="email-metrics-open-rate">
+              <div id="email-metrics-open-rate" class="box">
                   <strong>Open rate</strong>
                   <span class="opened-count"></span>
               </div>
-              <div id="email-metrics-cto-rate">
+              <div id="email-metrics-cto-rate" class="box">
                   <strong>Click-to-open rate</strong>
                   <span class="clicked-count"></span>
               </div>
-              <div id="email-metrics-sc-rate">
+              <div id="email-metrics-sc-rate" class="box">
                   <strong>Spam complaints rate</strong>
                   <span class="complained-count"></span>
               </div>
@@ -2214,17 +2214,17 @@ export default async function decorate(block) {
 
         container.innerHTML = `
           <div class="cards">
-            <div id="total-visits">
+            <div id="total-visits" class="box">
                 <strong>Total visits</strong>
                 <span>${totalVisits}</span>
                 ${visitsDelta !== 0 ? `<span class="${visitsDelta < 0 ? 'red' : 'green'}">${visitsDelta > 0 ? '+' : ''}${visitsDelta}%</span>` : ''}
             </div>
-            <div id="total-page-views">
+            <div id="total-page-views" class="box">
                 <strong>Total page views</strong>
                 <span>${totalPageViews}</span>
                 ${pageViewsDelta !== 0 ? `<span class="${pageViewsDelta < 0 ? 'red' : 'green'}">${pageViewsDelta > 0 ? '+' : ''}${pageViewsDelta}%</span>` : ''}
             </div>
-            <div id="median-page-load">
+            <div id="median-page-load" class="box">
                 <strong>Median page load time</strong>
                 <span>${medianPageLoadTime / 1000}ms</span>
                 ${performanceDelta !== 0 ? `<span class="${performanceDelta < 0 ? 'red' : 'green'}">${performanceDelta > 0 ? '+' : ''}${performanceDelta}%</span>` : ''}
@@ -2239,40 +2239,40 @@ export default async function decorate(block) {
           <div id="visits-details">
             <h2>Visits details</h2>
             <div class="cards metrics">
-                <div id="visits-details-country">
+                <div id="visits-details-country" class="box">
                     <strong>By country</strong>
                     ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                      <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.sum.visits}</span></span>
+                      <p><span title="${countries.find(({ value }) => value === country.dimensions.metric)?.label}">${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.sum.visits}</span></p>
                     `).join('')}
                 </div>
-                <div id="visits-details-referers">
+                <div id="visits-details-referers" class="box">
                     <strong>By referers</strong>
                     ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
-                      <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.sum.visits}</span></span>
+                      <p><span title="${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}">${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.sum.visits}</span></p>
                     `).join('')}
                 </div>
-                <div id="visits-details-paths">
+                <div id="visits-details-paths" class="box">
                     <strong>By paths</strong>
                     ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
-                      <span>${paths.dimensions.metric}: <span>${paths.sum.visits}</span></span>
+                      <p><span title="${paths.dimensions.metric}">${paths.dimensions.metric}</span><span>${paths.sum.visits}</span></p>
                     `).join('')}
                 </div>
-                <div id="visits-details-browsers">
+                <div id="visits-details-browsers" class="box">
                     <strong>By browsers</strong>
                     ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                      <span>${browsers.dimensions.metric}: <span>${browsers.sum.visits}</span></span>
+                      <p><span title="${browsers.dimensions.metric}">${browsers.dimensions.metric}</span><span>${browsers.sum.visits}</span></p>
                     `).join('')}
                 </div>
-                <div id="visits-details-os">
+                <div id="visits-details-os" class="box">
                     <strong>By operating systems</strong>
                     ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
-                      <span>${OSs.dimensions.metric}: <span>${OSs.sum.visits}</span></span>
+                      <p><span title="${OSs.dimensions.metric}">${OSs.dimensions.metric}</span><span>${OSs.sum.visits}</span></p>
                     `).join('')}
                 </div>
-                <div id="visits-details-devices">
+                <div id="visits-details-devices" class="box">
                     <strong>By device type</strong>
                     ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                      <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.sum.visits}</span></span>
+                      <p><span title="${deviceTypes.dimensions.metric}">${deviceTypes.dimensions.metric}</span><span>${deviceTypes.sum.visits}</span></p>
                     `).join('')}
                 </div>
             </div>
@@ -2281,37 +2281,37 @@ export default async function decorate(block) {
           <div id="page-views-details">
             <h2>Page views details</h2>
             <div class="cards metrics">
-              <div id="page-views-details-country">
+              <div id="page-views-details-country" class="box">
                   <strong>By country</strong>
                   ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
+                    <p><span title="${countries.find(({ value }) => value === country.dimensions.metric)?.label}">${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>
                   `).join('')}
               </div>
-              <div id="page-views-details-referers">
+              <div id="page-views-details-referers" class="box">
                   <strong>By referers</strong>
                   ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
                     <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
                   `).join('')}
               </div>
-              <div id="page-views-details-paths">
+              <div id="page-views-details-paths" class="box">
                   <strong>By paths</strong>
                   ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
                     <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
                   `).join('')}
               </div>
-              <div id="page-views-details-browsers">
+              <div id="page-views-details-browsers" class="box">
                   <strong>By browsers</strong>
                   ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
                     <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
                   `).join('')}
               </div>
-              <div id="page-views-details-os">
+              <div id="page-views-details-os" class="box">
                   <strong>By operating systems</strong>
                   ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
                     <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
                   `).join('')}
               </div>
-              <div id="page-views-details-devices">
+              <div id="page-views-details-devices" class="box">
                   <strong>By device type</strong>
                   ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
                     <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
@@ -2323,37 +2323,37 @@ export default async function decorate(block) {
           <div id="pageload-details">
             <h2>Page load time details</h2>
             <div class="cards metrics">
-              <div id="pageload-details-country">
+              <div id="pageload-details-country" class="box">
                   <strong>By country</strong>
                   ${metrics[3].data.viewer.accounts[0].countries.map((country) => `
                     <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
                   `).join('')}
               </div>
-              <div id="pageload-details-referers">
+              <div id="pageload-details-referers" class="box">
                   <strong>By referers</strong>
                   ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `
                     <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
                   `).join('')}
               </div>
-              <div id="pageload-details-paths">
+              <div id="pageload-details-paths" class="box">
                   <strong>By paths</strong>
                   ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `
                     <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
                   `).join('')}
               </div>
-              <div id="pageload-details-browsers">
+              <div id="pageload-details-browsers" class="box">
                   <strong>By browsers</strong>
                   ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `
                     <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
                   `).join('')}
               </div>
-              <div id="pageload-details-os">
+              <div id="pageload-details-os" class="box">
                   <strong>By operating systems</strong>
                   ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `
                     <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
                   `).join('')}
               </div>
-              <div id="pageload-details-devices">
+              <div id="pageload-details-devices" class="box">
                   <strong>By device type</strong>
                   ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
                     <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
@@ -2368,7 +2368,7 @@ export default async function decorate(block) {
 
           <div class="cards">
               ${['lcp', 'inp', 'fid', 'cls'].map((metric) => `
-                <div>
+                <div class="cwp-box">
                   <strong>${metric.toUpperCase()}</strong>
                   <span>Excellent (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
                   <span>Good (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
@@ -2382,7 +2382,7 @@ export default async function decorate(block) {
           <h2>By Path and Browsers</h2>
           
           <div class="cards metrics">
-            <div>
+            <div class="cwp-box">
                 <strong>LCP</strong>
                 ${cww[0].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
     .filter((rum) => rum?.dimensions?.largestContentfulPaintPath)
@@ -2395,7 +2395,7 @@ export default async function decorate(block) {
                     </ul>
                   `).join('')}
             </div>
-            <div>
+            <div class="cwp-box">
                 <strong>INP</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
     .filter((rum) => rum?.dimensions?.userAgentBrowser)
@@ -2408,7 +2408,7 @@ export default async function decorate(block) {
                     </ul>
                   `).join('')}
             </div>
-            <div>
+            <div class="cwp-box">
                 <strong>FID</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
     .filter((rum) => rum?.dimensions?.firstInputDelayPath)
@@ -2421,7 +2421,7 @@ export default async function decorate(block) {
                   </ul>
                 `).join('')}
             </div>
-            <div>
+            <div class="cwp-box">
                 <strong>CLS</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
     .filter((rum) => rum?.dimensions?.cumulativeLayoutShiftPath)
