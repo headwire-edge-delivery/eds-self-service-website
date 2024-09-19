@@ -298,6 +298,7 @@
     height: 64px;
     width: 64px;
 }
+}
 
 @media (width < 768px) {
     .site-details.block .content aside {
@@ -421,10 +422,6 @@
 .site-details.block .period-selector {
     padding-block: 6.5px;
     width: auto;
-}
-
-#email-details {
-    overflow-x: auto;
 }
 
 .site-details.block .analytics-panel table td p:first-child {
