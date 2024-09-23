@@ -129,6 +129,18 @@
     padding-block: 8px;
 }
 
+.site-details.block .title {
+    margin-top: 16px;
+    padding-bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.site-details.block .title h2 {
+    padding: 0;
+}
+
 .site-details.block .container {
     width: 100%;
     overflow: auto;
@@ -168,7 +180,15 @@
     text-align: center;
     word-wrap: break-word;
 }
-    
+
+.site-details.block .cards .cwp-box ul {
+    list-style: none;
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .site-details.block .cards .box p {
     display: flex;
     justify-content: space-between;

@@ -2206,15 +2206,16 @@ export default async function decorate(block) {
       const period = block.querySelector('.period-selector');
 
       const renderWebAnalytics = ([metrics, cww]) => {
-        const totalVisits = metrics[0].data.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
-        const totalPageViews = metrics[0].data.viewer.accounts[0]?.total[0]?.count ?? 0;
-        const medianPageLoadTime = metrics[2].data.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
+        const totalVisits = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
+        const totalPageViews = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.count ?? 0;
+        const medianPageLoadTime = metrics[2]?.data?.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
 
-        const visitsDelta = metrics[2].data.viewer.accounts[0].visitsDelta[0] ? ((totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits) - 100 : 0;
-        const pageViewsDelta = metrics[2].data.viewer.accounts[0].pageviewsDelta[0] ? ((totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count) - 100 : 0;
-        const performanceDelta = metrics[2].data.viewer.accounts[0].performanceDelta[0] ? ((medianPageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime) - 100 : 0;
+        const visitsDelta = metrics[2]?.data?.viewer.accounts[0].visitsDelta[0] ? ((totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits) - 100 : 0;
+        const pageViewsDelta = metrics[2]?.data?.viewer.accounts[0].pageviewsDelta[0] ? ((totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count) - 100 : 0;
+        const performanceDelta = metrics[2]?.data?.viewer.accounts[0].performanceDelta[0] ? ((medianPageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime) - 100 : 0;
 
         container.innerHTML = `
+        <div class="title"><h2>Last ${period.value === '1d' ? '24 Hours' : period.value.replace('d', ' Days')}</h2>${period.value === '30d' ? '<i>(Based on a 10% sample of page load events)</i>' : ''}</div>
           <div class="cards">
             <div id="total-visits" class="box">
                 <strong>Total visits</strong>
@@ -2249,7 +2250,7 @@ export default async function decorate(block) {
                 </div>
                 <div id="visits-details-referers" class="box">
                     <strong>By referers</strong>
-                    ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
+                    ${metrics[0].data.viewer.accounts[0].topReferers.filter((ref) => ref.sum.visits > 1).map((referer) => `
                       <p><span title="${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}">${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.sum.visits}</span></p>
                     `).join('')}
                 </div>
