@@ -1976,6 +1976,26 @@ export default async function decorate(block) {
 
               const dialog = window.createDialog(content, [submit], { fullscreen: true });
               const form = document.getElementById('add-email-form');
+              const campaignSlug = window.location.pathname.split('/').pop();
+              const existingEmails = [...block.querySelectorAll(`.campaign-${campaignSlug} .emails tbody tr td:first-child`)].map((el) => el.textContent);
+
+              const nameInput = form.querySelector('input[name="pageName"]');
+              nameInput.oninput = (event = { target: nameInput }) => {
+                const value = slugify(event?.target?.value || '');
+                if (!value) {
+                  submit.disabled = true;
+                  event.target.setCustomValidity('Please enter a name');
+                  return;
+                }
+
+                if (existingEmails.includes(value)) {
+                  event.target.setCustomValidity('Email already exists');
+                  return;
+                }
+                submit.disabled = false;
+                event.target.setCustomValidity('');
+              };
+              nameInput.oninput();
 
               form.onsubmit = async (e) => {
                 window.zaraz?.track('click add email', { url: window.location.href });
@@ -1983,8 +2003,6 @@ export default async function decorate(block) {
                 e.preventDefault();
 
                 dialog.setLoading(true, 'Adding email...');
-
-                const campaignSlug = window.location.pathname.split('/').pop();
 
                 const body = Object.fromEntries(new FormData(form));
                 const req = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
