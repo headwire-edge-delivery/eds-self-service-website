@@ -3,5 +3,5 @@ Please always provide the [GitHub issue(s)](../issues) your PR is for, as well a
 Fix #<gh-issue-id>
 
 Test URLs:
-- Before: https://main--eds-self-service-website--headwire-edge-delivery.hlx.live/
-- After: https://<branch>--eds-self-service-website--headwire-edge-delivery.hlx.live/
+- Before: https://main--eds-self-service-website--headwire-edge-delivery.aem.live/
+- After: https://<branch>--eds-self-service-website--headwire-edge-delivery.aem.live/
