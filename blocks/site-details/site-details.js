@@ -182,7 +182,7 @@ function blockIconDialogSetup({
 
         data.forEach((screenshot) => {
           blockPreview.insertAdjacentHTML('beforeend', `
-            <img src="http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}" alt="screenshot"/>
+            <img src="http://main--${project.templateSlug}--headwire-self-service-templates.aem.live/${screenshot.substring(2)}" alt="screenshot"/>
           `);
         });
       });
@@ -304,7 +304,7 @@ function addBlockDialogSetup({ project, headers, itemList }) {
           blockPreview.innerHTML = '';
           screenshotData.forEach((screenshot) => {
             blockPreview.insertAdjacentHTML('beforeend', `
-              <img src="http://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/${screenshot.substring(2)}" alt="screenshot"/>
+              <img src="http://main--${project.templateSlug}--headwire-self-service-templates.aem.live/${screenshot.substring(2)}" alt="screenshot"/>
             `);
           });
         });
@@ -391,7 +391,7 @@ function addPageDialogSetup({
   const dropdown = content.querySelector('select[name="templatePath"]');
   const previewIframe = content.querySelector('iframe');
 
-  const templateUrl = `https://main--${project.templateSlug}--headwire-self-service-templates.hlx.live`;
+  const templateUrl = `https://main--${project.templateSlug}--headwire-self-service-templates.aem.live`;
   const templateRegex = /^template\s*-\s*(?!.*authoring\s+guide\s*-)/i;
 
   fetch(`${templateUrl}/tools/sidekick/library.json`).then((res) => res.json()).then(({ data }) => {
@@ -1056,7 +1056,7 @@ export default async function decorate(block) {
                         <h2>Favicon</h2>
                         <p>Only <code>.ico</code> files are supported.</p>
                         <div class="favicon-section">
-                          <img alt="favicon" src="https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico" loading="lazy">
+                          <img alt="favicon" src="https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.aem.page/favicon.ico" loading="lazy">
                           <button id="change-favicon" title="Change the Favicon. (Only .ico is supported)" class="button action primary change-favicon">Update</button>     
                         </div>
                       </div>
@@ -1969,7 +1969,7 @@ export default async function decorate(block) {
                       </label>
                       <input type="hidden" name="templatePath" value="/newsletter">
                     </form>
-                    <iframe src="${EMAIL_WORKER_API}/preview/https://main--${project.templateSlug}--headwire-self-service-templates.hlx.live/newsletter"></iframe>
+                    <iframe src="${EMAIL_WORKER_API}/preview/https://main--${project.templateSlug}--headwire-self-service-templates.aem.live/newsletter"></iframe>
                   </div>
                 </div>
               `);
@@ -2144,7 +2144,7 @@ export default async function decorate(block) {
         titleText: 'Favicon',
         fileAccept: '.ico',
         uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
-        defaultSrc: `https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.hlx.page/favicon.ico`,
+        defaultSrc: `https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.aem.page/favicon.ico`,
       });
 
       // calendar link
