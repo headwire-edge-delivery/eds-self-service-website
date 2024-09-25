@@ -1,4 +1,4 @@
-import { startTour } from './main.js';
+import startTour from './main.js';
 
 const helpButton = () => {
   const button = document.createElement('button');
