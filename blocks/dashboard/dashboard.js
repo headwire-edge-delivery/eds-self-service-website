@@ -83,12 +83,12 @@ export default async function decorate(block) {
     const account = block.querySelector('.account');
     const sites = block.querySelector('.sites');
     const userSettings = await getUserSettings(SCRIPT_API);
-    // const { showAutoTour } = userSettings;
     const toggleAutoTourButton = block.querySelector('#toggle-auto-tour-button');
 
     if (userSettings?.showAutoTour) {
       toggleAutoTourButton.textContent = 'Disable Auto Tour';
     }
+    toggleAutoTourButton.setAttribute('data-loaded', 'true');
 
     block.querySelector('.new').onclick = () => {
       window?.zaraz?.track('click dashboard new site', { url: window.location.href });
@@ -99,6 +99,7 @@ export default async function decorate(block) {
     };
 
     toggleAutoTourButton.onclick = async () => {
+      toggleAutoTourButton.setAttribute('data-loaded', 'false');
       toggleAutoTourButton.classList.add('loading');
       const success = await updateUserSettings({ showAutoTour: !userSettings.showAutoTour });
       if (success) {
@@ -106,6 +107,7 @@ export default async function decorate(block) {
         toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
       }
       toggleAutoTourButton.classList.remove('loading');
+      toggleAutoTourButton.setAttribute('data-loaded', 'true');
     };
 
     aside.addEventListener('click', (event) => {

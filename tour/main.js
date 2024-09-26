@@ -106,8 +106,7 @@ function getTour(siteTour) {
   }, 100);
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export const startTour = (isAutoTour = false, showDisableTour = false) => {
+const startTour = (isAutoTour, showDisableTour = false) => {
   window.scrollTo(0, 0);
   if (isAutoTour) {
     onAuthenticated(async () => {
@@ -227,3 +226,5 @@ export const startTour = (isAutoTour = false, showDisableTour = false) => {
     }
   }
 };
+
+export default startTour;
