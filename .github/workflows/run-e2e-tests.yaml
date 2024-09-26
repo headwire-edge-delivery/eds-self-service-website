@@ -6,11 +6,13 @@ on:
       frontend-branch:
         description: "Frontend branch to checkout & run tests on"
         required: false
-        default: "main"
       backend-branch:
         description: "Backend branch to checkout & run tests on"
         required: false
         default: "main"
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -25,7 +27,9 @@ jobs:
           echo "TEST_REPO_OWNER=headwire-edge-delivery" >> $GITHUB_ENV
           echo "TEST_REPO=self-service-tests" >> $GITHUB_ENV
           echo "WORKFLOW_FILE=cypress.yml" >> $GITHUB_ENV
-          echo "BRANCH_NAME=${{ github.event.inputs.frontend-branch || github.head_ref }}" >> $GITHUB_ENV
+          echo "FRONTEND_BRANCH=${{ github.event.inputs.frontend-branch || github.head_ref }}" >> $GITHUB_ENV
+          echo "BACKEND_BRANCH=${{ github.event.inputs.backend-branch || 'main' }}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$FRONTEND_BRANCH" >> $GITHUB_ENV
       - name: Trigger E2E Tests in Self-Service-Tests
         id: trigger_tests
         shell: bash
@@ -35,7 +39,7 @@ jobs:
             -H "Authorization: token ${{ secrets.TEST_REPO_PAT }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/$TEST_REPO_OWNER/$TEST_REPO/actions/workflows/$WORKFLOW_FILE/dispatches \
-            -d "{\"ref\": \"main\", \"inputs\": {\"backend-branch\": \"${{ github.event.inputs.backend-branch || 'main' }}\", \"frontend-branch\": \"$BRANCH_NAME\" }}"
+            -d "{\"ref\": \"main\", \"inputs\": {\"backend-branch\": \"$BACKEND_BRANCH\", \"frontend-branch\": \"$FRONTEND_BRANCH\" }}"
             )
           
           STATUS_CODE=$(cat response.json | jq -r '.status')
@@ -82,6 +86,7 @@ jobs:
 
             if [[ "$STATUS" == "queued" || "$STATUS" == "in_progress" ]]; then
               echo "Found running workflow with Run ID: $RUN_ID"
+              echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
               break
             fi
           done
@@ -119,3 +124,10 @@ jobs:
             sleep 10
           done
 
+      - name: Post test-run action URL comment on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Test Action URL
+          message: "Test Action URL: https://github.com/$TEST_REPO_OWNER/$TEST_REPO/actions/runs/$RUN_ID"
+          recreate: true
