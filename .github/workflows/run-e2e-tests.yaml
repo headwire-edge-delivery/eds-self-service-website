@@ -1,0 +1,133 @@
+name: Trigger E2E Tests in Self-Service-Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      frontend-branch:
+        description: "Frontend branch to checkout & run tests on"
+        required: false
+      backend-branch:
+        description: "Backend branch to checkout & run tests on"
+        required: false
+        default: "main"
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  trigger-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up variables
+        shell: bash
+        run: |
+          echo "TEST_REPO_OWNER=headwire-edge-delivery" >> $GITHUB_ENV
+          echo "TEST_REPO=self-service-tests" >> $GITHUB_ENV
+          echo "WORKFLOW_FILE=cypress.yml" >> $GITHUB_ENV
+          echo "FRONTEND_BRANCH=${{ github.event.inputs.frontend-branch || github.head_ref }}" >> $GITHUB_ENV
+          echo "BACKEND_BRANCH=${{ github.event.inputs.backend-branch || 'main' }}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$FRONTEND_BRANCH" >> $GITHUB_ENV
+      - name: Trigger E2E Tests in Self-Service-Tests
+        id: trigger_tests
+        shell: bash
+        run: |
+          RESPONSE=$(curl -s -o response.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: token ${{ secrets.TEST_REPO_PAT }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/$TEST_REPO_OWNER/$TEST_REPO/actions/workflows/$WORKFLOW_FILE/dispatches \
+            -d "{\"ref\": \"main\", \"inputs\": {\"backend-branch\": \"$BACKEND_BRANCH\", \"frontend-branch\": \"$FRONTEND_BRANCH\" }}"
+            )
+          
+          STATUS_CODE=$(cat response.json | jq -r '.status')
+
+          if [ "$STATUS_CODE" -ne 204 ]; then
+            # Output the error message from the response if the workflow fails to trigger
+            ERROR_MESSAGE=$(cat response.json | jq -r '.message')
+            echo "Failed to trigger the workflow. HTTP Status: $STATUS_CODE. Error Message: $ERROR_MESSAGE"
+            exit 1
+          else
+            echo "Workflow triggered successfully for branch: $BRANCH_NAME"
+          fi
+
+      - name: Wait for test workflow completion in Self-Service-Tests
+        id: wait_for_completion
+        shell: bash
+        run: |
+          sleep 30
+          # Fetch all workflow runs triggered by workflow_dispatch
+          RUN_IDS=$(curl -s \
+            -H "Authorization: token ${{ secrets.TEST_REPO_PAT }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/$TEST_REPO_OWNER/$TEST_REPO/actions/runs \
+            | jq -r '.workflow_runs[]? | select(.event=="workflow_dispatch" and (.status=="queued" or .status=="in_progress")) | .id' | head -n 1)
+
+          if [ -z "$RUN_IDS" ]; then
+            echo "No workflow run found in queued or in_progress state."
+            echo "Full response from GitHub API:"
+            echo "https://api.github.com/repos/$TEST_REPO_OWNER/$TEST_REPO/actions/runs"
+            curl -s \
+              -H "Authorization: token ${{ secrets.TEST_REPO_PAT }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/$TEST_REPO_OWNER/$TEST_REPO/actions/runs
+            exit 1
+          fi
+
+          # Iterate over each workflow run ID and find the first one in queued or in_progress status
+          for RUN_ID in $RUN_IDS; do
+            STATUS=$(curl -s \
+              -H "Authorization: token ${{ secrets.TEST_REPO_PAT }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/$TEST_REPO_OWNER/$TEST_REPO/actions/runs/$RUN_ID \
+              | jq -r .status)
+
+            if [[ "$STATUS" == "queued" || "$STATUS" == "in_progress" ]]; then
+              echo "Found running workflow with Run ID: $RUN_ID"
+              echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+              break
+            fi
+          done
+
+          if [ -z "$RUN_ID" ]; then
+            echo "No running or queued workflow found."
+            exit 1
+          fi
+
+          echo "Waiting for workflow run to complete (Run ID: $RUN_ID)..."
+
+          # Poll the workflow run status until it's completed
+          while true; do
+            STATUS=$(curl -s \
+              -H "Authorization: token ${{ secrets.TEST_REPO_PAT }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/$TEST_REPO_OWNER/$TEST_REPO/actions/runs/$RUN_ID \
+              | jq -r .status)
+
+            if [ "$STATUS" == "completed" ]; then
+              CONCLUSION=$(curl -s \
+                -H "Authorization: token ${{ secrets.TEST_REPO_PAT }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                https://api.github.com/repos/$TEST_REPO_OWNER/$TEST_REPO/actions/runs/$RUN_ID \
+                | jq -r .conclusion)
+
+              echo "Workflow run completed with conclusion: $CONCLUSION"
+              if [ "$CONCLUSION" != "success" ]; then
+                exit 1
+              fi
+              break
+            fi
+
+            echo "Workflow run status: $STATUS. Waiting..."
+            sleep 10
+          done
+
+      - name: Post test-run action URL comment on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Test Action URL
+          message: "Test Action URL: https://github.com/$TEST_REPO_OWNER/$TEST_REPO/actions/runs/$RUN_ID"
+          recreate: true
