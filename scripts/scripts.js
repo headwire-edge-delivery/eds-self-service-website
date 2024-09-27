@@ -16,7 +16,7 @@ const LCP_BLOCKS = []; // add your LCP blocks to the list
 const range = document.createRange();
 
 export const SCRIPT_API = window.location.hostname === 'localhost'
-  ? 'http://localhost:4000' : 'https://eds-self-service-scripts.onrender.com';
+  ? 'http://localhost:4000' : 'https://api.kestrelone.com';
 export const EMAIL_WORKER_API = 'https://emails.headwire.workers.dev';
 export const OOPS = 'Oops ! Something went wrong …';
 
