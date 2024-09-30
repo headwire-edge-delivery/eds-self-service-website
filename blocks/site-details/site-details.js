@@ -1175,7 +1175,7 @@ export default async function decorate(block) {
     let campaign;
     if (emailURL) {
       // eslint-disable-next-line prefer-destructuring
-      campaign = new URL(emailURL).pathname.split('/')[1];
+      campaign = new URL(emailURL).pathname.split('/')[2];
     }
 
     let campaignSlug;
