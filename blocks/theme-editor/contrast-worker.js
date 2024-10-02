@@ -145,6 +145,13 @@ const cssVariableMap = {
   'button-secondary-background-color-hover': {
     // shouldContrastWith: ['button-secondary-text-color-hover'],
   },
+  // inputs
+  'input-text-color': {
+    shouldContrastWith: ['input-background-color'],
+  },
+  'input-background-color': {
+    // shouldContrastWith: ['input-text-color'],
+  },
   // footer
   'footer-background-color': {
     shouldContrastWith: ['footer-link-color', 'footer-link-color-hover', 'footer-text-color'],
