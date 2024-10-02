@@ -142,7 +142,7 @@ function addIconDialogSetup({
     if (addRequest?.ok) {
       dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
       if (replaceIconItem) {
-        const iconImage = replaceIconItem.querySelector('img');
+        const iconImage = replaceIconItem.tagName === 'IMG' ? replaceIconItem : replaceIconItem.querySelector('img');
         iconImage.src = fileAsBase64;
       } else {
         itemList?.addItem({ name: file.name, base64: fileAsBase64 });
@@ -2144,6 +2144,7 @@ export default async function decorate(block) {
         titleText: 'Favicon',
         fileAccept: '.ico',
         uploadEndpoint: `${SCRIPT_API}/favicon/${id}`,
+        replaceIconItem: block.querySelector('.favicon-section img[alt="favicon"]'),
         defaultSrc: `https://main--${id}--${darkAlleyVariation ? 'da-self-service' : 'headwire-self-service'}.aem.page/favicon.ico`,
       });
 
