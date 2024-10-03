@@ -1053,7 +1053,7 @@ export default async function decorate(block) {
       });
 
     publishThemeSelector.onchange = () => {
-      window?.zaraz?.track('click change theme preview', { url: window.location.href });
+      window?.zaraz?.track('click change theme preview');
 
       if (new URL(previewFrame.src).pathname !== publishThemeSelector.value) {
         previewFrame.classList.add('is-loading');
@@ -1089,14 +1089,14 @@ export default async function decorate(block) {
     };
 
     block.querySelector('.publish-theme').onclick = async () => {
-      window?.zaraz?.track('click site theme submit', { url: window.location.href });
+      window?.zaraz?.track('click site theme submit');
 
       if (contrastIssuesExist) {
         if (!(await window.confirmDialog('Contrast issues exist, do you want to continue?'))) {
-          window?.zaraz?.track('cancel site theme submit due to contrast issues', { url: window.location.href });
+          window?.zaraz?.track('cancel site theme submit due to contrast issues');
           return;
         }
-        window?.zaraz?.track('confirm site theme submit with contrast issues', { url: window.location.href });
+        window?.zaraz?.track('confirm site theme submit with contrast issues');
       }
 
       block.classList.add('is-saving');
@@ -1145,7 +1145,7 @@ export default async function decorate(block) {
     };
 
     // block.querySelector('.enable-styles').onclick = (event) => {
-    //   window?.zaraz?.track('click theme styles enable', { url: window.location.href });
+    //   window?.zaraz?.track('click theme styles enable');
     //
     //   [...block.querySelectorAll('aside > *')].some((el) => {
     //     if (el === event.target.previousElementSibling) {

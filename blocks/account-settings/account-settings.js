@@ -122,9 +122,9 @@ async function createDeleteDialog(event, deleteAccount = false) {
     }
 
     if (deleteAccount) {
-      window?.zaraz?.track('delete account confirmed', { url: window.location.href });
+      window?.zaraz?.track('delete account confirmed');
     } else {
-      window?.zaraz?.track('delete all sites confirmed', { url: window.location.href });
+      window?.zaraz?.track('delete all sites confirmed');
     }
     // delete account
     deleteDialog.setLoading(true, textLookup[lookupStr].loading);
@@ -177,13 +177,13 @@ export default async function decorate(block) {
 
   const deleteAccountButton = block.querySelector('#delete-account-button');
   deleteAccountButton.addEventListener('click', async (event) => {
-    window?.zaraz?.track('open delete account dialog', { url: window.location.href });
+    window?.zaraz?.track('open delete account dialog');
     createDeleteDialog(event, true);
   });
 
   const deleteAllProjectsButton = block.querySelector('#delete-all-projects-button');
   deleteAllProjectsButton.addEventListener('click', async (event) => {
-    window?.zaraz?.track('open delete all sites dialog', { url: window.location.href });
+    window?.zaraz?.track('open delete all sites dialog');
     createDeleteDialog(event, false);
   });
 }

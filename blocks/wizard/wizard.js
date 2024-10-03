@@ -440,7 +440,7 @@ export default async function decorate(block) {
     const statusList = editStep.querySelector('ul');
 
     const error = () => {
-      window?.zaraz?.track('error create site', { url: window.location.href });
+      window?.zaraz?.track('error create site');
 
       editStep.classList.add('error');
       const errorMessage = editStep.querySelector('.error-message');
@@ -453,7 +453,7 @@ export default async function decorate(block) {
         `);
 
         editStep.querySelector('.error-message .button').onclick = () => {
-          window?.zaraz?.track('click error site back', { url: window.location.href });
+          window?.zaraz?.track('click error site back');
 
           window.history.replaceState({}, '', `${window.location.pathname.split('/').slice(0, -1).join('/')}`);
           editStep.classList.remove('error');

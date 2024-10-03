@@ -16,6 +16,7 @@ import {
   campaignEmailsTour, campaignEmailsAudienceTour, campaignEmailAnalyticsTour, emailTour,
 } from './email.js';
 import { settingsGeneralTour, settingsThemeTour } from './settings.js';
+import adminTour from './admin.js';
 
 export {
   dashboardSitesTour,
@@ -35,4 +36,5 @@ export {
   emailTour,
   settingsGeneralTour,
   settingsThemeTour,
+  adminTour,
 };
