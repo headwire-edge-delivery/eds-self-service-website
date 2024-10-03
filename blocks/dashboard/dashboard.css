@@ -66,12 +66,26 @@
     height: 100%;
     display: block;
     max-width: 300px;
-    padding: 32px;
     text-decoration: none;
     border-radius: var(--border-radius);
     background-color: var(--dark-blue);
     color: var(--white);
     transition: all var(--animation-duration);
+    overflow: hidden;
+}
+
+.dashboard.block .sites li a .project-thumbnail {
+    height: 200px;
+    background: var(--gray);
+}
+
+.dashboard.block .sites li a .project-thumbnail img {
+    height: 100%;
+    object-fit: cover;
+}
+
+.dashboard.block .sites li a .project-content {
+    padding: 16px;
 }
 
 .dashboard.block .sites li a:hover {

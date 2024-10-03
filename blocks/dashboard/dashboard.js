@@ -1,6 +1,6 @@
 import {
   SCRIPT_API, onAuthenticated, OOPS, updateUserSettings, getUserSettings,
-  hasDarkAlleyAccess,
+  hasDarkAlleyAccess, KESTREL_ONE,
 } from '../../scripts/scripts.js';
 
 /**
@@ -207,9 +207,12 @@ export default async function decorate(block) {
             ${darkAlleyProjects.map(({ projectSlug, projectName, projectDescription }) => `
               <li>
                 <a href="/da-site/${projectSlug}">
-                  <h2>${projectName}</h2>
-                  <p><strong>${projectSlug}</strong></p>
-                  <p>${projectDescription || ''}</p>
+                  <div class="project-thumbnail" data-src="https://${projectSlug}.${KESTREL_ONE}"></div>
+                  <div class="project-content">
+                    <h2>${projectName}</h2>
+                    <p><strong>${projectSlug}</strong></p>
+                    <p>${projectDescription || ''}</p>
+                  </div>  
                 </a>
               </li>
             `).join('')}
@@ -228,9 +231,12 @@ export default async function decorate(block) {
             ${projects.map(({ projectSlug, projectName, projectDescription }) => `
               <li>
                 <a href="/site/${projectSlug}">
-                  <h2 title="${projectName}">${projectName}</h2>
-                  <p title="${projectSlug}"><strong>${projectSlug}</strong></p>
-                  <p class="project-description" title="${projectDescription || ''}">${projectDescription || ''}</p>
+                  <div class="project-thumbnail" data-src="https://${projectSlug}.${KESTREL_ONE}"></div>
+                  <div class="project-content">
+                    <h2 title="${projectName}">${projectName}</h2>
+                    <p title="${projectSlug}"><strong>${projectSlug}</strong></p>
+                    <p class="project-description" title="${projectDescription || ''}">${projectDescription || ''}</p>
+                  </div>
                 </a>
               </li>
             `).join('')}
@@ -253,6 +259,27 @@ export default async function decorate(block) {
           });
         }
       };
+
+      sites.querySelectorAll('.project-thumbnail').forEach((thumbnail) => {
+        fetch(thumbnail.dataset.src)
+          .then((res) => {
+            if (res.ok) {
+              return res.text();
+            }
+
+            return false;
+          })
+          .then((res) => {
+            if (res) {
+              let src = res.split('\n').find((line) => line.trim().startsWith('<meta property="og:image" content="'));
+              if (src) {
+                src = src.replace('<meta property="og:image" content="', '').replace('">', '');
+                thumbnail.innerHTML = `<img src="${src}" alt="thumbnail" loading="lazy"/>`;
+              }
+            }
+          })
+          .catch(() => null);
+      });
     } else {
       sites.querySelector('.content p').textContent = OOPS;
     }
