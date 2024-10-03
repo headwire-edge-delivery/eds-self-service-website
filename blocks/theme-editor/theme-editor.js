@@ -445,6 +445,33 @@ export default async function decorate(block) {
                       <span class="contrast-issues"></span>
                   </label>
 
+                  <h2>Input Fields</h2>
+
+                  <label>
+                      <span>Input text color</span>
+                      <div title="Open the color picker" class="color-picker elements">
+                        <select></select>
+                        <input type="color" disabled data-var="input-text-color">
+                      </div>
+                      <span class="contrast-issues"></span>
+                  </label>
+                  <label>
+                      <span>Input background color</span>
+                      <div title="Open the color picker" class="color-picker elements">
+                        <select></select>
+                        <input type="color" disabled data-var="input-background-color">
+                      </div>
+                      <span class="contrast-issues"></span>
+                  </label>
+                  <label>
+                      <span>Input border color</span>
+                      <div title="Open the color picker" class="color-picker elements">
+                        <select></select>
+                        <input type="color" disabled data-var="input-border-color">
+                      </div>
+                      <span class="contrast-issues"></span>
+                  </label>
+
                   <h2>Footer</h2>
                  
                   <label>
