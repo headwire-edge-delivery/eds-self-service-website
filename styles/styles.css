@@ -530,10 +530,6 @@ dialog.alert-dialog {
   width: 400px;
 }
 
-dialog.alert-dialog button {
-  flex: 1;
-}
-
 dialog.alert-dialog .dialog-content {
   min-height: 200px;
 }

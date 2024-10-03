@@ -15,7 +15,7 @@ import {
   campaignEmailAnalyticsTour,
   emailTour,
   settingsGeneralTour,
-  settingsThemeTour,
+  settingsThemeTour, adminTour,
 } from './index.js';
 import generateTour from './generateTour.js';
 import { getUserSettings } from '../scripts/scripts.js';
@@ -197,6 +197,9 @@ const startTour = (isAutoTour, showDisableTour = false) => {
         break;
       case switchCase('/dashboard/account'):
         getTour(dashboardAccountTour);
+        break;
+      case switchCase('/dashboard/admin'):
+        getTour(adminTour);
         break;
       case switchCase('/templates/', '/create'):
         getTour(createTemplateTour);

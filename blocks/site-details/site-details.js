@@ -66,7 +66,7 @@ function addIconDialogSetup({
   defaultSrc,
 }) {
   const isFavicon = titleText === 'Favicon';
-  window?.zaraz?.track(`click site ${isFavicon ? 'favicon' : 'icon'} add`, { url: window.location.href });
+  window?.zaraz?.track(`click site ${isFavicon ? 'favicon' : 'icon'} add`);
 
   const formId = `${nameOverride ? 'update' : 'add'}-${isFavicon ? 'favicon' : 'icon'}-form`;
   const submit = parseFragment(`<button form="${formId}" type="submit" class="button primary action">Save</button>`);
@@ -118,7 +118,7 @@ function addIconDialogSetup({
   form.onsubmit = async (event) => {
     event.preventDefault();
 
-    window?.zaraz?.track(`click site ${isFavicon ? 'favicon' : 'icon'} add submit`, { url: window.location.href });
+    window?.zaraz?.track(`click site ${isFavicon ? 'favicon' : 'icon'} add submit`);
 
     if (!file) {
       await window.alertDialog('Please select a file');
@@ -160,7 +160,7 @@ function addIconDialogSetup({
 function blockIconDialogSetup({
   name, deleteWarning, project, headers, isIcon = false, iconBase64, showBlockScreenshots,
 }) {
-  window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`, { url: window.location.href });
+  window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`);
 
   const formId = `change-${isIcon ? 'icon' : 'block'}-form`;
   const content = parseFragment(`
@@ -225,7 +225,7 @@ function blockIconDialogSetup({
   form.onsubmit = async (event) => {
     event.preventDefault();
 
-    window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} delete submit`, { url: window.location.href });
+    window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} delete submit`);
 
     submit.disabled = true;
     dialog.setLoading(true, 'Deleting...');
@@ -254,7 +254,7 @@ function blockIconDialogSetup({
 
 // MARK: add block dialog
 function addBlockDialogSetup({ project, headers, itemList }) {
-  window?.zaraz?.track('click site block add', { url: window.location.href });
+  window?.zaraz?.track('click site block add');
 
   const dialogContent = document.createElement('div');
   dialogContent.innerHTML = '<h3 class="centered-info" >Loading available blocks...</h3>';
@@ -322,7 +322,7 @@ function addBlockDialogSetup({ project, headers, itemList }) {
     form.onsubmit = async (event) => {
       event.preventDefault();
 
-      window?.zaraz?.track('click site block add submit', { url: window.location.href });
+      window?.zaraz?.track('click site block add submit');
 
       if (!select.value) {
         await window.alertDialog('Please select a block');
@@ -429,7 +429,7 @@ function addPageDialogSetup({
     //   form.reportValidity();
     //   return;
     // }
-    window.zaraz?.track('click site page add', { url: window.location.href });
+    window.zaraz?.track('click site page add');
 
     dialog.setLoading(true, 'Copying and setting up page...');
 
@@ -590,7 +590,7 @@ function renderIconsList(block, { project, headers, id }) {
     iconsList.append(li);
 
     copyButton.onclick = () => {
-      window?.zaraz?.track('click site icon copy', { url: window.location.href });
+      window?.zaraz?.track('click site icon copy');
 
       // copy icon as doc compatible string (without .svg)
       navigator.clipboard.writeText(`:${name.replace(/\.[^/.]+$/, '')}:`);
@@ -665,7 +665,7 @@ async function renderUpdatesSection(div, { project, headers }) {
       const projectUpdateDialog = window.createDialog(dialogContent, [confirmUpdateButton, cancelButton]);
 
       confirmUpdateButton.onclick = async () => {
-        window?.zaraz?.track('did site update', { url: window.location.href });
+        window?.zaraz?.track('did site update');
 
         projectUpdateDialog.dataset.loadingText = 'Updating...';
         projectUpdateDialog.setLoading(true);
@@ -747,7 +747,7 @@ async function renderPrevUpdatesSection(div, {
 
       revertForm.onsubmit = async (event) => {
         event.preventDefault();
-        window?.zaraz?.track('did site update revert', { url: window.location.href });
+        window?.zaraz?.track('did site update revert');
 
         if (await window.confirmDialog(`
             <div>
@@ -1312,10 +1312,10 @@ export default async function decorate(block) {
 
         const revoke = listItem.querySelector('.revoke-button');
         revoke.onclick = async () => {
-          window?.zaraz?.track('click site share delete', { url: window.location.href });
+          window?.zaraz?.track('click site share delete');
 
           if (await window.confirmDialog('Are you sure ?')) {
-            window?.zaraz?.track('click site share delete submit', { url: window.location.href });
+            window?.zaraz?.track('click site share delete submit');
 
             authorsList.classList.add('is-disabled');
             const revokeResponse = await fetch(`${SCRIPT_API}/authors/${id}/${authorEmail}`, {
@@ -1333,10 +1333,10 @@ export default async function decorate(block) {
 
         const changeOwnerButton = listItem.querySelector('.transfer-button');
         changeOwnerButton.onclick = async () => {
-          window?.zaraz?.track('click site share make owner', { url: window.location.href });
+          window?.zaraz?.track('click site share make owner');
 
           if (await window.confirmDialog('Are you sure ?')) {
-            window?.zaraz?.track('click site share make owner submit', { url: window.location.href });
+            window?.zaraz?.track('click site share make owner submit');
 
             authorsList.classList.add('is-disabled');
             const changeOwnerResponse = await fetch(`${SCRIPT_API}/updateOwner/${id}/${authorEmail}`, {
@@ -1369,7 +1369,7 @@ export default async function decorate(block) {
         addAuthorForm.classList.add('is-disabled');
       }
       addAuthorForm.onsubmit = async (event) => {
-        window?.zaraz?.track('click site share add submit', { url: window.location.href });
+        window?.zaraz?.track('click site share add submit');
 
         event.preventDefault();
 
@@ -1438,7 +1438,7 @@ export default async function decorate(block) {
       };
 
       contactEmailForm.onsubmit = async (event) => {
-        window?.zaraz?.track('click site contact submit', { url: window.location.href });
+        window?.zaraz?.track('click site contact submit');
 
         event.preventDefault();
 
@@ -1516,29 +1516,29 @@ export default async function decorate(block) {
       };
 
       block.querySelector('.sidekick').onclick = () => {
-        window?.zaraz?.track('click site sidekick', { url: window.location.href });
+        window?.zaraz?.track('click site sidekick');
       };
 
       block.querySelector('.edit').onclick = () => {
-        window?.zaraz?.track('click site edit', { url: window.location.href });
+        window?.zaraz?.track('click site edit');
       };
 
       block.querySelector('.open').onclick = () => {
-        window?.zaraz?.track('click site open', { url: window.location.href });
+        window?.zaraz?.track('click site open');
       };
 
       block.querySelector('.guides').onclick = () => {
-        window?.zaraz?.track('click site guides', { url: window.location.href });
+        window?.zaraz?.track('click site guides');
       };
 
       // MARK: Delete dialog
       // Delete site and redirect to dashboard
       block.querySelector('.delete').onclick = async () => {
-        window?.zaraz?.track('click site delete', { url: window.location.href });
+        window?.zaraz?.track('click site delete');
 
         block.classList.add('is-deleting');
         if (await window.confirmDialog('Are you sure you want to delete your site? (This can\'t be undone)')) {
-          window?.zaraz?.track('click site delete submit', { url: window.location.href });
+          window?.zaraz?.track('click site delete submit');
 
           const reqDelete = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'da-' : ''}delete/${project.projectSlug}`, {
             method: 'DELETE',
@@ -1557,7 +1557,7 @@ export default async function decorate(block) {
 
       // MARK: update description
       block.querySelector('.update-description.action').onclick = async () => {
-        window?.zaraz?.track('click update site description', { url: window.location.href });
+        window?.zaraz?.track('click update site description');
 
         const submit = parseFragment('<button form="update-project-form" type="submit" class="button primary action">Submit</button>');
         const content = parseFragment(`
@@ -1578,7 +1578,7 @@ export default async function decorate(block) {
         const form = document.getElementById('update-project-form');
 
         form.onsubmit = async (event) => {
-          window.zaraz?.track('click project update', { url: window.location.href });
+          window.zaraz?.track('click project update');
 
           event.preventDefault();
 
@@ -1795,7 +1795,7 @@ export default async function decorate(block) {
 
             campaignContainer.onclick = async (event) => {
               if (event.target.matches('.update-campaign-description')) {
-                window?.zaraz?.track('click update campaign description', { url: window.location.href });
+                window?.zaraz?.track('click update campaign description');
 
                 const campaign = event.target.closest('.campaign');
                 const campaignSlug = campaign.dataset.campaign;
@@ -1819,7 +1819,7 @@ export default async function decorate(block) {
                 const form = document.getElementById('update-campaign-form');
 
                 form.onsubmit = async (e) => {
-                  window.zaraz?.track('click campaign update', { url: window.location.href });
+                  window.zaraz?.track('click campaign update');
 
                   e.preventDefault();
 
@@ -1890,7 +1890,7 @@ export default async function decorate(block) {
               nameInput.oninput();
 
               form.onsubmit = async (e) => {
-                window.zaraz?.track('click create campaign', { url: window.location.href });
+                window.zaraz?.track('click create campaign');
 
                 e.preventDefault();
 
@@ -1998,7 +1998,7 @@ export default async function decorate(block) {
               nameInput.oninput();
 
               form.onsubmit = async (e) => {
-                window.zaraz?.track('click add email', { url: window.location.href });
+                window.zaraz?.track('click add email');
 
                 e.preventDefault();
 
@@ -2027,7 +2027,7 @@ export default async function decorate(block) {
               const campaignSlug = window.location.pathname.split('/')[4];
               if (campaignSlug) {
                 if (await window.confirmDialog('Are you sure ?')) {
-                  window?.zaraz?.track('click campaign delete submit', { url: window.location.href });
+                  window?.zaraz?.track('click campaign delete submit');
 
                   event.target.classList.add('is-disabled');
                   const deleteReq = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
@@ -2508,7 +2508,7 @@ export default async function decorate(block) {
       };
 
       period.onchange = async () => {
-        window?.zaraz?.track('change analytics period', { url: window.location.href });
+        window?.zaraz?.track('change analytics period');
         container.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
         renderWebAnalytics(await loadWebAnalytics(period.value));
       };
