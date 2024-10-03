@@ -18,6 +18,5 @@ module.exports = {
       js: 'always',
     }],
     'no-continue': 'off',
-    camelcase: 'off',
   },
 };

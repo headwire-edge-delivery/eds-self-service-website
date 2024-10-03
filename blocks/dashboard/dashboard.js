@@ -294,16 +294,14 @@ export default async function decorate(block) {
                     <th></th>
                 </thead>
                 <tbody>
-                    ${users.map(({
-    created_at, email, last_login, logins_count, name,
-  }) => `
+                    ${users.map((u) => `
                       <tr>
-                        <td>${email}</td>
-                        <td>${name}</td>
-                        <td>${new Date(created_at).toLocaleString()}</td>
-                        <td>${new Date(last_login).toLocaleString()}</td>
-                        <td>${logins_count}</td>
-                        <td><button data-user="${email}" class="button action secondary">Show activity</button></td>
+                        <td>${u.email}</td>
+                        <td>${u.name}</td>
+                        <td>${new Date(u.created_at).toLocaleString()}</td>
+                        <td>${new Date(u.last_login).toLocaleString()}</td>
+                        <td>${u.logins_count}</td>
+                        <td><button data-user="${u.email}" class="button action secondary">Show activity</button></td>
                       </tr>
                     `).join('')}
                 </tbody>
@@ -362,7 +360,7 @@ export default async function decorate(block) {
                           <th>Device</th>
                       </thead>
                       <tbody>
-                          ${timestamps.length ? timestamps.map((timestamp) => `
+                          ${timestamps.length ? timestamps.reverse().map((timestamp) => `
                             <tr>
                               <td>${tracking[timestamp].event}${tracking[timestamp].isSPA ? ' SPA' : ''}</td>
                               <td>${new Date(Number(timestamp)).toLocaleString()}</td>
@@ -373,7 +371,7 @@ export default async function decorate(block) {
                               <td>${tracking[timestamp].userAgent.browser.name} ${tracking[timestamp].userAgent.browser.version} ${tracking[timestamp].language}</td>
                               <td>${tracking[timestamp].userAgent.device.vendor} ${tracking[timestamp].userAgent.os.name} ${tracking[timestamp].userAgent.os.version}</td>
                             </tr>
-                          `).join('') : '<tr><td colspan="8" class="empty">Not enough data</td></tr>'}
+                          `).join('') : '<tr><td colspan="8" class="empty">Not enough data (e.g. user disabled tracking)</td></tr>'}
                       </tbody>
                     </table>
                   </div>
@@ -417,7 +415,7 @@ export default async function decorate(block) {
                     <th>Device</th>
                 </thead>
                 <tbody>
-                    ${ips.map((ip) => Object.keys(anonymous[ip]).map((timestamp) => `
+                    ${ips.reverse().map((ip) => Object.keys(anonymous[ip]).reverse().map((timestamp) => `
                         <tr>
                           <td>${anonymous[ip][timestamp].ip}</td>
                           <td>${anonymous[ip][timestamp].event}${anonymous[ip][timestamp].isSPA ? ' SPA' : ''}</td>
