@@ -32,11 +32,11 @@ export default async function decorate(block) {
   block.addEventListener('click', async (event) => {
     const identifier = event.target.getAttribute('href');
     if (identifier === '#signin') {
-      window?.zaraz?.track('click login header', { url: window.location.href });
+      window?.zaraz?.track('click login header');
       event.preventDefault();
       window.auth0Client.loginWithRedirect();
     } else if (identifier === '#signout') {
-      window?.zaraz?.track('click logout header', { url: window.location.href });
+      window?.zaraz?.track('click logout header');
       window?.zaraz?.set('user', undefined);
       event.preventDefault();
       delete window.localStorage.sessionExpiration;

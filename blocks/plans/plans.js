@@ -11,7 +11,7 @@ export default async function decorate(block) {
   if (dialogParent) {
     dialogParent.classList.add('plans-dialog');
     block.querySelector('a[href="#signin"]').onclick = (e) => {
-      window?.zaraz?.track('click login plans', { url: window.location.href });
+      window?.zaraz?.track('click login plans');
 
       e.preventDefault();
       window.auth0Client.loginWithRedirect();

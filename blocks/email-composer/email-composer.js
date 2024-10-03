@@ -201,7 +201,7 @@ export default async function decorate(block) {
 
       // Render codemirror
       block.querySelector('.enable-styles').onclick = (event) => {
-        window?.zaraz?.track('click email styles enable', { url: window.location.href });
+        window?.zaraz?.track('click email styles enable');
 
         event.target.remove();
         editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
@@ -214,7 +214,7 @@ export default async function decorate(block) {
 
       const saveStyles = block.querySelector('.save-styles');
       saveStyles.onclick = async () => {
-        window?.zaraz?.track('click email preview styles', { url: window.location.href });
+        window?.zaraz?.track('click email preview styles');
 
         savedEditorStyles = editor.getValue();
 
@@ -238,7 +238,7 @@ export default async function decorate(block) {
 
       // Render preview with custom variables
       previewVars.onclick = () => {
-        window?.zaraz?.track('click email preview variables', { url: window.location.href });
+        window?.zaraz?.track('click email preview variables');
 
         block.querySelectorAll('.kv input:first-child').forEach((input) => {
           const key = input.value;
@@ -274,7 +274,7 @@ export default async function decorate(block) {
       previewVars.click();
 
       saveVars.onclick = () => {
-        window?.zaraz?.track('click email save variables', { url: window.location.href });
+        window?.zaraz?.track('click email save variables');
 
         previewVars.click();
         window.localStorage[window.location.href] = JSON.stringify(customVariables);
@@ -340,11 +340,11 @@ export default async function decorate(block) {
       }
 
       block.querySelector('.edit').onclick = () => {
-        window?.zaraz?.track('click email edit', { url: window.location.href });
+        window?.zaraz?.track('click email edit');
       };
 
       block.querySelector('.copy').onclick = (e) => {
-        window?.zaraz?.track('click email copy', { url: window.location.href });
+        window?.zaraz?.track('click email copy');
 
         e.preventDefault();
 
@@ -437,7 +437,7 @@ export default async function decorate(block) {
             if (e.target.matches('input[type="checkbox"]')) {
               toggleSendDisabled();
             } else if (e.target.matches('.render')) {
-              window?.zaraz?.track('click email preview recipients', { url: window.location.href });
+              window?.zaraz?.track('click email preview recipients');
 
               const isRendering = recipients.querySelector('.is-rendering');
               if (isRendering) {
@@ -449,7 +449,7 @@ export default async function decorate(block) {
               // Re-render preview with newly selected recipient
               previewVars.click();
             } else if (e.target.matches('.remove')) {
-              window?.zaraz?.track('click email recipients remove', { url: window.location.href });
+              window?.zaraz?.track('click email recipients remove');
 
               const tr = e.target.closest('tr');
               const index = [...tr.parentElement.children].indexOf(tr);
@@ -476,7 +476,7 @@ export default async function decorate(block) {
           });
 
           add.onclick = () => {
-            window?.zaraz?.track('click email recipients add', { url: window.location.href });
+            window?.zaraz?.track('click email recipients add');
 
             const newRecipient = {};
             recipientsData.headers.forEach((key, index) => {
@@ -513,7 +513,7 @@ export default async function decorate(block) {
           };
 
           send.onclick = async () => {
-            window?.zaraz?.track('click email send', { url: window.location.href });
+            window?.zaraz?.track('click email send');
 
             // Preview to update the iframe source
             previewVars.click();
@@ -521,7 +521,7 @@ export default async function decorate(block) {
             const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
 
             if (await window.confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
-              window?.zaraz?.track('click email copy submit', { url: window.location.href });
+              window?.zaraz?.track('click email copy submit');
 
               block.classList.add('is-sending');
 

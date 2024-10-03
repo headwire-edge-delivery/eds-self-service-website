@@ -15,6 +15,7 @@
     flex-wrap: wrap;
     padding-block: 32px;
     gap: 16px;
+    min-height: 98px;
 }
 
 .dashboard.block .content {
@@ -45,6 +46,11 @@
 .dashboard.block h2 {
     font-size: 16px;
     padding-block: 0;
+}
+
+.dashboard.block .details > :not(.is-selected),
+.dashboard.block .actions > :not(.is-selected) {
+    display: none;
 }
 
 .dashboard.block .sites ul {
@@ -103,7 +109,7 @@
     -webkit-box-orient: vertical;
 }
 
-.dashboard.block .sites > p:only-child {
+.dashboard.block :is(.sites, .admin) > p:only-child {
     display: grid;
     place-items: center;
     min-height: calc(100vh - 350px);
@@ -152,14 +158,6 @@
 }
 
 .dashboard.block .details > :not(.is-selected) {
-    display: none;
-}
-
-.dashboard.block:has(.account.is-selected) .new {
-    display: none;
-}
-
-.dashboard.block:has(.sites.is-selected) .edit {
     display: none;
 }
 
@@ -216,6 +214,53 @@
 .dashboard.block .sites section h3 {
     padding-top: 48px;
     padding-bottom: 0;
+}
+
+dialog:has(.admin) {
+    width: auto;
+}
+
+:is(.dashboard.block, dialog) .admin table {
+    width: 100%;
+    table-layout: fixed;
+    margin-top: 48px;
+    margin-bottom: 48px;
+}
+
+:is(.dashboard.block, dialog) .admin td.empty {
+    text-align: center;
+    text-transform: uppercase;
+    padding: 32px;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.dashboard.block .details .admin img,
+dialog .admin img {
+    height: 64px;
+    width: 64px;
+}
+
+.dashboard.block .admin .filter {
+    margin-top: 48px;
+}
+
+:is(.dashboard.block, dialog) .admin table :is(th, td) {
+    max-width: 100%;
+    overflow: auto;
+    word-wrap: break-word;
+}
+
+:is(.dashboard.block, dialog) .admin table td:first-child {
+    font-weight: 500;
+}
+
+.dashboard.block .admin table + .button-container:has(button:only-child) {
+    display: none;
+}
+
+body:not(.is-headwire) .dashboard.block .admin {
+    display: none;
 }
 
 /* MARK: Dark Alley */

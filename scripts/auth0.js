@@ -31,7 +31,7 @@ window.auth0.createAuth0Client({
     await auth0Client.handleRedirectCallback();
 
     const user = await window.auth0Client.getUser();
-    window?.zaraz?.track('new auth session', { url: window.location.href });
+    window?.zaraz?.track('new auth session');
     window?.zaraz?.set('user', user.email);
 
     window.localStorage.sessionExpiration = getExpirationTime(sessionExpirationDays);
@@ -92,7 +92,7 @@ window.auth0.createAuth0Client({
       if (now >= Number(window.localStorage.sessionExpiration)) {
         window.clearInterval(sessionInterval);
         document.body.hidden = true;
-        window?.zaraz?.track('logout due to session expiration', { url: window.location.href });
+        window?.zaraz?.track('logout due to session expiration');
         window?.zaraz?.set('user', undefined);
         delete window.localStorage.sessionExpiration;
         window.auth0Client.logout({ logoutParams: { returnTo: window.location.origin } });
