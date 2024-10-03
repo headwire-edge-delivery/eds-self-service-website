@@ -1,13 +1,36 @@
 import {
   SCRIPT_API, onAuthenticated, OOPS, updateUserSettings, getUserSettings,
-  hasDarkAlleyAccess, KESTREL_ONE,
+  hasDarkAlleyAccess, KESTREL_ONE, createTabs,
+  waitForAuthenticated,
 } from '../../scripts/scripts.js';
+import renderSites from './renderSiteList.js';
 
 /**
  * @param {Element} block
  */
 export default async function decorate(block) {
   block.innerHTML = '<div class="is-selected"><img src="/icons/loading.svg" alt="loading" loading="lazy"/></div>';
+
+  await waitForAuthenticated();
+  const isAdmin = document.body.classList.contains('is-headwire');
+
+  createTabs({
+    block,
+    breadcrumbs: [
+      { name: 'Dashboard', href: '/dashboard' },
+    ],
+    tabs: [
+      {
+        name: 'Sites',
+        href: '/dashboard/sites',
+        iconSrc: '/icons/web.svg',
+        renderTab: renderSites,
+      },
+      { name: 'Account', href: '/dashboard/account', iconSrc: '/icons/user.svg' },
+      isAdmin ? { name: 'Admin', href: '/dashboard/admin', iconSrc: '/icons/admin.svg' } : null,
+    ],
+  });
+  return;
   onAuthenticated(async () => {
     const token = await window.auth0Client.getTokenSilently();
     const user = await window.auth0Client.getUser();

@@ -138,25 +138,43 @@ export function slugify(str) {
     .toLowerCase();
 }
 
-export function createTabs({
+function createTabsNavBreadcrumbs(breadcrumbs) {
+  if (!breadcrumbs?.length) {
+    return '<div class="breadcrumbs"></div>';
+  }
+
+  return `
+    <div class="breadcrumbs">
+      ${breadcrumbs.map(({ name, href }, index) => {
+    const lastItem = index === breadcrumbs.length - 1;
+    return `<a href="${href}">${lastItem ? `<h1>${name}</h1>` : name}</a>`;
+  }).join('<span>›</span>')}
+    </div>
+  `;
+}
+
+export async function createTabs({
   block,
-  title,
+  breadcrumbs,
   tabs,
 }) {
   const blockContent = block.cloneNode(true);
   block.innerHTML = `
     <div class="tabs-wrapper">
       <div class="nav">
-        ${title ? `<h1 class="tabs-nav-title">${title}</h1>` : '<div class="tabs-nav-title"></div>'}
+        ${createTabsNavBreadcrumbs(breadcrumbs)}
         <div class="tabs-nav-items"></div>
       </div>
 
-      <aside class="tabs-aside">
-        <ul>
-        </ul>
-      </aside>
+      <div class="content">
 
-      <div class="tabs-content details"></div>
+        <aside class="tabs-aside">
+          <ul>
+          </ul>
+        </aside>
+
+        <div class="tabs-content details"></div>
+      </div>
     </div>
   `;
 
@@ -166,10 +184,11 @@ export function createTabs({
 
   // eslint-disable-next-line no-restricted-syntax
   for (const tab of tabs) {
+    if (!tab) continue;
     const asideItem = document.createElement('li');
-    const tabSlug = tab.name;
+    const tabSlug = slugify(tab.name);
     asideItem.innerHTML = `
-      <a href="${tabSlug}" class="button action secondary">
+      <a href="${tab.href || tabSlug}" class="button action secondary">
         <span class="icon">
           <img alt="icon" src="${tab.iconSrc}" loading="lazy"></span>
           ${tab.name}
@@ -185,15 +204,21 @@ export function createTabs({
     const asideItemLink = asideItem.querySelector('a');
     asideItemLink.addEventListener('click', (e) => {
       e.preventDefault();
+
+      [...asideItems.children]?.forEach((child) => {
+        child.classList.remove('is-selected');
+      });
+      asideItemLink.classList.add('is-selected');
+
       // empty old content
       navItems.replaceChildren();
-      details.children?.forEach((child) => {
+      [...details.children]?.forEach((child) => {
         child.classList.remove('is-selected');
         child.replaceChildren();
       });
 
       tabContent.classList.add('is-selected');
-      tab.renderTab({ nav: navItems, details: tabContent });
+      tab.renderTab({ nav: navItems, container: tabContent });
     });
   }
 
