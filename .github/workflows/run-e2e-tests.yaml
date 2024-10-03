@@ -125,9 +125,10 @@ jobs:
           done
 
       - name: Post test-run action URL comment on PR
-        if: github.event_name == 'pull_request'
+        if: always()
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: Test Action URL
-          message: "Test Action URL: https://github.com/$TEST_REPO_OWNER/$TEST_REPO/actions/runs/$RUN_ID"
+          message: |
+            Test Action URL: https://github.com/${{ env.TEST_REPO_OWNER }}/${{ env.TEST_REPO }}/actions/runs/${{ env.RUN_ID }}
           recreate: true
