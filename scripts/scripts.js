@@ -138,6 +138,68 @@ export function slugify(str) {
     .toLowerCase();
 }
 
+export function createTabs({
+  block,
+  title,
+  tabs,
+}) {
+  const blockContent = block.cloneNode(true);
+  block.innerHTML = `
+    <div class="tabs-wrapper">
+      <div class="nav">
+        ${title ? `<h1 class="tabs-nav-title">${title}</h1>` : '<div class="tabs-nav-title"></div>'}
+        <div class="tabs-nav-items"></div>
+      </div>
+
+      <aside class="tabs-aside">
+        <ul>
+        </ul>
+      </aside>
+
+      <div class="tabs-content details"></div>
+    </div>
+  `;
+
+  const navItems = block.querySelector('.tabs-nav-items');
+  const asideItems = block.querySelector('.tabs-aside ul');
+  const details = block.querySelector('.details');
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const tab of tabs) {
+    const asideItem = document.createElement('li');
+    const tabSlug = tab.name;
+    asideItem.innerHTML = `
+      <a href="${tabSlug}" class="button action secondary">
+        <span class="icon">
+          <img alt="icon" src="${tab.iconSrc}" loading="lazy"></span>
+          ${tab.name}
+        </span>
+      </a>
+    `;
+    asideItems.append(asideItem);
+
+    const tabContent = document.createElement('div');
+    tabContent.classList.add('tab-content', tabSlug);
+    details.append(tabContent);
+
+    const asideItemLink = asideItem.querySelector('a');
+    asideItemLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      // empty old content
+      navItems.replaceChildren();
+      details.children?.forEach((child) => {
+        child.classList.remove('is-selected');
+        child.replaceChildren();
+      });
+
+      tabContent.classList.add('is-selected');
+      tab.renderTab({ nav: navItems, details: tabContent });
+    });
+  }
+
+  return { originalBlock: blockContent };
+}
+
 /**
  * Decorates the main element.
  * @param {Element} main The main element
