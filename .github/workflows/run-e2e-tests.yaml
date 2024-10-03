@@ -125,7 +125,7 @@ jobs:
           done
 
       - name: Post test-run action URL comment on PR
-        if: github.event_name == 'pull_request'
+        if: always()
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: Test Action URL
