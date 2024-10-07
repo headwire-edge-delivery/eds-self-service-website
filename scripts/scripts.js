@@ -147,7 +147,7 @@ function createTabsNavBreadcrumbs(breadcrumbs) {
     <div class="breadcrumbs">
       ${breadcrumbs.map(({ name, href }, index) => {
     const lastItem = index === breadcrumbs.length - 1;
-    return `<a href="${href}">${lastItem ? `<h1>${name}</h1>` : name}</a>`;
+    return lastItem ? `<h1>${name}</h1>` : `<a href="${href}">${name}</a>`;
   }).join('<span>›</span>')}
     </div>
   `;
@@ -182,13 +182,15 @@ export async function createTabs({
   const asideItems = block.querySelector('.tabs-aside ul');
   const details = block.querySelector('.details');
 
+  const tabToSelect = tabs.find(({ href }) => window.location.pathname.endsWith(href) || tabs[0]);
+
   // eslint-disable-next-line no-restricted-syntax
   for (const tab of tabs) {
-    if (!tab) continue;
+    if (!tab || !tab.href) continue;
     const asideItem = document.createElement('li');
     const tabSlug = slugify(tab.name);
     asideItem.innerHTML = `
-      <a href="${tab.href || tabSlug}" class="button action secondary">
+      <a href="${tab.href}" class="button action secondary">
         <span class="icon">
           <img alt="icon" src="${tab.iconSrc}" loading="lazy"></span>
           ${tab.name}
@@ -202,11 +204,12 @@ export async function createTabs({
     details.append(tabContent);
 
     const asideItemLink = asideItem.querySelector('a');
-    asideItemLink.addEventListener('click', (e) => {
-      e.preventDefault();
+    tab.clickHandler = (event, replaceState = false) => {
+      console.log('replaceState:', replaceState);
+      event.preventDefault();
 
       [...asideItems.children]?.forEach((child) => {
-        child.classList.remove('is-selected');
+        child.firstElementChild.classList.remove('is-selected');
       });
       asideItemLink.classList.add('is-selected');
 
@@ -218,9 +221,34 @@ export async function createTabs({
       });
 
       tabContent.classList.add('is-selected');
+
+      if (replaceState) {
+        window.history.replaceState({}, '', tab.href);
+      } else {
+        window.history.pushState({}, '', tab.href);
+      }
+      // keep renderTab at the end. So tab behavior still works if there is an error in renderTab
       tab.renderTab({ nav: navItems, container: tabContent });
-    });
+    };
+    asideItemLink.addEventListener('click', tab.clickHandler);
+
+    tab.asideLink = asideItemLink;
   }
+
+  // select tab from path / first tab
+  tabToSelect.clickHandler({ preventDefault: () => {} }, true);
+
+  // back handling
+  window.addEventListener('popstate', () => {
+    console.log('\x1b[34m ~ TEST:');
+    let link = asideItems.querySelector(`[href="${window.location.pathname}"]`);
+    if (!link) {
+      link = asideItems.querySelector(`[href$="${window.location.pathname.split('/').pop()}"]`);
+    }
+    if (link) {
+      link.click();
+    }
+  });
 
   return { originalBlock: blockContent };
 }

@@ -13,21 +13,22 @@ export default async function decorate(block) {
 
   await waitForAuthenticated();
   const isAdmin = document.body.classList.contains('is-headwire');
+  const pathname = '/dashboard';
 
   createTabs({
     block,
     breadcrumbs: [
-      { name: 'Dashboard', href: '/dashboard' },
+      { name: 'Dashboard', href: pathname },
     ],
     tabs: [
       {
         name: 'Sites',
-        href: '/dashboard/sites',
+        href: `${pathname}/sites`,
         iconSrc: '/icons/web.svg',
         renderTab: renderSites,
       },
-      { name: 'Account', href: '/dashboard/account', iconSrc: '/icons/user.svg' },
-      isAdmin ? { name: 'Admin', href: '/dashboard/admin', iconSrc: '/icons/admin.svg' } : null,
+      { name: 'Account', href: `${pathname}/account`, iconSrc: '/icons/user.svg' },
+      isAdmin ? { name: 'Admin', href: `${pathname}/admin`, iconSrc: '/icons/admin.svg' } : null,
     ],
   });
   return;
