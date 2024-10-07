@@ -157,11 +157,12 @@ export async function createTabs({
   block,
   breadcrumbs,
   tabs,
+  renderOptions,
 }) {
   const blockContent = block.cloneNode(true);
   block.innerHTML = `
     <div class="tabs-wrapper">
-      <div class="nav">
+      <div class="tabs-nav nav">
         ${createTabsNavBreadcrumbs(breadcrumbs)}
         <div class="tabs-nav-items"></div>
       </div>
@@ -182,15 +183,24 @@ export async function createTabs({
   const asideItems = block.querySelector('.tabs-aside ul');
   const details = block.querySelector('.details');
 
-  const tabToSelect = tabs.find(({ href }) => window.location.pathname.endsWith(href) || tabs[0]);
+  const functionalTabs = tabs.filter((tab) => !tab.section && !tab.isLink);
+  const tabToSelect = functionalTabs.find(({ href }) =>
+    window.location.pathname.endsWith(href)) || functionalTabs[0];
 
   // eslint-disable-next-line no-restricted-syntax
   for (const tab of tabs) {
+    if (tab.section) {
+      const asideItem = document.createElement('li');
+      asideItem.classList.add('title');
+      asideItem.textContent = tab.name;
+      asideItems.append(asideItem);
+      continue;
+    }
     if (!tab || !tab.href) continue;
     const asideItem = document.createElement('li');
     const tabSlug = slugify(tab.name);
     asideItem.innerHTML = `
-      <a href="${tab.href}" class="button action secondary">
+      <a href="${tab.href}" ${tab.target ? `target="${tab.target}"` : ''} class="button action secondary">
         <span class="icon">
           <img alt="icon" src="${tab.iconSrc}" loading="lazy"></span>
           ${tab.name}
@@ -198,6 +208,10 @@ export async function createTabs({
       </a>
     `;
     asideItems.append(asideItem);
+
+    if (tab.isLink) {
+      continue;
+    }
 
     const tabContent = document.createElement('div');
     tabContent.classList.add('tab-content', tabSlug);
@@ -208,7 +222,8 @@ export async function createTabs({
       event.preventDefault();
 
       [...asideItems.children]?.forEach((child) => {
-        child.firstElementChild.classList.remove('is-selected');
+        // remove is-selected from all links
+        child?.firstElementChild?.classList.remove('is-selected');
       });
       asideItemLink.classList.add('is-selected');
 
@@ -217,7 +232,7 @@ export async function createTabs({
       [...details.children]?.forEach((child) => {
         child.classList.remove('is-selected');
         [...child.children]?.forEach((grandChild) => {
-          if (grandChild.dataset.noUnload === 'true') {
+          if (grandChild?.dataset?.noUnload === 'true') {
             return;
           }
           grandChild.remove();
@@ -233,7 +248,7 @@ export async function createTabs({
         window.history.pushState({}, '', tab.href);
       }
       // keep renderTab at the end. So tab behavior still works if there is an error in renderTab
-      tab.renderTab({ nav: navItems, container: tabContent });
+      tab.renderTab({ nav: navItems, container: tabContent, renderOptions });
     };
     asideItemLink.addEventListener('click', tab.clickHandler);
 
@@ -246,7 +261,7 @@ export async function createTabs({
   // back handling
   window.addEventListener('popstate', () => {
     const tabToNavigateTo = tabs.find((tab) => tab.href === window.location.pathname)
-      || tabs.find((tab) => tab.href === window.location.pathname.split('/').pop());
+      || tabs.find((tab) => tab.href === window.location.pathname.split('/').pop()); // supports site-details version
 
     if (tabToNavigateTo) {
       tabToNavigateTo.clickHandler({ preventDefault: () => {} }, null);

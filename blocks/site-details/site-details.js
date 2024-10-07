@@ -5,7 +5,10 @@ import {
   daProjectRepo,
   parseFragment,
   slugify,
+  waitForAuthenticated,
+  createTabs,
 } from '../../scripts/scripts.js';
+import renderSiteOverview from '../theme-editor/renderSiteOverview.js';
 
 const protectedBlocks = {
   header: true,
@@ -795,7 +798,104 @@ async function renderPrevUpdatesSection(div, {
  */
 export default async function decorate(block) {
   block.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
+
+  await waitForAuthenticated();
+  const [, path, siteSlug] = window.location.pathname.split('/');
   const darkAlleyVariation = block.classList.contains('dark-alley');
+  const pathname = `/${path}/${siteSlug}`;
+  const token = await window.auth0Client.getTokenSilently();
+  const user = await window.auth0Client.getUser();
+
+  const siteDetailsReq = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'darkAlleyList' : 'list'}/${siteSlug}`, {
+    headers: { authorization: `Bearer ${token}` },
+  }).catch(() => null);
+  if (siteDetailsReq.status === 404) {
+    block.innerHTML = `<div class="content"><p><p>Project "${siteSlug}" not found. Create it <a href="/">here!</a></p><p></div>`;
+    return;
+  }
+  if (!siteDetailsReq?.ok) {
+    block.innerHTML = `<div class="content"><p><p>${OOPS}</p><p></div>`;
+    return;
+  }
+
+  const siteDetails = await siteDetailsReq.json().catch(() => null);
+  if (!siteDetails) {
+    block.innerHTML = `<div class="content"><p><p>${OOPS}</p><p></div>`;
+    return;
+  }
+
+  createTabs({
+    block,
+    breadcrumbs: [{ name: 'Dashboard', href: '/dashboard' }, { name: siteDetails.project.projectName, href: pathname }],
+    renderOptions: { projectDetails: siteDetails.project },
+    tabs: [
+      {
+        section: true,
+        name: 'Site',
+      },
+      {
+        name: 'Overview',
+        href: 'overview',
+        iconSrc: '/icons/template.svg',
+        renderTab: renderSiteOverview,
+      },
+      {
+        name: 'Pages',
+        href: 'pages',
+        iconSrc: '/icons/web.svg',
+        renderTab: undefined,
+      },
+      {
+        name: 'Web Analytics',
+        href: 'monitoring',
+        iconSrc: '/icons/monitoring.svg',
+        renderTab: undefined,
+      },
+      {
+        section: true,
+        name: 'Campaigns',
+      },
+      {
+        name: 'Overview',
+        href: 'emails',
+        iconSrc: '/icons/email.svg',
+        renderTab: undefined,
+      },
+      {
+        name: 'Audience',
+        href: 'audience',
+        iconSrc: '/icons/audience.svg',
+        renderTab: undefined,
+      },
+      {
+        name: 'Campaign analytics',
+        href: 'analytics',
+        iconSrc: '/icons/analytics.svg',
+        renderTab: undefined,
+      },
+      {
+        section: true,
+        name: 'Settings',
+      },
+      {
+        name: 'General',
+        href: 'settings',
+        iconSrc: '/icons/settings.svg',
+        renderTab: undefined,
+      },
+      {
+        name: 'Theme',
+        href: `/theme/${siteSlug}`,
+        iconSrc: '/icons/palette.svg',
+        isLink: true,
+        target: '_blank',
+      },
+    ],
+  });
+
+  return;
+  block.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
+  // const darkAlleyVariation = block.classList.contains('dark-alley');
 
   onAuthenticated(async () => {
     const split = window.location.pathname.split('/');

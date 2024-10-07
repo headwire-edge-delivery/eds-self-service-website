@@ -7,7 +7,7 @@ import renderSites from './renderSiteList.js';
  * @param {Element} block
  */
 export default async function decorate(block) {
-  block.innerHTML = '<div class="is-selected"><img src="/icons/loading.svg" alt="loading" loading="lazy"/></div>';
+  block.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
 
   await waitForAuthenticated();
   const isAdmin = document.body.classList.contains('is-headwire');
