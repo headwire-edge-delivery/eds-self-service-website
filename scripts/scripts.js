@@ -204,8 +204,7 @@ export async function createTabs({
     details.append(tabContent);
 
     const asideItemLink = asideItem.querySelector('a');
-    tab.clickHandler = (event, replaceState = false) => {
-      console.log('replaceState:', replaceState);
+    tab.clickHandler = (event, historyState = 'push') => {
       event.preventDefault();
 
       [...asideItems.children]?.forEach((child) => {
@@ -217,14 +216,20 @@ export async function createTabs({
       navItems.replaceChildren();
       [...details.children]?.forEach((child) => {
         child.classList.remove('is-selected');
-        child.replaceChildren();
+        [...child.children]?.forEach((grandChild) => {
+          if (grandChild.dataset.noUnload === 'true') {
+            return;
+          }
+          grandChild.remove();
+        });
       });
 
       tabContent.classList.add('is-selected');
 
-      if (replaceState) {
+      if (historyState === 'replace') {
         window.history.replaceState({}, '', tab.href);
-      } else {
+      }
+      if (historyState === 'push') {
         window.history.pushState({}, '', tab.href);
       }
       // keep renderTab at the end. So tab behavior still works if there is an error in renderTab
@@ -236,17 +241,15 @@ export async function createTabs({
   }
 
   // select tab from path / first tab
-  tabToSelect.clickHandler({ preventDefault: () => {} }, true);
+  tabToSelect.clickHandler({ preventDefault: () => {} }, 'replace');
 
   // back handling
   window.addEventListener('popstate', () => {
-    console.log('\x1b[34m ~ TEST:');
-    let link = asideItems.querySelector(`[href="${window.location.pathname}"]`);
-    if (!link) {
-      link = asideItems.querySelector(`[href$="${window.location.pathname.split('/').pop()}"]`);
-    }
-    if (link) {
-      link.click();
+    const tabToNavigateTo = tabs.find((tab) => tab.href === window.location.pathname)
+      || tabs.find((tab) => tab.href === window.location.pathname.split('/').pop());
+
+    if (tabToNavigateTo) {
+      tabToNavigateTo.clickHandler({ preventDefault: () => {} }, null);
     }
   });
 

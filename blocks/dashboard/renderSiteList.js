@@ -1,9 +1,11 @@
 import {
-  KESTREL_ONE,
-  onAuthenticated, OOPS, SCRIPT_API, waitForAuthenticated,
+  KESTREL_ONE, OOPS, SCRIPT_API, waitForAuthenticated,
 } from '../../scripts/scripts.js';
 
-export default async function renderSites({ container }) {
+export default async function renderSites({ container, nav }) {
+  container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
+  nav.innerHTML = '<a href="/" id="create-new-button" title="Create new site" class="button primary action new">Create new site</a>';
+
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
 
@@ -20,6 +22,7 @@ export default async function renderSites({ container }) {
   }
 
   const { projects, darkAlleyProjects } = await projectsResponse.json().catch(() => ({}));
+  container.innerHTML = '';
 
   // TODO: consolidate DA & Drive projects if we ever commit to both
   // MARK: List DA
@@ -31,7 +34,9 @@ export default async function renderSites({ container }) {
     darkAlleySection.innerHTML = `
       <h3>Dark Alley Sites (Experimental)</h3>
       <ul>
-        ${darkAlleyProjects.map(({ projectSlug, projectName, projectDescription }) => `
+        ${darkAlleyProjects
+    .map(
+      ({ projectSlug, projectName, projectDescription }) => `
           <li>
             <a href="/da-site/${projectSlug}">
               <div class="project-thumbnail" data-src="https://${projectSlug}.${KESTREL_ONE}"></div>
@@ -42,7 +47,9 @@ export default async function renderSites({ container }) {
               </div>  
             </a>
           </li>
-        `).join('')}
+        `,
+    )
+    .join('')}
       </ul>
     `;
 
@@ -56,7 +63,9 @@ export default async function renderSites({ container }) {
     sitesSection.innerHTML = `
       <h3>Google Drive Sites</h3>
       <ul id="my-sites-overview">
-        ${projects.map(({ projectSlug, projectName, projectDescription }) => `
+        ${projects
+    .map(
+      ({ projectSlug, projectName, projectDescription }) => `
           <li>
             <a href="/site/${projectSlug}">
               <div class="project-thumbnail" data-src="https://${projectSlug}.${KESTREL_ONE}"></div>
@@ -67,7 +76,9 @@ export default async function renderSites({ container }) {
               </div>
             </a>
           </li>
-        `).join('')}
+        `,
+    )
+    .join('')}
       </ul>
     `;
 
@@ -89,10 +100,9 @@ export default async function renderSites({ container }) {
       return;
     }
 
-    container.querySelectorAll('h2')
-      .forEach((el) => {
-        el.closest('li').hidden = !el.textContent.toLowerCase().includes(filter);
-      });
+    container.querySelectorAll('h2').forEach((el) => {
+      el.closest('li').hidden = !el.textContent.toLowerCase().includes(filter);
+    });
   });
 
   // MARK: thumbnails
