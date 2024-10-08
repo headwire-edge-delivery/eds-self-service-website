@@ -8,7 +8,13 @@ import {
   waitForAuthenticated,
   createTabs,
 } from '../../scripts/scripts.js';
-import renderSiteOverview from '../theme-editor/renderSiteOverview.js';
+import renderCampaignsAnalytics from './renderCampaignsAnalytics.js';
+import renderCampaignsAudience from './renderCampaignsAudience.js';
+import renderCampaignsOverview from './renderCampaignsOverview.js';
+import renderSettingsGeneral from './renderSettingsGeneral.js';
+import renderSiteAnalytics from './renderSiteAnalytics.js';
+import renderSiteOverview from './renderSiteOverview.js';
+import renderSitePages from './renderSitePages.js';
 
 const protectedBlocks = {
   header: true,
@@ -45,6 +51,63 @@ const BLOCK_ICON_LOOKUP = {
 };
 
 const iconBase64Prefix = 'data:image/svg+xml;base64,';
+
+export function renderTable({
+  table, tableData, type, projectDetails,
+}) {
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Path</th>
+        <th>Last update</th>
+        <th></th>
+      </tr>  
+    </thead>
+    <tbody></tbody>
+  `;
+
+  const tableRows = tableData.map((item) => {
+    const tableRow = document.createElement('tr');
+
+    if (type === 'emails') {
+      tableRow.innerHTML = `
+        <tr>
+            <td>${item.name}</td>
+            <td>${item.path}</td>
+            <td>${new Date(item.lastModified).toLocaleString()}</td>          
+            <td>
+              <div id="email-open-edit" class="button-container">
+                <a class="button action secondary" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
+                <a class="button action secondary" href="${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
+              </div>
+            </td>
+        </tr>
+      `;
+      return tableRow;
+    }
+
+    tableRow.innerHTML = `
+      <td>${item.name}</td>
+      <td>${item.path}</td>
+      <td>${new Date(item.lastModified).toLocaleString()}</td>
+      <td class="table-actions">
+          <a class="button action secondary" href="${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+          <a class="button action secondary" href="${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
+          <a class="button action secondary" href="${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>
+      </td>
+    `;
+
+    return tableRow;
+  });
+
+  const tableBody = table.tBodies[0];
+  tableBody.append(...tableRows);
+  if (tableBody.matches(':empty')) {
+    const cols = table.querySelectorAll('th').length;
+    tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;
+  }
+}
 
 function manageGoogleCalendarLink(calendarId, actionsList, remove = false) {
   // resetting in case
@@ -810,24 +873,26 @@ export default async function decorate(block) {
     headers: { authorization: `Bearer ${token}` },
   }).catch(() => null);
   if (siteDetailsReq.status === 404) {
-    block.innerHTML = `<div class="content"><p><p>Project "${siteSlug}" not found. Create it <a href="/">here!</a></p><p></div>`;
+    block.innerHTML = `<div class="centered-message"><p>Project "${siteSlug}" not found. Create it <a href="/">here!</a></p></div>`;
     return;
   }
   if (!siteDetailsReq?.ok) {
-    block.innerHTML = `<div class="content"><p><p>${OOPS}</p><p></div>`;
+    block.innerHTML = `<div class="centered-message"><p>${OOPS}<p></div>`;
     return;
   }
 
   const siteDetails = await siteDetailsReq.json().catch(() => null);
   if (!siteDetails) {
-    block.innerHTML = `<div class="content"><p><p>${OOPS}</p><p></div>`;
+    block.innerHTML = `<div class="centered-message"><p>${OOPS}<p></div>`;
     return;
   }
 
   createTabs({
     block,
     breadcrumbs: [{ name: 'Dashboard', href: '/dashboard' }, { name: siteDetails.project.projectName, href: pathname }],
-    renderOptions: { projectDetails: siteDetails.project },
+    renderOptions: {
+      projectDetails: siteDetails.project, token, user, siteSlug, pathname,
+    },
     tabs: [
       {
         section: true,
@@ -835,21 +900,21 @@ export default async function decorate(block) {
       },
       {
         name: 'Overview',
-        href: 'overview',
+        href: `${pathname}/overview`,
         iconSrc: '/icons/template.svg',
         renderTab: renderSiteOverview,
       },
       {
         name: 'Pages',
-        href: 'pages',
+        href: `${pathname}/pages`,
         iconSrc: '/icons/web.svg',
-        renderTab: undefined,
+        renderTab: renderSitePages,
       },
       {
-        name: 'Web Analytics',
-        href: 'monitoring',
+        name: 'Web analytics',
+        href: `${pathname}/monitoring`,
         iconSrc: '/icons/monitoring.svg',
-        renderTab: undefined,
+        renderTab: renderSiteAnalytics,
       },
       {
         section: true,
@@ -857,21 +922,21 @@ export default async function decorate(block) {
       },
       {
         name: 'Overview',
-        href: 'emails',
+        href: `${pathname}/emails`,
         iconSrc: '/icons/email.svg',
-        renderTab: undefined,
+        renderTab: renderCampaignsOverview,
       },
       {
         name: 'Audience',
-        href: 'audience',
+        href: `${pathname}/audience`,
         iconSrc: '/icons/audience.svg',
-        renderTab: undefined,
+        renderTab: renderCampaignsAudience,
       },
       {
         name: 'Campaign analytics',
-        href: 'analytics',
+        href: `${pathname}/analytics`,
         iconSrc: '/icons/analytics.svg',
-        renderTab: undefined,
+        renderTab: renderCampaignsAnalytics,
       },
       {
         section: true,
@@ -879,9 +944,9 @@ export default async function decorate(block) {
       },
       {
         name: 'General',
-        href: 'settings',
+        href: `${pathname}/settings`,
         iconSrc: '/icons/settings.svg',
-        renderTab: undefined,
+        renderTab: renderSettingsGeneral,
       },
       {
         name: 'Theme',
@@ -1184,215 +1249,215 @@ export default async function decorate(block) {
         </div>
     `;
 
-      const actions = block.querySelector('.actions');
-      actions.querySelector('.overview-actions').innerHTML = `
-        <a href="${project.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>
-        ${
-  project.authoringGuideUrl
-    ? `<a href="${project.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>`
-    : ''
-}
-        <a href="${project.driveUrl}${!darkAlleyVariation ? `?authuser=${user.email}` : ''}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
-        <a href="${project.customLiveUrl}" id="open-button" title="Open your Website" class="button primary action open" target="_blank">Open</a>
-      `;
+      // const actions = block.querySelector('.actions');
+      //       actions.querySelector('.overview-actions').innerHTML = `
+      //         <a href="${project.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>
+      //         ${
+      //   project.authoringGuideUrl
+      //     ? `<a href="${project.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>`
+      //     : ''
+      // }
+      //         <a href="${project.driveUrl}${!darkAlleyVariation ? `?authuser=${user.email}` : ''}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
+      //         <a href="${project.customLiveUrl}" id="open-button" title="Open your Website" class="button primary action open" target="_blank">Open</a>
+      //       `;
 
       // MARK: Campaign analytics
-      document.addEventListener('campaigns:ready', ({ detail: { campaigns } }) => {
-        fetch(`${SCRIPT_API}/email/${project.projectSlug}`, { headers })
-          .then((req) => {
-            if (req.ok) {
-              return req.json();
-            }
+      //     document.addEventListener('campaigns:ready', ({ detail: { campaigns } }) => {
+      //       fetch(`${SCRIPT_API}/email/${project.projectSlug}`, { headers })
+      //         .then((req) => {
+      //           if (req.ok) {
+      //             return req.json();
+      //           }
 
-            return false;
-          })
-          .then((campaignAnalytics) => {
-            const analyticsContainer = block.querySelector('.analytics-panel .container');
-            analyticsContainer.innerHTML = `
-            <ul class="campaign-list" data-type="analytics">
-              <li><a class="button action secondary ${window.location.pathname.startsWith(`/${siteType}/${id}/analytics/`) ? '' : 'is-selected'}" href="/${siteType}/${id}/analytics">All emails</a></li>
-              ${Object.keys(campaigns).map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button action secondary ${window.location.pathname === `/${siteType}/${id}/analytics/${campaignSlug}` ? 'is-selected' : ''}" href="/${siteType}/${id}/analytics/${campaignSlug}">${campaigns[campaignSlug].name}</li></a>`).join('')}</a>
-            </ul>
-              
-            <div id="email-metrics" class="cards metrics">
-              <div id="email-metrics-delivery-rate" class="box">
-                  <strong>Delivery rate</strong>
-                  <span class="delivered-count"></span>
-              </div>
-              <div id="email-metrics-bounce-rate" class="box">
-                  <strong>Bounce rate</strong>
-                  <span class="bounced-count"></span>
-              </div>
-              <div id="email-metrics-open-rate" class="box">
-                  <strong>Open rate</strong>
-                  <span class="opened-count"></span>
-              </div>
-              <div id="email-metrics-cto-rate" class="box">
-                  <strong>Click-to-open rate</strong>
-                  <span class="clicked-count"></span>
-              </div>
-              <div id="email-metrics-sc-rate" class="box">
-                  <strong>Spam complaints rate</strong>
-                  <span class="complained-count"></span>
-              </div>
-            </div>
-            
-            <div id="email-details">
-            <h2>Email details</h2>
-            <table>
-                <thead>
-                  <tr>
-                    <th>Email</th>
-                    <th>To</th>
-                    <th>Sent</th>
-                    <th>Delivered</th>
-                    <th>Bounced</th>
-                    <th>Complained</th>
-                    <th>Opened</th>
-                    <th>Clicked</th>
-                  </tr>
-                </thead>
-                <tbody>
-                    ${campaignAnalytics ? Object.keys(campaignAnalytics).sort((emailIdA, emailIdB) => {
-    const sentA = campaignAnalytics[emailIdA].find(({ type }) => type === 'email.sent');
-    const sentB = campaignAnalytics[emailIdB].find(({ type }) => type === 'email.sent');
-    if (sentA && sentB) {
-      return new Date(sentB.created_at) - new Date(sentA.created_at);
-    }
-    return 0;
-  }).map((emailId) => {
-    const reverse = campaignAnalytics[emailId].reverse();
+      //           return false;
+      //         })
+      //         .then((campaignAnalytics) => {
+      //           const analyticsContainer = block.querySelector('.analytics-panel .container');
+      //           analyticsContainer.innerHTML = `
+      //           <ul class="campaign-list" data-type="analytics">
+      //             <li><a class="button action secondary ${window.location.pathname.startsWith(`/${siteType}/${id}/analytics/`) ? '' : 'is-selected'}" href="/${siteType}/${id}/analytics">All emails</a></li>
+      //             ${Object.keys(campaigns).map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button action secondary ${window.location.pathname === `/${siteType}/${id}/analytics/${campaignSlug}` ? 'is-selected' : ''}" href="/${siteType}/${id}/analytics/${campaignSlug}">${campaigns[campaignSlug].name}</li></a>`).join('')}</a>
+      //           </ul>
 
-    const sent = campaignAnalytics[emailId].find(({ type }) => type === 'email.sent');
-    const delivered = reverse.find(({ type }) => type === 'email.delivered');
-    const complained = campaignAnalytics[emailId].find(({ type }) => type === 'email.complained');
-    const bounced = campaignAnalytics[emailId].find(({ type }) => type === 'email.bounced');
-    const opened = reverse.find(({ type }) => type === 'email.opened');
-    const clicks = campaignAnalytics[emailId].filter(({ type }) => type === 'email.clicked');
+      //           <div id="email-metrics" class="cards metrics">
+      //             <div id="email-metrics-delivery-rate" class="box">
+      //                 <strong>Delivery rate</strong>
+      //                 <span class="delivered-count"></span>
+      //             </div>
+      //             <div id="email-metrics-bounce-rate" class="box">
+      //                 <strong>Bounce rate</strong>
+      //                 <span class="bounced-count"></span>
+      //             </div>
+      //             <div id="email-metrics-open-rate" class="box">
+      //                 <strong>Open rate</strong>
+      //                 <span class="opened-count"></span>
+      //             </div>
+      //             <div id="email-metrics-cto-rate" class="box">
+      //                 <strong>Click-to-open rate</strong>
+      //                 <span class="clicked-count"></span>
+      //             </div>
+      //             <div id="email-metrics-sc-rate" class="box">
+      //                 <strong>Spam complaints rate</strong>
+      //                 <span class="complained-count"></span>
+      //             </div>
+      //           </div>
 
-    const emailURL = campaignAnalytics[emailId][0].data.headers.find(({ name }) => name === 'X-Email-Url')?.value;
+      //           <div id="email-details">
+      //           <h2>Email details</h2>
+      //           <table>
+      //               <thead>
+      //                 <tr>
+      //                   <th>Email</th>
+      //                   <th>To</th>
+      //                   <th>Sent</th>
+      //                   <th>Delivered</th>
+      //                   <th>Bounced</th>
+      //                   <th>Complained</th>
+      //                   <th>Opened</th>
+      //                   <th>Clicked</th>
+      //                 </tr>
+      //               </thead>
+      //               <tbody>
+      //                   ${campaignAnalytics ? Object.keys(campaignAnalytics).sort((emailIdA, emailIdB) => {
+      //   const sentA = campaignAnalytics[emailIdA].find(({ type }) => type === 'email.sent');
+      //   const sentB = campaignAnalytics[emailIdB].find(({ type }) => type === 'email.sent');
+      //   if (sentA && sentB) {
+      //     return new Date(sentB.created_at) - new Date(sentA.created_at);
+      //   }
+      //   return 0;
+      // }).map((emailId) => {
+      //   const reverse = campaignAnalytics[emailId].reverse();
 
-    let campaign;
-    if (emailURL) {
-      // eslint-disable-next-line prefer-destructuring
-      campaign = new URL(emailURL).pathname.split('/')[2];
-    }
+      //   const sent = campaignAnalytics[emailId].find(({ type }) => type === 'email.sent');
+      //   const delivered = reverse.find(({ type }) => type === 'email.delivered');
+      //   const complained = campaignAnalytics[emailId].find(({ type }) => type === 'email.complained');
+      //   const bounced = campaignAnalytics[emailId].find(({ type }) => type === 'email.bounced');
+      //   const opened = reverse.find(({ type }) => type === 'email.opened');
+      //   const clicks = campaignAnalytics[emailId].filter(({ type }) => type === 'email.clicked');
 
-    let campaignSlug;
-    if (window.location.pathname.includes('/analytics/')) {
-      campaignSlug = window.location.pathname.split('/').pop();
-    }
+      //   const emailURL = campaignAnalytics[emailId][0].data.headers.find(({ name }) => name === 'X-Email-Url')?.value;
 
-    return `
-                      <tr data-email="${emailId}" data-campaign="${campaign}" ${campaignSlug && campaignSlug !== campaign ? 'hidden' : ''}>
-                        <td>${emailURL ? `<a href="${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${campaignAnalytics[emailId][0].data.subject}</a>` : `${campaignAnalytics[emailId][0].data.subject}`}</td>
-                        <td>${campaignAnalytics[emailId][0].data.to.join(',')}</td>
-                        <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
-                        <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
-                        <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
-                        <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
-                        <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
-                        <td>${clicks.length ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button><div hidden><ul class="clicked-links">${clicks.map((clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${clicked.data.click.link}</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</li>`).join('')}</ul></div>` : ''}</td>
-                      </tr>
-                    `;
-  }).join('') : `
-    <tr><td class="empty" colspan="8">Not enough data</td></tr>
-  `}
-                </tbody>
-            </table>
-            </div>
-          `;
+      //   let campaign;
+      //   if (emailURL) {
+      //     // eslint-disable-next-line prefer-destructuring
+      //     campaign = new URL(emailURL).pathname.split('/')[2];
+      //   }
 
-            const calculateCampaignStats = (hasCampaign) => {
-              let sentCount = 0;
-              let deliveredCount = 0;
-              let bouncedCount = 0;
-              let openedCount = 0;
-              let clickedCount = 0;
-              let complainedCount = 0;
+      //   let campaignSlug;
+      //   if (window.location.pathname.includes('/analytics/')) {
+      //     campaignSlug = window.location.pathname.split('/').pop();
+      //   }
 
-              const selector = hasCampaign ? 'tr[data-campaign]:not([hidden])' : 'tbody tr';
-              analyticsContainer.querySelectorAll(selector).forEach((tr) => {
-                const emailId = tr.dataset.email;
-                if (emailId) {
-                  const reverse = campaignAnalytics[emailId].reverse();
+      //   return `
+      //                     <tr data-email="${emailId}" data-campaign="${campaign}" ${campaignSlug && campaignSlug !== campaign ? 'hidden' : ''}>
+      //                       <td>${emailURL ? `<a href="${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${campaignAnalytics[emailId][0].data.subject}</a>` : `${campaignAnalytics[emailId][0].data.subject}`}</td>
+      //                       <td>${campaignAnalytics[emailId][0].data.to.join(',')}</td>
+      //                       <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
+      //                       <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
+      //                       <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
+      //                       <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
+      //                       <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
+      //                       <td>${clicks.length ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button><div hidden><ul class="clicked-links">${clicks.map((clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${clicked.data.click.link}</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</li>`).join('')}</ul></div>` : ''}</td>
+      //                     </tr>
+      //                   `;
+      // }).join('') : `
+      //   <tr><td class="empty" colspan="8">Not enough data</td></tr>
+      // `}
+      //               </tbody>
+      //           </table>
+      //           </div>
+      //         `;
 
-                  const sent = campaignAnalytics[emailId].find(({ type }) => type === 'email.sent');
-                  const delivered = reverse.find(({ type }) => type === 'email.delivered');
-                  const complained = campaignAnalytics[emailId].find(({ type }) => type === 'email.complained');
-                  const bounced = campaignAnalytics[emailId].find(({ type }) => type === 'email.bounced');
-                  const opened = reverse.find(({ type }) => type === 'email.opened');
-                  const clicks = campaignAnalytics[emailId].filter(({ type }) => type === 'email.clicked');
+      //           const calculateCampaignStats = (hasCampaign) => {
+      //             let sentCount = 0;
+      //             let deliveredCount = 0;
+      //             let bouncedCount = 0;
+      //             let openedCount = 0;
+      //             let clickedCount = 0;
+      //             let complainedCount = 0;
 
-                  if (sent) {
-                    sentCount += 1;
-                  }
-                  if (delivered) {
-                    deliveredCount += 1;
-                  }
-                  if (complained) {
-                    complainedCount += 1;
-                  }
-                  if (bounced) {
-                    bouncedCount += 1;
-                  }
-                  if (opened) {
-                    openedCount += 1;
-                  }
-                  if (clicks.length) {
-                    clickedCount += 1;
-                  }
-                }
-              });
+      //             const selector = hasCampaign ? 'tr[data-campaign]:not([hidden])' : 'tbody tr';
+      //             analyticsContainer.querySelectorAll(selector).forEach((tr) => {
+      //               const emailId = tr.dataset.email;
+      //               if (emailId) {
+      //                 const reverse = campaignAnalytics[emailId].reverse();
 
-              block.querySelector('.delivered-count').textContent = deliveredCount === 0 ? '0%' : `${((deliveredCount / sentCount) * 100).toFixed(2)}%`;
-              block.querySelector('.bounced-count').textContent = bouncedCount === 0 ? '0%' : `${((bouncedCount / sentCount) * 100).toFixed(2)}%`;
-              block.querySelector('.opened-count').textContent = openedCount === 0 ? '0%' : `${((openedCount / deliveredCount) * 100).toFixed(2)}%`;
-              block.querySelector('.clicked-count').textContent = clickedCount === 0 ? '0%' : `${((clickedCount / openedCount) * 100).toFixed(2)}%`;
-              block.querySelector('.complained-count').textContent = complainedCount === 0 ? '0%' : `${((complainedCount / deliveredCount) * 100).toFixed(2)}%`;
-            };
+      //                 const sent = campaignAnalytics[emailId].find(({ type }) => type === 'email.sent');
+      //                 const delivered = reverse.find(({ type }) => type === 'email.delivered');
+      //                 const complained = campaignAnalytics[emailId].find(({ type }) => type === 'email.complained');
+      //                 const bounced = campaignAnalytics[emailId].find(({ type }) => type === 'email.bounced');
+      //                 const opened = reverse.find(({ type }) => type === 'email.opened');
+      //                 const clicks = campaignAnalytics[emailId].filter(({ type }) => type === 'email.clicked');
 
-            const campaignList = analyticsContainer.querySelector('.campaign-list');
-            campaignList.onclick = (event) => {
-              if (event.target.matches('a')) {
-                event.preventDefault();
+      //                 if (sent) {
+      //                   sentCount += 1;
+      //                 }
+      //                 if (delivered) {
+      //                   deliveredCount += 1;
+      //                 }
+      //                 if (complained) {
+      //                   complainedCount += 1;
+      //                 }
+      //                 if (bounced) {
+      //                   bouncedCount += 1;
+      //                 }
+      //                 if (opened) {
+      //                   openedCount += 1;
+      //                 }
+      //                 if (clicks.length) {
+      //                   clickedCount += 1;
+      //                 }
+      //               }
+      //             });
 
-                const link = event.target;
-                const selectedCampaign = campaignList.querySelector('.is-selected');
-                if (selectedCampaign) {
-                  selectedCampaign.classList.remove('is-selected');
-                }
-                link.classList.add('is-selected');
+      //             block.querySelector('.delivered-count').textContent = deliveredCount === 0 ? '0%' : `${((deliveredCount / sentCount) * 100).toFixed(2)}%`;
+      //             block.querySelector('.bounced-count').textContent = bouncedCount === 0 ? '0%' : `${((bouncedCount / sentCount) * 100).toFixed(2)}%`;
+      //             block.querySelector('.opened-count').textContent = openedCount === 0 ? '0%' : `${((openedCount / deliveredCount) * 100).toFixed(2)}%`;
+      //             block.querySelector('.clicked-count').textContent = clickedCount === 0 ? '0%' : `${((clickedCount / openedCount) * 100).toFixed(2)}%`;
+      //             block.querySelector('.complained-count').textContent = complainedCount === 0 ? '0%' : `${((complainedCount / deliveredCount) * 100).toFixed(2)}%`;
+      //           };
 
-                const li = link.parentElement;
-                const hasCampaign = li.matches('[data-campaign]');
-                analyticsContainer.querySelectorAll('tr[data-campaign]').forEach((tr) => {
-                  tr.hidden = hasCampaign ? tr.dataset.campaign !== li.dataset.campaign : false;
-                });
+      //           const campaignList = analyticsContainer.querySelector('.campaign-list');
+      //           campaignList.onclick = (event) => {
+      //             if (event.target.matches('a')) {
+      //               event.preventDefault();
 
-                calculateCampaignStats(hasCampaign);
+      //               const link = event.target;
+      //               const selectedCampaign = campaignList.querySelector('.is-selected');
+      //               if (selectedCampaign) {
+      //                 selectedCampaign.classList.remove('is-selected');
+      //               }
+      //               link.classList.add('is-selected');
 
-                window.history.pushState({}, '', link.getAttribute('href'));
-              }
-            };
+      //               const li = link.parentElement;
+      //               const hasCampaign = li.matches('[data-campaign]');
+      //               analyticsContainer.querySelectorAll('tr[data-campaign]').forEach((tr) => {
+      //                 tr.hidden = hasCampaign ? tr.dataset.campaign !== li.dataset.campaign : false;
+      //               });
 
-            analyticsContainer.querySelectorAll('.click-details').forEach((el) => {
-              el.onclick = () => {
-                const clone = el.nextElementSibling.cloneNode(true);
-                clone.hidden = false;
-                const content = parseFragment(`
-                <div>
-                    <h3>${el.textContent}</h3>
-                    ${clone.outerHTML}    
-                </div>
-              `);
-                window.createDialog(content);
-              };
-            });
+      //               calculateCampaignStats(hasCampaign);
 
-            calculateCampaignStats(window.location.pathname.startsWith(`/${siteType}/${id}/analytics/`));
-          });
-      });
+      //               window.history.pushState({}, '', link.getAttribute('href'));
+      //             }
+      //           };
+
+      //           analyticsContainer.querySelectorAll('.click-details').forEach((el) => {
+      //             el.onclick = () => {
+      //               const clone = el.nextElementSibling.cloneNode(true);
+      //               clone.hidden = false;
+      //               const content = parseFragment(`
+      //               <div>
+      //                   <h3>${el.textContent}</h3>
+      //                   ${clone.outerHTML}
+      //               </div>
+      //             `);
+      //               window.createDialog(content);
+      //             };
+      //           });
+
+      //           calculateCampaignStats(window.location.pathname.startsWith(`/${siteType}/${id}/analytics/`));
+      //         });
+      //     });
 
       // MARK: Share authors
       const authorsList = block.querySelector('.authors-list');
@@ -1633,595 +1698,596 @@ export default async function decorate(block) {
 
       // MARK: Delete dialog
       // Delete site and redirect to dashboard
-      block.querySelector('.delete').onclick = async () => {
-        window?.zaraz?.track('click site delete');
+      // block.querySelector('.delete').onclick = async () => {
+      //   window?.zaraz?.track('click site delete');
 
-        block.classList.add('is-deleting');
-        if (await window.confirmDialog('Are you sure you want to delete your site? (This can\'t be undone)')) {
-          window?.zaraz?.track('click site delete submit');
+      //   block.classList.add('is-deleting');
+      //   if (await window.confirmDialog('Are you sure you want to delete your site? (This can\'t be undone)')) {
+      //     window?.zaraz?.track('click site delete submit');
 
-          const reqDelete = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'da-' : ''}delete/${project.projectSlug}`, {
-            method: 'DELETE',
-            headers,
-          }).catch(() => null);
-          if (reqDelete?.ok) {
-            window.location.href = '/dashboard';
-          } else {
-            await window.alertDialog(OOPS);
-            block.classList.remove('is-deleting');
-          }
-        } else {
-          block.classList.remove('is-deleting');
-        }
-      };
+      //     const reqDelete = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'da-' : ''}delete/${project.projectSlug}`, {
+      //       method: 'DELETE',
+      //       headers,
+      //     }).catch(() => null);
+      //     if (reqDelete?.ok) {
+      //       window.location.href = '/dashboard';
+      //     } else {
+      //       await window.alertDialog(OOPS);
+      //       block.classList.remove('is-deleting');
+      //     }
+      //   } else {
+      //     block.classList.remove('is-deleting');
+      //   }
+      // };
 
       // MARK: update description
-      block.querySelector('.update-description.action').onclick = async () => {
-        window?.zaraz?.track('click update site description');
+      // block.querySelector('.update-description.action').onclick = async () => {
+      //   window?.zaraz?.track('click update site description');
 
-        const submit = parseFragment('<button form="update-project-form" type="submit" class="button primary action">Submit</button>');
-        const content = parseFragment(`
-          <div>
-            <h3>Update Site Description</h3>
-            
-            <form id="update-project-form">
-              <label>
-                  <span>Description *</span>
-                  <textarea required name="projectDescription" placeholder="Enter description here">${project.projectDescription}</textarea>
-              </label>
-            </form>
-          </div>
-        `);
+      //   const submit = parseFragment('<button form="update-project-form" type="submit" class="button primary action">Submit</button>');
+      //   const content = parseFragment(`
+      //     <div>
+      //       <h3>Update Site Description</h3>
 
-        const dialog = window.createDialog(content, [submit]);
+      //       <form id="update-project-form">
+      //         <label>
+      //             <span>Description *</span>
+      //             <textarea required name="projectDescription" placeholder="Enter description here">${project.projectDescription}</textarea>
+      //         </label>
+      //       </form>
+      //     </div>
+      //   `);
 
-        const form = document.getElementById('update-project-form');
+      //   const dialog = window.createDialog(content, [submit]);
 
-        form.onsubmit = async (event) => {
-          window.zaraz?.track('click project update');
+      //   const form = document.getElementById('update-project-form');
 
-          event.preventDefault();
+      //   form.onsubmit = async (event) => {
+      //     window.zaraz?.track('click project update');
 
-          const body = Object.fromEntries(new FormData(form));
-          dialog.setLoading(true, 'Updating description...');
-          const response = await fetch(`${SCRIPT_API}/description/${project.projectSlug}`, {
-            headers: { ...headers, 'content-type': 'application/json' },
-            method: 'POST',
-            body: JSON.stringify(body),
-          }).catch(() => null);
+      //     event.preventDefault();
 
-          if (response?.ok) {
-            dialog.renderDialog('<h3 class="centered-info">Description successfully updated</h3>');
-            project.projectDescription = body.projectDescription;
-            const descriptionSpan = block.querySelector('.project-description.card .project-description.span');
-            if (descriptionSpan) descriptionSpan.textContent = body.projectDescription;
-          } else {
-            await window.alertDialog(OOPS);
-          }
+      //     const body = Object.fromEntries(new FormData(form));
+      //     dialog.setLoading(true, 'Updating description...');
+      //     const response = await fetch(`${SCRIPT_API}/description/${project.projectSlug}`, {
+      //       headers: { ...headers, 'content-type': 'application/json' },
+      //       method: 'POST',
+      //       body: JSON.stringify(body),
+      //     }).catch(() => null);
 
-          dialog.setLoading(false);
-        };
-      };
+      //     if (response?.ok) {
+      //       dialog.renderDialog('<h3 class="centered-info">Description successfully updated</h3>');
+      //       project.projectDescription = body.projectDescription;
+      //       const descriptionSpan = block.querySelector('.project-description.card .project-description.span');
+      //       if (descriptionSpan) descriptionSpan.textContent = body.projectDescription;
+      //     } else {
+      //       await window.alertDialog(OOPS);
+      //     }
+
+      //     dialog.setLoading(false);
+      //   };
+      // };
 
       // MARK: page list
       // Load index to list pages
-      fetch(`${SCRIPT_API}/index/${id}`)
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
-          }
+      // fetch(`${SCRIPT_API}/index/${id}`)
+      //   .then((res) => {
+      //     if (res.ok) {
+      //       return res.json();
+      //     }
 
-          throw new Error(res.status);
-        })
-        .then(({ data }) => {
-          if (!data.length) {
-            return;
-          }
+      //     throw new Error(res.status);
+      //   })
+      //   .then(({ data }) => {
+      //     if (!data.length) {
+      //       return;
+      //     }
 
-          const lastUpdate = Math.max(...data.map(({ lastModified }) => new Date(lastModified).getTime()));
-          block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
+      //     const lastUpdate = Math.max(...data.map(({ lastModified }) => new Date(lastModified).getTime()));
+      //     block.querySelector('.last-update').textContent = new Date(lastUpdate).toLocaleString();
 
-          const pages = data.filter(({ path }) => !path.startsWith('/drafts/')
-            && !path.startsWith('/emails/')
-            && !path.endsWith('/nav')
-            && !path.endsWith('/footer')
-            && path !== '/newsletter');
-          const navs = data.filter(({ path }) => path.endsWith('/nav'));
-          const footers = data.filter(({ path }) => path.endsWith('/footer'));
-          const drafts = data.filter(({ path }) => path.startsWith('/drafts/'));
-          const emails = data.filter(({ path }) => path.startsWith('/emails/') || path === '/newsletter');
+      //     const pages = data.filter(({ path }) => !path.startsWith('/drafts/')
+      //       && !path.startsWith('/emails/')
+      //       && !path.endsWith('/nav')
+      //       && !path.endsWith('/footer')
+      //       && path !== '/newsletter');
+      //     const navs = data.filter(({ path }) => path.endsWith('/nav'));
+      //     const footers = data.filter(({ path }) => path.endsWith('/footer'));
+      //     const drafts = data.filter(({ path }) => path.startsWith('/drafts/'));
+      //     const emails = data.filter(({ path }) => path.startsWith('/emails/') || path === '/newsletter');
 
-          const renderTable = (table, tableData, type) => {
-            table.innerHTML = `
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Path</th>
-                  <th>Last update</th>
-                  <th></th>
-                </tr>  
-              </thead>
-              <tbody></tbody>
-            `;
+      //     const renderTable = (table, tableData, type) => {
+      //       table.innerHTML = `
+      //         <thead>
+      //           <tr>
+      //             <th>Name</th>
+      //             <th>Path</th>
+      //             <th>Last update</th>
+      //             <th></th>
+      //           </tr>
+      //         </thead>
+      //         <tbody></tbody>
+      //       `;
 
-            const tableRows = tableData.map((item) => {
-              const tableRow = document.createElement('tr');
+      //       const tableRows = tableData.map((item) => {
+      //         const tableRow = document.createElement('tr');
 
-              if (type === 'emails') {
-                tableRow.innerHTML = `
-                  <tr>
-                      <td>${item.name}</td>
-                      <td>${item.path}</td>
-                      <td>${new Date(item.lastModified).toLocaleString()}</td>          
-                      <td>
-                        <div id="email-open-edit" class="button-container">
-                          <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
-                          <a class="button action secondary" href="${EMAIL_WORKER_API}/preview/${project.customPreviewUrl}${item.path}" target="_blank">Open</a>
-                        </div>
-                      </td>
-                  </tr>
-                `;
-                return tableRow;
-              }
+      //         if (type === 'emails') {
+      //           tableRow.innerHTML = `
+      //             <tr>
+      //                 <td>${item.name}</td>
+      //                 <td>${item.path}</td>
+      //                 <td>${new Date(item.lastModified).toLocaleString()}</td>
+      //                 <td>
+      //                   <div id="email-open-edit" class="button-container">
+      //                     <a class="button action secondary" href="/email/${id}${item.path}" target="_blank">Edit</a>
+      //                     <a class="button action secondary" href="${EMAIL_WORKER_API}/preview/${project.customPreviewUrl}${item.path}" target="_blank">Open</a>
+      //                   </div>
+      //                 </td>
+      //             </tr>
+      //           `;
+      //           return tableRow;
+      //         }
 
-              tableRow.innerHTML = `
-                <td>${item.name}</td>
-                <td>${item.path}</td>
-                <td>${new Date(item.lastModified).toLocaleString()}</td>
-                <td class="table-actions">
-                    <a class="button action secondary" href="${darkAlleyVariation ? `https://da.live/edit#/${daProjectRepo}/${id}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
-                    <a class="button action secondary" href="${project.customPreviewUrl}${item.path}" target="_blank">Preview</a>
-                    <a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Live</a>
-                </td>
-              `;
+      //         tableRow.innerHTML = `
+      //           <td>${item.name}</td>
+      //           <td>${item.path}</td>
+      //           <td>${new Date(item.lastModified).toLocaleString()}</td>
+      //           <td class="table-actions">
+      //               <a class="button action secondary" href="${darkAlleyVariation ? `https://da.live/edit#/${daProjectRepo}/${id}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+      //               <a class="button action secondary" href="${project.customPreviewUrl}${item.path}" target="_blank">Preview</a>
+      //               <a class="button action secondary" href="${project.customLiveUrl}${item.path}" target="_blank">Live</a>
+      //           </td>
+      //         `;
 
-              return tableRow;
-            });
+      //         return tableRow;
+      //       });
 
-            const tableBody = table.tBodies[0];
-            tableBody.append(...tableRows);
-            if (tableBody.matches(':empty')) {
-              const cols = table.querySelectorAll('th').length;
-              tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;
-            }
-          };
+      //       const tableBody = table.tBodies[0];
+      //       tableBody.append(...tableRows);
+      //       if (tableBody.matches(':empty')) {
+      //         const cols = table.querySelectorAll('th').length;
+      //         tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;
+      //       }
+      //     };
 
-          renderTable(block.querySelector('.pages'), pages);
-          renderTable(block.querySelector('.navs'), navs);
-          renderTable(block.querySelector('.footers'), footers);
-          renderTable(block.querySelector('.drafts'), drafts);
+      //     renderTable(block.querySelector('.pages'), pages);
+      //     renderTable(block.querySelector('.navs'), navs);
+      //     renderTable(block.querySelector('.footers'), footers);
+      //     renderTable(block.querySelector('.drafts'), drafts);
 
-          // Fetch campaigns and render emails per campaign
-          fetch(`${SCRIPT_API}/campaigns/${id}`, {
-            headers,
-          }).then((res) => {
-            if (res.ok) {
-              return res.json();
-            }
-            return {};
-          }).then((campaigns) => {
-            document.dispatchEvent(new CustomEvent('campaigns:ready', { detail: { campaigns } }));
+      // MARK: campaigns
+      // Fetch campaigns and render emails per campaign
+      // fetch(`${SCRIPT_API}/campaigns/${id}`, {
+      //   headers,
+      // }).then((res) => {
+      //   if (res.ok) {
+      //     return res.json();
+      //   }
+      //   return {};
+      // }).then((campaigns) => {
+      //   document.dispatchEvent(new CustomEvent('campaigns:ready', { detail: { campaigns } }));
 
-            const allCampaignSlugs = Object.keys(campaigns);
-            const emailContainer = block.querySelector('.emails-panel .container');
+      //   const allCampaignSlugs = Object.keys(campaigns);
+      //   const emailContainer = block.querySelector('.emails-panel .container');
 
-            emailContainer.innerHTML = `
-              <ul class="campaign-list" data-type="emails">
-                <li><a class="button action secondary ${window.location.pathname.startsWith(`/${siteType}/${id}/emails/`) ? '' : 'is-selected'}" href="/${siteType}/${id}/emails">All emails</a></li>
-                ${allCampaignSlugs.map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button action secondary ${window.location.pathname === `/${siteType}/${id}/emails/${campaignSlug}` ? 'is-selected' : ''}" href="/${siteType}/${id}/emails/${campaignSlug}">${campaigns[campaignSlug].name}</li></a>`).join('')}</a>
-              </ul>
-              <div class="campaign-container"></div>
-            `;
+      //   emailContainer.innerHTML = `
+      //         <ul class="campaign-list" data-type="emails">
+      //           <li><a class="button action secondary ${window.location.pathname.startsWith(`/${siteType}/${id}/emails/`) ? '' : 'is-selected'}" href="/${siteType}/${id}/emails">All emails</a></li>
+      //           ${allCampaignSlugs.map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button action secondary ${window.location.pathname === `/${siteType}/${id}/emails/${campaignSlug}` ? 'is-selected' : ''}" href="/${siteType}/${id}/emails/${campaignSlug}">${campaigns[campaignSlug].name}</li></a>`).join('')}</a>
+      //         </ul>
+      //         <div class="campaign-container"></div>
+      //       `;
 
-            const setCampaignLink = (action, campaign) => {
-              if (project.darkAlleyProject) {
-                action.href = `https://da.live/#/${daProjectRepo}/${id}/${campaign}`;
-              } else {
-                action.href = `https://drive.google.com/drive/u/1/search?q=title:${campaign}%20parent:${project.driveId}%20type:folder&authuser=${user.email}`;
-              }
-            };
+      //   const setCampaignLink = (action, campaign) => {
+      //     if (project.darkAlleyProject) {
+      //       action.href = `https://da.live/#/${daProjectRepo}/${id}/${campaign}`;
+      //     } else {
+      //       action.href = `https://drive.google.com/drive/u/1/search?q=title:${campaign}%20parent:${project.driveId}%20type:folder&authuser=${user.email}`;
+      //     }
+      //   };
 
-            const campaignList = emailContainer.querySelector('.campaign-list');
-            campaignList.onclick = (event) => {
-              if (event.target.matches('a')) {
-                event.preventDefault();
+      //   const campaignList = emailContainer.querySelector('.campaign-list');
+      //   campaignList.onclick = (event) => {
+      //     if (event.target.matches('a')) {
+      //       event.preventDefault();
 
-                const link = event.target;
-                const selectedCampaign = campaignList.querySelector('.is-selected');
-                if (selectedCampaign) {
-                  selectedCampaign.classList.remove('is-selected');
-                }
-                link.classList.add('is-selected');
+      //       const link = event.target;
+      //       const selectedCampaign = campaignList.querySelector('.is-selected');
+      //       if (selectedCampaign) {
+      //         selectedCampaign.classList.remove('is-selected');
+      //       }
+      //       link.classList.add('is-selected');
 
-                const newSelectedCampaign = link.closest('[data-campaign]');
-                const index = [...campaignList.children].indexOf(link.parentElement);
-                emailContainer.querySelector('.campaign:not([hidden])').hidden = true;
-                emailContainer.querySelector(`.campaign:nth-child(${index + 1})`).hidden = false;
+      //       const newSelectedCampaign = link.closest('[data-campaign]');
+      //       const index = [...campaignList.children].indexOf(link.parentElement);
+      //       emailContainer.querySelector('.campaign:not([hidden])').hidden = true;
+      //       emailContainer.querySelector(`.campaign:nth-child(${index + 1})`).hidden = false;
 
-                block.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
-                  action.hidden = index === 0;
+      //       block.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
+      //         action.hidden = index === 0;
 
-                  if (action.classList.contains('open-campaign') && !action.hidden) {
-                    setCampaignLink(action, newSelectedCampaign.dataset.campaign);
-                  }
-                });
+      //         if (action.classList.contains('open-campaign') && !action.hidden) {
+      //           setCampaignLink(action, newSelectedCampaign.dataset.campaign);
+      //         }
+      //       });
 
-                window.history.pushState({}, '', link.getAttribute('href'));
-              }
-            };
+      //       window.history.pushState({}, '', link.getAttribute('href'));
+      //     }
+      //   };
 
-            const campaignContainer = block.querySelector('.campaign-container');
-            campaignContainer.innerHTML = `
-              <div class="campaign" ${window.location.pathname.startsWith(`/${siteType}/${id}/emails/`) ? 'hidden' : ''}>
-                <table class="emails"></table>
-              </div>
-            `;
+      //   const campaignContainer = block.querySelector('.campaign-container');
+      //   campaignContainer.innerHTML = `
+      //         <div class="campaign" ${window.location.pathname.startsWith(`/${siteType}/${id}/emails/`) ? 'hidden' : ''}>
+      //           <table class="emails"></table>
+      //         </div>
+      //       `;
 
-            renderTable(block.querySelector('.campaign .emails'), emails, 'emails');
+      //   renderTable(block.querySelector('.campaign .emails'), emails, 'emails');
 
-            allCampaignSlugs.forEach((campaignSlug) => {
-              const campaign = campaigns[campaignSlug];
-              const campaignEmails = emails.filter(({ path }) => path.startsWith(`/emails/${campaignSlug}/`));
+      //   allCampaignSlugs.forEach((campaignSlug) => {
+      //     const campaign = campaigns[campaignSlug];
+      //     const campaignEmails = emails.filter(({ path }) => path.startsWith(`/emails/${campaignSlug}/`));
 
-              campaignContainer.insertAdjacentHTML('beforeend', `
-                <div data-campaign="${campaignSlug}" class="campaign campaign-${campaignSlug}" ${window.location.pathname === `/${siteType}/${id}/emails/${campaignSlug}` ? '' : 'hidden'}>
-                  <div class="cards">
-                    <div>
-                        <strong>Campaign</strong>
-                        <span>${campaign.name} (${campaignSlug})</span>
-                    </div>
-                    <div>
-                        <strong>Campaign description</strong>
-                        <span class="description">${campaign.description}</span>
-                        <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
-                    </div>
-                    <div>
-                        <strong>Created</strong>
-                        <span>${new Date(campaign.created).toLocaleString()}</span>
-                    </div>
-                    <div>
-                        <strong>Last update</strong>
-                        <span class="last-updated">${new Date(campaign.lastUpdated).toLocaleString()}</span>
-                    </div>
-                  </div>
-                  
-                  <h2>${campaign.name} emails</h2>
-                  <table class="emails"></table>
-                </div>
-              `);
+      //     campaignContainer.insertAdjacentHTML('beforeend', `
+      //           <div data-campaign="${campaignSlug}" class="campaign campaign-${campaignSlug}" ${window.location.pathname === `/${siteType}/${id}/emails/${campaignSlug}` ? '' : 'hidden'}>
+      //             <div class="cards">
+      //               <div>
+      //                   <strong>Campaign</strong>
+      //                   <span>${campaign.name} (${campaignSlug})</span>
+      //               </div>
+      //               <div>
+      //                   <strong>Campaign description</strong>
+      //                   <span class="description">${campaign.description}</span>
+      //                   <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
+      //               </div>
+      //               <div>
+      //                   <strong>Created</strong>
+      //                   <span>${new Date(campaign.created).toLocaleString()}</span>
+      //               </div>
+      //               <div>
+      //                   <strong>Last update</strong>
+      //                   <span class="last-updated">${new Date(campaign.lastUpdated).toLocaleString()}</span>
+      //               </div>
+      //             </div>
 
-              renderTable(block.querySelector(`.campaign-${campaignSlug} .emails`), campaignEmails, 'emails');
-            });
+      //             <h2>${campaign.name} emails</h2>
+      //             <table class="emails"></table>
+      //           </div>
+      //         `);
 
-            campaignContainer.onclick = async (event) => {
-              if (event.target.matches('.update-campaign-description')) {
-                window?.zaraz?.track('click update campaign description');
+      //     renderTable(block.querySelector(`.campaign-${campaignSlug} .emails`), campaignEmails, 'emails');
+      //   });
 
-                const campaign = event.target.closest('.campaign');
-                const campaignSlug = campaign.dataset.campaign;
-                const description = campaign.querySelector('.description');
+      //   campaignContainer.onclick = async (event) => {
+      //     if (event.target.matches('.update-campaign-description')) {
+      //       window?.zaraz?.track('click update campaign description');
 
-                const submit = parseFragment('<button form="update-campaign-form" type="submit" class="button primary action">Update Campaign</button>');
-                const content = parseFragment(`
-                  <div>
-                    <h3>Update campaign</h3>
-                    
-                    <form id="update-campaign-form">
-                      <label>
-                          <span>Description *</span>
-                          <textarea required name="description" placeholder="All monthly newsletters for subscribers">${description.textContent}</textarea>
-                      </label>
-                    </form>
-                  </div>
-                `);
+      //       const campaign = event.target.closest('.campaign');
+      //       const campaignSlug = campaign.dataset.campaign;
+      //       const description = campaign.querySelector('.description');
 
-                const dialog = window.createDialog(content, [submit]);
-                const form = document.getElementById('update-campaign-form');
+      //       const submit = parseFragment('<button form="update-campaign-form" type="submit" class="button primary action">Update Campaign</button>');
+      //       const content = parseFragment(`
+      //             <div>
+      //               <h3>Update campaign</h3>
 
-                form.onsubmit = async (e) => {
-                  window.zaraz?.track('click campaign update');
+      //               <form id="update-campaign-form">
+      //                 <label>
+      //                     <span>Description *</span>
+      //                     <textarea required name="description" placeholder="All monthly newsletters for subscribers">${description.textContent}</textarea>
+      //                 </label>
+      //               </form>
+      //             </div>
+      //           `);
 
-                  e.preventDefault();
+      //       const dialog = window.createDialog(content, [submit]);
+      //       const form = document.getElementById('update-campaign-form');
 
-                  dialog.setLoading(true, 'Updating description...');
-                  const body = Object.fromEntries(new FormData(form));
-                  const reqUpdate = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
-                    headers: { ...headers, 'content-type': 'application/json' },
-                    method: 'PATCH',
-                    body: JSON.stringify(body),
-                  }).catch(() => null);
+      //       form.onsubmit = async (e) => {
+      //         window.zaraz?.track('click campaign update');
 
-                  if (reqUpdate?.ok) {
-                    const update = await reqUpdate.json();
-                    dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
+      //         e.preventDefault();
 
-                    description.textContent = update.description;
-                    campaign.querySelector('.last-updated').textContent = new Date(update.lastUpdated).toLocaleString();
-                  } else {
-                    await window.alertDialog(OOPS);
-                  }
+      //         dialog.setLoading(true, 'Updating description...');
+      //         const body = Object.fromEntries(new FormData(form));
+      //         const reqUpdate = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
+      //           headers: { ...headers, 'content-type': 'application/json' },
+      //           method: 'PATCH',
+      //           body: JSON.stringify(body),
+      //         }).catch(() => null);
 
-                  dialog.setLoading(false);
-                };
-              }
-            };
+      //         if (reqUpdate?.ok) {
+      //           const update = await reqUpdate.json();
+      //           dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
 
-            block.querySelector('.add-campaign').onclick = async () => {
-              const submit = parseFragment('<button form="create-campaign-form" type="submit" class="button primary action">Create Campaign</button>');
-              const content = parseFragment(`
-                <div>
-                  <h3>Create a new campaign</h3>
-                  
-                  <form id="create-campaign-form">
-                    <p>
-                        Start your email marketing campaign with individual email messages with specific purposes including the following: downloading a PDF, sign up for a newsletter, or make a purchase.
-                    </p>
-                    <label>
-                        <span>Name *</span>
-                        <input required name="name" type="text" placeholder="Newsletters"/>
-                    </label>
-                    <label>
-                        <span>Description</span>
-                        <textarea name="description" placeholder="All monthly newsletters for subscribers"></textarea>
-                    </label>
-                  </form>
-                </div>
-              `);
+      //           description.textContent = update.description;
+      //           campaign.querySelector('.last-updated').textContent = new Date(update.lastUpdated).toLocaleString();
+      //         } else {
+      //           await window.alertDialog(OOPS);
+      //         }
 
-              const dialog = window.createDialog(content, [submit]);
-              const existingCampaigns = [...campaignList.querySelectorAll('li[data-campaign]')].map((el) => el.dataset.campaign);
-              const form = content.querySelector('#create-campaign-form');
-              const nameInput = form.querySelector('input[name="name"]');
-              nameInput.oninput = (event = { target: nameInput }) => {
-                const value = slugify(event?.target?.value || '');
-                if (!value) {
-                  submit.disabled = true;
-                  event.target.setCustomValidity('Please enter a name');
-                  return;
-                }
+      //         dialog.setLoading(false);
+      //       };
+      //     }
+      //   };
 
-                if (existingCampaigns.includes(value)) {
-                  event.target.setCustomValidity('Campaign already exists');
-                  return;
-                }
-                submit.disabled = false;
-                event.target.setCustomValidity('');
-              };
-              nameInput.oninput();
+      //   block.querySelector('.add-campaign').onclick = async () => {
+      //     const submit = parseFragment('<button form="create-campaign-form" type="submit" class="button primary action">Create Campaign</button>');
+      //     const content = parseFragment(`
+      //           <div>
+      //             <h3>Create a new campaign</h3>
 
-              form.onsubmit = async (e) => {
-                window.zaraz?.track('click create campaign');
+      //             <form id="create-campaign-form">
+      //               <p>
+      //                   Start your email marketing campaign with individual email messages with specific purposes including the following: downloading a PDF, sign up for a newsletter, or make a purchase.
+      //               </p>
+      //               <label>
+      //                   <span>Name *</span>
+      //                   <input required name="name" type="text" placeholder="Newsletters"/>
+      //               </label>
+      //               <label>
+      //                   <span>Description</span>
+      //                   <textarea name="description" placeholder="All monthly newsletters for subscribers"></textarea>
+      //               </label>
+      //             </form>
+      //           </div>
+      //         `);
 
-                e.preventDefault();
+      //     const dialog = window.createDialog(content, [submit]);
+      //     const existingCampaigns = [...campaignList.querySelectorAll('li[data-campaign]')].map((el) => el.dataset.campaign);
+      //     const form = content.querySelector('#create-campaign-form');
+      //     const nameInput = form.querySelector('input[name="name"]');
+      //     nameInput.oninput = (event = { target: nameInput }) => {
+      //       const value = slugify(event?.target?.value || '');
+      //       if (!value) {
+      //         submit.disabled = true;
+      //         event.target.setCustomValidity('Please enter a name');
+      //         return;
+      //       }
 
-                dialog.setLoading(true, 'Creating Campaign...');
+      //       if (existingCampaigns.includes(value)) {
+      //         event.target.setCustomValidity('Campaign already exists');
+      //         return;
+      //       }
+      //       submit.disabled = false;
+      //       event.target.setCustomValidity('');
+      //     };
+      //     nameInput.oninput();
 
-                const req = await fetch(`${SCRIPT_API}/campaigns/${id}`, {
-                  headers: { ...headers, 'content-type': 'application/json' },
-                  method: 'POST',
-                  body: JSON.stringify(Object.fromEntries(new FormData(form))),
-                }).catch(() => null);
+      //     form.onsubmit = async (e) => {
+      //       window.zaraz?.track('click create campaign');
 
-                if (!req?.ok) {
-                  dialog.setLoading(false);
-                  await window.alertDialog(OOPS);
-                } else {
-                  const newCampaign = await req.json();
+      //       e.preventDefault();
 
-                  block.querySelectorAll('.campaign-list').forEach((el) => {
-                    el.insertAdjacentHTML('beforeend', `
-                      <li data-campaign="${newCampaign.slug}"><a class="button action secondary" href="/${siteType}/${id}/${el.dataset.type}/${newCampaign.slug}">${newCampaign.name}</li></a>
-                    `);
-                  });
+      //       dialog.setLoading(true, 'Creating Campaign...');
 
-                  campaignContainer.insertAdjacentHTML('beforeend', `
-                    <div class="campaign campaign-${newCampaign.slug}" hidden>
-                      <div class="cards">
-                        <div>
-                            <strong>Campaign</strong>
-                            <span>${newCampaign.name} (${newCampaign.slug})</span>
-                        </div>
-                        <div>
-                            <strong>Campaign description</strong>
-                            <span class="description">${newCampaign.description}</span>
-                            <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
-                        </div>
-                        <div>
-                            <strong>Created</strong>
-                            <span>${new Date(newCampaign.created).toLocaleString()}</span>
-                        </div>
-                        <div>
-                            <strong>Last update</strong>
-                            <span class="last-updated">${new Date(newCampaign.lastUpdated).toLocaleString()}</span>
-                        </div>
-                      </div>
-                      
-                      <h2>${newCampaign.name} emails</h2>
-                      <table class="emails"></table>
-                    </div>
-                  `);
+      //       const req = await fetch(`${SCRIPT_API}/campaigns/${id}`, {
+      //         headers: { ...headers, 'content-type': 'application/json' },
+      //         method: 'POST',
+      //         body: JSON.stringify(Object.fromEntries(new FormData(form))),
+      //       }).catch(() => null);
 
-                  const newCampaignEmails = emails.filter(({ path }) => path.startsWith(`/emails/${newCampaign.slug}/`));
-                  renderTable(campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`), newCampaignEmails, 'emails');
+      //       if (!req?.ok) {
+      //         dialog.setLoading(false);
+      //         await window.alertDialog(OOPS);
+      //       } else {
+      //         const newCampaign = await req.json();
 
-                  campaignList.querySelector('li:last-child a').click();
+      //         block.querySelectorAll('.campaign-list').forEach((el) => {
+      //           el.insertAdjacentHTML('beforeend', `
+      //                 <li data-campaign="${newCampaign.slug}"><a class="button action secondary" href="/${siteType}/${id}/${el.dataset.type}/${newCampaign.slug}">${newCampaign.name}</li></a>
+      //               `);
+      //         });
 
-                  dialog.setLoading(false);
-                  dialog.close();
-                }
-              };
-            };
+      //         campaignContainer.insertAdjacentHTML('beforeend', `
+      //               <div class="campaign campaign-${newCampaign.slug}" hidden>
+      //                 <div class="cards">
+      //                   <div>
+      //                       <strong>Campaign</strong>
+      //                       <span>${newCampaign.name} (${newCampaign.slug})</span>
+      //                   </div>
+      //                   <div>
+      //                       <strong>Campaign description</strong>
+      //                       <span class="description">${newCampaign.description}</span>
+      //                       <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
+      //                   </div>
+      //                   <div>
+      //                       <strong>Created</strong>
+      //                       <span>${new Date(newCampaign.created).toLocaleString()}</span>
+      //                   </div>
+      //                   <div>
+      //                       <strong>Last update</strong>
+      //                       <span class="last-updated">${new Date(newCampaign.lastUpdated).toLocaleString()}</span>
+      //                   </div>
+      //                 </div>
 
-            const addEmail = block.querySelector('.add-email');
-            addEmail.onclick = async () => {
-              const submit = parseFragment('<button form="add-email-form" type="submit" class="button primary action">Add Email</button>');
-              const content = parseFragment(`
-                <div>
-                  <h3>Add email to Campaign</h3>
-                  
-                  <div class="columns">
-                    <form id="add-email-form">
-                      <p>Add a newsletter email to your campaign</p>
-                      <label>
-                          <span>Name *</span>
-                          <input required name="pageName" type="text" placeholder="Monthly Newsletter">
-                          <p></p>
-                      </label>
-                      <input type="hidden" name="templatePath" value="/newsletter">
-                    </form>
-                    <iframe src="${EMAIL_WORKER_API}/preview/https://main--${project.templateSlug}--headwire-self-service-templates.aem.live/newsletter"></iframe>
-                  </div>
-                </div>
-              `);
+      //                 <h2>${newCampaign.name} emails</h2>
+      //                 <table class="emails"></table>
+      //               </div>
+      //             `);
 
-              const dialog = window.createDialog(content, [submit], { fullscreen: true });
-              const form = document.getElementById('add-email-form');
-              const campaignSlug = window.location.pathname.split('/').pop();
-              const existingEmails = [...block.querySelectorAll(`.campaign-${campaignSlug} .emails tbody tr td:first-child`)].map((el) => el.textContent);
+      //         const newCampaignEmails = emails.filter(({ path }) => path.startsWith(`/emails/${newCampaign.slug}/`));
+      //         renderTable(campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`), newCampaignEmails, 'emails');
 
-              const nameInput = form.querySelector('input[name="pageName"]');
-              nameInput.oninput = (event = { target: nameInput }) => {
-                const value = slugify(event?.target?.value || '');
-                if (!value) {
-                  submit.disabled = true;
-                  event.target.setCustomValidity('Please enter a name');
-                  return;
-                }
+      //         campaignList.querySelector('li:last-child a').click();
 
-                if (existingEmails.includes(value)) {
-                  event.target.setCustomValidity('Email already exists');
-                  return;
-                }
-                submit.disabled = false;
-                event.target.setCustomValidity('');
-              };
-              nameInput.oninput();
+      //         dialog.setLoading(false);
+      //         dialog.close();
+      //       }
+      //     };
+      //   };
 
-              form.onsubmit = async (e) => {
-                window.zaraz?.track('click add email');
+      //   const addEmail = block.querySelector('.add-email');
+      //   addEmail.onclick = async () => {
+      //     const submit = parseFragment('<button form="add-email-form" type="submit" class="button primary action">Add Email</button>');
+      //     const content = parseFragment(`
+      //           <div>
+      //             <h3>Add email to Campaign</h3>
 
-                e.preventDefault();
+      //             <div class="columns">
+      //               <form id="add-email-form">
+      //                 <p>Add a newsletter email to your campaign</p>
+      //                 <label>
+      //                     <span>Name *</span>
+      //                     <input required name="pageName" type="text" placeholder="Monthly Newsletter">
+      //                     <p></p>
+      //                 </label>
+      //                 <input type="hidden" name="templatePath" value="/newsletter">
+      //               </form>
+      //               <iframe src="${EMAIL_WORKER_API}/preview/https://main--${project.templateSlug}--headwire-self-service-templates.aem.live/newsletter"></iframe>
+      //             </div>
+      //           </div>
+      //         `);
 
-                dialog.setLoading(true, 'Adding email...');
+      //     const dialog = window.createDialog(content, [submit], { fullscreen: true });
+      //     const form = document.getElementById('add-email-form');
+      //     const campaignSlug = window.location.pathname.split('/').pop();
+      //     const existingEmails = [...block.querySelectorAll(`.campaign-${campaignSlug} .emails tbody tr td:first-child`)].map((el) => el.textContent);
 
-                const body = Object.fromEntries(new FormData(form));
-                const req = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
-                  headers: { ...headers, 'content-type': 'application/json' },
-                  method: 'POST',
-                  body: JSON.stringify(body),
-                }).catch(() => null);
+      //     const nameInput = form.querySelector('input[name="pageName"]');
+      //     nameInput.oninput = (event = { target: nameInput }) => {
+      //       const value = slugify(event?.target?.value || '');
+      //       if (!value) {
+      //         submit.disabled = true;
+      //         event.target.setCustomValidity('Please enter a name');
+      //         return;
+      //       }
 
-                if (!req?.ok) {
-                  dialog.setLoading(false);
-                  await window.alertDialog(OOPS);
-                } else {
-                  dialog.setLoading(false);
-                  dialog.close();
-                  const { pageSlug, daNewPageSlug } = await req.json();
-                  window.location.href = `/email/${id}/emails/${campaignSlug}/${pageSlug || daNewPageSlug}`;
-                }
-              };
-            };
+      //       if (existingEmails.includes(value)) {
+      //         event.target.setCustomValidity('Email already exists');
+      //         return;
+      //       }
+      //       submit.disabled = false;
+      //       event.target.setCustomValidity('');
+      //     };
+      //     nameInput.oninput();
 
-            block.querySelector('.delete-campaign').onclick = async (event) => {
-              const campaignSlug = window.location.pathname.split('/')[4];
-              if (campaignSlug) {
-                if (await window.confirmDialog('Are you sure ?')) {
-                  window?.zaraz?.track('click campaign delete submit');
+      //     form.onsubmit = async (e) => {
+      //       window.zaraz?.track('click add email');
 
-                  event.target.classList.add('is-disabled');
-                  const deleteReq = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
-                    method: 'DELETE',
-                    headers,
-                  }).catch(() => null);
+      //       e.preventDefault();
 
-                  if (deleteReq?.ok) {
-                    block.querySelector(`.campaign-list[data-type="emails"] li[data-campaign="${campaignSlug}"]`).remove();
-                    block.querySelector('.campaign-list[data-type="emails"] a').click();
+      //       dialog.setLoading(true, 'Adding email...');
 
-                    const li = block.querySelector(`.campaign-list[data-type="analytics"] li[data-campaign="${campaignSlug}"]`);
-                    if (li.querySelector('.is-selected')) {
-                      li.parentElement.firstElementChild.querySelector('a').classList.add('is-selected');
-                    }
-                    li.remove();
+      //       const body = Object.fromEntries(new FormData(form));
+      //       const req = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
+      //         headers: { ...headers, 'content-type': 'application/json' },
+      //         method: 'POST',
+      //         body: JSON.stringify(body),
+      //       }).catch(() => null);
 
-                    window.history.replaceState({}, '', `/${siteType}/${id}/emails`);
-                  } else {
-                    await window.alertDialog(OOPS);
-                  }
-                  event.target.classList.remove('is-disabled');
-                }
-              }
-            };
+      //       if (!req?.ok) {
+      //         dialog.setLoading(false);
+      //         await window.alertDialog(OOPS);
+      //       } else {
+      //         dialog.setLoading(false);
+      //         dialog.close();
+      //         const { pageSlug, daNewPageSlug } = await req.json();
+      //         window.location.href = `/email/${id}/emails/${campaignSlug}/${pageSlug || daNewPageSlug}`;
+      //       }
+      //     };
+      //   };
 
-            block.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
-              action.hidden = !window.location.pathname.startsWith(`/${siteType}/${id}/emails/`);
-              if (action.classList.contains('open-campaign') && !action.hidden) {
-                setCampaignLink(action, window.location.pathname.split('/').pop());
-              }
-            });
-          });
-        })
-        .catch((error) => {
-          // eslint-disable-next-line no-console
-          console.log(error);
-        });
+      //   block.querySelector('.delete-campaign').onclick = async (event) => {
+      //     const campaignSlug = window.location.pathname.split('/')[4];
+      //     if (campaignSlug) {
+      //       if (await window.confirmDialog('Are you sure ?')) {
+      //         window?.zaraz?.track('click campaign delete submit');
+
+      //         event.target.classList.add('is-disabled');
+      //         const deleteReq = await fetch(`${SCRIPT_API}/campaigns/${id}/${campaignSlug}`, {
+      //           method: 'DELETE',
+      //           headers,
+      //         }).catch(() => null);
+
+      //         if (deleteReq?.ok) {
+      //           block.querySelector(`.campaign-list[data-type="emails"] li[data-campaign="${campaignSlug}"]`).remove();
+      //           block.querySelector('.campaign-list[data-type="emails"] a').click();
+
+      //           const li = block.querySelector(`.campaign-list[data-type="analytics"] li[data-campaign="${campaignSlug}"]`);
+      //           if (li.querySelector('.is-selected')) {
+      //             li.parentElement.firstElementChild.querySelector('a').classList.add('is-selected');
+      //           }
+      //           li.remove();
+
+      //           window.history.replaceState({}, '', `/${siteType}/${id}/emails`);
+      //         } else {
+      //           await window.alertDialog(OOPS);
+      //         }
+      //         event.target.classList.remove('is-disabled');
+      //       }
+      //     }
+      //   };
+
+      //   block.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
+      //     action.hidden = !window.location.pathname.startsWith(`/${siteType}/${id}/emails/`);
+      //     if (action.classList.contains('open-campaign') && !action.hidden) {
+      //       setCampaignLink(action, window.location.pathname.split('/').pop());
+      //     }
+      //   });
+      // });
+      // })
+      // .catch((error) => {
+      //   // eslint-disable-next-line no-console
+      //   console.log(error);
+      // });
 
       // MARK: audience
       // Load recipients sheet
-      fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
-        headers: {
-          authorization: `bearer ${token}`,
-        },
-      })
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
-          }
+      // fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
+      //   headers: {
+      //     authorization: `bearer ${token}`,
+      //   },
+      // })
+      //   .then((res) => {
+      //     if (res.ok) {
+      //       return res.json();
+      //     }
 
-          return false;
-        })
-        .then((recipients) => {
-          const audienceActions = block.querySelector('.audience-actions');
-          if (!audienceActions.querySelector('a')) {
-            audienceActions.insertAdjacentHTML('beforeend', `
-                <a href="${project.darkAlleyProject ? `https://da.live/edit#/da-self-service/${id}/recipients` : `https://docs.google.com/spreadsheets/d/${recipients.id}/edit`}" class="button primary action" target="_blank">Edit</a>
-              `);
-          }
+      //     return false;
+      //   })
+      //   .then((recipients) => {
+      //     const audienceActions = block.querySelector('.audience-actions');
+      //     if (!audienceActions.querySelector('a')) {
+      //       audienceActions.insertAdjacentHTML('beforeend', `
+      //           <a href="${project.darkAlleyProject ? `https://da.live/edit#/da-self-service/${id}/recipients` : `https://docs.google.com/spreadsheets/d/${recipients.id}/edit`}" class="button primary action" target="_blank">Edit</a>
+      //         `);
+      //     }
 
-          const audience = block.querySelector('.audience-panel .container');
-          if (!recipients) {
-            audience.textContent = 'No recipients spreadsheet found';
-            return;
-          }
+      //     const audience = block.querySelector('.audience-panel .container');
+      //     if (!recipients) {
+      //       audience.textContent = 'No recipients spreadsheet found';
+      //       return;
+      //     }
 
-          if (!recipients.data.length) {
-            audience.textContent = 'No audience found';
-            return;
-          }
+      //     if (!recipients.data.length) {
+      //       audience.textContent = 'No audience found';
+      //       return;
+      //     }
 
-          audience.innerHTML = `
-              <table>
-                <thead>
-                  <tr>
-                      ${recipients.headers.map((key) => `<th>${key}</th>`).join('')}
-                  </tr>
-                </thead>
-                <tbody>
-                  ${recipients.data.map((row) => `<tr>
-                      ${recipients.headers.map((key) => `<td>${row[key] ? row[key] : ''}</td>`).join('')}
-                  </tr>`).join('')}
-                </tbody>
-              </table>
-            `;
-        });
+      //     audience.innerHTML = `
+      //         <table>
+      //           <thead>
+      //             <tr>
+      //                 ${recipients.headers.map((key) => `<th>${key}</th>`).join('')}
+      //             </tr>
+      //           </thead>
+      //           <tbody>
+      //             ${recipients.data.map((row) => `<tr>
+      //                 ${recipients.headers.map((key) => `<td>${row[key] ? row[key] : ''}</td>`).join('')}
+      //             </tr>`).join('')}
+      //           </tbody>
+      //         </table>
+      //       `;
+      //   });
 
       // MARK: add page button
-      block.querySelector('.add-page').onclick = () => {
-        addPageDialogSetup({
-          project, headers, darkAlleyVariation, user,
-        });
-      };
+      // block.querySelector('.add-page').onclick = () => {
+      //   addPageDialogSetup({
+      //     project, headers, darkAlleyVariation, user,
+      //   });
+      // };
 
       // Load site blocks
       renderBlocksList(block, { project, headers, id });
@@ -2254,367 +2320,367 @@ export default async function decorate(block) {
       }
 
       // Load web analytics
-      const loadWebAnalytics = async (interval) => Promise.all([
-        `${SCRIPT_API}/monitoring/${project.projectSlug}?period=${interval}`,
-        `${SCRIPT_API}/cww/${project.projectSlug}?period=${interval}`,
-      ].map(async (url) => {
-        const req = await fetch(url, { headers }).catch(() => null);
-        if (!req?.ok) {
-          throw new Error(req?.status || OOPS);
-        }
-        return req.json();
-      }));
+      //   const loadWebAnalytics = async (interval) => Promise.all([
+      //     `${SCRIPT_API}/monitoring/${project.projectSlug}?period=${interval}`,
+      //     `${SCRIPT_API}/cww/${project.projectSlug}?period=${interval}`,
+      //   ].map(async (url) => {
+      //     const req = await fetch(url, { headers }).catch(() => null);
+      //     if (!req?.ok) {
+      //       throw new Error(req?.status || OOPS);
+      //     }
+      //     return req.json();
+      //   }));
 
-      const analytics = await loadWebAnalytics('1d');
+      //   const analytics = await loadWebAnalytics('1d');
 
-      const { countries } = await import('./countries.js');
+      //   const { countries } = await import('./countries.js');
 
-      // Load chart.js
-      await import('../../libs/chart/chart.min.js');
-      await import('../../libs/chart/chart-utils.min.js');
+      //   // Load chart.js
+      //   await import('../../libs/chart/chart.min.js');
+      //   await import('../../libs/chart/chart-utils.min.js');
 
-      const Utils = window.ChartUtils.init();
+      //   const Utils = window.ChartUtils.init();
 
-      const roundUpToNearestInterval = (date, intervalMinutes) => {
-        const minutes = date.getMinutes();
-        const roundedMinutes = Math.ceil(minutes / intervalMinutes) * intervalMinutes;
-        date.setMinutes(roundedMinutes);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
-        return date;
-      };
+      //   const roundUpToNearestInterval = (date, intervalMinutes) => {
+      //     const minutes = date.getMinutes();
+      //     const roundedMinutes = Math.ceil(minutes / intervalMinutes) * intervalMinutes;
+      //     date.setMinutes(roundedMinutes);
+      //     date.setSeconds(0);
+      //     date.setMilliseconds(0);
+      //     return date;
+      //   };
 
-      const generateTimeSeries = (intervalChoice) => {
-        let intervalMinutes;
-        let daysBack;
+      //   const generateTimeSeries = (intervalChoice) => {
+      //     let intervalMinutes;
+      //     let daysBack;
 
-        switch (intervalChoice) {
-          case '1d':
-            intervalMinutes = 15;
-            daysBack = 1; // 24 hours
-            break;
-          case '7d':
-            intervalMinutes = 60;
-            daysBack = 7; // 7 days
-            break;
-          case '30d':
-            intervalMinutes = 1440; // 24 hours * 60 minutes
-            daysBack = 30; // 30 days
-            break;
-          default:
-            throw new Error('Invalid interval choice.');
-        }
+      //     switch (intervalChoice) {
+      //       case '1d':
+      //         intervalMinutes = 15;
+      //         daysBack = 1; // 24 hours
+      //         break;
+      //       case '7d':
+      //         intervalMinutes = 60;
+      //         daysBack = 7; // 7 days
+      //         break;
+      //       case '30d':
+      //         intervalMinutes = 1440; // 24 hours * 60 minutes
+      //         daysBack = 30; // 30 days
+      //         break;
+      //       default:
+      //         throw new Error('Invalid interval choice.');
+      //     }
 
-        const intervalMillis = intervalMinutes * 60 * 1000;
-        const totalIntervals = (daysBack * 24 * 60) / intervalMinutes;
+      //     const intervalMillis = intervalMinutes * 60 * 1000;
+      //     const totalIntervals = (daysBack * 24 * 60) / intervalMinutes;
 
-        let now = new Date();
-        now = roundUpToNearestInterval(now, intervalMinutes);
+      //     let now = new Date();
+      //     now = roundUpToNearestInterval(now, intervalMinutes);
 
-        const timeSeries = [];
+      //     const timeSeries = [];
 
-        for (let i = 0; i <= totalIntervals; i += 1) {
-          const timePoint = new Date(now.getTime() - (i * intervalMillis));
-          timeSeries.unshift(timePoint);
-        }
+      //     for (let i = 0; i <= totalIntervals; i += 1) {
+      //       const timePoint = new Date(now.getTime() - (i * intervalMillis));
+      //       timeSeries.unshift(timePoint);
+      //     }
 
-        return timeSeries;
-      };
+      //     return timeSeries;
+      //   };
 
-      const container = block.querySelector('.monitoring-panel .container');
-      const period = block.querySelector('.period-selector');
+      //   const container = block.querySelector('.monitoring-panel .container');
+      //   const period = block.querySelector('.period-selector');
 
-      const renderWebAnalytics = ([metrics, cww]) => {
-        const totalVisits = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
-        const totalPageViews = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.count ?? 0;
-        const medianPageLoadTime = metrics[2]?.data?.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
+      //   const renderWebAnalytics = ([metrics, cww]) => {
+      //     const totalVisits = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
+      //     const totalPageViews = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.count ?? 0;
+      //     const medianPageLoadTime = metrics[2]?.data?.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
 
-        const visitsDelta = metrics[2]?.data?.viewer.accounts[0].visitsDelta[0] ? ((totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits) - 100 : 0;
-        const pageViewsDelta = metrics[2]?.data?.viewer.accounts[0].pageviewsDelta[0] ? ((totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count) - 100 : 0;
-        const performanceDelta = metrics[2]?.data?.viewer.accounts[0].performanceDelta[0] ? ((medianPageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime) - 100 : 0;
+      //     const visitsDelta = metrics[2]?.data?.viewer.accounts[0].visitsDelta[0] ? ((totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits) - 100 : 0;
+      //     const pageViewsDelta = metrics[2]?.data?.viewer.accounts[0].pageviewsDelta[0] ? ((totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count) - 100 : 0;
+      //     const performanceDelta = metrics[2]?.data?.viewer.accounts[0].performanceDelta[0] ? ((medianPageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime) - 100 : 0;
 
-        container.innerHTML = `
-        <div class="title"><h2>Last ${period.value === '1d' ? '24 Hours' : period.value.replace('d', ' Days')}</h2>${period.value === '30d' ? '<i>(Based on a 10% sample of page load events)</i>' : ''}</div>
-          <div class="cards">
-            <div id="total-visits" class="box">
-                <strong>Total visits</strong>
-                <span>${totalVisits}</span>
-                ${visitsDelta !== 0 ? `<span class="${visitsDelta < 0 ? 'red' : 'green'}">${visitsDelta > 0 ? '+' : ''}${visitsDelta}%</span>` : ''}
-            </div>
-            <div id="total-page-views" class="box">
-                <strong>Total page views</strong>
-                <span>${totalPageViews}</span>
-                ${pageViewsDelta !== 0 ? `<span class="${pageViewsDelta < 0 ? 'red' : 'green'}">${pageViewsDelta > 0 ? '+' : ''}${pageViewsDelta}%</span>` : ''}
-            </div>
-            <div id="median-page-load" class="box">
-                <strong>Median page load time</strong>
-                <span>${medianPageLoadTime / 1000}ms</span>
-                ${performanceDelta !== 0 ? `<span class="${performanceDelta < 0 ? 'red' : 'green'}">${performanceDelta > 0 ? '+' : ''}${performanceDelta}%</span>` : ''}
-            </div>
-          </div>
+      //     container.innerHTML = `
+      //     <div class="title"><h2>Last ${period.value === '1d' ? '24 Hours' : period.value.replace('d', ' Days')}</h2>${period.value === '30d' ? '<i>(Based on a 10% sample of page load events)</i>' : ''}</div>
+      //       <div class="cards">
+      //         <div id="total-visits" class="box">
+      //             <strong>Total visits</strong>
+      //             <span>${totalVisits}</span>
+      //             ${visitsDelta !== 0 ? `<span class="${visitsDelta < 0 ? 'red' : 'green'}">${visitsDelta > 0 ? '+' : ''}${visitsDelta}%</span>` : ''}
+      //         </div>
+      //         <div id="total-page-views" class="box">
+      //             <strong>Total page views</strong>
+      //             <span>${totalPageViews}</span>
+      //             ${pageViewsDelta !== 0 ? `<span class="${pageViewsDelta < 0 ? 'red' : 'green'}">${pageViewsDelta > 0 ? '+' : ''}${pageViewsDelta}%</span>` : ''}
+      //         </div>
+      //         <div id="median-page-load" class="box">
+      //             <strong>Median page load time</strong>
+      //             <span>${medianPageLoadTime / 1000}ms</span>
+      //             ${performanceDelta !== 0 ? `<span class="${performanceDelta < 0 ? 'red' : 'green'}">${performanceDelta > 0 ? '+' : ''}${performanceDelta}%</span>` : ''}
+      //         </div>
+      //       </div>
 
-          <div class="chart-container">
-              <canvas id="chart" width="600" height="400"></canvas>
-          </div>
+      //       <div class="chart-container">
+      //           <canvas id="chart" width="600" height="400"></canvas>
+      //       </div>
 
-          <div id="monitoring-details">
-          <div id="visits-details">
-            <h2>Visits details</h2>
-            <div class="cards metrics">
-                <div id="visits-details-country" class="box">
-                    <strong>By country</strong>
-                    ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                      <p><span title="${countries.find(({ value }) => value === country.dimensions.metric)?.label}">${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.sum.visits}</span></p>
-                    `).join('')}
-                </div>
-                <div id="visits-details-referers" class="box">
-                    <strong>By referers</strong>
-                    ${metrics[0].data.viewer.accounts[0].topReferers.filter((ref) => ref.sum.visits > 1).map((referer) => `
-                      <p><span title="${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}">${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.sum.visits}</span></p>
-                    `).join('')}
-                </div>
-                <div id="visits-details-paths" class="box">
-                    <strong>By paths</strong>
-                    ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
-                      <p><span title="${paths.dimensions.metric}">${paths.dimensions.metric}</span><span>${paths.sum.visits}</span></p>
-                    `).join('')}
-                </div>
-                <div id="visits-details-browsers" class="box">
-                    <strong>By browsers</strong>
-                    ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                      <p><span title="${browsers.dimensions.metric}">${browsers.dimensions.metric}</span><span>${browsers.sum.visits}</span></p>
-                    `).join('')}
-                </div>
-                <div id="visits-details-os" class="box">
-                    <strong>By operating systems</strong>
-                    ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
-                      <p><span title="${OSs.dimensions.metric}">${OSs.dimensions.metric}</span><span>${OSs.sum.visits}</span></p>
-                    `).join('')}
-                </div>
-                <div id="visits-details-devices" class="box">
-                    <strong>By device type</strong>
-                    ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                      <p><span title="${deviceTypes.dimensions.metric}">${deviceTypes.dimensions.metric}</span><span>${deviceTypes.sum.visits}</span></p>
-                    `).join('')}
-                </div>
-            </div>
-          </div>
+      //       <div id="monitoring-details">
+      //       <div id="visits-details">
+      //         <h2>Visits details</h2>
+      //         <div class="cards metrics">
+      //             <div id="visits-details-country" class="box">
+      //                 <strong>By country</strong>
+      //                 ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
+      //                   <p><span title="${countries.find(({ value }) => value === country.dimensions.metric)?.label}">${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.sum.visits}</span></p>
+      //                 `).join('')}
+      //             </div>
+      //             <div id="visits-details-referers" class="box">
+      //                 <strong>By referers</strong>
+      //                 ${metrics[0].data.viewer.accounts[0].topReferers.filter((ref) => ref.sum.visits > 1).map((referer) => `
+      //                   <p><span title="${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}">${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.sum.visits}</span></p>
+      //                 `).join('')}
+      //             </div>
+      //             <div id="visits-details-paths" class="box">
+      //                 <strong>By paths</strong>
+      //                 ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
+      //                   <p><span title="${paths.dimensions.metric}">${paths.dimensions.metric}</span><span>${paths.sum.visits}</span></p>
+      //                 `).join('')}
+      //             </div>
+      //             <div id="visits-details-browsers" class="box">
+      //                 <strong>By browsers</strong>
+      //                 ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+      //                   <p><span title="${browsers.dimensions.metric}">${browsers.dimensions.metric}</span><span>${browsers.sum.visits}</span></p>
+      //                 `).join('')}
+      //             </div>
+      //             <div id="visits-details-os" class="box">
+      //                 <strong>By operating systems</strong>
+      //                 ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
+      //                   <p><span title="${OSs.dimensions.metric}">${OSs.dimensions.metric}</span><span>${OSs.sum.visits}</span></p>
+      //                 `).join('')}
+      //             </div>
+      //             <div id="visits-details-devices" class="box">
+      //                 <strong>By device type</strong>
+      //                 ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+      //                   <p><span title="${deviceTypes.dimensions.metric}">${deviceTypes.dimensions.metric}</span><span>${deviceTypes.sum.visits}</span></p>
+      //                 `).join('')}
+      //             </div>
+      //         </div>
+      //       </div>
 
-          <div id="page-views-details">
-            <h2>Page views details</h2>
-            <div class="cards metrics">
-              <div id="page-views-details-country" class="box">
-                  <strong>By country</strong>
-                  ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                    <p><span title="${countries.find(({ value }) => value === country.dimensions.metric)?.label}">${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>
-                  `).join('')}
-              </div>
-              <div id="page-views-details-referers" class="box">
-                  <strong>By referers</strong>
-                  ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
-                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
-                  `).join('')}
-              </div>
-              <div id="page-views-details-paths" class="box">
-                  <strong>By paths</strong>
-                  ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
-                    <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
-                  `).join('')}
-              </div>
-              <div id="page-views-details-browsers" class="box">
-                  <strong>By browsers</strong>
-                  ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                    <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
-                  `).join('')}
-              </div>
-              <div id="page-views-details-os" class="box">
-                  <strong>By operating systems</strong>
-                  ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
-                    <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
-                  `).join('')}
-              </div>
-              <div id="page-views-details-devices" class="box">
-                  <strong>By device type</strong>
-                  ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
-                  `).join('')}
-              </div>
-            </div>
-          </div>
+      //       <div id="page-views-details">
+      //         <h2>Page views details</h2>
+      //         <div class="cards metrics">
+      //           <div id="page-views-details-country" class="box">
+      //               <strong>By country</strong>
+      //               ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
+      //                 <p><span title="${countries.find(({ value }) => value === country.dimensions.metric)?.label}">${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>
+      //               `).join('')}
+      //           </div>
+      //           <div id="page-views-details-referers" class="box">
+      //               <strong>By referers</strong>
+      //               ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `
+      //                 <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //           <div id="page-views-details-paths" class="box">
+      //               <strong>By paths</strong>
+      //               ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `
+      //                 <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //           <div id="page-views-details-browsers" class="box">
+      //               <strong>By browsers</strong>
+      //               ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+      //                 <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //           <div id="page-views-details-os" class="box">
+      //               <strong>By operating systems</strong>
+      //               ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `
+      //                 <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //           <div id="page-views-details-devices" class="box">
+      //               <strong>By device type</strong>
+      //               ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+      //                 <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //         </div>
+      //       </div>
 
-          <div id="pageload-details">
-            <h2>Page load time details</h2>
-            <div class="cards metrics">
-              <div id="pageload-details-country" class="box">
-                  <strong>By country</strong>
-                  ${metrics[3].data.viewer.accounts[0].countries.map((country) => `
-                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
-                  `).join('')}
-              </div>
-              <div id="pageload-details-referers" class="box">
-                  <strong>By referers</strong>
-                  ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `
-                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
-                  `).join('')}
-              </div>
-              <div id="pageload-details-paths" class="box">
-                  <strong>By paths</strong>
-                  ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `
-                    <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
-                  `).join('')}
-              </div>
-              <div id="pageload-details-browsers" class="box">
-                  <strong>By browsers</strong>
-                  ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `
-                    <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
-                  `).join('')}
-              </div>
-              <div id="pageload-details-os" class="box">
-                  <strong>By operating systems</strong>
-                  ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `
-                    <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
-                  `).join('')}
-              </div>
-              <div id="pageload-details-devices" class="box">
-                  <strong>By device type</strong>
-                  ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
-                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
-                  `).join('')}
-              </div>
-            </div>
-          </div>
-          </div>
-          
-          <div id="core-web-vitals">
-          <h2>Core Web Vitals</h2>
+      //       <div id="pageload-details">
+      //         <h2>Page load time details</h2>
+      //         <div class="cards metrics">
+      //           <div id="pageload-details-country" class="box">
+      //               <strong>By country</strong>
+      //               ${metrics[3].data.viewer.accounts[0].countries.map((country) => `
+      //                 <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${country.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //           <div id="pageload-details-referers" class="box">
+      //               <strong>By referers</strong>
+      //               ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `
+      //                 <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${referer.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //           <div id="pageload-details-paths" class="box">
+      //               <strong>By paths</strong>
+      //               ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `
+      //                 <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //           <div id="pageload-details-browsers" class="box">
+      //               <strong>By browsers</strong>
+      //               ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `
+      //                 <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //           <div id="pageload-details-os" class="box">
+      //               <strong>By operating systems</strong>
+      //               ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `
+      //                 <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //           <div id="pageload-details-devices" class="box">
+      //               <strong>By device type</strong>
+      //               ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `
+      //                 <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
+      //               `).join('')}
+      //           </div>
+      //         </div>
+      //       </div>
+      //       </div>
 
-          <div class="cards">
-              ${['lcp', 'inp', 'fid', 'cls'].map((metric) => `
-                <div class="cwp-box">
-                  <strong>${metric.toUpperCase()}</strong>
-                  <span>Excellent (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
-                  <span>Good (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
-                  <span>Needs improvement (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
-                </div>
-                `).join('')}
-          </div>
-          </div>
-          
-          <div id="core-web-vitals-path-browsers">
-          <h2>By Path and Browsers</h2>
-          
-          <div class="cards metrics">
-            <div class="cwp-box">
-                <strong>LCP</strong>
-                ${cww[0].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.largestContentfulPaintPath)
-    .map((rum) => `
-                    <span>Path: <span>${rum.dimensions.largestContentfulPaintPath}</span></span>
-                    <ul>
-                      <li>Excellent (${rum?.sum.lcpGood ?? '0'})</li>
-                      <li>Good (${rum?.sum.lcpNeedsImprovement ?? '0'})</li>
-                      <li>Needs improvement (${rum?.sum.lcpPoor ?? '0'})</li>
-                    </ul>
-                  `).join('')}
-            </div>
-            <div class="cwp-box">
-                <strong>INP</strong>
-                ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.userAgentBrowser)
-    .map((rum) => `
-                    <span>Browser: <span>${rum.dimensions.userAgentBrowser}</span></span>
-                    <ul>
-                        <li>Excellent (${rum?.sum.inpGood ?? '0'})</li>
-                        <li>Good (${rum?.sum.inpNeedsImprovement ?? '0'})</li>
-                        <li>Needs improvement (${rum?.sum.inpPoor ?? '0'})</li>
-                    </ul>
-                  `).join('')}
-            </div>
-            <div class="cwp-box">
-                <strong>FID</strong>
-                ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.firstInputDelayPath)
-    .map((rum) => `
-                  <span>Path: <span>${rum.dimensions.firstInputDelayPath}</span></span>
-                  <ul>
-                    <li>Excellent (${rum?.sum.fidGood ?? '0'})</li>
-                    <li>Good (${rum?.sum.fidNeedsImprovement ?? '0'})</li>
-                    <li>Needs improvement (${rum?.sum.fidPoor ?? '0'})</li>
-                  </ul>
-                `).join('')}
-            </div>
-            <div class="cwp-box">
-                <strong>CLS</strong>
-                ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.cumulativeLayoutShiftPath)
-    .map((rum) => `
-                  <span>Path: <span>${rum.dimensions.cumulativeLayoutShiftPath}</span></span>
-                  <ul>
-                    <li>Excellent (${rum?.sum.clsGood ?? '0'})</li>
-                    <li>Good (${rum?.sum.clsNeedsImprovement ?? '0'})</li>
-                    <li>Needs improvement (${rum?.sum.clsPoor ?? '0'})</li>
-                  </ul>
-                `).join('')}
-            </div>
-          </div>
-          </div>
-        `;
+      //       <div id="core-web-vitals">
+      //       <h2>Core Web Vitals</h2>
 
-        const series = generateTimeSeries(period.value);
+      //       <div class="cards">
+      //           ${['lcp', 'inp', 'fid', 'cls'].map((metric) => `
+      //             <div class="cwp-box">
+      //               <strong>${metric.toUpperCase()}</strong>
+      //               <span>Excellent (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
+      //               <span>Good (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
+      //               <span>Needs improvement (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
+      //             </div>
+      //             `).join('')}
+      //       </div>
+      //       </div>
 
-        const labels = series.map((d) => (period.value === '30d' ? d.toLocaleDateString() : d.toLocaleString()));
+      //       <div id="core-web-vitals-path-browsers">
+      //       <h2>By Path and Browsers</h2>
 
-        const visitsData = [];
-        const pageViewsData = [];
+      //       <div class="cards metrics">
+      //         <div class="cwp-box">
+      //             <strong>LCP</strong>
+      //             ${cww[0].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
+      // .filter((rum) => rum?.dimensions?.largestContentfulPaintPath)
+      // .map((rum) => `
+      //                 <span>Path: <span>${rum.dimensions.largestContentfulPaintPath}</span></span>
+      //                 <ul>
+      //                   <li>Excellent (${rum?.sum.lcpGood ?? '0'})</li>
+      //                   <li>Good (${rum?.sum.lcpNeedsImprovement ?? '0'})</li>
+      //                   <li>Needs improvement (${rum?.sum.lcpPoor ?? '0'})</li>
+      //                 </ul>
+      //               `).join('')}
+      //         </div>
+      //         <div class="cwp-box">
+      //             <strong>INP</strong>
+      //             ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
+      // .filter((rum) => rum?.dimensions?.userAgentBrowser)
+      // .map((rum) => `
+      //                 <span>Browser: <span>${rum.dimensions.userAgentBrowser}</span></span>
+      //                 <ul>
+      //                     <li>Excellent (${rum?.sum.inpGood ?? '0'})</li>
+      //                     <li>Good (${rum?.sum.inpNeedsImprovement ?? '0'})</li>
+      //                     <li>Needs improvement (${rum?.sum.inpPoor ?? '0'})</li>
+      //                 </ul>
+      //               `).join('')}
+      //         </div>
+      //         <div class="cwp-box">
+      //             <strong>FID</strong>
+      //             ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
+      // .filter((rum) => rum?.dimensions?.firstInputDelayPath)
+      // .map((rum) => `
+      //               <span>Path: <span>${rum.dimensions.firstInputDelayPath}</span></span>
+      //               <ul>
+      //                 <li>Excellent (${rum?.sum.fidGood ?? '0'})</li>
+      //                 <li>Good (${rum?.sum.fidNeedsImprovement ?? '0'})</li>
+      //                 <li>Needs improvement (${rum?.sum.fidPoor ?? '0'})</li>
+      //               </ul>
+      //             `).join('')}
+      //         </div>
+      //         <div class="cwp-box">
+      //             <strong>CLS</strong>
+      //             ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
+      // .filter((rum) => rum?.dimensions?.cumulativeLayoutShiftPath)
+      // .map((rum) => `
+      //               <span>Path: <span>${rum.dimensions.cumulativeLayoutShiftPath}</span></span>
+      //               <ul>
+      //                 <li>Excellent (${rum?.sum.clsGood ?? '0'})</li>
+      //                 <li>Good (${rum?.sum.clsNeedsImprovement ?? '0'})</li>
+      //                 <li>Needs improvement (${rum?.sum.clsPoor ?? '0'})</li>
+      //               </ul>
+      //             `).join('')}
+      //         </div>
+      //       </div>
+      //       </div>
+      //     `;
 
-        series.forEach((d) => {
-          const found = metrics[1].data.viewer.accounts[0].series.find((serie) => (period.value === '30d' ? d.toLocaleDateString() === new Date(serie.dimensions.ts).toLocaleDateString() : d.getTime() === new Date(serie.dimensions.ts).getTime()));
+      //     const series = generateTimeSeries(period.value);
 
-          if (found) {
-            visitsData.push(found.sum.visits);
-            pageViewsData.push(found.count);
-          } else {
-            visitsData.push(0);
-            pageViewsData.push(0);
-          }
-        });
+      //     const labels = series.map((d) => (period.value === '30d' ? d.toLocaleDateString() : d.toLocaleString()));
 
-        const config = {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Visits',
-                data: visitsData,
-                fill: false,
-                borderColor: Utils.CHART_COLORS.blue,
-              },
-              {
-                label: 'Page views',
-                data: pageViewsData,
-                fill: false,
-                borderColor: Utils.CHART_COLORS.red,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-          },
-        };
+      //     const visitsData = [];
+      //     const pageViewsData = [];
 
-        // eslint-disable-next-line no-new
-        new window.Chart(document.getElementById('chart'), config);
-      };
+      //     series.forEach((d) => {
+      //       const found = metrics[1].data.viewer.accounts[0].series.find((serie) => (period.value === '30d' ? d.toLocaleDateString() === new Date(serie.dimensions.ts).toLocaleDateString() : d.getTime() === new Date(serie.dimensions.ts).getTime()));
 
-      period.onchange = async () => {
-        window?.zaraz?.track('change analytics period');
-        container.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
-        renderWebAnalytics(await loadWebAnalytics(period.value));
-      };
+      //       if (found) {
+      //         visitsData.push(found.sum.visits);
+      //         pageViewsData.push(found.count);
+      //       } else {
+      //         visitsData.push(0);
+      //         pageViewsData.push(0);
+      //       }
+      //     });
 
-      renderWebAnalytics(analytics);
+      //     const config = {
+      //       type: 'line',
+      //       data: {
+      //         labels,
+      //         datasets: [
+      //           {
+      //             label: 'Visits',
+      //             data: visitsData,
+      //             fill: false,
+      //             borderColor: Utils.CHART_COLORS.blue,
+      //           },
+      //           {
+      //             label: 'Page views',
+      //             data: pageViewsData,
+      //             fill: false,
+      //             borderColor: Utils.CHART_COLORS.red,
+      //           },
+      //         ],
+      //       },
+      //       options: {
+      //         responsive: true,
+      //         maintainAspectRatio: false,
+      //       },
+      //     };
+
+      //     // eslint-disable-next-line no-new
+      //     new window.Chart(document.getElementById('chart'), config);
+      //   };
+
+      //   period.onchange = async () => {
+      //     window?.zaraz?.track('change analytics period');
+      //     container.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
+      //     renderWebAnalytics(await loadWebAnalytics(period.value));
+      //   };
+
+    //   renderWebAnalytics(analytics);
     } else if (reqDetails?.status === 404) {
       block.querySelector('.content p').innerHTML = `<p>Project "${id}" not found. Create it <a href="/">here!</a></p>`;
     } else {

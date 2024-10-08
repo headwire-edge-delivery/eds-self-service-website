@@ -185,15 +185,17 @@ export async function createTabs({
 
   const functionalTabs = tabs.filter((tab) => !tab.section && !tab.isLink);
   const tabToSelect = functionalTabs.find(({ href }) =>
-    window.location.pathname.endsWith(href)) || functionalTabs[0];
+    window.location.pathname.startsWith(href)) || functionalTabs[0];
 
-  // eslint-disable-next-line no-restricted-syntax
+  let previousSection = '';
+
   for (const tab of tabs) {
     if (tab.section) {
       const asideItem = document.createElement('li');
       asideItem.classList.add('title');
       asideItem.textContent = tab.name;
       asideItems.append(asideItem);
+      previousSection = tab.name.toLowerCase();
       continue;
     }
     if (!tab || !tab.href) continue;
@@ -214,7 +216,7 @@ export async function createTabs({
     }
 
     const tabContent = document.createElement('div');
-    tabContent.classList.add('tab-content', tabSlug);
+    tabContent.classList.add('tab-content', tabSlug, previousSection ? `${previousSection}-section` : '');
     details.append(tabContent);
 
     const asideItemLink = asideItem.querySelector('a');
