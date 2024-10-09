@@ -673,3 +673,117 @@ img[src="/icons/loading.svg"] {
   padding-block: 32px;
   gap: 16px;
 }
+
+.tabs-wrapper .tabs-nav .breadcrumbs {
+  font-size: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  line-height: 32px;
+  text-transform: uppercase;
+}
+
+.tabs-wrapper .tabs-nav .breadcrumbs h1 {
+  font-size: 16px;
+  line-height: 16px;
+  padding: 0;
+}
+
+.tabs-wrapper .tabs-nav-items {
+  display: flex;
+  gap: 8px;
+}
+
+.tabs-wrapper .tabs-content-container {
+  flex: 1;
+  max-width: calc(100% - 200px - 64px);
+}
+
+.tabs-wrapper .tabs-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 64px;
+  padding-block: 32px;
+  min-height: calc(100vh - 200px);
+  justify-content: space-between;
+}
+
+
+.tabs-wrapper .tabs-content:has(> p:only-child) {
+  display: block;
+  padding: 0;
+}
+
+.tabs-wrapper .tabs-content > p:only-child {
+  min-height: calc(100vh - 200px);
+  display: grid;
+  place-items: center;
+}
+
+.tabs-wrapper .tabs-content aside {
+  height: max-content;
+  width: 200px;
+}
+
+.tabs-wrapper .tabs-content aside ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tabs-wrapper .tabs-content aside .button {
+  width: 100%;
+  justify-content: flex-start;
+  border-color: transparent;
+}
+
+.tabs-wrapper .tabs-content aside .button:hover {
+  border-color: var(--light-blue);
+  background-color: var(--white);
+}
+
+.tabs-wrapper .tabs-content aside .button.is-selected {
+  border-color: var(--light-blue);
+  background-color: var(--light-blue);
+  color: var(--white);
+}
+
+.tabs-wrapper .tabs-content aside .button.is-selected img {
+  filter: invert(1);
+}
+
+.tabs-wrapper .tabs-content aside li.title {
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--orange);
+  font-size: 14px;
+  padding-bottom: 4px;
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabs-wrapper .details > :not(.is-selected),
+.tabs-wrapper .actions > :not(.is-selected) {
+  display: none;
+}
+
+@media (width < 768px) {
+  .tabs-wrapper .tabs-content aside {
+      width: 100%;
+  }
+
+  .dashboard.block .details {
+      max-width: 100%;
+  }
+
+  .site-details.block .tabs-nav-items {
+      flex-direction: column;
+      align-items: flex-start;
+  }
+}

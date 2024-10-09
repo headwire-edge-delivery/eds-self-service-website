@@ -82,16 +82,11 @@ export default async function renderCampaignsAnalytics({ container, renderOption
   const [campaignAnalyticsData, campaignsData] = await Promise.all([
     fetch(`${SCRIPT_API}/email/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.json())
-      .catch(() => null),
+      .catch(() => ({})),
     fetch(`${SCRIPT_API}/campaigns/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.json())
-      .catch(() => null),
+      .catch(() => ({})),
   ]);
-
-  // if (!campaignAnalyticsData) {
-  //   container.innerHTML = `<p>${OOPS}</p>`;
-  //   return;
-  // }
 
   container.innerHTML = `
         <ul class="campaign-list" data-type="analytics">

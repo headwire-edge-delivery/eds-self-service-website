@@ -13,19 +13,21 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     <a href="${projectDetails.customLiveUrl}" id="open-button" title="Open your Website" class="button primary action open" target="_blank">Open</a>
   `;
 
-  nav.querySelector('.sidekick').onclick = () => {
-    window?.zaraz?.track('click site sidekick');
-  };
+  if (!projectDetails.darkAlleyProject) {
+    nav.querySelector('#install-sidekick-button').onclick = () => {
+      window?.zaraz?.track('click site sidekick');
+    };
+  }
 
-  nav.querySelector('.edit').onclick = () => {
+  nav.querySelector('#edit-button').onclick = () => {
     window?.zaraz?.track('click site edit');
   };
 
-  nav.querySelector('.open').onclick = () => {
+  nav.querySelector('#open-button').onclick = () => {
     window?.zaraz?.track('click site open');
   };
 
-  nav.querySelector('.guides').onclick = () => {
+  nav.querySelector('#guides-button').onclick = () => {
     window?.zaraz?.track('click site guides');
   };
 

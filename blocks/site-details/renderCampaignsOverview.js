@@ -13,10 +13,10 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
   // get required data
   const [indexData, campaignsData] = await Promise.all([
     fetch(`${SCRIPT_API}/index/${siteSlug}`).then((res) => res.json()).catch(() => null),
-    fetch(`${SCRIPT_API}/campaigns/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.json()).catch(() => null),
+    fetch(`${SCRIPT_API}/campaigns/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.json()).catch(() => ({})),
   ]);
 
-  if (!indexData?.data || !campaignsData) {
+  if (!indexData?.data) {
     container.innerHTML = `<p>${OOPS}</p>`;
     return;
   }

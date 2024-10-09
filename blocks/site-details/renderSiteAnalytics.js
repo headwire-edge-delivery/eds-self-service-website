@@ -4,7 +4,7 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
   container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
 
   const {
-    projectDetails, user, token, siteSlug,
+    token, siteSlug,
   } = renderOptions;
 
   // Load web analytics
@@ -87,7 +87,8 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
   const renderWebAnalytics = ([metrics, cww]) => {
     const totalVisits = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
     const totalPageViews = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.count ?? 0;
-    const medianPageLoadTime = metrics[2]?.data?.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
+    const medianPageLoadTime = metrics[2]
+      ?.data?.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
 
     const visitsDelta = metrics[2]?.data?.viewer.accounts[0].visitsDelta[0]
       ? (totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits - 100
@@ -96,7 +97,8 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
       ? (totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count - 100
       : 0;
     const performanceDelta = metrics[2]?.data?.viewer.accounts[0].performanceDelta[0]
-      ? (medianPageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime
+      ? (medianPageLoadTime * 100) / metrics[2]
+        .data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime
         - 100
       : 0;
 

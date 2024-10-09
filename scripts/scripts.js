@@ -167,14 +167,14 @@ export async function createTabs({
         <div class="tabs-nav-items"></div>
       </div>
 
-      <div class="content">
+      <div class="tabs-content">
 
         <aside class="tabs-aside">
           <ul>
           </ul>
         </aside>
 
-        <div class="tabs-content details"></div>
+        <div class="tabs-content-container details"></div>
       </div>
     </div>
   `;
