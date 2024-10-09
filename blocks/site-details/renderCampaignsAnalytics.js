@@ -72,9 +72,9 @@ function createAnalyticsTableContent(campaignAnalyticsData) {
     .join('');
 }
 
-export default async function renderCampaignsAnalytics({ container, nav, renderOptions }) {
+export default async function renderCampaignsAnalytics({ container, renderOptions }) {
   const {
-    projectDetails, token, siteSlug, user, pathname,
+    token, siteSlug, pathname,
   } = renderOptions;
 
   container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';

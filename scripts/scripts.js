@@ -184,8 +184,8 @@ export async function createTabs({
   const details = block.querySelector('.details');
 
   const functionalTabs = tabs.filter((tab) => !tab.section && !tab.isLink);
-  const tabToSelect = functionalTabs.find(({ href }) =>
-    window.location.pathname.startsWith(href)) || functionalTabs[0];
+  const tabToSelect = functionalTabs.find(({ href }) => window
+    .location.pathname.startsWith(href)) || functionalTabs[0];
 
   let previousSection = '';
 
@@ -216,7 +216,7 @@ export async function createTabs({
     }
 
     const tabContent = document.createElement('div');
-    tabContent.classList.add('tab-content', tabSlug, previousSection ? `${previousSection}-section` : '');
+    tabContent.classList.add('tab-content', tabSlug, previousSection ? `${previousSection}-section` : undefined);
     details.append(tabContent);
 
     const asideItemLink = asideItem.querySelector('a');

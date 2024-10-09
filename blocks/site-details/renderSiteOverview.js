@@ -3,7 +3,6 @@ import { OOPS, parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
 export default async function renderSiteOverview({ container, nav, renderOptions }) {
   // TODO: if projectdetails are not required on most tabs, only request it here
   const { projectDetails, user, token } = renderOptions;
-  console.log('projectDetails:', projectDetails);
 
   container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
 
@@ -14,8 +13,21 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     <a href="${projectDetails.customLiveUrl}" id="open-button" title="Open your Website" class="button primary action open" target="_blank">Open</a>
   `;
 
-  const indexData = await fetch(`${SCRIPT_API}/index/${projectDetails.projectSlug}`).then((res) => res.json()).catch(() => null);
-  const lastUpdate = indexData ? Math.max(...indexData.data.map(({ lastModified }) => new Date(lastModified).getTime())) : 'Error getting last update';
+  nav.querySelector('.sidekick').onclick = () => {
+    window?.zaraz?.track('click site sidekick');
+  };
+
+  nav.querySelector('.edit').onclick = () => {
+    window?.zaraz?.track('click site edit');
+  };
+
+  nav.querySelector('.open').onclick = () => {
+    window?.zaraz?.track('click site open');
+  };
+
+  nav.querySelector('.guides').onclick = () => {
+    window?.zaraz?.track('click site guides');
+  };
 
   container.innerHTML = `
   <div class="cards">
@@ -30,7 +42,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     </div>
     <div id="last-updated" class="box">
       <strong>Last update</strong>
-      <span class="last-update">${new Date(lastUpdate).toLocaleString()}</span>
+      <span class="last-update">Loading...</span>
     </div>
     <div id="site-template" class="box">
       <strong>Site template</strong>
@@ -43,6 +55,12 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     <p>Delete this project. Once you delete a project, there is no going back. Please be certain.</p>
     <button id="delete-site-button" title="Delete your Project" class="button delete action destructive">Delete</button>
   </div>`;
+
+  // TODO: implement lastUpdate to siteDetails so we don't have to fetch index
+  fetch(`${SCRIPT_API}/index/${projectDetails.projectSlug}`).then((res) => res.json()).then((indexData) => {
+    const lastUpdate = indexData ? Math.max(...indexData.data.map(({ lastModified }) => new Date(lastModified).getTime())) : 'Error getting last update';
+    container.querySelector('span.last-update').textContent = new Date(lastUpdate).toLocaleString();
+  }).catch(() => { container.querySelector('span.last-update').textContent = 'Error getting last update'; });
 
   // MARK: update description
   container.querySelector('.update-description.action').onclick = async () => {

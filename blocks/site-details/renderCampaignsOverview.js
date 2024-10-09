@@ -2,7 +2,7 @@ import {
   daProjectRepo,
   EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API, slugify,
 } from '../../scripts/scripts.js';
-import { renderTable } from './site-details.js';
+import { renderTable } from './renderSitePages.js';
 
 export default async function renderCampaignsOverview({ container, nav, renderOptions }) {
   const {

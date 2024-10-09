@@ -663,3 +663,13 @@ img[src="/icons/loading.svg"] {
 .help-btn:hover {
   transform: scale(1.1);
 }
+
+/* MARK: create tabs */
+.tabs-wrapper .tabs-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-block: 32px;
+  gap: 16px;
+}

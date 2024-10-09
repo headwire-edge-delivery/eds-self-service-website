@@ -1,7 +1,63 @@
 import {
   daProjectRepo, EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API,
 } from '../../scripts/scripts.js';
-import { renderTable } from './site-details.js';
+
+export function renderTable({
+  table, tableData, type, projectDetails,
+}) {
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Path</th>
+        <th>Last update</th>
+        <th></th>
+      </tr>  
+    </thead>
+    <tbody></tbody>
+  `;
+
+  const tableRows = tableData.map((item) => {
+    const tableRow = document.createElement('tr');
+
+    if (type === 'emails') {
+      tableRow.innerHTML = `
+        <tr>
+            <td>${item.name}</td>
+            <td>${item.path}</td>
+            <td>${new Date(item.lastModified).toLocaleString()}</td>          
+            <td>
+              <div id="email-open-edit" class="button-container">
+                <a class="button action secondary" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
+                <a class="button action secondary" href="${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
+              </div>
+            </td>
+        </tr>
+      `;
+      return tableRow;
+    }
+
+    tableRow.innerHTML = `
+      <td>${item.name}</td>
+      <td>${item.path}</td>
+      <td>${new Date(item.lastModified).toLocaleString()}</td>
+      <td class="table-actions">
+          <a class="button action secondary" href="${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+          <a class="button action secondary" href="${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
+          <a class="button action secondary" href="${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>
+      </td>
+    `;
+
+    return tableRow;
+  });
+
+  const tableBody = table.tBodies[0];
+  tableBody.append(...tableRows);
+  if (tableBody.matches(':empty')) {
+    const cols = table.querySelectorAll('th').length;
+    tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;
+  }
+}
 
 // MARK: add page dialog
 function addPageDialogSetup({
@@ -159,7 +215,6 @@ export default async function renderSitePages({ container, nav, renderOptions })
 
   const indexData = await fetch(`${SCRIPT_API}/index/${siteSlug}`).then((res) => res.json()).catch(() => null);
 
-  console.log('indexData:', indexData);
   if (!indexData?.data) {
     container.innerHTML = `<p>${OOPS}</p>`;
     return;
