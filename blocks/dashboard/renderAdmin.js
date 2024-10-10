@@ -270,7 +270,7 @@ export default async function renderAdmin({ container }) {
     .map((ip) => Object.keys(anonymous[ip])
       .reverse()
       .map(
-        (timestamp) => (['server api request', 'server page request'].includes(anonymous[ip][timestamp].event) ? `
+        (timestamp) => (['server api request', 'server page request', 'server redirect request'].includes(anonymous[ip][timestamp].event) ? `
                         <tr>
                           <td>${anonymous[ip][timestamp].ip}</td>
                           <td>${anonymous[ip][timestamp].event}</td>
