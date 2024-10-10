@@ -50,7 +50,7 @@ export default async function decorate(block) {
     block.innerHTML = `
         <div class="nav">
           <div class="breadcrumbs">
-            <a href="/dashboard">
+            <a href="/dashboard/sites">
               Dashboard
             </a>
             <span>&rsaquo;</span>
@@ -84,7 +84,7 @@ export default async function decorate(block) {
       block.innerHTML = `
         <div class="nav">
           <div class="breadcrumbs">
-            <a href="/dashboard">
+            <a href="/dashboard/sites">
               Dashboard
             </a>
             <span>&rsaquo;</span>
