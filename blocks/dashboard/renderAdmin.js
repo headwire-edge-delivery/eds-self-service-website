@@ -146,7 +146,7 @@ export default async function renderAdmin({ container }) {
                           <td>${tracking[timestamp].userAgent.browser.name} ${
   tracking[timestamp].userAgent.browser.version
 } ${tracking[timestamp].language}</td>
-                          <td>${tracking[timestamp].userAgent.device.vendor} ${tracking[timestamp].userAgent.os.name} ${
+                          <td>${tracking[timestamp].userAgent.device?.vendor ?? ''} ${tracking[timestamp].userAgent.os.name} ${
   tracking[timestamp].userAgent.os.version
 }</td>
                         </tr>
@@ -221,7 +221,7 @@ export default async function renderAdmin({ container }) {
                       <td>${anonymous[ip][timestamp].userAgent.browser.name} ${
   anonymous[ip][timestamp].userAgent.browser.version
 } ${anonymous[ip][timestamp].language}</td>
-                      <td>${anonymous[ip][timestamp].userAgent.device.vendor} ${
+                      <td>${anonymous[ip][timestamp].userAgent.device?.vendor ?? ''} ${
   anonymous[ip][timestamp].userAgent.os.name
 } ${anonymous[ip][timestamp].userAgent.os.version}</td>
                     </tr>
