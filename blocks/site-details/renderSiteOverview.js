@@ -125,7 +125,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
         headers: { authorization: `bearer ${token}` },
       }).catch(() => null);
       if (reqDelete?.ok) {
-        window.location.href = '/dashboard';
+        window.location.href = '/dashboard/sites';
       } else {
         await window.alertDialog(OOPS);
         container.classList.remove('is-deleting');

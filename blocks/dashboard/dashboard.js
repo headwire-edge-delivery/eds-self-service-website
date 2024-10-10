@@ -15,7 +15,7 @@ export default async function decorate(block) {
 
   createTabs({
     block,
-    breadcrumbs: [{ name: 'Dashboard', href: pathname }],
+    breadcrumbs: [{ name: 'Dashboard', href: `${pathname}/sites` }],
     tabs: [
       {
         name: 'Sites',
