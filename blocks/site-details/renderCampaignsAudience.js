@@ -38,7 +38,7 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
   `;
 
   const editButton = parseFragment(`
-    <a href="${projectDetails.darkAlleyProject ? `https://da.live/sheet#/da-self-service/${siteSlug}/recipients` : `https://docs.google.com/spreadsheets/d/${audienceSheetData.id}/edit`}" class="button primary action" target="_blank">Edit</a>
+    <a href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/sheet#/da-self-service/${siteSlug}/recipients` : `https://docs.google.com/spreadsheets/d/${audienceSheetData.id}/edit`}" class="button primary action" target="_blank">Edit</a>
   `);
   nav.append(editButton);
 }

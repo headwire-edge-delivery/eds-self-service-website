@@ -29,7 +29,7 @@ export function renderTable({
             <td>
               <div id="email-open-edit" class="button-container">
                 <a class="button action secondary" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
-                <a class="button action secondary" href="${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
+                <a class="button action secondary" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
               </div>
             </td>
         </tr>
@@ -42,9 +42,9 @@ export function renderTable({
       <td>${item.path}</td>
       <td>${new Date(item.lastModified).toLocaleString()}</td>
       <td class="table-actions">
-          <a class="button action secondary" href="${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
-          <a class="button action secondary" href="${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
-          <a class="button action secondary" href="${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>
+          <a class="button action secondary" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+          <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
+          <a class="button action secondary" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>
       </td>
     `;
 
@@ -149,11 +149,11 @@ function addPageDialogSetup({
       let editHref;
 
       if (projectDetails.darkAlleyProject) {
-        draftsHref = `https://da.live/#${responseData.daPath}`;
-        editHref = `https://da.live/edit#${responseData.daPath}/${responseData.daNewPageSlug}`;
+        draftsHref = `/redirect?url=https://da.live/#${responseData.daPath}`;
+        editHref = `/redirect?url=https://da.live/edit#${responseData.daPath}/${responseData.daNewPageSlug}`;
       } else {
-        draftsHref = `https://drive.google.com/drive/folders/${responseData.folderId}?authuser=${user.email}`;
-        editHref = `https://docs.google.com/document/d/${responseData.newPageId}/edit`;
+        draftsHref = `/redirect?url=https://drive.google.com/drive/folders/${responseData.folderId}?authuser=${user.email}`;
+        editHref = `/redirect?url=https://docs.google.com/document/d/${responseData.newPageId}/edit`;
       }
 
       const draftsLink = parseFragment(`
@@ -182,7 +182,7 @@ function addPageDialogSetup({
             <td>Just now</td>
             <td class="table-actions">
                 <a class="button action secondary" href="${editHref}" target="_blank">Edit</a>
-                <a class="button action secondary" href="${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Open</a>
+                <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Open</a>
             </td>
         </tr>
       `);

@@ -8,7 +8,7 @@ import {
 export default async function renderAccount({ container, nav }) {
   await waitForAuthenticated();
   const user = await window.auth0Client.getUser();
-  nav.innerHTML = `<a href="https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>`;
+  nav.innerHTML = `<a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>`;
 
   container.insertAdjacentHTML(
     'afterbegin',
