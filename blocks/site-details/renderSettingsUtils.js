@@ -37,11 +37,11 @@ const BLOCK_ICON_LOOKUP = {
 const iconBase64Prefix = 'data:image/svg+xml;base64,';
 
 // MARK: google calendar link
-export function manageGoogleCalendarLink(calendarId, actionsList, onlyRemove = false) {
+export function manageGoogleCalendarLink(calendarId, nav, onlyRemove = false) {
   // resetting in case
-  actionsList.querySelectorAll('.google-calendar-link').forEach((link) => link.remove());
+  nav.querySelectorAll('.google-calendar-link').forEach((link) => link.remove());
   if (onlyRemove) return;
-  actionsList.insertAdjacentHTML(
+  nav.insertAdjacentHTML(
     'afterbegin',
     `<a class="button action secondary google-calendar-link" target="_blank" id="google-calendar" href="/redirect?url=https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
   );
@@ -245,7 +245,7 @@ export function blockIconDialogSetup({
         .querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`)
         .forEach((item) => item.remove());
       if (name === 'schedule') {
-        manageGoogleCalendarLink(null, document.querySelector('.block .settings-actions'), true);
+        manageGoogleCalendarLink(null, document.querySelector('.block .tabs-nav-items'), true);
       }
     } else {
       await window.alertDialog(OOPS);
@@ -348,7 +348,7 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
             <a class="button action primary" target="_blank" href="/redirect?url=https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}">Google Calendar</a>
           `);
           buttons.push(calendarLink);
-          manageGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.settings-actions'));
+          manageGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.tabs-nav-items'));
         }
 
         dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`, buttons);
@@ -373,7 +373,7 @@ export function renderBlocksList(
     blocksList.innerHTML = '<p class="centered-info">Failed to load blocks</p>';
     return;
   }
-  container.querySelector('.add-block').onclick = () => addBlockDialogSetup({ projectDetails, headers: authHeaders, itemList: blocksList });
+  container.querySelector('.add-block').onclick = () => addBlockDialogSetup({ projectDetails, authHeaders, itemList: blocksList });
 
   blocksList.innerHTML = '';
   blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
@@ -477,22 +477,6 @@ export function renderIconsList(
   };
 
   iconsListData.forEach((item) => iconsList.addItem(item));
-
-  fetch(`${SCRIPT_API}/icons/${projectDetails.projectSlug}`, { headers: authHeaders })
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-
-      throw new Error(res.status);
-    })
-    .then((icons) => {
-      icons.forEach((item) => iconsList.addItem(item));
-    })
-    .catch((error) => {
-      // eslint-disable-next-line no-console
-      console.log(error);
-    });
 }
 
 // MARK: project updates

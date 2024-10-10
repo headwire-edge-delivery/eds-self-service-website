@@ -1,4 +1,5 @@
 import {
+  hasDarkAlleyAccess,
   KESTREL_ONE, OOPS, SCRIPT_API, waitForAuthenticated,
 } from '../../scripts/scripts.js';
 
@@ -22,6 +23,12 @@ export default async function renderSites({ container, nav }) {
   }
 
   const { projects, darkAlleyProjects } = await projectsResponse.json().catch(() => ({}));
+
+  if (!projects?.length && !hasDarkAlleyAccess()) {
+    container.innerHTML = '<p>No Sites found</p>';
+    return;
+  }
+
   container.innerHTML = '';
 
   // TODO: consolidate DA & Drive projects if we ever commit to both

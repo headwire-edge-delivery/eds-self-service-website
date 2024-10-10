@@ -73,7 +73,7 @@ export default async function decorate(block) {
       },
       {
         name: 'Web analytics',
-        href: `${pathname}/monitoring`,
+        href: `${pathname}/web-analytics`,
         iconSrc: '/icons/monitoring.svg',
         renderTab: renderSiteAnalytics,
       },
@@ -95,7 +95,7 @@ export default async function decorate(block) {
       },
       {
         name: 'Campaign analytics',
-        href: `${pathname}/analytics`,
+        href: `${pathname}/campaign-analytics`,
         iconSrc: '/icons/analytics.svg',
         renderTab: renderCampaignsAnalytics,
       },
