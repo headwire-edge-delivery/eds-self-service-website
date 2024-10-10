@@ -28,15 +28,15 @@ window.auth0.createAuth0Client({
   if (window.location.search.includes('state=')
     && (window.location.search.includes('code=')
       || window.location.search.includes('error='))) {
-    await auth0Client.handleRedirectCallback();
-
-    const user = await window.auth0Client.getUser();
-    window?.zaraz?.track('new auth session');
-    window?.zaraz?.set('user', user.email);
-
-    window.localStorage.sessionExpiration = getExpirationTime(sessionExpirationDays);
-
     try {
+      await auth0Client.handleRedirectCallback();
+
+      const user = await window.auth0Client.getUser();
+      window?.zaraz?.track('new auth session');
+      window?.zaraz?.set('user', user.email);
+
+      window.localStorage.sessionExpiration = getExpirationTime(sessionExpirationDays);
+
       const token = await window.auth0Client.getTokenSilently();
       fetch(`${SCRIPT_API}/welcome`, {
         headers: {
@@ -49,6 +49,7 @@ window.auth0.createAuth0Client({
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(e);
+      window.location.href = '/';
     }
 
     if (window.sessionStorage.redirectTo) {

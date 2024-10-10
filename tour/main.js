@@ -156,10 +156,10 @@ const startTour = (isAutoTour, showDisableTour = false) => {
       case switchCase('/da-site/', '/pages'):
         getTour(sitePagesTour);
         break;
-      case switchCase('/site/', '/monitoring'):
+      case switchCase('/site/', '/web-analytics'):
         getTour(siteMonitoringTour);
         break;
-      case switchCase('/da-site/', '/monitoring'):
+      case switchCase('/da-site/', '/web-analytics'):
         getTour(siteMonitoringTour);
         break;
       case switchCase('/site/', '/emails'):
@@ -174,10 +174,10 @@ const startTour = (isAutoTour, showDisableTour = false) => {
       case switchCase('/site/', '/audience'):
         getTour(campaignEmailsAudienceTour);
         break;
-      case switchCase('/site/', '/analytics'):
+      case switchCase('/site/', '/campaign-analytics'):
         getTour(campaignEmailAnalyticsTour);
         break;
-      case switchCase('/da-site/', '/analytics'):
+      case switchCase('/da-site/', '/campaign-analytics'):
         getTour(campaignEmailAnalyticsTour);
         break;
       case switchCase('/site/', '/settings'):

@@ -8,7 +8,7 @@
     "lint:js-fix": "eslint . --fix",
     "lint:css": "stylelint blocks/**/*.css styles/*.css",
     "lint": "npm run lint:js && npm run lint:css",
-    "lint:windows": "npm run lint:js-fix && npm run lint:css"
+    "lint:fix": "npm run lint:js-fix && npm run lint:css"
   },
   "devDependencies": {
     "@adobe/aem-cli": "^16.7.5",

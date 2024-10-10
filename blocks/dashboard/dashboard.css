@@ -8,25 +8,6 @@
     padding: 16px;
 }
 
-.dashboard.block .nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    padding-block: 32px;
-    gap: 16px;
-    min-height: 98px;
-}
-
-.dashboard.block .content {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 64px;
-    padding-block: 32px;
-    min-height: calc(100vh - 200px);
-    justify-content: space-between;
-}
-
 .dashboard.block .filter {
     width: 100%;
     font-size: 16px;
@@ -46,11 +27,6 @@
 .dashboard.block h2 {
     font-size: 16px;
     padding-block: 0;
-}
-
-.dashboard.block .details > :not(.is-selected),
-.dashboard.block .actions > :not(.is-selected) {
-    display: none;
 }
 
 .dashboard.block .sites ul {
@@ -115,43 +91,6 @@
     min-height: calc(100vh - 350px);
 }
 
-.dashboard.block .content aside {
-    height: max-content;
-    width: 200px;
-}
-
-.dashboard.block .content aside ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    position: sticky;
-    top: calc(var(--header-height) + 32px);
-}
-
-.dashboard.block .content aside .button {
-    width: 100%;
-    justify-content: flex-start;
-    border-color: transparent;
-}
-
-.dashboard.block .content aside .button:hover {
-    border-color: var(--light-blue);
-    background-color: var(--white);
-}
-
-.dashboard.block .content aside .button.is-selected {
-    border-color: var(--light-blue);
-    background-color: var(--light-blue);
-    color: var(--white);
-}
-
-.dashboard.block .content aside .button.is-selected img {
-    filter: invert(1);
-}
-
 .dashboard.block .details {
     flex: 1;
     max-width: calc(100% - 200px - 64px);
@@ -199,16 +138,6 @@
 
 .dashboard.block .plans-dialog-wrapper {
     padding-inline: 0;
-}
-
-@media (width < 768px) {
-    .dashboard.block .content aside {
-        width: 100%;
-    }
-
-    .dashboard.block .details {
-        max-width: 100%;
-    }
 }
 
 .dashboard.block .sites section h3 {

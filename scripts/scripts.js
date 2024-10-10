@@ -24,6 +24,14 @@ export const defaultBranch = 'main';
 export const projectRepo = 'headwire-self-service';
 export const daProjectRepo = 'da-self-service';
 
+if (window.location.hostname === 'localhost') {
+  document.addEventListener('mousedown', (event) => {
+    if (event.target.matches('a[href^="/redirect?url="]')) {
+      event.target.setAttribute('href', event.target.getAttribute('href').replace('/redirect?url=', ''));
+    }
+  });
+}
+
 // extra four, for separators
 export const slugMaxLength = 63
   - defaultBranch.length
@@ -136,6 +144,174 @@ export function slugify(str) {
     .replace(/--+/g, '-')
     // .replace(/(^-+|-+$)/g, "")
     .toLowerCase();
+}
+
+function createTabsNavBreadcrumbs(breadcrumbs) {
+  if (!breadcrumbs?.length) {
+    return '<div class="breadcrumbs"></div>';
+  }
+
+  return `
+    <div class="breadcrumbs">
+      ${breadcrumbs.map(({ name, href }, index) => {
+    const lastItem = index === breadcrumbs.length - 1;
+    return lastItem ? `<h1>${name}</h1>` : `<a href="${href}">${name}</a>`;
+  }).join('<span>›</span>')}
+    </div>
+  `;
+}
+
+export function createTabs({
+  block,
+  breadcrumbs,
+  tabs,
+  renderOptions,
+}) {
+  const blockContent = block.cloneNode(true);
+  block.innerHTML = `
+    <div class="tabs-wrapper">
+      <div class="tabs-nav nav">
+        ${createTabsNavBreadcrumbs(breadcrumbs)}
+        <div class="tabs-nav-items"></div>
+      </div>
+
+      <div class="tabs-content">
+
+        <aside class="tabs-aside">
+          <ul>
+          </ul>
+        </aside>
+
+        <div class="tabs-content-container details"></div>
+      </div>
+    </div>
+  `;
+
+  const historyArray = [];
+  const onHistoryPopArray = [];
+  function pushHistory(path) {
+    historyArray.push(path);
+    window.history.pushState({}, '', path);
+  }
+  function replaceHistory(path) {
+    historyArray.pop();
+    historyArray.push(path);
+    window.history.replaceState({}, '', path);
+  }
+  const navItems = block.querySelector('.tabs-nav-items');
+  const asideItems = block.querySelector('.tabs-aside ul');
+  const details = block.querySelector('.details');
+
+  const functionalTabs = tabs.filter((tab) => tab && !tab?.section && !tab?.isLink);
+  const tabToSelect = functionalTabs.find(({ href }) => window
+    .location.pathname.startsWith(href)) || functionalTabs[0];
+
+  let previousSection = '';
+
+  for (const tab of tabs) {
+    if (tab?.section) {
+      const asideItem = document.createElement('li');
+      asideItem.classList.add('title');
+      asideItem.textContent = tab.name;
+      asideItems.append(asideItem);
+      previousSection = tab.name.toLowerCase();
+      continue;
+    }
+    if (!tab || !tab.href) continue;
+    const asideItem = document.createElement('li');
+    const tabSlug = slugify(tab.name);
+    asideItem.innerHTML = `
+      <a href="${tab.href}" ${tab.target ? `target="${tab.target}"` : ''} class="button action secondary">
+        <span class="icon">
+          <img alt="icon" src="${tab.iconSrc}" loading="lazy"></span>
+          ${tab.name}
+        </span>
+      </a>
+    `;
+    asideItems.append(asideItem);
+
+    if (tab.isLink) {
+      continue;
+    }
+
+    const tabContent = document.createElement('div');
+    tabContent.classList.add('tab-content', tabSlug);
+    if (previousSection) tabContent.classList.add(`${previousSection}-section`);
+    details.append(tabContent);
+
+    const asideItemLink = asideItem.querySelector('a');
+    tab.clickHandler = (event, historyState = 'push') => {
+      event.preventDefault();
+
+      [...asideItems.children]?.forEach((child) => {
+        // remove is-selected from all links
+        child?.firstElementChild?.classList.remove('is-selected');
+      });
+      asideItemLink.classList.add('is-selected');
+
+      // empty old content
+      navItems.replaceChildren();
+      [...details.children]?.forEach((child) => {
+        child.classList.remove('is-selected');
+        [...child.children]?.forEach((grandChild) => {
+          if (grandChild?.dataset?.noUnload === 'true') {
+            return;
+          }
+          grandChild.remove();
+        });
+      });
+
+      tabContent.classList.add('is-selected');
+
+      if (historyState === 'replace') {
+        // window.history.replaceState({}, '', tab.href);
+        let link = tab.href;
+        if (window.location.pathname.startsWith(tab.href)) {
+          link = window.location.pathname;
+        }
+        replaceHistory(link);
+      }
+      if (historyState === 'push') {
+        pushHistory(tab.href);
+      }
+      // reset callbacks
+      onHistoryPopArray.length = 0;
+      // keep renderTab at the end. So tab behavior still works if there is an error in renderTab
+      tab.renderTab({
+        nav: navItems,
+        container: tabContent,
+        renderOptions,
+        pushHistory,
+        replaceHistory,
+        onHistoryPopArray,
+      });
+    };
+    asideItemLink.addEventListener('click', tab.clickHandler);
+
+    tab.asideLink = asideItemLink;
+  }
+
+  // select tab from path / first tab
+  tabToSelect.clickHandler({ preventDefault: () => {} }, 'replace');
+
+  // back handling
+  window.addEventListener('popstate', () => {
+    historyArray.pop();
+    const navigateToPath = historyArray.at(-1) || window.location.pathname;
+
+    const tabToNavigateTo = functionalTabs.find((tab) => tab.href === navigateToPath)
+      || functionalTabs.find((tab) => tab.href === navigateToPath.split('/').pop()); // supports site-details version
+
+    if (tabToNavigateTo && !tabToNavigateTo.asideLink.classList.contains('is-selected')) {
+      tabToNavigateTo.clickHandler({ preventDefault: () => {} }, null);
+    }
+
+    onHistoryPopArray.forEach((callback) => {
+      callback(navigateToPath);
+    });
+  });
+
+  return { originalBlock: blockContent };
 }
 
 /**
