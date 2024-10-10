@@ -2,7 +2,7 @@ function campaignEmailsTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        document.querySelector('main .site-details.block aside a[href="audience"]')?.click();
+        document.querySelector('main .site-details.block aside a[href$="/audience"]')?.click();
       }
     },
     steps: [
@@ -43,7 +43,7 @@ function campaignEmailsAudienceTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        document.querySelector('main .site-details.block aside a[href="analytics"]')?.click();
+        document.querySelector('main .site-details.block aside a[href$="/campaign-analytics"]')?.click();
       }
     },
     steps: [
@@ -72,7 +72,8 @@ function campaignEmailAnalyticsTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        document.querySelector('main .site-details.block aside a[href="settings"]')?.click();
+        console.log('\x1b[34m ~ TESTTTTTTTTTTTTTTTTTTTTTTTTTTT:', showAutoTour, document.querySelector('main .site-details.block aside a[href$="/settings"]'));
+        document.querySelector('main .site-details.block aside a[href$="/settings"]')?.click();
       }
     },
     steps: [

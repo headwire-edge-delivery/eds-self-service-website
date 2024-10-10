@@ -10,7 +10,7 @@ function dashboardSitesTour({ showAutoTour }) {
       if (showAutoTour) {
         if (document.querySelector(driveProjectListQuery)?.children?.length) {
           // has projects, show account settings
-          document.querySelector('main .dashboard.block aside a[href="account"]')?.click();
+          document.querySelector('main .dashboard.block aside a[href$="/account"]')?.click();
         } else {
           // user has no projects, and is doing the auto tour. Create a site with them!
           window.location.pathname = '/';

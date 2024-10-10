@@ -153,7 +153,7 @@ function createTabsNavBreadcrumbs(breadcrumbs) {
   `;
 }
 
-export async function createTabs({
+export function createTabs({
   block,
   breadcrumbs,
   tabs,
@@ -183,14 +183,15 @@ export async function createTabs({
   const asideItems = block.querySelector('.tabs-aside ul');
   const details = block.querySelector('.details');
 
-  const functionalTabs = tabs.filter((tab) => !tab.section && !tab.isLink);
+  const functionalTabs = tabs.filter((tab) => tab && !tab?.section && !tab?.isLink);
+  console.log('functionalTabs:', functionalTabs);
   const tabToSelect = functionalTabs.find(({ href }) => window
     .location.pathname.startsWith(href)) || functionalTabs[0];
 
   let previousSection = '';
 
   for (const tab of tabs) {
-    if (tab.section) {
+    if (tab?.section) {
       const asideItem = document.createElement('li');
       asideItem.classList.add('title');
       asideItem.textContent = tab.name;
