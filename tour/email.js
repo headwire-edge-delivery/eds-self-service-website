@@ -72,7 +72,6 @@ function campaignEmailAnalyticsTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        console.log('\x1b[34m ~ TESTTTTTTTTTTTTTTTTTTTTTTTTTTT:', showAutoTour, document.querySelector('main .site-details.block aside a[href$="/settings"]'));
         document.querySelector('main .site-details.block aside a[href$="/settings"]')?.click();
       }
     },

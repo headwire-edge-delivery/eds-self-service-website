@@ -128,7 +128,6 @@ export function addIconDialogSetup({
     const formData = new FormData();
     formData.append('file', file);
     dialog.setLoading(true, 'Adding Icon...');
-    console.log('\x1b[34m ~ TEST:', authHeaders, nameOverride);
     const addRequest = await fetch(uploadEndpoint + (nameOverride ? `?nameOverride=${nameOverride}` : ''), {
       method: 'POST',
       body: formData,

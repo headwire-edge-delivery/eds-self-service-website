@@ -59,9 +59,8 @@ function dashboardAccountTour({ showAutoTour }) {
   const driveProjectListQuery = '#google-drive-section > ul';
   const tourData = {
     onFinished: () => {
-      if (!document.querySelector(driveProjectListQuery)?.children?.length && showAutoTour) {
-        window.location.href = '/';
-      } else if (showAutoTour) {
+      // we cannot check for children length anymore, as it is not loaded
+      if (showAutoTour) {
         document.querySelector('#toggle-auto-tour-button').click();
       }
     },

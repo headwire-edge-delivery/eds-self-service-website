@@ -24,6 +24,14 @@ export const defaultBranch = 'main';
 export const projectRepo = 'headwire-self-service';
 export const daProjectRepo = 'da-self-service';
 
+if (window.location.hostname === 'localhost') {
+  document.addEventListener('mousedown', (event) => {
+    if (event.target.matches('a[href^="/redirect?url="]')) {
+      event.target.setAttribute('href', event.target.getAttribute('href').replace('/redirect?url=', ''));
+    }
+  });
+}
+
 // extra four, for separators
 export const slugMaxLength = 63
   - defaultBranch.length
@@ -184,7 +192,6 @@ export function createTabs({
   const details = block.querySelector('.details');
 
   const functionalTabs = tabs.filter((tab) => tab && !tab?.section && !tab?.isLink);
-  console.log('functionalTabs:', functionalTabs);
   const tabToSelect = functionalTabs.find(({ href }) => window
     .location.pathname.startsWith(href)) || functionalTabs[0];
 
@@ -217,7 +224,8 @@ export function createTabs({
     }
 
     const tabContent = document.createElement('div');
-    tabContent.classList.add('tab-content', tabSlug, previousSection ? `${previousSection}-section` : undefined);
+    tabContent.classList.add('tab-content', tabSlug);
+    if (previousSection) tabContent.classList.add(`${previousSection}-section`);
     details.append(tabContent);
 
     const asideItemLink = asideItem.querySelector('a');
