@@ -4,7 +4,9 @@ import {
 } from '../../scripts/scripts.js';
 import { renderTable } from './renderSitePages.js';
 
-export default async function renderCampaignsOverview({ container, nav, renderOptions }) {
+export default async function renderCampaignsOverview({
+  container, nav, renderOptions, pushHistory, replaceHistory, onHistoryPopArray,
+}) {
   const {
     projectDetails, user, token, siteSlug, pathname,
   } = renderOptions;
@@ -73,7 +75,9 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
         }
       });
 
-      window.history.pushState({}, '', link.getAttribute('href'));
+      if (event.isTrusted) {
+        pushHistory(link.getAttribute('href'));
+      }
     }
   };
 
@@ -380,7 +384,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
           }
           li.remove();
 
-          window.history.replaceState({}, '', `${pathname}/emails`);
+          replaceHistory(`${pathname}/emails`);
         } else {
           await window.alertDialog(OOPS);
         }
@@ -394,5 +398,9 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
     if (action.classList.contains('open-campaign') && !action.hidden) {
       setCampaignLink(action, window.location.pathname.split('/').pop());
     }
+  });
+
+  onHistoryPopArray.push((currentItem) => {
+    campaignList.querySelector(`[href="${currentItem}"]`).click();
   });
 }

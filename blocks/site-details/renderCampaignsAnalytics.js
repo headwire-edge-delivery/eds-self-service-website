@@ -34,7 +34,7 @@ function createAnalyticsTableContent(campaignAnalyticsData) {
       }
 
       let campaignSlug;
-      if (window.location.pathname.includes('/analytics/')) {
+      if (window.location.pathname.includes('/campaign-analytics/')) {
         campaignSlug = window.location.pathname.split('/').pop();
       }
 
@@ -72,7 +72,12 @@ function createAnalyticsTableContent(campaignAnalyticsData) {
     .join('');
 }
 
-export default async function renderCampaignsAnalytics({ container, renderOptions }) {
+export default async function renderCampaignsAnalytics({
+  container,
+  renderOptions,
+  pushHistory,
+  onHistoryPopArray,
+}) {
   const {
     token, siteSlug, pathname,
   } = renderOptions;
@@ -91,13 +96,13 @@ export default async function renderCampaignsAnalytics({ container, renderOption
   container.innerHTML = `
         <ul class="campaign-list" data-type="analytics">
           <li><a class="button action secondary ${
-  window.location.pathname.startsWith(`${pathname}/analytics/`) ? '' : 'is-selected'
-}" href="${pathname}/analytics">All emails</a></li>
+  window.location.pathname.startsWith(`${pathname}/campaign-analytics/`) ? '' : 'is-selected'
+}" href="${pathname}/campaign-analytics">All emails</a></li>
           ${Object.keys(campaignsData)
     .map(
       (campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button action secondary ${
-        window.location.pathname === `${pathname}/analytics/${campaignSlug}` ? 'is-selected' : ''
-      }" href="${pathname}/analytics/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`,
+        window.location.pathname === `${pathname}/campaign-analytics/${campaignSlug}` ? 'is-selected' : ''
+      }" href="${pathname}/campaign-analytics/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`,
     )
     .join('')}</a>
         </ul>
@@ -216,9 +221,15 @@ export default async function renderCampaignsAnalytics({ container, renderOption
 
       calculateCampaignStats(hasCampaign);
 
-      window.history.pushState({}, '', link.getAttribute('href'));
+      if (event.isTrusted) {
+        pushHistory(link.getAttribute('href'));
+      }
     }
   };
+
+  onHistoryPopArray.push((currentItem) => {
+    campaignList.querySelector(`[href="${currentItem}"]`).click();
+  });
 
   container.querySelectorAll('.click-details').forEach((el) => {
     el.onclick = () => {
@@ -234,5 +245,5 @@ export default async function renderCampaignsAnalytics({ container, renderOption
     };
   });
 
-  calculateCampaignStats(window.location.pathname.startsWith(`${pathname}/analytics/`));
+  calculateCampaignStats(window.location.pathname.startsWith(`${pathname}/campaign-analytics/`));
 }

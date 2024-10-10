@@ -187,6 +187,17 @@ export function createTabs({
     </div>
   `;
 
+  const historyArray = [];
+  const onHistoryPopArray = [];
+  function pushHistory(path) {
+    historyArray.push(path);
+    window.history.pushState({}, '', path);
+  }
+  function replaceHistory(path) {
+    historyArray.pop();
+    historyArray.push(path);
+    window.history.replaceState({}, '', path);
+  }
   const navItems = block.querySelector('.tabs-nav-items');
   const asideItems = block.querySelector('.tabs-aside ul');
   const details = block.querySelector('.details');
@@ -253,13 +264,27 @@ export function createTabs({
       tabContent.classList.add('is-selected');
 
       if (historyState === 'replace') {
-        window.history.replaceState({}, '', tab.href);
+        // window.history.replaceState({}, '', tab.href);
+        let link = tab.href;
+        if (window.location.pathname.startsWith(tab.href)) {
+          link = window.location.pathname;
+        }
+        replaceHistory(link);
       }
       if (historyState === 'push') {
-        window.history.pushState({}, '', tab.href);
+        pushHistory(tab.href);
       }
+      // reset callbacks
+      onHistoryPopArray.length = 0;
       // keep renderTab at the end. So tab behavior still works if there is an error in renderTab
-      tab.renderTab({ nav: navItems, container: tabContent, renderOptions });
+      tab.renderTab({
+        nav: navItems,
+        container: tabContent,
+        renderOptions,
+        pushHistory,
+        replaceHistory,
+        onHistoryPopArray,
+      });
     };
     asideItemLink.addEventListener('click', tab.clickHandler);
 
@@ -271,12 +296,19 @@ export function createTabs({
 
   // back handling
   window.addEventListener('popstate', () => {
-    const tabToNavigateTo = tabs.find((tab) => tab.href === window.location.pathname)
-      || tabs.find((tab) => tab.href === window.location.pathname.split('/').pop()); // supports site-details version
+    historyArray.pop();
+    const navigateToPath = historyArray.at(-1) || window.location.pathname;
 
-    if (tabToNavigateTo) {
+    const tabToNavigateTo = functionalTabs.find((tab) => tab.href === navigateToPath)
+      || functionalTabs.find((tab) => tab.href === navigateToPath.split('/').pop()); // supports site-details version
+
+    if (tabToNavigateTo && !tabToNavigateTo.asideLink.classList.contains('is-selected')) {
       tabToNavigateTo.clickHandler({ preventDefault: () => {} }, null);
     }
+
+    onHistoryPopArray.forEach((callback) => {
+      callback(navigateToPath);
+    });
   });
 
   return { originalBlock: blockContent };
