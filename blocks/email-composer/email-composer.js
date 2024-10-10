@@ -218,7 +218,7 @@ export default async function decorate(block) {
 
         savedEditorStyles = editor.getValue();
 
-        saveStyles.classList.add('is-disabled');
+        saveStyles.classList.add('loading');
         const req = await fetch(`${SCRIPT_API}/emailStyles/${id}`, {
           method: 'POST',
           headers: {
@@ -231,7 +231,7 @@ export default async function decorate(block) {
           }),
         });
         await window.alertDialog(req.ok ? 'Styles successfully updated! Updates can take up to 1 minute to be reflected for all users.' : OOPS);
-        saveStyles.classList.remove('is-disabled');
+        saveStyles.classList.remove('loading');
 
         hideWarning();
       };

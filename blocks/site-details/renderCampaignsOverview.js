@@ -364,7 +364,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
       if (await window.confirmDialog('Are you sure ?')) {
         window?.zaraz?.track('click campaign delete submit');
 
-        event.target.classList.add('is-disabled');
+        event.target.classList.add('loading');
         const deleteReq = await fetch(`${SCRIPT_API}/campaigns/${siteSlug}/${campaignSlug}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },
@@ -384,7 +384,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
         } else {
           await window.alertDialog(OOPS);
         }
-        event.target.classList.remove('is-disabled');
+        event.target.classList.remove('loading');
       }
     }
   };
