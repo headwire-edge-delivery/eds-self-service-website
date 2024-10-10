@@ -43,7 +43,7 @@ export function manageGoogleCalendarLink(calendarId, nav, onlyRemove = false) {
   if (onlyRemove) return;
   nav.insertAdjacentHTML(
     'afterbegin',
-    `<a class="button action secondary google-calendar-link" target="_blank" id="google-calendar" href="https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
+    `<a class="button action secondary google-calendar-link" target="_blank" id="google-calendar" href="/redirect?url=https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
   );
 }
 
@@ -70,7 +70,7 @@ export function addIconDialogSetup({
       <h3>${titleText}</h3>
       
       <form id="${formId}">
-          <p>${isFavicon ? 'Don\'t have an .ico file yet? You can convert your image to a .ico file <a href="https://www.icoconverter.com/" target="_blank">here</a>.' : 'Upload a new SVG icon.'}</p>
+          <p>${isFavicon ? 'Don\'t have an .ico file yet? You can convert your image to a .ico file <a href="/redirect?url=https://www.icoconverter.com/" target="_blank">here</a>.' : 'Upload a new SVG icon.'}</p>
           <label>
               <span>File *</span>
               <input type="file" accept="${fileAccept}" required/>
@@ -345,7 +345,7 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
         const buttons = [];
         if (addRequestData.calendarId) {
           const calendarLink = parseFragment(`
-            <a class="button action primary" target="_blank" href="https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}">Google Calendar</a>
+            <a class="button action primary" target="_blank" href="/redirect?url=https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}">Google Calendar</a>
           `);
           buttons.push(calendarLink);
           manageGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.tabs-nav-items'));

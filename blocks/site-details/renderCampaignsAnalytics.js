@@ -44,7 +44,7 @@ function createAnalyticsTableContent(campaignAnalyticsData) {
 }>
         <td>${
   emailURL
-    ? `<a href="${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${campaignAnalyticsData[emailId][0].data.subject}</a>`
+    ? `<a href="/redirect?url=${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${campaignAnalyticsData[emailId][0].data.subject}</a>`
     : `${campaignAnalyticsData[emailId][0].data.subject}`
 }</td>
         <td>${campaignAnalyticsData[emailId][0].data.to.join(',')}</td>
