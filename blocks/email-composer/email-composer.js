@@ -4,6 +4,15 @@ import {
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
+let timer;
+const debounce = (fn) => {
+  if (timer) {
+    clearTimeout(timer);
+    timer = undefined;
+  }
+  timer = setTimeout(() => fn(), 500);
+};
+
 /**
  * @param {Element} block
  */
@@ -72,12 +81,13 @@ export default async function decorate(block) {
       const { meta, variables } = await reqEmail.json();
       let customVariables = {};
 
+      let localSave;
       if (window.localStorage[window.location.href]) {
         try {
-          customVariables = JSON.parse(window.localStorage[window.location.href]);
+          localSave = JSON.parse(window.localStorage[window.location.href]);
+          customVariables = localSave?.variables ?? customVariables;
         } catch (e) {
-          // eslint-disable-next-line no-console
-          console.log(e);
+          // eslint-disable-next-line no-empty
         }
       }
 
@@ -93,7 +103,7 @@ export default async function decorate(block) {
             </a>
             <span>&rsaquo;</span>
             <a href="${window.location.href}" aria-current="page">
-              <h1 class="subject">${meta.subject}</h1>
+              <h1 class="subject">${localSave?.subject ?? meta.subject}</h1>
             </a>
           </div>
           
@@ -107,7 +117,7 @@ export default async function decorate(block) {
             <aside>
                 <div id="email-subject">
                 <h2>Subject</h2>
-                <input class="subject" type="text" readonly value="${meta.subject}">
+                <input class="subject" type="text" value="${localSave?.subject ?? meta.subject}">
                 </div>
                 
                 <div id="email-recipients">
@@ -153,6 +163,8 @@ export default async function decorate(block) {
         </div>
       `;
 
+      const subject = block.querySelector('h1.subject');
+      const subjectInput = block.querySelector('input.subject');
       const iframe = block.querySelector('.preview iframe');
       const form = block.querySelector('.form');
       const previewVars = block.querySelector('.preview-variables');
@@ -161,18 +173,24 @@ export default async function decorate(block) {
       let savedEditorStyles;
 
       const hideWarning = () => {
-        const JSONVars = JSON.stringify(customVariables);
-        const savedVars = JSONVars === window.localStorage[window.location.href];
+        try {
+          const JSONVars = JSON.stringify(customVariables);
+          const currentSave = JSON.parse(window.localStorage[window.location.href]);
+          const savedVars = JSONVars === JSON.stringify(currentSave?.variables ?? {})
+            && subjectInput.value === currentSave?.subject;
 
-        if (!editor) {
-          if (savedVars) {
+          if (!editor) {
+            if (savedVars) {
+              warning.hidden = true;
+            }
+            return;
+          }
+
+          if (editor.getValue() === savedEditorStyles && savedVars) {
             warning.hidden = true;
           }
-          return;
-        }
-
-        if (editor.getValue() === savedEditorStyles && savedVars) {
-          warning.hidden = true;
+        } catch (e) {
+          // eslint-disable-next-line no-empty
         }
       };
 
@@ -197,6 +215,13 @@ export default async function decorate(block) {
         }
 
         return newValue;
+      };
+
+      // Handle subject changes
+      subjectInput.oninput = () => {
+        debounce(() => {
+          previewVars.click();
+        });
       };
 
       // Render codemirror
@@ -237,8 +262,10 @@ export default async function decorate(block) {
       };
 
       // Render preview with custom variables
-      previewVars.onclick = () => {
-        window?.zaraz?.track('click email preview variables');
+      previewVars.onclick = (event) => {
+        if (event.isTrusted) {
+          window?.zaraz?.track('click email preview variables');
+        }
 
         block.querySelectorAll('.kv input:first-child').forEach((input) => {
           const key = input.value;
@@ -246,14 +273,20 @@ export default async function decorate(block) {
           customVariables[key] = value;
         });
 
-        if (JSON.stringify(customVariables) !== window.localStorage[window.location.href]) {
-          warning.hidden = false;
+        try {
+          const currentSave = JSON.parse(window.localStorage[window.location.href]);
+          if (JSON.stringify(customVariables) !== JSON.stringify(currentSave?.variables ?? {})
+            || subjectInput.value !== currentSave?.subject) {
+            warning.hidden = false;
+          }
+        } catch (e) {
+          // eslint-disable-next-line no-empty
         }
 
         const keys = Object.keys(customVariables);
         const oldSource = new URL(iframe.src);
         const newSource = new URL(`${oldSource.origin}${oldSource.pathname}`);
-        let newSubject = meta.subject;
+        let newSubject = subjectInput.value;
         keys.forEach((key) => {
           const newValue = replaceMatches(customVariables[key]);
           newSubject = newSubject.replace(`{${key}}`, newValue || `{${key}}`);
@@ -263,8 +296,7 @@ export default async function decorate(block) {
           }
         });
 
-        block.querySelector('h1.subject').textContent = newSubject;
-        block.querySelector('input.subject').value = newSubject;
+        subject.textContent = newSubject;
 
         iframe.src = newSource.toString();
         form.action = newSource.toString();
@@ -277,7 +309,10 @@ export default async function decorate(block) {
         window?.zaraz?.track('click email save variables');
 
         previewVars.click();
-        window.localStorage[window.location.href] = JSON.stringify(customVariables);
+        window.localStorage[window.location.href] = JSON.stringify({
+          subject: subjectInput.value,
+          variables: customVariables,
+        });
 
         hideWarning();
 
@@ -526,7 +561,7 @@ export default async function decorate(block) {
               block.classList.add('is-sending');
 
               const previewSource = new URL(iframe.src);
-              const req = await fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSend' : 'send'}/${id}`, {
+              const req = await fetch(`${SCRIPT_API}/send/${id}`, {
                 headers: {
                   'content-type': 'application/json',
                   authorization: `bearer ${token}`,
@@ -534,6 +569,7 @@ export default async function decorate(block) {
                 body: JSON.stringify({
                   styles: block.querySelector('.styles').value,
                   url: previewSource.pathname.replace('/preview/', ''),
+                  subject: subjectInput.value,
                   variables: customVariables,
                   to: recipientsData.data.filter(({ email }) => selectedRecipients
                     .find((el) => el.dataset.email === email)),
