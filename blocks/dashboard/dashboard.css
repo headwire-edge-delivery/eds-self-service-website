@@ -18,6 +18,11 @@
   padding: 12px 20px 12px 40px;
 }
 
+.dashboard.block .filter::-webkit-search-cancel-button {
+    cursor: pointer;
+    padding: 2px;
+}
+
 .dashboard.block h1 {
   font-size: 16px;
   padding: 0;
@@ -27,6 +32,21 @@
 .dashboard.block h2 {
   font-size: 16px;
   padding-block: 0;
+}
+
+.dashboard.block .sites .owner-selector {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0 0 16px;
+}
+
+.dashboard.block .sites .owner-selector .button.is-selected {
+    background-color: var(--light-blue);
+    color: white;
+    border-color: var(--light-blue);
 }
 
 .dashboard.block .sites ul {

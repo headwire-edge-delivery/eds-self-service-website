@@ -1,12 +1,16 @@
+import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import {
   EMAIL_WORKER_API, parseFragment, SCRIPT_API,
 } from '../../scripts/scripts.js';
 
-function createAnalyticsTableContent(campaignAnalyticsData) {
+let clusterizeInstance = null;
+
+const createAnalyticsTableContent = (campaignAnalyticsData, search, redraw = false) => {
   if (!campaignAnalyticsData) {
     return '<tr><td class="empty" colspan="8">Not enough data</td></tr>';
   }
-  return Object.keys(campaignAnalyticsData)
+
+  const list = Object.keys(campaignAnalyticsData)
     .sort((emailIdA, emailIdB) => {
       const sentA = campaignAnalyticsData[emailIdA].find(({ type }) => type === 'email.sent');
       const sentB = campaignAnalyticsData[emailIdB].find(({ type }) => type === 'email.sent');
@@ -16,15 +20,17 @@ function createAnalyticsTableContent(campaignAnalyticsData) {
       return 0;
     })
     .map((emailId) => {
+      const { subject } = campaignAnalyticsData[emailId][0].data;
+      if (!subject.toLowerCase().includes(search.toLowerCase())) {
+        return null;
+      }
       const reverse = campaignAnalyticsData[emailId].reverse();
-
       const sent = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.sent');
       const delivered = reverse.find(({ type }) => type === 'email.delivered');
       const complained = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.complained');
       const bounced = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.bounced');
       const opened = reverse.find(({ type }) => type === 'email.opened');
       const clicks = campaignAnalyticsData[emailId].filter(({ type }) => type === 'email.clicked');
-
       const emailURL = campaignAnalyticsData[emailId][0].data.headers.find(({ name }) => name === 'X-Email-Url')?.value;
 
       let campaign;
@@ -33,44 +39,44 @@ function createAnalyticsTableContent(campaignAnalyticsData) {
         campaign = new URL(emailURL).pathname.split('/')[2];
       }
 
-      let campaignSlug;
-      if (window.location.pathname.includes('/campaign-analytics/')) {
-        campaignSlug = window.location.pathname.split('/').pop();
-      }
-
       return `
-      <tr data-email="${emailId}" data-campaign="${campaign}" ${
-  campaignSlug && campaignSlug !== campaign ? 'hidden' : ''
-}>
-        <td>${
-  emailURL
-    ? `<a href="/redirect?url=${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${campaignAnalyticsData[emailId][0].data.subject}</a>`
-    : `${campaignAnalyticsData[emailId][0].data.subject}`
-}</td>
-        <td>${campaignAnalyticsData[emailId][0].data.to.join(',')}</td>
-        <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
-        <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
-        <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
-        <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
-        <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
-        <td>${
+        <tr data-email="${emailId}" data-campaign="${campaign}">
+          <td>${emailURL ? `<a href="/redirect?url=${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${subject}</a>` : subject}</td>
+          <td>${campaignAnalyticsData[emailId][0].data.to.join(',')}</td>
+          <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
+          <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
+          <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
+          <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
+          <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
+          <td>${
   clicks.length
-    ? `<button class="click-details button action secondary">${
-      clicks.length
-    }&nbsp;click(s)</button><div hidden><ul class="clicked-links">${clicks
-      .map(
-        (clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${
-          clicked.data.click.link
-        }</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</li>`,
-      )
-      .join('')}</ul></div>`
+    ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button>
+                <div hidden><ul class="clicked-links">${clicks
+    .map(
+      (clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${clicked.data.click.link}</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</li>`,
+    )
+    .join('')}</ul></div>`
     : ''
 }</td>
-      </tr>
-    `;
-    })
-    .join('');
-}
+        </tr>
+      `;
+    });
+
+  const rows = list.filter((row) => row !== null);
+
+  if (redraw && clusterizeInstance) {
+    clusterizeInstance.update(rows);
+  } else {
+    // eslint-disable-next-line no-undef
+    clusterizeInstance = new Clusterize({
+      rows,
+      scrollId: 'scrollArea',
+      contentId: 'contentArea',
+    });
+  }
+
+  return clusterizeInstance;
+};
 
 export default async function renderCampaignsAnalytics({
   container,
@@ -92,6 +98,8 @@ export default async function renderCampaignsAnalytics({
       .then((res) => res.json())
       .catch(() => ({})),
   ]);
+
+  let search = readQueryParams().search || '';
 
   container.innerHTML = `
         <ul class="campaign-list" data-type="analytics">
@@ -131,7 +139,10 @@ export default async function renderCampaignsAnalytics({
         </div>
         
         <div id="email-details">
+        </div>
         <h2>Email details</h2>
+        <input value="${search}" type="search" placeholder="Filter" class="filter-email-details filter">
+        <div class="clusterize">
         <table>
             <thead>
               <tr>
@@ -145,12 +156,39 @@ export default async function renderCampaignsAnalytics({
                 <th>Clicked</th>
               </tr>
             </thead>
-            <tbody>
-                ${createAnalyticsTableContent(campaignAnalyticsData)}
-            </tbody>
         </table>
+            <div id="scrollArea" class="clusterize-scroll">
+            <table>
+              <tbody id="contentArea" class="clusterize-content">
+                <tr class="clusterize-no-data">
+                  <td>Loading data…</td>
+                </tr>
+              </tbody>
+              </table>
+              </div>
         </div>
       `;
+
+  // eslint-disable-next-line func-names
+  document.querySelector('.filter-email-details').oninput = (function () {
+    let debounceTimer;
+    // eslint-disable-next-line func-names
+    return function (event) {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (event.target.value) {
+          search = event.target.value;
+          writeQueryParams({ search });
+        } else {
+          search = '';
+          removeQueryParams(['search']);
+        }
+        createAnalyticsTableContent(campaignAnalyticsData, search, true);
+      }, 300);
+    };
+  }());
+
+  createAnalyticsTableContent(campaignAnalyticsData, search);
 
   const calculateCampaignStats = (hasCampaign) => {
     let sentCount = 0;
