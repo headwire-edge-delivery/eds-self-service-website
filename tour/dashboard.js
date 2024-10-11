@@ -10,7 +10,7 @@ function dashboardSitesTour({ showAutoTour }) {
       if (showAutoTour) {
         if (document.querySelector(driveProjectListQuery)?.children?.length) {
           // has projects, show account settings
-          document.querySelector('main .dashboard.block aside a[href="account"]')?.click();
+          document.querySelector('main .dashboard.block aside a[href$="/account"]')?.click();
         } else {
           // user has no projects, and is doing the auto tour. Create a site with them!
           window.location.pathname = '/';
@@ -59,9 +59,8 @@ function dashboardAccountTour({ showAutoTour }) {
   const driveProjectListQuery = '#google-drive-section > ul';
   const tourData = {
     onFinished: () => {
-      if (!document.querySelector(driveProjectListQuery)?.children?.length && showAutoTour) {
-        window.location.href = '/';
-      } else if (showAutoTour) {
+      // we cannot check for children length anymore, as it is not loaded
+      if (showAutoTour) {
         document.querySelector('#toggle-auto-tour-button').click();
       }
     },

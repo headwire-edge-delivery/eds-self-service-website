@@ -3,7 +3,7 @@ function siteOverviewTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        document.querySelector('main .site-details.block aside a[href="pages"]')?.click();
+        document.querySelector('main .site-details.block aside a[href$="/pages"]')?.click();
       }
     },
     steps: [
@@ -89,7 +89,7 @@ function sitePagesTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        document.querySelector('main .site-details.block aside a[href="monitoring"]')?.click();
+        document.querySelector('main .site-details.block aside a[href$="/web-analytics"]')?.click();
       }
     },
     steps: [
@@ -147,7 +147,7 @@ function siteMonitoringTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        document.querySelector('main .site-details.block aside a[href="emails"]')?.click();
+        document.querySelector('main .site-details.block aside a[href$="/emails"]')?.click();
       }
     },
     steps: [

@@ -25,7 +25,7 @@ function campaignEmailsTour() {
 function campaignEmailAnalyticsTour() {
   const tourData = {
     onFinished: () => {
-      document.querySelector('main .site-details.block aside a[href="settings"]')?.click();
+      document.querySelector('main .site-details.block aside a[href$="/settings"]')?.click();
     },
     steps: [
       {
