@@ -468,7 +468,7 @@ export default async function decorate(block) {
             toggleSendDisabled();
           };
 
-          recipients.querySelector('tbody').onclick = (e) => {
+          recipients.querySelector('tbody').onclick = async (e) => {
             if (e.target.matches('input[type="checkbox"]')) {
               toggleSendDisabled();
             } else if (e.target.matches('.render')) {
@@ -486,18 +486,27 @@ export default async function decorate(block) {
             } else if (e.target.matches('.remove')) {
               window?.zaraz?.track('click email recipients remove');
 
+              const button = e.target;
+              button.classList.add('loading');
+
               const tr = e.target.closest('tr');
               const index = [...tr.parentElement.children].indexOf(tr);
-              tr.remove();
 
-              toggleSendDisabled();
-
-              fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients&row=${index}`, {
+              const req = await fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients&row=${index}`, {
                 method: 'DELETE',
                 headers: {
                   authorization: `bearer ${token}`,
                 },
               });
+
+              if (req.ok) {
+                tr.remove();
+              } else {
+                await window.alertDialog(OOPS);
+              }
+
+              button.classList.remove('loading');
+              toggleSendDisabled();
             }
           };
 
@@ -510,15 +519,28 @@ export default async function decorate(block) {
             };
           });
 
-          add.onclick = () => {
+          add.onclick = async () => {
             window?.zaraz?.track('click email recipients add');
+
+            add.classList.add('loading');
 
             const newRecipient = {};
             recipientsData.headers.forEach((key, index) => {
               newRecipient[key] = addInputs[index].value;
             });
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
+
+            const req = await fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
+              method: 'POST',
+              headers: {
+                authorization: `bearer ${token}`,
+                'content-type': 'application/json',
+              },
+              body: JSON.stringify(newRecipient),
+            });
+
+            if (req.ok) {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
                 <td><input type="checkbox" class="select"></td>
                 ${addInputs.map((input) => `<td>${input.value}</td>`).join('')}   
                 <td>
@@ -528,23 +550,19 @@ export default async function decorate(block) {
                     </div>
                 </td>
               `;
-            recipientsData.data.push(newRecipient);
-            tr.dataset.email = newRecipient.email;
-            add.closest('tr').before(tr);
+              recipientsData.data.push(newRecipient);
+              tr.dataset.email = newRecipient.email;
+              add.closest('tr').before(tr);
 
-            // Reset
-            addInputs.forEach((input) => {
-              input.value = '';
-            });
+              // Reset
+              addInputs.forEach((input) => {
+                input.value = '';
+              });
+            } else {
+              await window.alertDialog(OOPS);
+            }
 
-            fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
-              method: 'POST',
-              headers: {
-                authorization: `bearer ${token}`,
-                'content-type': 'application/json',
-              },
-              body: JSON.stringify(newRecipient),
-            });
+            add.classList.remove('loading');
           };
 
           send.onclick = async () => {
