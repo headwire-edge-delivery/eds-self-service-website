@@ -17,10 +17,12 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     authors,
     blocksListData,
     iconsListData,
+    versionInfoData,
   ] = await Promise.all([
     fetch(`${SCRIPT_API}/authors/${siteSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
     fetch(`${SCRIPT_API}/blocks/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
     fetch(`${SCRIPT_API}/icons/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
+    fetch(`${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/checkUpdates/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
   ]);
 
   container.innerHTML = `
@@ -261,7 +263,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   // MARK: Updates section
   const updateInfoDiv = container.querySelector('.update-info');
   const prevUpdateInfoDiv = container.querySelector('.prev-update-info');
-  renderUpdatesSection(updateInfoDiv, { projectDetails, authHeaders });
+  renderUpdatesSection(updateInfoDiv, { projectDetails, authHeaders, versionInfoData });
   renderPrevUpdatesSection(prevUpdateInfoDiv, {
     projectDetails,
     authHeaders,

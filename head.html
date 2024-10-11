@@ -5,7 +5,20 @@
 <link rel="stylesheet" href="/styles/styles.css"/>
 <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 <script src="/scripts/auth0.js" type="module"></script>
-<!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "7ef9e67e566e49269a85c45427652359"}'></script>
-<script src="/cdn-cgi/zaraz/i.js" referrerpolicy="origin"></script> -->
+<script>
+  // avoids annoying console errors, because telemetry doesn't work on localhost
+  if (!window.location.origin.startsWith('http://localhost:')) {
+    const scriptBeacon = document.createElement('script');
+    scriptBeacon.setAttribute('src', 'https://static.cloudflareinsights.com/beacon.min.js');
+    scriptBeacon.setAttribute('data-cf-beacon', '{"token": "7ef9e67e566e49269a85c45427652359"}');
+    scriptBeacon.setAttribute('defer', '');
+    document.head.appendChild(scriptBeacon);
+
+    const scriptZaraz = document.createElement('script');
+    scriptZaraz.setAttribute('src', 'https://static.cloudflareinsights.com/zaraz.min.js');
+    scriptZaraz.setAttribute('referrerpolicy', 'origin');
+    document.head.appendChild(scriptZaraz);
+  }
+</script>
 <script src="https://cdn.jsdelivr.net/npm/expedition.js@0.0.8/dist/expedition.js.iife.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/expedition.js@0.0.8/dist/expedition.css"/>

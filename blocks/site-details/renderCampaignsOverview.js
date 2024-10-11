@@ -293,6 +293,7 @@ export default async function renderCampaignsOverview({
 
   const addEmail = nav.querySelector('.add-email');
   addEmail.onclick = async () => {
+    const campaignSlug = campaignList.querySelector('li a.is-selected').parentElement.dataset.campaign;
     const submit = parseFragment('<button form="add-email-form" type="submit" class="button primary action">Add Email</button>');
     const content = parseFragment(`
         <div>
@@ -315,7 +316,6 @@ export default async function renderCampaignsOverview({
 
     const dialog = window.createDialog(content, [submit], { fullscreen: true });
     const form = document.getElementById('add-email-form');
-    const campaignSlug = window.location.pathname.split('/').pop();
     const existingEmails = [...container.querySelectorAll(`.campaign-${campaignSlug} .emails tbody tr td:first-child`)].map((el) => el.textContent);
 
     const nameInput = form.querySelector('input[name="pageName"]');
@@ -363,7 +363,7 @@ export default async function renderCampaignsOverview({
   };
 
   nav.querySelector('.delete-campaign').onclick = async (event) => {
-    const campaignSlug = window.location.pathname.split('/')[4];
+    const campaignSlug = campaignList.querySelector('li a.is-selected').parentElement.dataset.campaign;
     if (campaignSlug) {
       if (await window.confirmDialog('Are you sure ?')) {
         window?.zaraz?.track('click campaign delete submit');
