@@ -279,8 +279,8 @@ export default async function renderAdmin({ container }) {
                           <td>${anonymous[ip][timestamp].city} - ${anonymous[ip][timestamp].country}</td>
                           
                           <td>${anonymous[ip][timestamp].referrer ? `<a href="${anonymous[ip][timestamp].referrer}" target="_blank">${anonymous[ip][timestamp].referrer}</a>` : ''}</td>
-                          <td>${anonymous[ip][timestamp].browser} - ${anonymous[ip][timestamp].language}</td>
-                          <td>${anonymous[ip][timestamp].device}</td>
+                          <td>${anonymous[ip][timestamp].browser ?? ''} ${anonymous[ip][timestamp].language ?? ''}</td>
+                          <td>${anonymous[ip][timestamp].platform ?? ''}</td>
                         </tr>
                     ` : `
                     <tr>
