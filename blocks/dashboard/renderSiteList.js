@@ -1,4 +1,5 @@
 import {
+  getThumbnail,
   hasDarkAlleyAccess,
   KESTREL_ONE, OOPS, SCRIPT_API, waitForAuthenticated,
 } from '../../scripts/scripts.js';
@@ -113,24 +114,7 @@ export default async function renderSites({ container, nav }) {
   });
 
   // MARK: thumbnails
-  container.querySelectorAll('.project-thumbnail').forEach((thumbnail) => {
-    fetch(thumbnail.dataset.src)
-      .then((res) => {
-        if (res.ok) {
-          return res.text();
-        }
-
-        return false;
-      })
-      .then((res) => {
-        if (res) {
-          let src = res.split('\n').find((line) => line.trim().startsWith('<meta property="og:image" content="'));
-          if (src) {
-            src = src.replace('<meta property="og:image" content="', '').replace('">', '').trim();
-            thumbnail.innerHTML = `<img src="${src}" alt="thumbnail" loading="lazy"/>`;
-          }
-        }
-      })
-      .catch(() => null);
+  container.querySelectorAll('.project-thumbnail').forEach((el) => {
+    getThumbnail(el);
   });
 }

@@ -1,5 +1,5 @@
 import {
-  OOPS, parseFragment, SCRIPT_API, KESTREL_ONE,
+  OOPS, parseFragment, SCRIPT_API, KESTREL_ONE, getThumbnail,
 } from '../../scripts/scripts.js';
 
 export default async function renderSiteOverview({ container, nav, renderOptions }) {
@@ -63,25 +63,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     <button id="delete-site-button" title="Delete your Project" class="button delete action destructive">Delete</button>
   </div>`;
 
-  const thumbnail = container.querySelector('.project-thumbnail');
-  fetch(thumbnail.dataset.src)
-    .then((res) => {
-      if (res.ok) {
-        return res.text();
-      }
-
-      return false;
-    })
-    .then((res) => {
-      if (res) {
-        let src = res.split('\n').find((line) => line.trim().startsWith('<meta property="og:image" content="'));
-        if (src) {
-          src = src.replace('<meta property="og:image" content="', '').replace('">', '').trim();
-          thumbnail.innerHTML = `<img src="${src}" alt="thumbnail" loading="lazy"/>`;
-        }
-      }
-    })
-    .catch(() => null);
+  getThumbnail(container.querySelector('.project-thumbnail'));
 
   // TODO: implement lastUpdate to siteDetails so we don't have to fetch index
   fetch(`${SCRIPT_API}/index/${projectDetails.projectSlug}`).then((res) => res.json()).then((indexData) => {
