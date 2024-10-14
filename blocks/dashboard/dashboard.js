@@ -10,7 +10,7 @@ export default async function decorate(block) {
   block.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
 
   await waitForAuthenticated();
-  const isAdmin = document.body.classList.contains('is-headwire');
+  const isAdmin = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-test-user');
   const pathname = '/dashboard';
 
   createTabs({
