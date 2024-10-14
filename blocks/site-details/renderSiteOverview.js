@@ -1,4 +1,6 @@
-import { OOPS, parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
+import {
+  OOPS, parseFragment, SCRIPT_API, KESTREL_ONE, getThumbnail,
+} from '../../scripts/scripts.js';
 
 export default async function renderSiteOverview({ container, nav, renderOptions }) {
   // TODO: if projectdetails are not required on most tabs, only request it here
@@ -32,24 +34,27 @@ export default async function renderSiteOverview({ container, nav, renderOptions
   };
 
   container.innerHTML = `
-  <div class="cards">
-    <div id="site-id" class="box">
-      <strong>Site id</strong>
-      <span title="${projectDetails.projectSlug}">${projectDetails.projectSlug}</span>
+  <div class="project-container">
+    <div class="cards">
+      <div id="site-id" class="box">
+        <strong>Site id</strong>
+        <span title="${projectDetails.projectSlug}">${projectDetails.projectSlug}</span>
+      </div>
+      <div id="site-description" class="project-description card box">
+        <strong>Site description</strong>
+        <span class="project-description description span">${projectDetails.projectDescription ?? ''}</span>
+        <button id="update-desc-button" title="Edit the Project Description" class="button secondary update-description action">Update</button>
+      </div>
+      <div id="last-updated" class="box">
+        <strong>Last update</strong>
+        <span class="last-update">Loading...</span>
+      </div>
+      <div id="site-template" class="box">
+        <strong>Site template</strong>
+        <span>${projectDetails.templateName}</span>
+      </div>
     </div>
-    <div id="site-description" class="project-description card box">
-      <strong>Site description</strong>
-      <span class="project-description description span">${projectDetails.projectDescription ?? ''}</span>
-      <button id="update-desc-button" title="Edit the Project Description" class="button secondary update-description action">Update</button>
-    </div>
-    <div id="last-updated" class="box">
-      <strong>Last update</strong>
-      <span class="last-update">Loading...</span>
-    </div>
-    <div id="site-template" class="box">
-      <strong>Site template</strong>
-      <span>${projectDetails.templateName}</span>
-    </div>
+    <div class="project-thumbnail" data-src="https://${projectDetails.projectSlug}.${KESTREL_ONE}"></div>
   </div>
 
   <div class="danger-zone">
@@ -57,6 +62,8 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     <p>Delete this project. Once you delete a project, there is no going back. Please be certain.</p>
     <button id="delete-site-button" title="Delete your Project" class="button delete action destructive">Delete</button>
   </div>`;
+
+  getThumbnail(container.querySelector('.project-thumbnail'));
 
   // TODO: implement lastUpdate to siteDetails so we don't have to fetch index
   fetch(`${SCRIPT_API}/index/${projectDetails.projectSlug}`).then((res) => res.json()).then((indexData) => {
