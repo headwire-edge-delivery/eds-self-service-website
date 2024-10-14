@@ -126,7 +126,7 @@ export default async function renderSites({ container, nav }) {
         if (res) {
           let src = res.split('\n').find((line) => line.trim().startsWith('<meta property="og:image" content="'));
           if (src) {
-            src = src.replace('<meta property="og:image" content="', '').replace('">', '');
+            src = src.replace('<meta property="og:image" content="', '').replace('">', '').trim();
             thumbnail.innerHTML = `<img src="${src}" alt="thumbnail" loading="lazy"/>`;
           }
         }

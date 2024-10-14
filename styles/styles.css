@@ -778,6 +778,10 @@ img[src="/icons/loading.svg"] {
       width: 100%;
   }
 
+  .tabs-wrapper .tabs-content-container {
+    max-width: none;
+  }
+
   .dashboard.block .details {
       max-width: 100%;
   }

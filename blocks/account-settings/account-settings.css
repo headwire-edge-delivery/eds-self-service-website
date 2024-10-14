@@ -9,6 +9,6 @@
 .block.account-settings .danger-zone {
   border: 1px solid var(--red);
   margin-block: 32px;
-  padding: 32px;
+  padding: 16px;
   border-radius: var(--border-radius);
 }
