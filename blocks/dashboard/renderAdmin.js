@@ -73,7 +73,7 @@ export default async function renderAdmin({ container }) {
                       ${
   timestamps.length
     ? timestamps
-      .reverse()
+      .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA)))
       .map(
         (timestamp) => `
                         <tr>
@@ -210,7 +210,9 @@ export default async function renderAdmin({ container }) {
                     <th></th>
                 </thead>
                 <tbody>
-                    ${Object.keys(deletedUsers).map((u) => `
+                    ${Object.keys(deletedUsers)
+    .sort((uA, uB) => new Date(deletedUsers[uB].last_login) - new Date(deletedUsers[uA].last_login))
+    .map((u) => `
                       <tr>
                         <td>${deletedUsers[u].email}</td>
                         <td>${deletedUsers[u].name}</td>
@@ -250,6 +252,12 @@ export default async function renderAdmin({ container }) {
     if (reqAnonymous.ok) {
       const anonymous = await reqAnonymous.json();
       const ips = Object.keys(anonymous);
+      const timestamps = {};
+      ips.forEach((ip) => {
+        Object.keys(anonymous[ip]).forEach((timestamp) => {
+          timestamps[timestamp] = anonymous[ip][timestamp];
+        });
+      });
 
       anonymousContainer.innerHTML = `
         <input type="text" placeholder="Filter by IP" class="filter-anonymous filter">
@@ -265,48 +273,45 @@ export default async function renderAdmin({ container }) {
                 <th>Device</th>
             </thead>
             <tbody>
-                ${ips
-    .reverse()
-    .map((ip) => Object.keys(anonymous[ip])
-      .reverse()
-      .map(
-        (timestamp) => (['server api request', 'server page request', 'server redirect request'].includes(anonymous[ip][timestamp].event) ? `
+              ${Object.keys(timestamps)
+    .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA)))
+    .map(
+      (timestamp) => (['server api request', 'server page request', 'server redirect request'].includes(timestamps[timestamp].event) ? `
                         <tr>
-                          <td>${anonymous[ip][timestamp].ip}</td>
-                          <td>${anonymous[ip][timestamp].event}</td>
+                          <td>${timestamps[timestamp].ip}</td>
+                          <td>${timestamps[timestamp].event}</td>
                           <td>${new Date(Number(timestamp)).toLocaleString()}</td>
-                          <td><a href="${anonymous[ip][timestamp].url}" target="_blank">${anonymous[ip][timestamp].url}</a></td>
-                          <td>${anonymous[ip][timestamp].city ?? ''} ${anonymous[ip][timestamp].country}</td>
+                          <td><a href="${timestamps[timestamp].url}" target="_blank">${timestamps[timestamp].url}</a></td>
+                          <td>${timestamps[timestamp].city ?? ''} ${timestamps[timestamp].country}</td>
                           
-                          <td>${anonymous[ip][timestamp].referrer ? `<a href="${anonymous[ip][timestamp].referrer}" target="_blank">${anonymous[ip][timestamp].referrer}</a>` : ''}</td>
-                          <td>${anonymous[ip][timestamp].browser ?? ''} ${anonymous[ip][timestamp].language ?? ''}</td>
-                          <td>${anonymous[ip][timestamp].platform ?? ''}</td>
+                          <td>${timestamps[timestamp].referrer ? `<a href="${timestamps[timestamp].referrer}" target="_blank">${timestamps[timestamp].referrer}</a>` : ''}</td>
+                          <td>${timestamps[timestamp].browser ?? ''} ${timestamps[timestamp].language ?? ''}</td>
+                          <td>${timestamps[timestamp].platform ?? ''}</td>
                         </tr>
                     ` : `
                     <tr>
-                      <td>${anonymous[ip][timestamp].ip}</td>
-                      <td>${anonymous[ip][timestamp].event}${anonymous[ip][timestamp].isSPA ? ' SPA' : ''}</td>
+                      <td>${timestamps[timestamp].ip}</td>
+                      <td>${timestamps[timestamp].event}${timestamps[timestamp].isSPA ? ' SPA' : ''}</td>
                       <td>${new Date(Number(timestamp)).toLocaleString()}</td>
-                      <td><a href="${anonymous[ip][timestamp].url}" target="_blank">${
-            anonymous[ip][timestamp].url
-          }</a></td>
-                      <td>${anonymous[ip][timestamp].location.city} - ${anonymous[ip][timestamp].location.country}</td>
-                      
-                      <td>${
-          anonymous[ip][timestamp].referrer
-            ? `<a href="${anonymous[ip][timestamp].referrer}" target="_blank">${anonymous[ip][timestamp].referrer}</a>`
-            : ''
-          }</td>
-                      <td>${anonymous[ip][timestamp].userAgent.browser.name} ${
-            anonymous[ip][timestamp].userAgent.browser.version
-          } ${anonymous[ip][timestamp].language}</td>
-                      <td>${anonymous[ip][timestamp].userAgent.device?.vendor ?? ''} ${
-            anonymous[ip][timestamp].userAgent.os.name
-          } ${anonymous[ip][timestamp].userAgent.os.version}</td>
-                    </tr>
-                  `),
-      )
-      .join(''))
+                      <td><a href="${timestamps[timestamp].url}" target="_blank">${
+          timestamps[timestamp].url
+        }</a></td>
+                                  <td>${timestamps[timestamp].location.city} - ${timestamps[timestamp].location.country}</td>
+                                  
+                                  <td>${
+        timestamps[timestamp].referrer
+          ? `<a href="${timestamps[timestamp].referrer}" target="_blank">${timestamps[timestamp].referrer}</a>`
+          : ''
+        }</td>
+                                  <td>${timestamps[timestamp].userAgent.browser.name} ${
+          timestamps[timestamp].userAgent.browser.version
+        } ${timestamps[timestamp].language}</td>
+                                  <td>${timestamps[timestamp].userAgent.device?.vendor ?? ''} ${
+          timestamps[timestamp].userAgent.os.name
+        } ${timestamps[timestamp].userAgent.os.version}</td>
+                                </tr>
+                              `),
+    )
     .join('')}
             </tbody>
         </table>
