@@ -188,7 +188,7 @@ dialog .admin img {
     display: none;
 }
 
-body:not(.is-headwire) .dashboard.block .admin {
+body:not(.is-headwire, .is-test-user) .dashboard.block .admin {
     display: none;
 }
 
