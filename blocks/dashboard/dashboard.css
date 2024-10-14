@@ -18,6 +18,11 @@
     padding: 12px 20px 12px 40px;
 }
 
+.dashboard.block .filter::-webkit-search-cancel-button {
+    cursor: pointer;
+    padding: 2px;
+}
+
 .dashboard.block h1 {
     font-size: 16px;
     padding: 0;
