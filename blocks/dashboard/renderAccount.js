@@ -5,7 +5,7 @@ import {
 } from '../../scripts/scripts.js';
 
 export default async function renderAccount({ container, nav }) {
-  container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
+  container.insertAdjacentHTML('afterbegin', '<img src="/icons/loading.svg" alt="loading"/>');
 
   const [userSettings, user] = await Promise.all([
     getUserSettings(SCRIPT_API),
