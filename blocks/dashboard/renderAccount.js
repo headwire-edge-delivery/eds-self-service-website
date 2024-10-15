@@ -2,12 +2,16 @@ import {
   getUserSettings,
   SCRIPT_API,
   updateUserSettings,
-  waitForAuthenticated,
 } from '../../scripts/scripts.js';
 
 export default async function renderAccount({ container, nav }) {
-  await waitForAuthenticated();
-  const user = await window.auth0Client.getUser();
+  container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
+
+  const [userSettings, user] = await Promise.all([
+    getUserSettings(SCRIPT_API),
+    window.auth0Client.getUser(),
+  ]);
+
   nav.innerHTML = `<a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>`;
 
   container.insertAdjacentHTML(
@@ -37,7 +41,8 @@ export default async function renderAccount({ container, nav }) {
   `,
   );
 
-  const userSettings = await getUserSettings(SCRIPT_API);
+  container.querySelector('img[src="/icons/loading.svg"]').remove();
+
   const toggleAutoTourButton = container.querySelector('#toggle-auto-tour-button');
 
   if (userSettings?.showAutoTour) {
