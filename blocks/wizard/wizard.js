@@ -93,7 +93,7 @@ export default async function decorate(block) {
   });
 
   // TODO replace templates json with endpoint ?
-  const templates = block.querySelector('a[href="/templates.json"]');
+  const templates = block.querySelector(`a[href="/templates.json"], a[href="${SCRIPT_API}/templates"]`);
   if (templates) {
     const templateWrapper = document.createElement('div');
     templateWrapper.className = 'template-wrapper';
@@ -148,7 +148,7 @@ export default async function decorate(block) {
 
     templates.parentElement.replaceWith(templateWrapper);
 
-    fetch(templates.href)
+    fetch(`${SCRIPT_API}/templates`)
       .then((req) => req.json())
       .then(({ data }) => {
         const render = () => {
