@@ -783,11 +783,67 @@ img[src="/icons/loading.svg"] {
   }
 
   .dashboard.block .details {
-      max-width: 100%;
+      max-width: 100% !important;
   }
 
   .site-details.block .tabs-nav-items {
       flex-direction: column;
       align-items: flex-start;
   }
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.cards .box {
+  flex: 1 1 300px;
+  min-width: 200px;
+  max-width: 300px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  word-wrap: break-word;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--gray);
+  padding: 16px;
+  border-radius: var(--border-radius);
+}
+
+.cards .box p {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.cards .box strong {
+  text-transform: uppercase;
+}
+
+.cards.metrics .box p span:first-child {
+  margin-right: 8px;
+  display: block;
+  text-align: left;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cards span {
+  font-weight: 300;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.cards .description {
+  line-height: 1.5;
+  max-height: calc(1.5em * 3);
+  overflow-y: auto;
 }
