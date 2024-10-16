@@ -122,8 +122,9 @@ export default async function renderSiteOverview({ container, nav, renderOptions
   // MARK: delete site
   container.querySelector('.delete').onclick = async () => {
     window?.zaraz?.track('click site delete');
+    const block = container.closest('.site-details.block');
 
-    container.classList.add('is-deleting');
+    block.classList.add('is-deleting');
     if (await window.confirmDialog('Are you sure you want to delete your site? (This can\'t be undone)')) {
       window?.zaraz?.track('click site delete submit');
 
@@ -135,10 +136,10 @@ export default async function renderSiteOverview({ container, nav, renderOptions
         window.location.href = '/dashboard/sites';
       } else {
         await window.alertDialog(OOPS);
-        container.classList.remove('is-deleting');
+        block.classList.remove('is-deleting');
       }
     } else {
-      container.classList.remove('is-deleting');
+      block.classList.remove('is-deleting');
     }
   };
 }

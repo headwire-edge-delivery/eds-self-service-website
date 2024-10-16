@@ -3,7 +3,7 @@ import {
 } from '../../scripts/scripts.js';
 
 export function renderTable({
-  table, tableData, type, projectDetails,
+  table, tableData, type, projectDetails, token,
 }) {
   table.innerHTML = `
     <thead>
@@ -21,6 +21,11 @@ export function renderTable({
     const tableRow = document.createElement('tr');
 
     if (type === 'emails') {
+      const split = item.path.split('/');
+      const isDeletable = item.path.startsWith('/emails/') && split.length === 4;
+      const campaign = split[2];
+      const email = split[3];
+
       tableRow.innerHTML = `
         <tr>
             <td>${item.name}</td>
@@ -30,10 +35,34 @@ export function renderTable({
               <div id="email-open-edit" class="button-container">
                 <a class="button action secondary" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
                 <a class="button action secondary" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
+                ${isDeletable ? '<button class="button action secondary delete-email">Delete</button>' : ''}
               </div>
             </td>
         </tr>
       `;
+
+      const deleteEmail = tableRow.querySelector('.delete-email');
+      if (deleteEmail) {
+        deleteEmail.onclick = async () => {
+          if (await window.confirmDialog('Are you sure ?')) {
+            window?.zaraz?.track('click email delete');
+
+            deleteEmail.classList.add('loading');
+            const deleteReq = await fetch(`${SCRIPT_API}/campaigns/${projectDetails.projectSlug}/${campaign}/${email}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` },
+            }).catch(() => null);
+
+            if (deleteReq?.ok) {
+              deleteEmail.closest('tr').remove();
+            } else {
+              await window.alertDialog(OOPS);
+            }
+            deleteEmail.classList.remove('loading');
+          }
+        };
+      }
+
       return tableRow;
     }
 
