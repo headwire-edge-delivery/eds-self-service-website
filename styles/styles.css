@@ -27,6 +27,8 @@
   text-size-adjust: 100%;
 }
 
+
+
 [hidden] {
   display: none !important;
 }
@@ -199,6 +201,17 @@ input, textarea, select {
   border-radius: calc(var(--border-radius) / 2);
   width: 100%;
 }
+
+input:focus {
+  outline: none; 
+  border-color: var(--orange); 
+}
+
+input:focus-visible {
+  outline: -webkit-focus-ring-color auto 1px; 
+  outline-offset: 0; 
+}
+
 
 input[type="checkbox"] {
   width: 24px;
