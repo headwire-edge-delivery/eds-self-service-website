@@ -1,4 +1,6 @@
-import { OOPS, parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
+import {
+  generateTimeSeries, OOPS, parseFragment, SCRIPT_API,
+} from '../../scripts/scripts.js';
 
 export default async function renderSiteAnalytics({ container, nav, renderOptions }) {
   container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
@@ -31,52 +33,6 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
 
   const Utils = window.ChartUtils.init();
 
-  const roundUpToNearestInterval = (date, intervalMinutes) => {
-    const minutes = date.getMinutes();
-    const roundedMinutes = Math.ceil(minutes / intervalMinutes) * intervalMinutes;
-    date.setMinutes(roundedMinutes);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
-    return date;
-  };
-
-  const generateTimeSeries = (intervalChoice) => {
-    let intervalMinutes;
-    let daysBack;
-
-    switch (intervalChoice) {
-      case '1d':
-        intervalMinutes = 15;
-        daysBack = 1; // 24 hours
-        break;
-      case '7d':
-        intervalMinutes = 60;
-        daysBack = 7; // 7 days
-        break;
-      case '30d':
-        intervalMinutes = 1440; // 24 hours * 60 minutes
-        daysBack = 30; // 30 days
-        break;
-      default:
-        throw new Error('Invalid interval choice.');
-    }
-
-    const intervalMillis = intervalMinutes * 60 * 1000;
-    const totalIntervals = (daysBack * 24 * 60) / intervalMinutes;
-
-    let now = new Date();
-    now = roundUpToNearestInterval(now, intervalMinutes);
-
-    const timeSeries = [];
-
-    for (let i = 0; i <= totalIntervals; i += 1) {
-      const timePoint = new Date(now.getTime() - i * intervalMillis);
-      timeSeries.unshift(timePoint);
-    }
-
-    return timeSeries;
-  };
-
   const periodSelector = parseFragment(`<select class="button action secondary period-selector">
     <option value="1d" selected>Period: 1 day</option>
     <option value="7d">Period: 7 days</option>
@@ -96,7 +52,8 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
     const pageViewsDelta = metrics[2]?.data?.viewer.accounts[0].pageviewsDelta[0]
       ? (totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count - 100
       : 0;
-    const performanceDelta = metrics[2]?.data?.viewer.accounts[0].performanceDelta[0]
+    const performanceDelta = metrics[2]?.data?.viewer.accounts[0].performanceDelta[0] && metrics[2]
+      .data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime > 0
       ? (medianPageLoadTime * 100) / metrics[2]
         .data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime
         - 100
@@ -238,9 +195,9 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[0].data.viewer.accounts[0].topReferers
     .map(
       (referer) => `
-                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${
+                    <p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${
   referer.count
-}</span></span>
+}</span></p>
                   `,
     )
     .join('')}
@@ -250,7 +207,7 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[0].data.viewer.accounts[0].topPaths
     .map(
       (paths) => `
-                    <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
+                    <p><span>${paths.dimensions.metric}</span><span>${paths.count}</span></p>
                   `,
     )
     .join('')}
@@ -260,7 +217,7 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[0].data.viewer.accounts[0].topBrowsers
     .map(
       (browsers) => `
-                    <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
+                    <p><span>${browsers.dimensions.metric}</span><span>${browsers.count}</span></p>
                   `,
     )
     .join('')}
@@ -270,7 +227,7 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[0].data.viewer.accounts[0].topOSs
     .map(
       (OSs) => `
-                    <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
+                    <p><span>${OSs.dimensions.metric}</span><span>${OSs.count}</span></p>
                   `,
     )
     .join('')}
@@ -280,7 +237,7 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[0].data.viewer.accounts[0].topDeviceTypes
     .map(
       (deviceTypes) => `
-                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
+                    <p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.count}</span></p>
                   `,
     )
     .join('')}
@@ -296,9 +253,9 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[3].data.viewer.accounts[0].countries
     .map(
       (country) => `
-                    <span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}: <span>${
+                    <p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${
   country.count
-}</span></span>
+}</span></p>
                   `,
     )
     .join('')}
@@ -308,9 +265,9 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[3].data.viewer.accounts[0].topReferers
     .map(
       (referer) => `
-                    <span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}: <span>${
+                    <p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${
   referer.count
-}</span></span>
+}</span></p>
                   `,
     )
     .join('')}
@@ -320,7 +277,7 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[3].data.viewer.accounts[0].topPaths
     .map(
       (paths) => `
-                    <span>${paths.dimensions.metric}: <span>${paths.count}</span></span>
+                    <p><span>${paths.dimensions.metric}</span><span>${paths.count}</span></p>
                   `,
     )
     .join('')}
@@ -330,7 +287,7 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[3].data.viewer.accounts[0].topBrowsers
     .map(
       (browsers) => `
-                    <span>${browsers.dimensions.metric}: <span>${browsers.count}</span></span>
+                    <p><span>${browsers.dimensions.metric}</span><span>${browsers.count}</span></p>
                   `,
     )
     .join('')}
@@ -340,7 +297,7 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[3].data.viewer.accounts[0].topOSs
     .map(
       (OSs) => `
-                    <span>${OSs.dimensions.metric}: <span>${OSs.count}</span></span>
+                    <p><span>${OSs.dimensions.metric}</span><span>${OSs.count}</span></p>
                   `,
     )
     .join('')}
@@ -350,7 +307,7 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
                   ${metrics[3].data.viewer.accounts[0].topDeviceTypes
     .map(
       (deviceTypes) => `
-                    <span>${deviceTypes.dimensions.metric}: <span>${deviceTypes.count}</span></span>
+                    <p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.count}</span></p>
                   `,
     )
     .join('')}
@@ -388,13 +345,13 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
           <h2>By Path and Browsers</h2>
           
           <div class="cards metrics">
-            <div class="cwp-box">
+            <div class="cwp-box box">
                 <strong>LCP</strong>
                 ${cww[0].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
     .filter((rum) => rum?.dimensions?.largestContentfulPaintPath)
     .map(
       (rum) => `
-                    <span>Path: <span>${rum.dimensions.largestContentfulPaintPath}</span></span>
+                    <p><span>Path</span><span>${rum.dimensions.largestContentfulPaintPath}</span></p>
                     <ul>
                       <li>Excellent (${rum?.sum.lcpGood ?? '0'})</li>
                       <li>Good (${rum?.sum.lcpNeedsImprovement ?? '0'})</li>
@@ -404,13 +361,13 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
     )
     .join('')}
             </div>
-            <div class="cwp-box">
+            <div class="box cwp-box">
                 <strong>INP</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
     .filter((rum) => rum?.dimensions?.userAgentBrowser)
     .map(
       (rum) => `
-                    <span>Browser: <span>${rum.dimensions.userAgentBrowser}</span></span>
+                    <p><span>Browser</span><span>${rum.dimensions.userAgentBrowser}</span></p>
                     <ul>
                         <li>Excellent (${rum?.sum.inpGood ?? '0'})</li>
                         <li>Good (${rum?.sum.inpNeedsImprovement ?? '0'})</li>
@@ -420,13 +377,13 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
     )
     .join('')}
             </div>
-            <div class="cwp-box">
+            <div class="cwp-box box">
                 <strong>FID</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
     .filter((rum) => rum?.dimensions?.firstInputDelayPath)
     .map(
       (rum) => `
-                  <span>Path: <span>${rum.dimensions.firstInputDelayPath}</span></span>
+                  <p><span>Path</span><span>${rum.dimensions.firstInputDelayPath}</span></p>
                   <ul>
                     <li>Excellent (${rum?.sum.fidGood ?? '0'})</li>
                     <li>Good (${rum?.sum.fidNeedsImprovement ?? '0'})</li>
@@ -436,13 +393,13 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
     )
     .join('')}
             </div>
-            <div class="cwp-box">
+            <div class="cwp-box box">
                 <strong>CLS</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
     .filter((rum) => rum?.dimensions?.cumulativeLayoutShiftPath)
     .map(
       (rum) => `
-                  <span>Path: <span>${rum.dimensions.cumulativeLayoutShiftPath}</span></span>
+                  <p><span>Path</span><span>${rum.dimensions.cumulativeLayoutShiftPath}</span></p>
                   <ul>
                     <li>Excellent (${rum?.sum.clsGood ?? '0'})</li>
                     <li>Good (${rum?.sum.clsNeedsImprovement ?? '0'})</li>

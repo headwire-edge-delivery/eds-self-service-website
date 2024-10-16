@@ -1,7 +1,17 @@
-import { OOPS, SCRIPT_API, waitForAuthenticated } from '../../scripts/scripts.js';
+import {
+  generateTimeSeries,
+  OOPS, parseFragment, SCRIPT_API, waitForAuthenticated,
+} from '../../scripts/scripts.js';
 
-export default async function renderAdmin({ container }) {
+export default async function renderAdmin({ container, nav }) {
   container.innerHTML = `
+    <h2>Web analytics</h2>
+    <div class="analytics">
+        <p>
+            <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+        </p>
+    </div>
+    
     <h2>User activity</h2>
     <div class="known-users">
         <p>
@@ -25,6 +35,21 @@ export default async function renderAdmin({ container }) {
   `;
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
+
+  // Load web analytics
+  const loadWebAnalytics = async (interval) => {
+    try {
+      const req = await fetch(`${SCRIPT_API}/monitoring/admin?period=${interval}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
+      if (!req?.ok) {
+        throw new Error();
+      }
+      return await req.json();
+    } catch (e) {
+      window.alertDialog(OOPS);
+    }
+
+    return false;
+  };
 
   const onFilterInput = (filterInput, filterContainer) => {
     if (filterInput.value.length) {
@@ -325,6 +350,252 @@ export default async function renderAdmin({ container }) {
       anonymousContainer.querySelector('p').textContent = OOPS;
     }
   };
+
+  const analyticsContainer = container.querySelector('.analytics');
+  loadWebAnalytics('1d').then(async (analytics) => {
+    if (!analytics) {
+      analyticsContainer.querySelector('p').textContent = OOPS;
+      return;
+    }
+
+    const { countries } = await import('../site-details/countries.js');
+
+    // Load chart.js
+    await import('../../libs/chart/chart.min.js');
+    await import('../../libs/chart/chart-utils.min.js');
+
+    const Utils = window.ChartUtils.init();
+
+    const periodSelector = parseFragment(`<select class="button action secondary period-selector">
+      <option value="1d" selected>Analytics period: 1 day</option>
+      <option value="7d">Analytics period: 7 days</option>
+      <option value="30d">Analytics period: 30 days</option>
+    </select>`);
+    nav.append(periodSelector);
+
+    const renderWebAnalytics = (metrics) => {
+      const totalVisits = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
+      const totalPageViews = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.count ?? 0;
+      const medianPageLoadTime = metrics[2]
+        ?.data?.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
+
+      const visitsDelta = metrics[2]?.data?.viewer.accounts[0].visitsDelta[0]
+        ? (totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits - 100
+        : 0;
+      const pageViewsDelta = metrics[2]?.data?.viewer.accounts[0].pageviewsDelta[0]
+        ? (totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count - 100
+        : 0;
+      const performanceDelta = metrics[2]?.data?.viewer.accounts[0].performanceDelta[0]
+      && metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime > 0
+        ? (medianPageLoadTime * 100) / metrics[2]
+          .data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime
+        - 100
+        : 0;
+
+      analyticsContainer.innerHTML = `
+          <div class="title">
+              <h3>Last ${periodSelector.value === '1d' ? '24 Hours' : periodSelector.value.replace('d', ' Days')}</h3>
+              ${periodSelector.value === '30d' ? '<i>(Based on a 10% sample of page load events)</i>' : ''}
+          </div>
+          <div class="cards">
+            <div id="total-visits" class="box">
+                <strong>Total visits</strong>
+                <span>${totalVisits}</span>
+                ${visitsDelta !== 0 ? `<span class="${visitsDelta < 0 ? 'red' : 'green'}">${visitsDelta > 0 ? '+' : ''}${visitsDelta}%</span>` : ''}
+            </div>
+            <div id="total-page-views" class="box">
+                <strong>Total page views</strong>
+                <span>${totalPageViews}</span>
+                ${pageViewsDelta !== 0 ? `<span class="${pageViewsDelta < 0 ? 'red' : 'green'}">${pageViewsDelta > 0 ? '+' : ''}${pageViewsDelta}%</span>` : ''}
+            </div>
+            <div id="median-page-load" class="box">
+                <strong>Median page load time</strong>
+                <span>${medianPageLoadTime / 1000}ms</span>
+                ${performanceDelta !== 0 ? `<span class="${performanceDelta < 0 ? 'red' : 'green'}">${performanceDelta > 0 ? '+' : ''}${performanceDelta}%</span>` : ''}
+            </div>
+          </div>
+
+          <div class="chart-container">
+              <canvas id="chart" width="600" height="400"></canvas>
+          </div>
+
+          <div id="monitoring-details">
+            <div id="visits-details">
+              <h3>Visits details</h3>
+              <div class="cards metrics">
+                  <div id="visits-details-country" class="box">
+                      <strong>By country</strong>
+                      ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
+                        <p><span title="${countries.find(({ value }) => value === country.dimensions.metric)?.label}">${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.sum.visits}</span></p>`)
+    .join('')}
+                  </div>
+                  <div id="visits-details-referers" class="box">
+                      <strong>By referers</strong>
+                      ${metrics[0].data.viewer.accounts[0].topReferers
+    .filter((ref) => ref.sum.visits > 1)
+    .map(
+      (referer) => `<p><span title="${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}">${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.sum.visits}</span></p>`,
+    )
+    .join('')
+}
+                  </div>
+                  <div id="visits-details-paths" class="box">
+                      <strong>By paths</strong>
+                      ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `<p><span title="${paths.dimensions.metric}">${paths.dimensions.metric}</span><span>${paths.sum.visits}</span></p>`)
+    .join('')}
+                  </div>
+                  <div id="visits-details-browsers" class="box">
+                      <strong>By browsers</strong>
+                      ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `<p><span title="${browsers.dimensions.metric}">${browsers.dimensions.metric}</span><span>${browsers.sum.visits}</span></p>`)
+    .join('')}
+                  </div>
+                  <div id="visits-details-os" class="box">
+                      <strong>By operating systems</strong>
+                      ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `<p><span title="${OSs.dimensions.metric}">${OSs.dimensions.metric}</span><span>${OSs.sum.visits}</span></p>`)
+    .join('')}
+                  </div>
+                  <div id="visits-details-devices" class="box">
+                      <strong>By device type</strong>
+                      ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `<p><span title="${deviceTypes.dimensions.metric}">${deviceTypes.dimensions.metric}</span><span>${deviceTypes.sum.visits}</span></p>`)
+    .join('')}
+                  </div>
+              </div>
+            </div>
+  
+            <div id="page-views-details">
+              <h3>Page views details</h3>
+              <div class="cards metrics">
+                <div id="page-views-details-country" class="box">
+                    <strong>By country</strong>
+                    ${metrics[0].data.viewer.accounts[0].countries.map((country) => `<p><span title="${countries.find(({ value }) => value === country.dimensions.metric)?.label}">${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
+    .join('')}
+                </div>
+                <div id="page-views-details-referers" class="box">
+                    <strong>By referers</strong>
+                    ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}:</span><span>${referer.count}</span></p>`)
+    .join('')}
+                </div>
+                <div id="page-views-details-paths" class="box">
+                    <strong>By paths</strong>
+                    ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `<p><span>${paths.dimensions.metric}:</span><span>${paths.count}</span></p>`)
+    .join('')}
+                </div>
+                <div id="page-views-details-browsers" class="box">
+                    <strong>By browsers</strong>
+                    ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `<p><span>${browsers.dimensions.metric}:</span><span>${browsers.count}</span></p>`)
+    .join('')}
+                </div>
+                <div id="page-views-details-os" class="box">
+                    <strong>By operating systems</strong>
+                    ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `<p><span>${OSs.dimensions.metric}:</span><span>${OSs.count}</span></p>`)
+    .join('')}
+                </div>
+                <div id="page-views-details-devices" class="box">
+                    <strong>By device type</strong>
+                    ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}:</span><span>${deviceTypes.count}</span></p>`)
+    .join('')}
+                </div>
+              </div>
+            </div>
+  
+            <div id="pageload-details">
+              <h3>Page load time details</h3>
+              <div class="cards metrics">
+                <div id="pageload-details-country" class="box">
+                    <strong>By country</strong>
+                    ${metrics[3].data.viewer.accounts[0].countries.map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}:</span><span>${country.count}</span></p>`)
+    .join('')}
+                </div>
+                <div id="pageload-details-referers" class="box">
+                    <strong>By referers</strong>
+                    ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}:</span><span>${referer.count}</span></p>`)
+    .join('')}
+                </div>
+                <div id="pageload-details-paths" class="box">
+                    <strong>By paths</strong>
+                    ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `<p><span>${paths.dimensions.metric}:</span><span>${paths.count}</span></p>`)
+    .join('')}
+                </div>
+                <div id="pageload-details-browsers" class="box">
+                    <strong>By browsers</strong>
+                    ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `<p><span>${browsers.dimensions.metric}:</span><span>${browsers.count}</span></p>`)
+    .join('')}
+                </div>
+                <div id="pageload-details-os" class="box">
+                    <strong>By operating systems</strong>
+                    ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `<p><span>${OSs.dimensions.metric}:</span><span>${OSs.count}</span></p>`)
+    .join('')}
+                </div>
+                <div id="pageload-details-devices" class="box">
+                    <strong>By device type</strong>
+                    ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}:</span><span>${deviceTypes.count}</span></p>`)
+    .join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+      const series = generateTimeSeries(periodSelector.value);
+
+      const labels = series.map((d) => (periodSelector.value === '30d' ? d.toLocaleDateString() : d.toLocaleString()));
+
+      const visitsData = [];
+      const pageViewsData = [];
+
+      series.forEach((d) => {
+        const found = metrics[1].data.viewer.accounts[0].series.find((serie) => (periodSelector.value === '30d'
+          ? d.toLocaleDateString() === new Date(serie.dimensions.ts).toLocaleDateString()
+          : d.getTime() === new Date(serie.dimensions.ts).getTime()));
+
+        if (found) {
+          visitsData.push(found.sum.visits);
+          pageViewsData.push(found.count);
+        } else {
+          visitsData.push(0);
+          pageViewsData.push(0);
+        }
+      });
+
+      const config = {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Visits',
+              data: visitsData,
+              fill: false,
+              borderColor: Utils.CHART_COLORS.blue,
+            },
+            {
+              label: 'Page views',
+              data: pageViewsData,
+              fill: false,
+              borderColor: Utils.CHART_COLORS.red,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+        },
+      };
+
+      // eslint-disable-next-line no-new
+      new window.Chart(document.getElementById('chart'), config);
+    };
+
+    periodSelector.onchange = async () => {
+      analyticsContainer.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
+      const newAnalytics = await loadWebAnalytics(periodSelector.value);
+      if (newAnalytics) {
+        renderWebAnalytics(newAnalytics);
+      }
+    };
+
+    renderWebAnalytics(analytics);
+  });
 
   renderUsers(0);
   renderDeletedUsers();

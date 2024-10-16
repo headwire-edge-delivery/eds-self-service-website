@@ -167,6 +167,52 @@ export function getThumbnail(el) {
     .catch(() => null);
 }
 
+function roundUpToNearestInterval(date, intervalMinutes) {
+  const minutes = date.getMinutes();
+  const roundedMinutes = Math.ceil(minutes / intervalMinutes) * intervalMinutes;
+  date.setMinutes(roundedMinutes);
+  date.setSeconds(0);
+  date.setMilliseconds(0);
+  return date;
+}
+
+export function generateTimeSeries(intervalChoice) {
+  let intervalMinutes;
+  let daysBack;
+
+  switch (intervalChoice) {
+    case '1d':
+      intervalMinutes = 15;
+      daysBack = 1; // 24 hours
+      break;
+    case '7d':
+      intervalMinutes = 60;
+      daysBack = 7; // 7 days
+      break;
+    case '30d':
+      intervalMinutes = 1440; // 24 hours * 60 minutes
+      daysBack = 30; // 30 days
+      break;
+    default:
+      throw new Error('Invalid interval choice.');
+  }
+
+  const intervalMillis = intervalMinutes * 60 * 1000;
+  const totalIntervals = (daysBack * 24 * 60) / intervalMinutes;
+
+  let now = new Date();
+  now = roundUpToNearestInterval(now, intervalMinutes);
+
+  const timeSeries = [];
+
+  for (let i = 0; i <= totalIntervals; i += 1) {
+    const timePoint = new Date(now.getTime() - i * intervalMillis);
+    timeSeries.unshift(timePoint);
+  }
+
+  return timeSeries;
+}
+
 function createTabsNavBreadcrumbs(breadcrumbs) {
   if (!breadcrumbs?.length) {
     return '<div class="breadcrumbs"></div>';
