@@ -2,14 +2,13 @@ on:
   repository_dispatch:
     types:
       - resource-published
+    if: github.event.client_payload.status == '200' && github.event.client_payload.path == '/templates.json'
 jobs:
-  print:
+  Refresh template list on server:
     runs-on: ubuntu-latest
     steps:
     - run: |
         echo "Status: ${{ github.event.client_payload.status }}"
         echo "Path: ${{ github.event.client_payload.path }}"
     - run: |
-        if [ "${{ github.event.client_payload.status }}" = "200" ] && [ "${{ github.event.client_payload.path }}" = "/templates.json" ]; then
-          curl -X GET "https://api.kestrelone.com/refreshTemplates"
-        fi
+        curl -X GET "https://api.kestrelone.com/refreshTemplates"
