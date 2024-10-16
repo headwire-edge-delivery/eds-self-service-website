@@ -62,7 +62,7 @@ export default async function renderAnalytics({
     return;
   }
 
-  const { countries } = await import('../libs/countries.js');
+  const { countries } = await import('./countries.js');
 
   // Load chart.js
   await import('../libs/chart/chart.min.js');
