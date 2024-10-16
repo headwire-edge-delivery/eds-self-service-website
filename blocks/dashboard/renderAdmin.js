@@ -2,6 +2,10 @@ import { OOPS, SCRIPT_API, waitForAuthenticated } from '../../scripts/scripts.js
 import renderAnalytics from '../../scripts/analytics.js';
 
 export default async function renderAdmin({ container, nav }) {
+  nav.insertAdjacentHTML('beforeend', `
+    <a class="button secondary action" href="/site/kestrelone-emails/campaign-analytics">Campaign&nbsp;analytics</a>
+  `);
+
   container.innerHTML = `
     <h2>Web analytics</h2>
     <div class="analytics">
