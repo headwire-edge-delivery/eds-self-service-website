@@ -44,7 +44,7 @@ export default async function renderCampaignsOverview({
 
   const setCampaignLink = (action, campaign) => {
     if (projectDetails.darkAlleyProject) {
-      action.href = `https://da.live/#/${daProjectRepo}/${siteSlug}/${campaign}`;
+      action.href = `https://da.live/#/${daProjectRepo}/${siteSlug}/emails/${campaign}`;
     } else {
       action.href = `https://drive.google.com/drive/u/1/search?q=title:${campaign}%20parent:${projectDetails.driveId}%20type:folder&authuser=${user.email}`;
     }
@@ -89,7 +89,7 @@ export default async function renderCampaignsOverview({
     `;
 
   renderTable({
-    table: campaignContainer.querySelector('table.emails'), tableData: emailDocuments, type: 'emails', projectDetails,
+    table: campaignContainer.querySelector('table.emails'), tableData: emailDocuments, type: 'emails', projectDetails, token,
   });
 
   allCampaignSlugs.forEach((campaignSlug) => {
@@ -126,7 +126,7 @@ export default async function renderCampaignsOverview({
     campaignContainer.append(campaignDetails);
 
     renderTable({
-      table: campaignContainer.querySelector(`.campaign-${campaignSlug} table.emails`), tableData: campaignEmails, type: 'emails', projectDetails,
+      table: campaignContainer.querySelector(`.campaign-${campaignSlug} table.emails`), tableData: campaignEmails, type: 'emails', projectDetails, token,
     });
   });
 
@@ -280,7 +280,7 @@ export default async function renderCampaignsOverview({
 
         const newCampaignEmails = emailDocuments.filter(({ path }) => path.startsWith(`/emails/${newCampaign.slug}/`));
         renderTable({
-          table: campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`), tableData: newCampaignEmails, type: 'emails', projectDetails,
+          table: campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`), tableData: newCampaignEmails, type: 'emails', projectDetails, token,
         });
 
         campaignList.querySelector('li:last-child a').click();
