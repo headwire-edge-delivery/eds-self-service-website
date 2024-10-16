@@ -1,3 +1,4 @@
+name: Refresh template list on server
 on: 
   workflow_dispatch:
   repository_dispatch:
@@ -5,7 +6,7 @@ on:
       - resource-published
     if: github.event.client_payload.status == '200' && github.event.client_payload.path == '/templates.json'
 jobs:
-  Refresh template list on server:
+  refresh-template-list-on-server:
     runs-on: ubuntu-latest
     steps:
     - run: |
