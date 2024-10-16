@@ -1,7 +1,15 @@
 import { OOPS, SCRIPT_API, waitForAuthenticated } from '../../scripts/scripts.js';
+import renderAnalytics from '../../scripts/analytics.js';
 
-export default async function renderAdmin({ container }) {
+export default async function renderAdmin({ container, nav }) {
   container.innerHTML = `
+    <h2>Web analytics</h2>
+    <div class="analytics">
+        <p>
+            <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+        </p>
+    </div>
+    
     <h2>User activity</h2>
     <div class="known-users">
         <p>
@@ -25,6 +33,21 @@ export default async function renderAdmin({ container }) {
   `;
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
+
+  // Load web analytics
+  const loadWebAnalytics = async (interval) => {
+    try {
+      const req = await fetch(`${SCRIPT_API}/monitoring/admin?period=${interval}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
+      if (!req?.ok) {
+        throw new Error();
+      }
+      return [await req.json()];
+    } catch (e) {
+      window.alertDialog(OOPS);
+    }
+
+    return false;
+  };
 
   const onFilterInput = (filterInput, filterContainer) => {
     if (filterInput.value.length) {
@@ -325,6 +348,15 @@ export default async function renderAdmin({ container }) {
       anonymousContainer.querySelector('p').textContent = OOPS;
     }
   };
+
+  loadWebAnalytics('1d').then((analytics) => {
+    renderAnalytics({
+      analytics,
+      container: container.querySelector('.analytics'),
+      nav,
+      loadWebAnalytics,
+    });
+  });
 
   renderUsers(0);
   renderDeletedUsers();

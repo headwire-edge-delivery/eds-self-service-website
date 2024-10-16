@@ -171,7 +171,7 @@ dialog .admin img {
 }
 
 .dashboard.block .admin .filter {
-    margin-top: 48px;
+    margin-top: 16px;
 }
 
 :is(.dashboard.block, dialog) .admin table :is(th, td) {
@@ -186,6 +186,17 @@ dialog .admin img {
 
 .dashboard.block .admin table + .button-container:has(button:only-child) {
     display: none;
+}
+
+.dashboard.block .admin h2 {
+    padding-block: 20px;
+    font-size: 20px;
+    line-height: 24px;
+}
+
+.dashboard.block .admin h3 {
+    font-size: 16px;
+    padding-bottom: 12px;
 }
 
 body:not(.is-headwire, .is-test-user) .dashboard.block .admin {
