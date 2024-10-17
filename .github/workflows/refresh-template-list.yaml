@@ -13,4 +13,4 @@ jobs:
         echo "Status: ${{ github.event.client_payload.status }}"
         echo "Path: ${{ github.event.client_payload.path }}"
     - run: |
-        curl -X GET -f "https://api.kestrelone.com/refreshTemplates"
+        curl -X GET -f "https://api.kestrelone.com/refreshTemplates" --header "Authorization: Bearer ${{ secrets.MINOR_UPDATES_TOKEN }}"

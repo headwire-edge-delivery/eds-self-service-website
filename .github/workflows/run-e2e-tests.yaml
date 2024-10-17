@@ -10,9 +10,6 @@ on:
         description: "Backend branch to checkout & run tests on"
         required: false
         default: "main"
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
