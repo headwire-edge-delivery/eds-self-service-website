@@ -33,6 +33,17 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     window?.zaraz?.track('click site guides');
   };
 
+  let lastUpdated = projectDetails.lastUpdated || projectDetails.createdAt || 'N/A';
+  if (typeof lastUpdated === 'number') {
+    lastUpdated = new Date(lastUpdated).toLocaleTimeString([], {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
   container.innerHTML = `
   <div class="project-container">
     <div class="cards">
@@ -47,7 +58,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
       </div>
       <div id="last-updated" class="box">
         <strong>Last update</strong>
-        <span class="last-update">${projectDetails.lastUpdate || projectDetails.createdAt || 'N/A'}</span>
+        <span class="last-update">${lastUpdated}</span>
       </div>
       <div id="site-template" class="box">
         <strong>Site template</strong>
