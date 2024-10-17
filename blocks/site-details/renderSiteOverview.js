@@ -47,7 +47,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
       </div>
       <div id="last-updated" class="box">
         <strong>Last update</strong>
-        <span class="last-update">Loading...</span>
+        <span class="last-update">${projectDetails.lastUpdate || projectDetails.createdAt || 'N/A'}</span>
       </div>
       <div id="site-template" class="box">
         <strong>Site template</strong>
@@ -64,12 +64,6 @@ export default async function renderSiteOverview({ container, nav, renderOptions
   </div>`;
 
   getThumbnail(container.querySelector('.project-thumbnail'));
-
-  // TODO: implement lastUpdate to siteDetails so we don't have to fetch index
-  fetch(`${SCRIPT_API}/index/${projectDetails.projectSlug}`).then((res) => res.json()).then((indexData) => {
-    const lastUpdate = indexData ? Math.max(...indexData.data.map(({ lastModified }) => new Date(lastModified).getTime())) : 'Error getting last update';
-    container.querySelector('span.last-update').textContent = new Date(lastUpdate).toLocaleString();
-  }).catch(() => { container.querySelector('span.last-update').textContent = 'Error getting last update'; });
 
   // MARK: update description
   container.querySelector('.update-description.action').onclick = async () => {
