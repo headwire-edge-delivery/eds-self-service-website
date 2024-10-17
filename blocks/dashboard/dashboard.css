@@ -212,7 +212,7 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .admin {
 }
 
 @media (width < 768px) {
-  .dashboard.block .tab-content .admin .is-selected > div {
+  .dashboard.block .tab-content.admin.is-selected > div {
     overflow-x: auto;
   }
 
