@@ -1,214 +1,234 @@
 .dashboard:empty {
-    height: 100vh;
+  height: 100vh;
 }
 
 .dashboard.block {
-    max-width: var(--layout-width);
-    margin: auto;
-    padding: 16px;
+  max-width: var(--layout-width);
+  margin: auto;
+  padding: 16px;
 }
 
 .dashboard.block .filter {
-    width: 100%;
-    font-size: 16px;
-    background-image: url("/icons/search.svg");
-    background-position: 12px 12px;
-    background-size: 20px;
-    background-repeat: no-repeat;
-    padding: 12px 20px 12px 40px;
+  width: 100%;
+  font-size: 16px;
+  background-image: url("/icons/search.svg");
+  background-position: 12px 12px;
+  background-size: 20px;
+  background-repeat: no-repeat;
+  padding: 12px 20px 12px 40px;
 }
 
 .dashboard.block h1 {
-    font-size: 16px;
-    padding: 0;
-    line-height: 16px;
+  font-size: 16px;
+  padding: 0;
+  line-height: 16px;
 }
 
 .dashboard.block h2 {
-    font-size: 16px;
-    padding-block: 0;
+  font-size: 16px;
+  padding-block: 0;
 }
 
 .dashboard.block .sites ul {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, 286px);
-    gap: 48px;
-    margin-top: 48px;
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 286px);
+  gap: 48px;
+  margin-top: 48px;
 }
 
 .dashboard.block .sites li a {
-    height: 100%;
-    display: block;
-    max-width: 300px;
-    text-decoration: none;
-    border-radius: var(--border-radius);
-    background-color: var(--dark-blue);
-    color: var(--white);
-    transition: all var(--animation-duration);
-    overflow: hidden;
+  height: 100%;
+  display: block;
+  max-width: 300px;
+  text-decoration: none;
+  border-radius: var(--border-radius);
+  background-color: var(--dark-blue);
+  color: var(--white);
+  transition: all var(--animation-duration);
+  overflow: hidden;
 }
 
 .dashboard.block .sites li a .project-thumbnail {
-    height: 200px;
-    background: var(--gray);
+  height: 200px;
+  background: var(--gray);
 }
 
 .dashboard.block .sites li a .project-thumbnail img {
-    height: 100%;
-    object-fit: cover;
+  height: 100%;
+  object-fit: cover;
 }
 
 .dashboard.block .sites li a .project-content {
-    padding: 16px;
+  padding: 16px;
 }
 
 .dashboard.block .sites li a:hover {
-    background-color: var(--light-blue);
+  background-color: var(--light-blue);
 }
 
 .dashboard.block .sites ul a p {
-    font-size: 16px;
-    font-weight: 300;
+  font-size: 16px;
+  font-weight: 300;
 }
 
 .dashboard.block .sites ul a :is(h2, strong, p) {
-    color: var(--white);
-    text-overflow: ellipsis;
-    overflow: hidden;
+  color: var(--white);
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .dashboard.block .sites ul a .project-description {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .dashboard.block :is(.sites, .admin) > p:only-child {
-    display: grid;
-    place-items: center;
-    min-height: calc(100vh - 350px);
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - 350px);
 }
 
 .dashboard.block .details {
-    flex: 1;
-    max-width: calc(100% - 200px - 64px);
+  flex: 1;
+  max-width: calc(100% - 200px - 64px);
 }
 
 .dashboard.block .details > :not(.is-selected) {
-    display: none;
+  display: none;
 }
 
 .dashboard.block .account-details {
-    display: flex;
-    gap: 64px;
-    margin-bottom: 32px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 64px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
 }
 
 .dashboard.block .account-details span {
-    font-weight: 300;
-    display: inline-block;
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-weight: 300;
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dashboard.block .account-details > div {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-width: 25%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 25%;
 }
 
 .dashboard.block .account-details > div strong {
-    text-transform: uppercase;
+  text-transform: uppercase;
 }
 
 .dashboard.block .account-details > div img {
-    max-width: 100px;
+  max-width: 100px;
 }
 
 .dashboard.block .account-details .upgrade {
-    align-self: flex-start;
-    margin-top: 16px;
+  align-self: flex-start;
+  margin-top: 16px;
 }
 
 .dashboard.block .plans-dialog-wrapper {
-    padding-inline: 0;
+  padding-inline: 0;
 }
 
 .dashboard.block .sites section h3 {
-    padding-top: 48px;
-    padding-bottom: 0;
+  padding-top: 48px;
+  padding-bottom: 0;
 }
 
 dialog:has(.admin) {
-    width: auto;
+  width: auto;
 }
 
 :is(.dashboard.block, dialog) .admin table {
-    width: 100%;
-    table-layout: fixed;
-    margin-top: 48px;
-    margin-bottom: 48px;
+  width: 100%;
+  table-layout: fixed;
+  margin-top: 48px;
+  margin-bottom: 48px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 :is(.dashboard.block, dialog) .admin td.empty {
-    text-align: center;
-    text-transform: uppercase;
-    padding: 32px;
-    font-weight: bold;
-    font-size: 11px;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 32px;
+  font-weight: bold;
+  font-size: 11px;
 }
 
 .dashboard.block .details .admin img,
 dialog .admin img {
-    height: 64px;
-    width: 64px;
+  height: 64px;
+  width: 64px;
 }
 
 .dashboard.block .admin .filter {
-    margin-top: 16px;
+  margin-top: 16px;
 }
 
 :is(.dashboard.block, dialog) .admin table :is(th, td) {
-    max-width: 100%;
-    overflow: auto;
-    word-wrap: break-word;
+  max-width: 100%;
+  overflow: auto;
+  word-wrap: break-word;
+}
+
+:is(.dashboard.block, dialog) .admin table :is(th) {
+  position: sticky;
+  top: var(--header-height);
+  background-color: var(--white);
 }
 
 :is(.dashboard.block, dialog) .admin table td:first-child {
-    font-weight: 500;
+  font-weight: 500;
 }
 
 .dashboard.block .admin table + .button-container:has(button:only-child) {
-    display: none;
+  display: none;
 }
 
 .dashboard.block .admin h2 {
-    padding-block: 20px;
-    font-size: 20px;
-    line-height: 24px;
+  padding-block: 20px;
+  font-size: 20px;
+  line-height: 24px;
 }
 
 .dashboard.block .admin h3 {
-    font-size: 16px;
-    padding-bottom: 12px;
+  font-size: 16px;
+  padding-bottom: 12px;
 }
 
 body:not(.is-headwire, .is-test-user) .dashboard.block .admin {
-    display: none;
+  display: none;
+}
+
+@media (width < 768px) {
+  .dashboard.block .tab-content .admin .is-selected > div {
+    overflow-x: auto;
+  }
+
+  :is(.dashboard.block, dialog) .admin table {
+    table-layout: auto;
+  }
 }
 
 /* MARK: Dark Alley */
 
 .dashboard.block .dark-alley-section {
-    display: none;
+  display: none;
 }
 
-body:is(.is-headwire, .is-adobe, .is-test-user) .dashboard.block .dark-alley-section {
-    display: block;
+body:is(.is-headwire, .is-adobe, .is-test-user)
+  .dashboard.block
+  .dark-alley-section {
+  display: block;
 }
