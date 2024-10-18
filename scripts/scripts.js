@@ -290,6 +290,10 @@ export function createTabs({
         if (window.location.pathname.startsWith(tab.href)) {
           link = window.location.pathname;
         }
+        // keep the query params
+        if (window.location.search) {
+          link += window.location.search;
+        }
         replaceHistory(link);
       }
       if (historyState === 'push') {
