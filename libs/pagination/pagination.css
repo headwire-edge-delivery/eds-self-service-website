@@ -1,4 +1,6 @@
 .pagination-container {
+  display: flex;
+  justify-content: center;
   position: relative;
   text-align: center;
   padding-top: 20px;
@@ -44,5 +46,5 @@
 .paginator.next {
   border-radius: calc(var(--border-radius) / 2);
   padding: 0 16px;
-  margin: 0 12px 6px;
+  margin: 0 4px;
 }

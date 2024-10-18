@@ -252,3 +252,18 @@ body:is(.is-headwire, .is-adobe, .is-test-user)
   .dark-alley-section {
   display: block;
 }
+
+.dashboard.block .sites .owner-selector {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0 0 16px;
+}
+
+.dashboard.block .sites .owner-selector .button.is-selected {
+    background-color: var(--light-blue);
+    color: white;
+    border-color: var(--light-blue);
+}

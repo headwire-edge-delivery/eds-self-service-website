@@ -1,5 +1,9 @@
 import {
+<<<<<<< HEAD
   waitForAuthenticated, SCRIPT_API, KESTREL_ONE, getUserSettings, updateUserSettings, OOPS,
+=======
+  waitForAuthenticated, SCRIPT_API, KESTREL_ONE, getUserSettings, updateUserSettings,
+>>>>>>> 7bfa538 (clusterize.js to campaign-analytics added)
 } from '../../scripts/scripts.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
@@ -33,13 +37,20 @@ async function fetchProjects(token, userSettings, type = 'googleDrive', scrollTo
   const limit = parseInt(readQueryParams().limit, 10) || 9;
   const daLimit = parseInt(readQueryParams().dalimit, 10) || limit;
   const search = readQueryParams().search || '';
+<<<<<<< HEAD
   const owner = readQueryParams().owner || userSettings?.filterByOwner || 'all';
+=======
+  const owner = readQueryParams().owner || userSettings.filterByOwner || 'all';
+>>>>>>> 7bfa538 (clusterize.js to campaign-analytics added)
   const isDarkAlley = type === 'darkAlley';
   const sitesList = document.querySelector(isDarkAlley ? '.sites-list-dark-alley' : '.sites-list-google-drive');
   const currentLimit = Math.max(1, parseInt(isDarkAlley ? daLimit : limit, 10));
   const actualPage = isDarkAlley ? currentDaPage : currentPage;
   const url = `${SCRIPT_API}/${isDarkAlley ? 'darkAlleyList' : 'list'}?search=${encodeURIComponent(search)}&limit=${currentLimit}&page=${actualPage}&owner=${owner}`;
+<<<<<<< HEAD
   const title = `<h3>${isDarkAlley ? 'Dark Alley Sites (Experimental)' : 'Google Drive Sites'}</h3>`;
+=======
+>>>>>>> 7bfa538 (clusterize.js to campaign-analytics added)
   fetch(url, {
     headers: {
       'content-type': 'application/json',
@@ -47,6 +58,7 @@ async function fetchProjects(token, userSettings, type = 'googleDrive', scrollTo
     },
   }).then((response) => response.json())
     .then(({ projects, pagination }) => {
+      const title = `<h3>${isDarkAlley ? 'Dark Alley Sites (Experimental)' : 'Google Drive Sites'}</h3>`;
       if (projects.length === 0) {
         sitesList.innerHTML = `${title}<p>No Sites found</p>`;
         return;
@@ -118,7 +130,11 @@ export default async function renderSites({ container, nav }) {
   await waitForAuthenticated();
 
   const search = readQueryParams().search || '';
+<<<<<<< HEAD
   const owner = readQueryParams().owner || userSettings?.filterByOwner || 'all';
+=======
+  const owner = readQueryParams().owner || userSettings.filterByOwner || 'all';
+>>>>>>> 7bfa538 (clusterize.js to campaign-analytics added)
   const sites = container.querySelector('.sites');
   const filter = `<ul class="owner-selector">
           <li data-owner="all"><div class="button action secondary ${owner === 'all' ? 'is-selected' : ''}">Owner: Anyone</div></li>

@@ -46,6 +46,35 @@
 }
 
 .site-details.block .filter {
+<<<<<<< HEAD
+=======
+    width: 100%;
+    font-size: 16px;
+    background-image: url("/icons/search.svg");
+    background-position: 12px 12px;
+    background-size: 20px;
+    background-repeat: no-repeat;
+    padding: 12px 20px 12px 40px;
+}
+
+.site-details.block .filter::-webkit-search-cancel-button {
+    cursor: pointer;
+    padding: 2px;
+}
+
+.site-details.block .cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.site-details.block .cards .box {
+    flex: 1 1 300px;
+    min-width: 200px;
+    max-width: 300px;
+>>>>>>> 7bfa538 (clusterize.js to campaign-analytics added)
     width: 100%;
     font-size: 16px;
     background-image: url("/icons/search.svg");
