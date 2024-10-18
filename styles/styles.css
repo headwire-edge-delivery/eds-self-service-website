@@ -203,13 +203,13 @@ input, textarea, select {
 }
 
 input:focus {
-  outline: none; 
-  border-color: var(--orange); 
+  outline: none;
+  border-color: var(--orange);
 }
 
 input:focus-visible {
-  outline: -webkit-focus-ring-color auto 1px; 
-  outline-offset: 0; 
+  outline: -webkit-focus-ring-color auto 1px;
+  outline-offset: 0;
 }
 
 
@@ -837,6 +837,10 @@ img[src="/icons/loading.svg"] {
 
 .cards .box strong {
   text-transform: uppercase;
+}
+
+.cards .box .button {
+  align-self: center;
 }
 
 .cards.metrics .box p span:first-child {

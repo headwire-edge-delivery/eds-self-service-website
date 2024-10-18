@@ -64,7 +64,10 @@ export default async function renderCampaignsOverview({
 
       const newSelectedCampaign = link.closest('[data-campaign]');
       const index = [...campaignList.children].indexOf(link.parentElement);
-      container.querySelector('.campaign:not([hidden])').hidden = true;
+      const hidden = container.querySelector('.campaign:not([hidden])');
+      if (hidden) {
+        container.querySelector('.campaign:not([hidden])').hidden = true;
+      }
       container.querySelector(`.campaign:nth-child(${index + 1})`).hidden = false;
 
       nav.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
@@ -99,20 +102,20 @@ export default async function renderCampaignsOverview({
     const campaignDetails = parseFragment(`
       <div data-campaign="${campaignSlug}" class="campaign campaign-${campaignSlug}" ${window.location.pathname === `${pathname}/emails/${campaignSlug}` ? '' : 'hidden'}>
         <div class="cards">
-          <div>
+          <div class="box">
               <strong>Campaign</strong>
               <span>${campaign.name} (${campaignSlug})</span>
           </div>
-          <div>
+          <div class="box">
               <strong>Campaign description</strong>
               <span class="description">${campaign.description}</span>
               <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
-          </div>
-          <div>
+          </div class="box">
+          <div class="box">
               <strong>Created</strong>
               <span>${new Date(campaign.created).toLocaleString()}</span>
           </div>
-          <div>
+          <div class="box">
               <strong>Last update</strong>
               <span class="last-updated">${new Date(campaign.lastUpdated).toLocaleString()}</span>
           </div>
@@ -129,6 +132,11 @@ export default async function renderCampaignsOverview({
       table: campaignContainer.querySelector(`.campaign-${campaignSlug} table.emails`), tableData: campaignEmails, type: 'emails', projectDetails, token,
     });
   });
+
+  if (!container.querySelector('.campaign-list .selected')) {
+    container.querySelector('.campaign-list[data-type="emails"] a').click();
+    replaceHistory(`${pathname}/emails`);
+  }
 
   campaignContainer.onclick = async (event) => {
     if (event.target.matches('.update-campaign-description')) {
@@ -254,20 +262,20 @@ export default async function renderCampaignsOverview({
         campaignContainer.insertAdjacentHTML('beforeend', `
             <div class="campaign campaign-${newCampaign.slug}" hidden>
               <div class="cards">
-                <div>
+                <div class="box">
                     <strong>Campaign</strong>
                     <span>${newCampaign.name} (${newCampaign.slug})</span>
                 </div>
-                <div>
+                <div class="box">
                     <strong>Campaign description</strong>
                     <span class="description">${newCampaign.description}</span>
                     <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
                 </div>
-                <div>
+                <div class="box">
                     <strong>Created</strong>
                     <span>${new Date(newCampaign.created).toLocaleString()}</span>
                 </div>
-                <div>
+                <div class="box">
                     <strong>Last update</strong>
                     <span class="last-updated">${new Date(newCampaign.lastUpdated).toLocaleString()}</span>
                 </div>
@@ -375,14 +383,15 @@ export default async function renderCampaignsOverview({
         }).catch(() => null);
 
         if (deleteReq?.ok) {
+          const emailsToDelete = [...container.querySelectorAll(`.campaign-${campaignSlug} .emails tr[data-path]`)].map((el) => `.campaign .emails tr[data-path="${el.dataset.path}"]`);
+
+          container.querySelector(`.campaign-${campaignSlug}`).remove();
+          container.querySelectorAll(emailsToDelete.join(',')).forEach((el) => {
+            el.remove();
+          });
+
           container.querySelector(`.campaign-list[data-type="emails"] li[data-campaign="${campaignSlug}"]`).remove();
           container.querySelector('.campaign-list[data-type="emails"] a').click();
-
-          const li = container.querySelector(`.campaign-list[data-type="analytics"] li[data-campaign="${campaignSlug}"]`);
-          if (li.querySelector('.is-selected')) {
-            li.parentElement.firstElementChild.querySelector('a').classList.add('is-selected');
-          }
-          li.remove();
 
           replaceHistory(`${pathname}/emails`);
         } else {
