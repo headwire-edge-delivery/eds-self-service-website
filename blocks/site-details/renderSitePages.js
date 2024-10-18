@@ -3,7 +3,7 @@ import {
 } from '../../scripts/scripts.js';
 
 export function renderTable({
-  table, tableData, type, projectDetails,
+  table, tableData, type, projectDetails, token,
 }) {
   table.innerHTML = `
     <thead>
@@ -21,19 +21,53 @@ export function renderTable({
     const tableRow = document.createElement('tr');
 
     if (type === 'emails') {
+      const split = item.path.split('/');
+      const isDeletable = item.path.startsWith('/emails/') && split.length === 4;
+      const campaign = split[2];
+      const email = split[3];
+
+      tableRow.dataset.path = item.path;
       tableRow.innerHTML = `
-        <tr>
-            <td>${item.name}</td>
-            <td>${item.path}</td>
-            <td>${new Date(item.lastModified).toLocaleString()}</td>          
-            <td>
-              <div id="email-open-edit" class="button-container">
-                <a class="button action secondary" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
-                <a class="button action secondary" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
-              </div>
-            </td>
-        </tr>
+        <td>${item.name}</td>
+        <td>${item.path}</td>
+        <td>${new Date(item.lastModified).toLocaleString()}</td>          
+        <td>
+          <div id="email-open-edit" class="button-container">
+            <a class="button action secondary" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
+            <a class="button action secondary" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
+            ${isDeletable ? `<button class="button action secondary delete-email" data-id="${item.id}">Delete</button>` : ''}
+          </div>
+        </td>
       `;
+
+      const deleteEmail = tableRow.querySelector('.delete-email');
+      if (deleteEmail) {
+        deleteEmail.onclick = async () => {
+          if (await window.confirmDialog('Are you sure ?')) {
+            window?.zaraz?.track('click email delete');
+
+            deleteEmail.classList.add('loading');
+            const deleteReq = await fetch(`${SCRIPT_API}/campaigns/${projectDetails.projectSlug}/${campaign}/${email}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+              body: JSON.stringify({
+                id: deleteEmail.dataset.id,
+              }),
+            }).catch(() => null);
+
+            if (deleteReq?.ok) {
+              const emails = table.closest('.campaign-container').querySelectorAll(`.campaign tr[data-path="/emails/${campaign}/${email}"]`);
+              emails.forEach((el) => {
+                el.remove();
+              });
+            } else {
+              await window.alertDialog(OOPS);
+            }
+            deleteEmail.classList.remove('loading');
+          }
+        };
+      }
+
       return tableRow;
     }
 

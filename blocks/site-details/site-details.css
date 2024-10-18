@@ -71,10 +71,6 @@
     flex: 1;
 }
 
-.site-details.block .project-container .cards .box .button {
-    align-self: center;
-}
-
 .site-details .danger-zone {
     border: 1px solid var(--red);
     margin-block: 32px;
