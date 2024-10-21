@@ -192,6 +192,10 @@ dialog .admin img {
   font-weight: 500;
 }
 
+:is(.dashboard.block, dialog) .admin table [data-column="event"] {
+  text-transform: capitalize;
+}
+
 .dashboard.block .admin table + .button-container:has(button:only-child) {
   display: none;
 }
