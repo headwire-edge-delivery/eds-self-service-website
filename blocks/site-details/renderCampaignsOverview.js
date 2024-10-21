@@ -291,7 +291,9 @@ export default async function renderCampaignsOverview({
           table: campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`), tableData: newCampaignEmails, type: 'emails', projectDetails, token,
         });
 
-        campaignList.querySelector('li:last-child a').click();
+        const link = campaignList.querySelector('li:last-child a');
+        link.click();
+        pushHistory(link.getAttribute('href'));
 
         dialog.setLoading(false);
         dialog.close();
@@ -386,9 +388,11 @@ export default async function renderCampaignsOverview({
           const emailsToDelete = [...container.querySelectorAll(`.campaign-${campaignSlug} .emails tr[data-path]`)].map((el) => `.campaign .emails tr[data-path="${el.dataset.path}"]`);
 
           container.querySelector(`.campaign-${campaignSlug}`).remove();
-          container.querySelectorAll(emailsToDelete.join(',')).forEach((el) => {
-            el.remove();
-          });
+          if (emailsToDelete.length) {
+            container.querySelectorAll(emailsToDelete.join(',')).forEach((el) => {
+              el.remove();
+            });
+          }
 
           container.querySelector(`.campaign-list[data-type="emails"] li[data-campaign="${campaignSlug}"]`).remove();
           container.querySelector('.campaign-list[data-type="emails"] a').click();
