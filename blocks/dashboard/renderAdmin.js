@@ -92,7 +92,7 @@ export default async function renderAdmin({ container, nav }) {
     } else {
       removeQueryParams([filterName]);
     }
-    functionName();
+    functionName(true);
   };
 
   const filterEventlistener = (filterClass, filterName, functionName) => {
@@ -148,7 +148,7 @@ export default async function renderAdmin({ container, nav }) {
             `);
 
       const clusterize = new Clusterize({
-        rows,
+        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
         scrollId: 'scrollArea-recent-activity',
         contentId: 'contentArea-recent-activity',
       });
@@ -200,7 +200,7 @@ export default async function renderAdmin({ container, nav }) {
       paginatorEventlistener(usersContainer, 'page', renderUsers);
 
       const clusterize = new Clusterize({
-        rows,
+        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
         scrollId: 'scrollArea-user-activity',
         contentId: 'contentArea-user-activity',
       });
@@ -254,7 +254,7 @@ export default async function renderAdmin({ container, nav }) {
       `);
 
       const clusterize = new Clusterize({
-        rows,
+        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
         scrollId: 'scrollArea-deleted-users',
         contentId: 'contentArea-deleted-users',
       });
@@ -322,13 +322,13 @@ export default async function renderAdmin({ container, nav }) {
         );
 
       if (scrollTo) {
-        window.location.hash = '#anonymous-users';
+        window.location.hash = '#anonymous-activity';
       }
 
       anonymousContainer.innerHTML = clusterizeTable('anonymous', ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device']);
 
       const clusterize = new Clusterize({
-        rows,
+        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
         rows_in_block: 80,
         scrollId: 'scrollArea-anonymous',
         contentId: 'contentArea-anonymous',
