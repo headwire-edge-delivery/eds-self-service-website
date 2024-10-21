@@ -182,10 +182,14 @@ dialog .admin img {
   word-wrap: break-word;
 }
 
-:is(.dashboard.block, dialog) .admin table :is(th) {
+:is(.dashboard.block) .admin table :is(th) {
   position: sticky;
   top: var(--header-height);
   background-color: var(--white);
+}
+
+:is(.dashboard.block, dialog.display-dialog) .admin table :is(th) {
+  top: 0 !important;
 }
 
 :is(.dashboard.block, dialog) .admin table td:first-child {
