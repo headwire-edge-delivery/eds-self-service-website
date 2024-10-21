@@ -205,7 +205,13 @@ dialog .admin img {
   word-wrap: break-word;
 }
 
-:is(.dashboard.block, dialog) .admin table :is(th) {
+:is(.dashboard.block) .admin table :is(th) {
+  position: sticky;
+  top: 0;
+  background-color: var(--white);
+}
+
+:is(dialog) .admin table :is(th) {
   position: sticky;
   top: 0;
   background-color: var(--white);

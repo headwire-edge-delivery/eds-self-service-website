@@ -112,6 +112,7 @@ export default async function renderCampaignsAnalytics({
   renderOptions,
   pushHistory,
   onHistoryPopArray,
+  replaceHistory,
 }) {
   const {
     token, siteSlug, pathname,
@@ -275,4 +276,9 @@ export default async function renderCampaignsAnalytics({
   });
 
   calculateCampaignStats(window.location.pathname.startsWith(`${pathname}/campaign-analytics/`));
+
+  if (!container.querySelector('.campaign-list .selected')) {
+    container.querySelector('.campaign-list[data-type="analytics"] a').click();
+    replaceHistory(`${pathname}/campaign-analytics`);
+  }
 }
