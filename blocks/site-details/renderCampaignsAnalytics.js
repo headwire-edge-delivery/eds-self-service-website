@@ -8,6 +8,29 @@ const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
     return '<tr><td class="empty" colspan="8">Not enough data</td></tr>';
   }
 
+  document.querySelector('.email-details').innerHTML = `
+  <div id="scrollArea" class="clusterize-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>To</th>
+          <th>Sent</th>
+          <th>Delivered</th>
+          <th>Bounced</th>
+          <th>Complained</th>
+          <th>Opened</th>
+          <th>Clicked</th>
+        </tr>
+      </thead>
+      <tbody id="contentArea" class="clusterize-content">
+        <tr class="clusterize-no-data">
+          <td>No Data found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>`;
+
   const list = Object.keys(campaignAnalyticsData)
     .sort((emailIdA, emailIdB) => {
       const sentA = campaignAnalyticsData[emailIdA].find(({ type }) => type === 'email.sent');
@@ -37,29 +60,6 @@ const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
         campaign = new URL(emailURL).pathname.split('/')[2];
       }
 
-      document.querySelector('.email-details').innerHTML = `
-      <div id="scrollArea" class="clusterize-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>To</th>
-              <th>Sent</th>
-              <th>Delivered</th>
-              <th>Bounced</th>
-              <th>Complained</th>
-              <th>Opened</th>
-              <th>Clicked</th>
-            </tr>
-          </thead>
-          <tbody id="contentArea" class="clusterize-content">
-            <tr class="clusterize-no-data">
-              <td>No Data found</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>`;
-
       return `
         <tr data-email="${emailId}" data-campaign="${campaign}">
           <td>${emailURL ? `<a href="/redirect?url=${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${subject}</a>` : subject}</td>
@@ -83,7 +83,7 @@ const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
 
   // eslint-disable-next-line no-undef
   const clusterize = new Clusterize({
-    rows,
+    rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
     scrollId: 'scrollArea',
     contentId: 'contentArea',
     callbacks: {
@@ -167,9 +167,7 @@ export default async function renderCampaignsAnalytics({
           </div>
         </div>
         
-        <div id="email-details">
-        </div>
-        <h2>Email details</h2>
+        <h2 id="email-details">Email details</h2>
         <input value="${search}" type="search" placeholder="Filter" class="filter-email-details filter">
         <div class="email-details clusterize">
           ${loadingSpinner}
