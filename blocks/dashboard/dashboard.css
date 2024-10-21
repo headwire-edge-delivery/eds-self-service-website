@@ -182,7 +182,7 @@ dialog .admin img {
   word-wrap: break-word;
 }
 
-:is(.dashboard.block) .admin table :is(th) {
+:is(.dashboard.block, dialog) .admin table :is(th) {
   position: sticky;
   top: var(--header-height);
   background-color: var(--white);
