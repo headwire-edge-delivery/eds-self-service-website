@@ -194,7 +194,6 @@ dialog .admin img {
   background-color: var(--white);
 }
 
-
 :is(.dashboard.block, dialog) .admin table td:first-child {
   font-weight: 500;
 }
