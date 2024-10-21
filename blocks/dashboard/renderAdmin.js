@@ -1,71 +1,38 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-undef */
-import {
-  OOPS,
-  SCRIPT_API,
-  waitForAuthenticated,
-  loadingSpinner,
-} from '../../scripts/scripts.js';
-import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
-import paginator from '../../libs/pagination/pagination.js';
+import { OOPS, SCRIPT_API, waitForAuthenticated } from '../../scripts/scripts.js';
 import renderAnalytics from '../../scripts/analytics.js';
 
-const paginatorEventlistener = (container, queryParam, functionName) => {
-  container.addEventListener('click', (event) => {
-    const button = event.target.closest('.paginator');
-    if (button) {
-      const newPage = Number(button.getAttribute('data-change-to'));
-      writeQueryParams({ [queryParam]: newPage });
-      container.innerHTML = `<p style="display: flex; justify-content: center;">${loadingSpinner}</p>`;
-
-      functionName(true);
-    }
-  });
-};
-
-const clusterizeTable = (id, tableHeader) => {
-  const tableHead = tableHeader.map((header) => `<th>${header}</th>`).join('');
-  return `
-  <div id="scrollArea-${id}" class="clusterize-scroll">
-    <table>
-      <thead>
-        ${tableHead}
-      </thead>
-      <tbody id="contentArea-${id}" class="clusterize-content">
-        <tr class="clusterize-no-data">
-          <td>No Data found</td>
-        </tr>
-      </tbody>
-    </table>
-</div>`;
-};
-
 export default async function renderAdmin({ container, nav }) {
-  let filterByIp = readQueryParams().ip || '';
-  let filterByMail = readQueryParams().user || '';
-  let filterByDeletedMail = readQueryParams().deleteduser || '';
-  container.innerHTML = `
-  <h2 id="web-analytics">Web analytics</h2>
-    <div class="analytics">
-      ${loadingSpinner}
-    </div>
+  nav.insertAdjacentHTML('beforeend', `
+    <a class="button secondary action" href="/site/kestrelone-emails/campaign-analytics">Campaign&nbsp;analytics</a>
+  `);
 
-    <h2 id="user-activity">User activity</h2>
-    <input value="${filterByMail}" type="search" placeholder="Filter by user email" class="filter-users filter">
-    <div class="known-users clusterize">
-      ${loadingSpinner}
+  container.innerHTML = `
+    <h2>Web analytics</h2>
+    <div class="analytics">
+        <p>
+            <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+        </p>
     </div>
     
-    <h2 id="deleted-users">Deleted users</h2>
-    <input value="${filterByDeletedMail}" type="search" placeholder="Filter by user email" class="filter-deleted-users filter">
-    <div class="deleted-users clusterize">
-      ${loadingSpinner}
+    <h2>User activity</h2>
+    <div class="known-users">
+        <p>
+            <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+        </p>
     </div>
-        
-    <h2 id="anonymous-activity">Anonymous activity</h2>
-    <input value="${filterByIp}" type="search" placeholder="Filter by IP" class="filter-anonymous filter">
-    <div class="anonymous-users clusterize">
-      ${loadingSpinner}
+    
+    <h2>Deleted users</h2>
+    <div class="deleted-users">
+        <p>
+            <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+        </p>
+    </div>
+    
+    <h2>Anonymous activity</h2>
+    <div class="anonymous-users">
+        <p>
+            <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+        </p>
     </div>
   `;
   await waitForAuthenticated();
@@ -86,27 +53,19 @@ export default async function renderAdmin({ container, nav }) {
     return false;
   };
 
-  const onFilterInput = (value, filterName, functionName) => {
-    if (value) {
-      writeQueryParams({ [filterName]: value });
+  const onFilterInput = (filterInput, filterContainer) => {
+    if (filterInput.value.length) {
+      filterContainer.querySelectorAll('tbody tr').forEach((el) => {
+        el.hidden = !el
+          .querySelector('td')
+          .textContent.toLowerCase()
+          .includes(filterInput.value.toLowerCase().trim());
+      });
     } else {
-      removeQueryParams([filterName]);
+      filterContainer.querySelectorAll('tbody tr[hidden]').forEach((el) => {
+        el.hidden = false;
+      });
     }
-    functionName(true);
-  };
-
-  const filterEventlistener = (filterClass, filterName, functionName) => {
-    // eslint-disable-next-line func-names
-    document.querySelector(filterClass).oninput = (function () {
-      let debounceTimer;
-      // eslint-disable-next-line func-names
-      return function (event) {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          onFilterInput(event.target.value, filterName, functionName);
-        }, 300);
-      };
-    }());
   };
 
   const onActivitiesClick = async (event) => {
@@ -123,35 +82,54 @@ export default async function renderAdmin({ container, nav }) {
       const tracking = await reqTracking.json();
       const timestamps = Object.keys(tracking);
 
-      const rows = timestamps.length
-        ? timestamps
-          .reverse()
-          .map(
-            (timestamp) => `<tr>
-              <td>${tracking[timestamp].event}${tracking[timestamp].isSPA ? ' SPA' : ''}</td>
-              <td>${new Date(Number(timestamp)).toLocaleString()}</td>
-              <td><a href="${tracking[timestamp].url}" target="_blank">${tracking[timestamp].url}</a></td>
-              <td>${tracking[timestamp].location?.city} - ${tracking[timestamp].location?.country}</td>
-              <td>${tracking[timestamp].ip}</td>
-              <td>${tracking[timestamp].referrer ? `<a href="${tracking[timestamp].referrer}" target="_blank">${tracking[timestamp].referrer}` : ''}</td>
-              <td>${tracking[timestamp].userAgent?.browser.name} ${tracking[timestamp].userAgent?.browser.version} ${tracking[timestamp].language}</td>
-              <td>${tracking[timestamp].userAgent?.device?.vendor ?? ''} ${tracking[timestamp].userAgent?.os.name} ${tracking[timestamp].userAgent?.os.version}</td>
-            </tr>`,
-          )
-        : ['<tr><td colspan="8" class="empty">Not enough data</td></tr>'];
-
       window.createDialog(`
-              <div class="admin clusterize">
+              <div class="admin">
                 <h3>${button.dataset.user} recent activity</h3>
-                ${clusterizeTable('recent-activity', ['Event', 'Date', 'URL', 'Location', 'IP', 'Referrer', 'Browser', 'Device'])}
+                <table>
+                  <thead>
+                      <th>Event</th>
+                      <th>Date</th>
+                      <th>URL</th>
+                      <th>Location</th>
+                      <th>IP</th>
+                      <th>Referrer</th>
+                      <th>Browser</th>
+                      <th>Device</th>
+                  </thead>
+                  <tbody>
+                      ${
+  timestamps.length
+    ? timestamps
+      .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA)))
+      .map(
+        (timestamp) => `
+                        <tr>
+                          <td>${tracking[timestamp].event}${tracking[timestamp].isSPA ? ' SPA' : ''}</td>
+                          <td>${new Date(Number(timestamp)).toLocaleString()}</td>
+                          <td><a href="${tracking[timestamp].url}" target="_blank">${tracking[timestamp].url}</a></td>
+                          <td>${tracking[timestamp].location.city} - ${tracking[timestamp].location.country}</td>
+                          <td>${tracking[timestamp].ip}</td>
+                          <td>${
+  tracking[timestamp].referrer
+    ? `<a href="${tracking[timestamp].referrer}" target="_blank">${tracking[timestamp].referrer}`
+    : ''
+}</td>
+                          <td>${tracking[timestamp].userAgent.browser.name} ${
+  tracking[timestamp].userAgent.browser.version
+} ${tracking[timestamp].language}</td>
+                          <td>${tracking[timestamp].userAgent.device?.vendor ?? ''} ${tracking[timestamp].userAgent.os.name} ${
+  tracking[timestamp].userAgent.os.version
+}</td>
+                        </tr>
+                      `,
+      )
+      .join('')
+    : '<tr><td colspan="8" class="empty">Not enough data</td></tr>'
+}
+                  </tbody>
+                </table>
               </div>
             `);
-
-      const clusterize = new Clusterize({
-        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
-        scrollId: 'scrollArea-recent-activity',
-        contentId: 'contentArea-recent-activity',
-      });
     } else {
       window.alertDialog(OOPS);
     }
@@ -159,122 +137,138 @@ export default async function renderAdmin({ container, nav }) {
     button.classList.remove('loading');
   };
 
-  const renderUsers = async (scrollTo) => {
-    filterEventlistener('.filter-users', 'user', renderUsers);
+  const renderUsers = async (page) => {
     const usersContainer = container.querySelector('.admin .known-users');
-    filterByMail = readQueryParams().user || '';
-    const page = readQueryParams().page || 1;
-    const limit = readQueryParams().limit || 100;
 
-    usersContainer.innerHTML = loadingSpinner;
+    usersContainer.innerHTML = `
+      <p>
+          <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+      </p>
+    `;
 
-    const reqUsers = await fetch(`${SCRIPT_API}/tracking?mail=${filterByMail}&page=${page}&limit=${limit}`, {
+    const reqUsers = await fetch(`${SCRIPT_API}/tracking?page=${page}`, {
       headers: {
         authorization: `bearer ${token}`,
       },
     }).catch(() => ({ ok: false }));
 
     if (reqUsers.ok) {
-      const usersJSON = await reqUsers.json();
-      const users = usersJSON.data;
-      const { pagination } = usersJSON;
+      const { users, total, limit } = await reqUsers.json();
+
+      let pages = '';
+      for (let i = 0; i < Math.ceil(total / limit); i += 1) {
+        pages += `<button class="page button action ${i === page ? 'primary' : 'secondary'}">${i + 1}</button>`;
+      }
 
       usersContainer.innerHTML = `
-        ${clusterizeTable('user-activity', ['Email', 'Name', 'Created at', 'Last login', 'Logins count', ''])}
-        ${paginator(pagination.totalItems, limit, pagination.currentPage)}
+        <input type="text" placeholder="Filter by user email" class="filter-users filter">
+        <table class="users">
+            <thead>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Created at</th>
+                <th>Last login</th>
+                <th>Logins count</th>
+                <th></th>
+            </thead>
+            <tbody>
+                ${users
+    .map(
+      (u) => `
+                  <tr>
+                    <td>${u.email}</td>
+                    <td>${u.name}</td>
+                    <td>${new Date(u.created_at).toLocaleString()}</td>
+                    <td>${new Date(u.last_login).toLocaleString()}</td>
+                    <td>${u.logins_count}</td>
+                    <td><button data-user="${u.email}" class="button action secondary">Show activity</button></td>
+                  </tr>
+                `,
+    )
+    .join('')}
+            </tbody>
+        </table>
+        <div class="button-container">
+            ${pages}
+        </div>
       `;
 
-      const rows = users?.map(
-        (u) => `
-                      <tr>
-                        <td>${u.email}</td>
-                        <td>${u.name}</td>
-                        <td>${new Date(u.created_at).toLocaleString()}</td>
-                        <td>${new Date(u.last_login).toLocaleString()}</td>
-                        <td>${u.logins_count}</td>
-                        <td><button data-user="${u.email}" class="button action secondary">Show activity</button></td>
-                      </tr>
-                    `,
-      );
+      const filterUsers = usersContainer.querySelector('.filter-users');
+      filterUsers.oninput = () => {
+        onFilterInput(filterUsers, usersContainer);
+      };
 
-      paginatorEventlistener(usersContainer, 'page', renderUsers);
-
-      const clusterize = new Clusterize({
-        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
-        scrollId: 'scrollArea-user-activity',
-        contentId: 'contentArea-user-activity',
+      usersContainer.querySelectorAll('.page').forEach((button) => {
+        button.onclick = () => {
+          renderUsers(Number(button.textContent) - 1);
+        };
       });
 
       usersContainer.querySelectorAll('button[data-user]').forEach((button) => {
         button.onclick = onActivitiesClick;
       });
-
-      if (scrollTo) {
-        window.location.hash = '#user-activity';
-      }
     } else {
       usersContainer.querySelector('p').textContent = OOPS;
     }
   };
 
-  const renderDeletedUsers = async (scrollTo) => {
-    filterEventlistener('.filter-deleted-users', 'deleteduser', renderDeletedUsers);
+  const renderDeletedUsers = async () => {
     const deletedUsersContainer = container.querySelector('.admin .deleted-users');
-    filterByDeletedMail = readQueryParams().deleteduser || '';
-    const page = readQueryParams().deletedpage || 1;
-    const limit = readQueryParams().deletedlimit || 100;
 
-    const reqDeletedUsers = await fetch(`${SCRIPT_API}/tracking/deletedUsers?user=${filterByDeletedMail}&page=${page}&limit=${limit}`, {
+    const reqDeletedUsers = await fetch(`${SCRIPT_API}/tracking/deletedUsers`, {
       headers: {
         authorization: `bearer ${token}`,
       },
     }).catch(() => ({ ok: false }));
 
     if (reqDeletedUsers.ok) {
-      const deletedUsersJSON = await reqDeletedUsers.json();
-      const deletedUsers = deletedUsersJSON.data;
-      const { pagination } = deletedUsersJSON;
+      const deletedUsers = await reqDeletedUsers.json();
 
       deletedUsersContainer.innerHTML = `
-      ${clusterizeTable('deleted-users', ['Email', 'Name', 'Created at', 'Deleted at', 'Last login', 'Logins count', ''])}
-      ${paginator(pagination.totalItems, limit, pagination.currentPage)}`;
+            <input type="text" placeholder="Filter by user email" class="filter-deleted-users filter">
+            <table class="deleted-users">
+                <thead>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Created at</th>
+                    <th>Deleted at</th>
+                    <th>Last login</th>
+                    <th>Logins count</th>
+                    <th></th>
+                </thead>
+                <tbody>
+                    ${Object.keys(deletedUsers)
+    .sort((uA, uB) => new Date(deletedUsers[uB].last_login) - new Date(deletedUsers[uA].last_login))
+    .map((u) => `
+                      <tr>
+                        <td>${deletedUsers[u].email}</td>
+                        <td>${deletedUsers[u].name}</td>
+                        <td>${new Date(deletedUsers[u].created_at).toLocaleString()}</td>
+                        <td>${new Date(deletedUsers[u].deleted_at).toLocaleString()}</td>
+                        <td>${new Date(deletedUsers[u].last_login).toLocaleString()}</td>
+                        <td>${deletedUsers[u].logins_count}</td>
+                        <td><button data-user="${deletedUsers[u].email}" class="button action secondary">Show activity</button></td>
+                      </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+          `;
 
-      paginatorEventlistener(deletedUsersContainer, 'deletedpage', renderDeletedUsers);
-
-      const rows = Object.keys(deletedUsers).map((u) => `
-        <tr>
-          <td>${deletedUsers[u].email}</td>
-          <td>${deletedUsers[u].name}</td>
-          <td>${new Date(deletedUsers[u].created_at).toLocaleString()}</td>
-          <td>${new Date(deletedUsers[u].deleted_at).toLocaleString()}</td>
-          <td>${new Date(deletedUsers[u].last_login).toLocaleString()}</td>
-          <td>${deletedUsers[u].logins_count}</td>
-          <td><button data-user="${deletedUsers[u].email}" class="button action secondary">Show activity</button></td>
-        </tr>
-      `);
-
-      const clusterize = new Clusterize({
-        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
-        scrollId: 'scrollArea-deleted-users',
-        contentId: 'contentArea-deleted-users',
-      });
+      const filterDeletedUsers = deletedUsersContainer.querySelector('.filter-deleted-users');
+      filterDeletedUsers.oninput = () => {
+        onFilterInput(filterDeletedUsers, deletedUsersContainer);
+      };
 
       deletedUsersContainer.querySelectorAll('button[data-user]').forEach((button) => {
         button.onclick = onActivitiesClick;
       });
-
-      if (scrollTo) {
-        window.location.hash = '#deleted-users';
-      }
     } else {
       deletedUsersContainer.querySelector('p').textContent = OOPS;
     }
   };
 
-  const renderAnonymous = async (scrollTo) => {
+  const renderAnonymous = async () => {
     const anonymousContainer = container.querySelector('.admin .anonymous-users');
-    filterEventlistener('.filter-anonymous', 'ip', renderAnonymous);
-    filterByIp = readQueryParams().ip || '';
 
     const reqAnonymous = await fetch(`${SCRIPT_API}/tracking?user=anonymous`, {
       headers: {
@@ -288,53 +282,74 @@ export default async function renderAdmin({ container, nav }) {
       const timestamps = {};
       ips.forEach((ip) => {
         Object.keys(anonymous[ip]).forEach((timestamp) => {
-          if (!filterByIp || ip.includes(filterByIp.replaceAll('.', '(DOT)'))) {
-            timestamps[timestamp] = anonymous[ip][timestamp];
-          }
+          timestamps[timestamp] = anonymous[ip][timestamp];
         });
       });
 
-      const rows = Object.keys(timestamps)
-        .sort((timestampA, timestampB) => new Date(Number(timestampB))
-         - new Date(Number(timestampA)))
-        .map(
-          (timestamp) => (['server api request', 'server page request', 'server redirect request'].includes(timestamps[timestamp].event) ? `
-          <tr>
-            <td>${timestamps[timestamp].ip}</td>
-            <td>${timestamps[timestamp].event}</td>
-            <td>${new Date(Number(timestamp)).toLocaleString()}</td>
-            <td><a href="${timestamps[timestamp].url}" target="_blank">${timestamps[timestamp].url}</a></td>
-            <td>${timestamps[timestamp].city ?? ''} ${timestamps[timestamp].country}</td>
-            <td>${timestamps[timestamp].referrer ? `<a href="${timestamps[timestamp].referrer}" target="_blank">${timestamps[timestamp].referrer}</a>` : ''}</td>
-            <td>${timestamps[timestamp].browser ?? ''} ${timestamps[timestamp].language ?? ''}</td>
-            <td>${timestamps[timestamp].platform?.replaceAll('"', '') ?? ''}</td>
-          </tr>` : `
-          <tr>
-            <td>${timestamps[timestamp].ip}</td>
-            <td>${timestamps[timestamp].event}${timestamps[timestamp].isSPA ? ' SPA' : ''}</td>
-            <td>${new Date(Number(timestamp)).toLocaleString()}</td>
-            <td><a href="${timestamps[timestamp].url}" target="_blank">${timestamps[timestamp].url}</a></td>
-            <td>${timestamps[timestamp].location.city} - ${timestamps[timestamp].location.country}</td>
-            <td>${timestamps[timestamp].referrer ? `<a href="${timestamps[timestamp].referrer}" target="_blank">${timestamps[timestamp].referrer}</a>` : 'None'}</td>
-            <td>${timestamps[timestamp].userAgent.browser.name} ${timestamps[timestamp].userAgent.browser.version} ${timestamps[timestamp].language}</td>
-            <td>${timestamps[timestamp].userAgent.device?.vendor ?? 'Unknwon'} ${timestamps[timestamp].userAgent.os.name} ${timestamps[timestamp].userAgent.os.version}</td>
-          </tr>`).trim(),
-        );
+      anonymousContainer.innerHTML = `
+        <input type="text" placeholder="Filter by IP" class="filter-anonymous filter">
+        <table class="anonymous">
+            <thead>
+                <th>IP</th>
+                <th>Event</th>
+                <th>Date</th>
+                <th>URL</th>
+                <th>Location</th>
+                <th>Referrer</th>
+                <th>Browser</th>
+                <th>Device</th>
+            </thead>
+            <tbody>
+              ${Object.keys(timestamps)
+    .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA)))
+    .map(
+      (timestamp) => (['server api request', 'server page request', 'server redirect request'].includes(timestamps[timestamp].event) ? `
+                        <tr>
+                          <td>${timestamps[timestamp].ip}</td>
+                          <td>${timestamps[timestamp].event}</td>
+                          <td>${new Date(Number(timestamp)).toLocaleString()}</td>
+                          <td><a href="${timestamps[timestamp].url}" target="_blank">${timestamps[timestamp].url}</a></td>
+                          <td>${timestamps[timestamp].city ?? ''} ${timestamps[timestamp].country}</td>
+                          
+                          <td>${timestamps[timestamp].referrer ? `<a href="${timestamps[timestamp].referrer}" target="_blank">${timestamps[timestamp].referrer}</a>` : ''}</td>
+                          <td>${timestamps[timestamp].browser ?? ''} ${timestamps[timestamp].language ?? ''}</td>
+                          <td>${timestamps[timestamp].platform ?? ''}</td>
+                        </tr>
+                    ` : `
+                    <tr>
+                      <td>${timestamps[timestamp].ip}</td>
+                      <td>${timestamps[timestamp].event}${timestamps[timestamp].isSPA ? ' SPA' : ''}</td>
+                      <td>${new Date(Number(timestamp)).toLocaleString()}</td>
+                      <td><a href="${timestamps[timestamp].url}" target="_blank">${
+          timestamps[timestamp].url
+        }</a></td>
+                                  <td>${timestamps[timestamp].location.city} - ${timestamps[timestamp].location.country}</td>
+                                  
+                                  <td>${
+        timestamps[timestamp].referrer
+          ? `<a href="${timestamps[timestamp].referrer}" target="_blank">${timestamps[timestamp].referrer}</a>`
+          : ''
+        }</td>
+                                  <td>${timestamps[timestamp].userAgent.browser.name} ${
+          timestamps[timestamp].userAgent.browser.version
+        } ${timestamps[timestamp].language}</td>
+                                  <td>${timestamps[timestamp].userAgent.device?.vendor ?? ''} ${
+          timestamps[timestamp].userAgent.os.name
+        } ${timestamps[timestamp].userAgent.os.version}</td>
+                                </tr>
+                              `),
+    )
+    .join('')}
+            </tbody>
+        </table>
+      `;
 
-      if (scrollTo) {
-        window.location.hash = '#anonymous-activity';
-      }
-
-      anonymousContainer.innerHTML = clusterizeTable('anonymous', ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device']);
-
-      const clusterize = new Clusterize({
-        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
-        rows_in_block: 80,
-        scrollId: 'scrollArea-anonymous',
-        contentId: 'contentArea-anonymous',
-      });
+      const filterAnonymous = anonymousContainer.querySelector('.filter-anonymous');
+      filterAnonymous.oninput = () => {
+        onFilterInput(filterAnonymous, anonymousContainer);
+      };
     } else {
-      anonymousContainer.textContent = OOPS;
+      anonymousContainer.querySelector('p').textContent = OOPS;
     }
   };
 
@@ -347,7 +362,7 @@ export default async function renderAdmin({ container, nav }) {
     });
   });
 
-  renderUsers();
+  renderUsers(0);
   renderDeletedUsers();
   renderAnonymous();
 }
