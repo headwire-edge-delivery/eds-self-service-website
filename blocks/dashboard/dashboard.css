@@ -18,11 +18,6 @@
   padding: 12px 20px 12px 40px;
 }
 
-.dashboard.block .filter::-webkit-search-cancel-button {
-    cursor: pointer;
-    padding: 2px;
-}
-
 .dashboard.block h1 {
   font-size: 16px;
   padding: 0;
@@ -32,21 +27,6 @@
 .dashboard.block h2 {
   font-size: 16px;
   padding-block: 0;
-}
-
-.dashboard.block .sites .owner-selector {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin: 0 0 16px;
-}
-
-.dashboard.block .sites .owner-selector .button.is-selected {
-    background-color: var(--light-blue);
-    color: white;
-    border-color: var(--light-blue);
 }
 
 .dashboard.block .sites ul {
@@ -169,14 +149,11 @@ dialog:has(.admin) {
   width: auto;
 }
 
-:is(.dashboard.block, dialog) .admin .clusterize {
-  margin-top: 48px;
-  margin-bottom: 48px;
-}
-
 :is(.dashboard.block, dialog) .admin table {
   width: 100%;
-  table-layout: fixed;  
+  table-layout: fixed;
+  margin-top: 48px;
+  margin-bottom: 48px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -207,7 +184,7 @@ dialog .admin img {
 
 :is(.dashboard.block) .admin table :is(th) {
   position: sticky;
-  top: 0;
+  top: var(--header-height);
   background-color: var(--white);
 }
 

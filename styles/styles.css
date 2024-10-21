@@ -390,11 +390,6 @@ table:has(tbody:empty) {
   display: none;
 }
 
-.clusterize-scroll {
-  max-height: calc(100vh / 2) !important;
-  height: 100%;
-}
-
 /* MARK: Dialogs */
 dialog {
   padding: 0;
