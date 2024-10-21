@@ -19,6 +19,7 @@ export const SCRIPT_API = window.location.hostname === 'localhost'
   ? 'http://localhost:4000' : 'https://api.kestrelone.com';
 export const EMAIL_WORKER_API = 'https://emails.headwire.workers.dev';
 export const OOPS = 'Oops ! Something went wrong …';
+export const loadingSpinner = '<p><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p>';
 
 export const defaultBranch = 'main';
 export const projectRepo = 'headwire-self-service';
@@ -289,6 +290,10 @@ export function createTabs({
         let link = tab.href;
         if (window.location.pathname.startsWith(tab.href)) {
           link = window.location.pathname;
+        }
+        // keep the query params
+        if (window.location.search) {
+          link += window.location.search;
         }
         replaceHistory(link);
       }
