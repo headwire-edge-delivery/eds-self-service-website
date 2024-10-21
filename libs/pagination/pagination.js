@@ -41,8 +41,8 @@ const paginator = (quantity, limit, page) => {
   return `
     <div class="pagination-container" data-current-page="${currentPage}">
       ${currentPage > 1 ? `<button data-change-to="${currentPage - 1}" class="paginator prev">prev</button>` : ''}
-      ${startPage >= 1 ? `<button data-change-to="1" class="paginator${currentPage === 1 ? ' active' : ''}">1</button>${showFirstEllipsis ? '<span class="paginator ellipsis">...</span>' : ''}` : ''}
-      ${Array.from({ length: pages }, (_, i) => i + 2).filter((p) => pageFilter(p)).map((p) => `<button data-change-to="${p}" class="paginator${p === currentPage ? ' active' : ''}">${p}</button>`).join('')}
+      ${startPage >= 1 ? `<button data-change-to="1" ${currentPage === 1 ? ' disabled' : ''} class="paginator${currentPage === 1 ? ' active' : ''}">1</button>${showFirstEllipsis ? '<span class="paginator ellipsis">...</span>' : ''}` : ''}
+      ${Array.from({ length: pages }, (_, i) => i + 2).filter((p) => pageFilter(p)).map((p) => `<button data-change-to="${p}" ${p === currentPage ? 'disabled' : ''} class="paginator${p === currentPage ? ' active' : ''}">${p}</button>`).join('')}
       ${(() => {
     if (showSecondEllipsis) {
       return '<span class="paginator ellipsis">...</span>';

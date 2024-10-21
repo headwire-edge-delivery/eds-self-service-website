@@ -169,11 +169,14 @@ dialog:has(.admin) {
   width: auto;
 }
 
-:is(.dashboard.block, dialog) .admin table {
-  width: 100%;
-  table-layout: fixed;
+:is(.dashboard.block, dialog) .admin .clusterize {
   margin-top: 48px;
   margin-bottom: 48px;
+}
+
+:is(.dashboard.block, dialog) .admin table {
+  width: 100%;
+  table-layout: fixed;  
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -204,7 +207,7 @@ dialog .admin img {
 
 :is(.dashboard.block, dialog) .admin table :is(th) {
   position: sticky;
-  top: var(--header-height);
+  top: 0;
   background-color: var(--white);
 }
 

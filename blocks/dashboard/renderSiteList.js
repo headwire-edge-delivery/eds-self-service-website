@@ -27,7 +27,8 @@ const generateThumbnails = () => {
   });
 };
 
-async function fetchProjects(token, userSettings, type = 'googleDrive', scrollTop = false) {
+async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
+  const userSettings = await getUserSettings(SCRIPT_API);
   let currentPage = parseInt(readQueryParams().page, 10) || 1;
   let currentDaPage = parseInt(readQueryParams().dapage, 10) || 1;
   const limit = parseInt(readQueryParams().limit, 10) || 9;
@@ -40,19 +41,16 @@ async function fetchProjects(token, userSettings, type = 'googleDrive', scrollTo
   const actualPage = isDarkAlley ? currentDaPage : currentPage;
   const url = `${SCRIPT_API}/${isDarkAlley ? 'darkAlleyList' : 'list'}?search=${encodeURIComponent(search)}&limit=${currentLimit}&page=${actualPage}&owner=${owner}`;
 
-  const title = `<h3>${isDarkAlley ? 'Dark Alley Sites (Experimental)' : 'Google Drive Sites'}</h3>`;
-  fetch(url, {
-    headers: {
-      'content-type': 'application/json',
-      authorization: `bearer ${token}`,
-    },
-  }).then((response) => response.json())
-    .then(({ projects, pagination }) => {
-      if (projects.length === 0) {
-        sitesList.innerHTML = `${title}<p>No Sites found</p>`;
-        return;
-      }
-      sitesList.innerHTML = `
+  const title = isDarkAlley ? '<h3 id="da-sites">Dark Alley Sites (Experimental)</h3>' : '<h3 id="sites">Google Drive Sites</h3>';
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'content-type': 'application/json',
+        authorization: `bearer ${token}`,
+      },
+    });
+    const { projects, pagination } = await response.json();
+    sitesList.innerHTML = `
             ${title}
             <ul id="my-sites-overview">
               ${projects.map(({ projectSlug, projectName, projectDescription }) => `
@@ -71,46 +69,49 @@ async function fetchProjects(token, userSettings, type = 'googleDrive', scrollTo
             ${paginator(pagination.totalItems, currentLimit, actualPage)}
           `;
 
-      const newSitesList = sitesList.cloneNode(true);
-      // This clears the old event listeners
-      sitesList.replaceWith(newSitesList);
+    const newSitesList = sitesList.cloneNode(true);
+    // This clears the old event listeners
+    sitesList.replaceWith(newSitesList);
 
-      newSitesList.addEventListener('click', (event) => {
-        const { scrollY } = window;
-        const button = event.target.closest('.paginator');
-        if (button) {
-          const newPage = Number(button.getAttribute('data-change-to'));
-          if (isDarkAlley) {
-            currentDaPage = newPage;
-            writeQueryParams({ dapage: currentDaPage });
-          } else {
-            currentPage = newPage;
-            writeQueryParams({ page: currentPage });
-          }
-          newSitesList.innerHTML = '<p style="display: flex; justify-content: center;"><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p>';
-
-          fetchProjects(token, userSettings, type, scrollY);
+    newSitesList.addEventListener('click', (event) => {
+      const { scrollY } = window;
+      const button = event.target.closest('.paginator');
+      if (button) {
+        const newPage = Number(button.getAttribute('data-change-to'));
+        if (isDarkAlley) {
+          currentDaPage = newPage;
+          writeQueryParams({ dapage: currentDaPage });
+        } else {
+          currentPage = newPage;
+          writeQueryParams({ page: currentPage });
         }
-      });
+        newSitesList.innerHTML = '<p style="display: flex; justify-content: center;"><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p>';
 
-      generateThumbnails();
-
-      if (scrollTop) {
-        // restores the scroll position
-        window.scrollTo(0, scrollTop);
+        fetchProjects(token, type, scrollY);
       }
-    }).catch(() => {
-      sitesList.innerHTML = `${title}<p>${OOPS}</p>`;
     });
+
+    generateThumbnails();
+
+    if (scrollTo) {
+      window.location.hash = `#${isDarkAlley ? 'da-sites' : 'sites'}`;
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(error);
+    sitesList.innerHTML = `${title}<p>${OOPS}</p>`;
+  }
 }
 
 export default async function renderSites({ container, nav }) {
   const userSettings = await getUserSettings(SCRIPT_API);
   const token = await window.auth0Client.getTokenSilently();
   // List all sites (Dark Alley & Google Drive)
-  const fetchAllSites = (scrollTop = false) => {
-    fetchProjects(token, userSettings, 'darkAlley', scrollTop);
-    fetchProjects(token, userSettings, 'googleDrive', scrollTop);
+  const fetchAllSites = (scrollTo = false) => {
+    container.querySelector('.sites-list-dark-alley').innerHTML = '<div class="sites"><p><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p></div>';
+    container.querySelector('.sites-list-google-drive').innerHTML = '<div class="sites"><p><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p></div>';
+    fetchProjects(token, 'darkAlley', scrollTo);
+    fetchProjects(token, 'googleDrive', scrollTo);
   };
 
   container.innerHTML = '<div class="sites"><p><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p></div>';
@@ -132,6 +133,9 @@ export default async function renderSites({ container, nav }) {
   ownerSelectorContainer.addEventListener('click', async (event) => {
     const ownerSelector = event.target.closest('li');
     if (ownerSelector) {
+      if (ownerSelector.querySelector('div').classList.contains('is-selected')) {
+        return;
+      }
       const newOwner = ownerSelector.getAttribute('data-owner');
       const success = await updateUserSettings({ filterByOwner: newOwner });
       if (!success) {
@@ -139,7 +143,6 @@ export default async function renderSites({ container, nav }) {
       }
       ownerSelectorContainer.querySelector('.is-selected').classList.remove('is-selected');
       ownerSelector.querySelector('.button').classList.add('is-selected');
-      writeQueryParams({ owner: newOwner });
       fetchAllSites();
     }
   });
