@@ -1,4 +1,6 @@
-import { OOPS, SCRIPT_API, waitForAuthenticated } from '../../scripts/scripts.js';
+import {
+  dateToRelativeString, OOPS, SCRIPT_API, waitForAuthenticated,
+} from '../../scripts/scripts.js';
 import renderAnalytics from '../../scripts/analytics.js';
 import { toClassName } from '../../scripts/aem.js';
 
@@ -37,8 +39,13 @@ function parseBrowser(str) {
   }
 }
 
-function createTable({ headers, rows, tableClass = '' }) {
-  const columns = [];
+function createTable({
+  headers, rows, tableClass = '', columns = [],
+}) {
+  if (!columns || !columns.length) {
+    // eslint-disable-next-line no-param-reassign
+    columns = headers.map(toClassName);
+  }
   const table = document.createElement('table');
   table.className = tableClass;
 
@@ -49,12 +56,11 @@ function createTable({ headers, rows, tableClass = '' }) {
 
   const headRow = document.createElement('tr');
   thead.append(headRow);
-  for (const header of headers) {
+
+  for (let i = 0; i < headers.length; i += 1) {
     const th = document.createElement('th');
-    th.textContent = header;
-    const columnFromHeader = toClassName(header);
-    th.dataset.column = columnFromHeader;
-    columns.push(columnFromHeader);
+    th.textContent = headers[i];
+    th.dataset.column = columns[i];
     headRow.append(th);
   }
 
@@ -63,14 +69,23 @@ function createTable({ headers, rows, tableClass = '' }) {
     for (const column of columns) {
       const td = document.createElement('td');
       const rowColumnItem = row[column];
+      td.dataset.column = column;
+      // add empty if undefined
       if (!rowColumnItem) {
         tr.append(td);
         continue;
       }
-      td.dataset.column = column;
-      if (typeof rowColumnItem === 'string') {
+      // write html if defined
+      if (rowColumnItem.html) {
+        td.innerHTML = rowColumnItem.html;
+        tr.append(td);
+        continue;
+      }
+      // directly add string or number
+      if (['string', 'number'].includes(typeof rowColumnItem)) {
         td.textContent = rowColumnItem || '';
       } else {
+        // add object
         const { link, value, title } = rowColumnItem;
         let textContainer = td;
         // add link
@@ -93,6 +108,7 @@ function createTable({ headers, rows, tableClass = '' }) {
   return { table, thead, tbody };
 }
 
+// MARK: render
 export default async function renderAdmin({ container, nav }) {
   nav.insertAdjacentHTML('beforeend', `
     <a class="button secondary action" href="/site/kestrelone-emails/campaign-analytics">Campaign&nbsp;analytics</a>
@@ -246,44 +262,38 @@ export default async function renderAdmin({ container, nav }) {
 
     if (reqUsers.ok) {
       const { users, total, limit } = await reqUsers.json();
+      console.log('users:', users);
 
       let pages = '';
       for (let i = 0; i < Math.ceil(total / limit); i += 1) {
         pages += `<button class="page button action ${i === page ? 'primary' : 'secondary'}">${i + 1}</button>`;
       }
 
-      usersContainer.innerHTML = `
-        <input type="text" placeholder="Filter by user email" class="filter-users filter">
-        <table class="users">
-            <thead>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Created at</th>
-                <th>Last login</th>
-                <th>Logins count</th>
-                <th></th>
-            </thead>
-            <tbody>
-                ${users
-    .map(
-      (u) => `
-                  <tr>
-                    <td>${u.email}</td>
-                    <td>${u.name}</td>
-                    <td>${new Date(u.created_at).toLocaleString()}</td>
-                    <td>${new Date(u.last_login).toLocaleString()}</td>
-                    <td>${u.logins_count}</td>
-                    <td><button data-user="${u.email}" class="button action secondary">Show activity</button></td>
-                  </tr>
-                `,
-    )
-    .join('')}
-            </tbody>
-        </table>
-        <div class="button-container">
-            ${pages}
-        </div>
-      `;
+      const usersTable = createTable({
+        headers: ['Email', 'Name', 'Created at', 'Last login', 'Logins count', ''],
+        columns: ['email', 'name', 'created_at', 'last_login', 'logins_count', 'buttons'],
+        rows: users.map((u) => {
+          const createdAt = new Date(u.created_at);
+          const lastLogin = new Date(u.last_login);
+          return {
+            ...u,
+            created_at: {
+              title: createdAt.toLocaleString(),
+              value: dateToRelativeString(createdAt),
+            },
+            last_login: {
+              title: lastLogin.toLocaleString(),
+              value: dateToRelativeString(lastLogin),
+            },
+            buttons: {
+              html: `<button data-user="${u.email}" class="button action secondary">Show activity</button>`,
+            },
+          };
+        }),
+      });
+
+      usersContainer.innerHTML = '<input type="text" placeholder="Filter by user email" class="filter-users filter">';
+      usersContainer.appendChild(usersTable.table);
 
       const filterUsers = usersContainer.querySelector('.filter-users');
       filterUsers.oninput = () => {
@@ -316,35 +326,42 @@ export default async function renderAdmin({ container, nav }) {
     if (reqDeletedUsers.ok) {
       const deletedUsers = await reqDeletedUsers.json();
 
-      deletedUsersContainer.innerHTML = `
-            <input type="text" placeholder="Filter by user email" class="filter-deleted-users filter">
-            <table class="deleted-users">
-                <thead>
-                    <th>Email</th>
-                    <th>Name</th>
-                    <th>Created at</th>
-                    <th>Deleted at</th>
-                    <th>Last login</th>
-                    <th>Logins count</th>
-                    <th></th>
-                </thead>
-                <tbody>
-                    ${Object.keys(deletedUsers)
-    .sort((uA, uB) => new Date(deletedUsers[uB].last_login) - new Date(deletedUsers[uA].last_login))
-    .map((u) => `
-                      <tr>
-                        <td>${deletedUsers[u].email}</td>
-                        <td>${deletedUsers[u].name}</td>
-                        <td>${new Date(deletedUsers[u].created_at).toLocaleString()}</td>
-                        <td>${new Date(deletedUsers[u].deleted_at).toLocaleString()}</td>
-                        <td>${new Date(deletedUsers[u].last_login).toLocaleString()}</td>
-                        <td>${deletedUsers[u].logins_count}</td>
-                        <td><button data-user="${deletedUsers[u].email}" class="button action secondary">Show activity</button></td>
-                      </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-          `;
+      const deletedUsersTable = createTable({
+        tableClass: 'deleted-users',
+        headers: ['Email', 'Name', 'Created at', 'Deleted at', 'Last login', 'Logins count', ''],
+        columns: ['email', 'name', 'created_at', 'deleted_at', 'last_login', 'logins_count', 'buttons'],
+        rows: Object.keys(deletedUsers.data)
+          .sort((uA, uB) => new Date(deletedUsers.data[uB].deleted_at) - new Date(deletedUsers.data[uA].deleted_at))
+          .map((u) => {
+            const user = deletedUsers.data[u];
+            const createdAt = new Date(user.created_at);
+            const deletedAt = new Date(user.deleted_at);
+            const lastLogin = new Date(user.last_login);
+
+            return {
+              ...user,
+              created_at: {
+                title: createdAt.toLocaleString(),
+                value: dateToRelativeString(createdAt),
+              },
+              deleted_at: {
+                title: deletedAt.toLocaleString(),
+                value: dateToRelativeString(deletedAt),
+              },
+              last_login: {
+                title: lastLogin.toLocaleString(),
+                value: dateToRelativeString(lastLogin),
+              },
+              buttons: {
+                html: `<button data-user="${user.email}" class="button action secondary">Show activity</button>`,
+              },
+            };
+          }),
+      });
+
+      deletedUsersContainer.innerHTML = '<input type="text" placeholder="Filter by user email" class="filter-deleted-users filter">';
+
+      deletedUsersContainer.append(deletedUsersTable.table);
 
       const filterDeletedUsers = deletedUsersContainer.querySelector('.filter-deleted-users');
       filterDeletedUsers.oninput = () => {
@@ -379,27 +396,21 @@ export default async function renderAdmin({ container, nav }) {
         });
       });
 
-
-
       const anonymousTable = createTable({
+        tableClass: 'anonymous',
         headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
         rows: Object.keys(timestamps)
           .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA)))
           .map((timestamp) => {
             const serverEvent = ['server api request', 'server page request', 'server redirect request'].includes(timestamps[timestamp].event);
+            const timestampDate = new Date(Number(timestamp));
 
             return {
               ip: timestamps[timestamp].ip,
               event: timestamps[timestamp].event + (!serverEvent && timestamps[timestamp].isSPA ? ' SPA' : ''),
               date: {
-                value: new Date(Number(timestamp)).toLocaleString({
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                }),
-                title: new Date(Number(timestamp)).toLocaleString(),
+                value: dateToRelativeString(timestampDate),
+                title: timestampDate.toLocaleString(),
               },
               url: {
                 value: timestamps[timestamp].url.replace(SCRIPT_API, ''),
@@ -435,71 +446,6 @@ export default async function renderAdmin({ container, nav }) {
 
       anonymousContainer.innerHTML = '<input type="text" placeholder="Filter by IP" class="filter-anonymous filter">';
       anonymousContainer.append(anonymousTable.table);
-
-      //       anonymousContainer.innerHTML = `
-      //         <input type="text" placeholder="Filter by IP" class="filter-anonymous filter">
-      //         <table class="anonymous">
-      //             <thead>
-      //                 <th data-column="ip">IP</th>
-      //                 <th data-column="event">Event</th>
-      //                 <th data-column="date">Date</th>
-      //                 <th data-column="url">URL</th>
-      //                 <th data-column="location">Location</th>
-      //                 <th data-column="referrer">Referrer</th>
-      //                 <th data-column="browser">Browser</th>
-      //                 <th data-column="device">Device</th>
-      //             </thead>
-      //             <tbody>
-      //               ${Object.keys(timestamps)
-      //     .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA)))
-      //     .map(
-      //       (timestamp) => (['server api request', 'server page request', 'server redirect request'].includes(timestamps[timestamp].event) ? `
-      //     <tr>
-      //       <td data-column="ip">${timestamps[timestamp].ip}</td>
-      //       <td data-column="event">${timestamps[timestamp].event}</td>
-      //       <td data-column="date">${new Date(Number(timestamp)).toLocaleString()}</td>
-      //       <td data-column="url"><a href="${timestamps[timestamp].url}" target="_blank">${timestamps[timestamp].url}</a></td>
-      //       <td data-column="location">${timestamps[timestamp].city ?? ''} ${timestamps[timestamp].country}</td>
-
-      //       <td data-column="referrer">${timestamps[timestamp].referrer ? `<a href="${timestamps[timestamp].referrer}" target="_blank">${timestamps[timestamp].referrer}</a>` : ''}</td>
-
-      //       <td data-column="browser" title="${
-      //         timestamps[timestamp].browser ? `Full sec-ch-ua header: ${timestamps[timestamp].browser.replaceAll('"', '&quot;')}` : ''}
-
-      // ${timestamps[timestamp].language ? `Full accept-language header: ${timestamps[timestamp].language.replaceAll('"', '&quot;')}` : ''}
-      // ">${parseBrowser(timestamps[timestamp].browser) ?? ''}${timestamps[timestamp].language && timestamps[timestamp].browser ? ', ' : ''}
-      //     ${parseAcceptLanguage(timestamps[timestamp].language) ?? ''}</td>
-
-      //     <td data-column="device">${timestamps[timestamp].platform?.replace(/"/g, '') ?? ''}</td>
-      //   </tr>
-      // ` : `
-      // <tr>
-      // <td>${timestamps[timestamp].ip}</td>
-      // <td>${timestamps[timestamp].event}${timestamps[timestamp].isSPA ? ' SPA' : ''}</td>
-      // <td>${new Date(Number(timestamp)).toLocaleString()}</td>
-      // <td><a href="${timestamps[timestamp].url}" target="_blank">${
-      //           timestamps[timestamp].url
-      //         }</a></td>
-      //                                   <td>${timestamps[timestamp].location.city} - ${timestamps[timestamp].location.country}</td>
-
-      //                                   <td>${
-      //         timestamps[timestamp].referrer
-      //           ? `<a href="${timestamps[timestamp].referrer}" target="_blank">${timestamps[timestamp].referrer}</a>`
-      //           : ''
-      //         }</td>
-      //                                   <td>${timestamps[timestamp].userAgent.browser.name} ${
-      //           timestamps[timestamp].userAgent.browser.version
-      //         } ${timestamps[timestamp].language}</td>
-      //                                   <td>${timestamps[timestamp].userAgent.device?.vendor ?? ''} ${
-      //           timestamps[timestamp].userAgent.os.name
-      //         } ${timestamps[timestamp].userAgent.os.version}</td>
-      //                                 </tr>
-      //                               `),
-      //     )
-      //     .join('')}
-      //             </tbody>
-      //         </table>
-      //       `;
 
       const filterAnonymous = anonymousContainer.querySelector('.filter-anonymous');
       filterAnonymous.oninput = () => {
