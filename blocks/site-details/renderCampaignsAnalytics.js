@@ -1,12 +1,37 @@
+import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import {
-  EMAIL_WORKER_API, parseFragment, SCRIPT_API,
+  EMAIL_WORKER_API, loadingSpinner, parseFragment, SCRIPT_API,
 } from '../../scripts/scripts.js';
 
-function createAnalyticsTableContent(campaignAnalyticsData) {
+const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
   if (!campaignAnalyticsData) {
     return '<tr><td class="empty" colspan="8">Not enough data</td></tr>';
   }
-  return Object.keys(campaignAnalyticsData)
+
+  document.querySelector('.email-details').innerHTML = `
+  <div id="scrollArea" class="clusterize-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>To</th>
+          <th>Sent</th>
+          <th>Delivered</th>
+          <th>Bounced</th>
+          <th>Complained</th>
+          <th>Opened</th>
+          <th>Clicked</th>
+        </tr>
+      </thead>
+      <tbody id="contentArea" class="clusterize-content">
+        <tr class="clusterize-no-data">
+          <td>No Data found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>`;
+
+  const list = Object.keys(campaignAnalyticsData)
     .sort((emailIdA, emailIdB) => {
       const sentA = campaignAnalyticsData[emailIdA].find(({ type }) => type === 'email.sent');
       const sentB = campaignAnalyticsData[emailIdB].find(({ type }) => type === 'email.sent');
@@ -16,15 +41,17 @@ function createAnalyticsTableContent(campaignAnalyticsData) {
       return 0;
     })
     .map((emailId) => {
+      const { subject } = campaignAnalyticsData[emailId][0].data;
+      if (!subject.toLowerCase().includes(search.toLowerCase())) {
+        return null;
+      }
       const reverse = campaignAnalyticsData[emailId].reverse();
-
       const sent = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.sent');
       const delivered = reverse.find(({ type }) => type === 'email.delivered');
       const complained = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.complained');
       const bounced = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.bounced');
       const opened = reverse.find(({ type }) => type === 'email.opened');
       const clicks = campaignAnalyticsData[emailId].filter(({ type }) => type === 'email.clicked');
-
       const emailURL = campaignAnalyticsData[emailId][0].data.headers.find(({ name }) => name === 'X-Email-Url')?.value;
 
       let campaign;
@@ -33,44 +60,52 @@ function createAnalyticsTableContent(campaignAnalyticsData) {
         campaign = new URL(emailURL).pathname.split('/')[2];
       }
 
-      let campaignSlug;
-      if (window.location.pathname.includes('/campaign-analytics/')) {
-        campaignSlug = window.location.pathname.split('/').pop();
-      }
-
       return `
-      <tr data-email="${emailId}" data-campaign="${campaign}" ${
-  campaignSlug && campaignSlug !== campaign ? 'hidden' : ''
-}>
-        <td>${
-  emailURL
-    ? `<a href="/redirect?url=${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${campaignAnalyticsData[emailId][0].data.subject}</a>`
-    : `${campaignAnalyticsData[emailId][0].data.subject}`
-}</td>
-        <td>${campaignAnalyticsData[emailId][0].data.to.join(',')}</td>
-        <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
-        <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
-        <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
-        <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
-        <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
-        <td>${
-  clicks.length
-    ? `<button class="click-details button action secondary">${
-      clicks.length
-    }&nbsp;click(s)</button><div hidden><ul class="clicked-links">${clicks
-      .map(
-        (clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${
-          clicked.data.click.link
-        }</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</li>`,
-      )
-      .join('')}</ul></div>`
+        <tr data-email="${emailId}" data-campaign="${campaign}">
+          <td>${emailURL ? `<a href="/redirect?url=${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${subject}</a>` : subject}</td>
+          <td>${campaignAnalyticsData[emailId][0].data.to.join(',')}</td>
+          <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
+          <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
+          <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
+          <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
+          <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
+          <td>${clicks.length ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button>
+                <div hidden><ul class="clicked-links">${clicks.map(
+    (clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${clicked.data.click.link}</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</li>`,
+  ).join('')}</ul></div>`
     : ''
 }</td>
-      </tr>
-    `;
-    })
-    .join('');
-}
+        </tr>
+      `;
+    });
+
+  const rows = list.filter((row) => row !== null);
+
+  // eslint-disable-next-line no-undef
+  const clusterize = new Clusterize({
+    rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
+    scrollId: 'scrollArea',
+    contentId: 'contentArea',
+    callbacks: {
+      clusterChanged: () => {
+        document.querySelector('#contentArea').querySelectorAll('.click-details').forEach((el) => {
+          el.onclick = () => {
+            const clone = el.nextElementSibling.cloneNode(true);
+            clone.hidden = false;
+            const content = parseFragment(`
+            <div>
+                <h3>${el.textContent}</h3>
+                ${clone.outerHTML}    
+            </div>
+          `);
+            window.createDialog(content);
+          };
+        });
+      },
+    },
+  });
+  return clusterize;
+};
 
 export default async function renderCampaignsAnalytics({
   container,
@@ -83,7 +118,7 @@ export default async function renderCampaignsAnalytics({
     token, siteSlug, pathname,
   } = renderOptions;
 
-  container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
+  container.innerHTML = loadingSpinner;
 
   const [campaignAnalyticsData, campaignsData] = await Promise.all([
     fetch(`${SCRIPT_API}/email/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -93,6 +128,8 @@ export default async function renderCampaignsAnalytics({
       .then((res) => res.json())
       .catch(() => ({})),
   ]);
+
+  let search = readQueryParams().search || '';
 
   container.innerHTML = `
         <ul class="campaign-list" data-type="analytics">
@@ -131,27 +168,33 @@ export default async function renderCampaignsAnalytics({
           </div>
         </div>
         
-        <div id="email-details">
-        <h2>Email details</h2>
-        <table>
-            <thead>
-              <tr>
-                <th>Email</th>
-                <th>To</th>
-                <th>Sent</th>
-                <th>Delivered</th>
-                <th>Bounced</th>
-                <th>Complained</th>
-                <th>Opened</th>
-                <th>Clicked</th>
-              </tr>
-            </thead>
-            <tbody>
-                ${createAnalyticsTableContent(campaignAnalyticsData)}
-            </tbody>
-        </table>
+        <h2 id="email-details">Email details</h2>
+        <input value="${search}" type="search" placeholder="Filter" class="filter-email-details filter">
+        <div class="email-details clusterize">
+          ${loadingSpinner}
         </div>
       `;
+
+  // eslint-disable-next-line func-names
+  document.querySelector('.filter-email-details').oninput = (function () {
+    let debounceTimer;
+    // eslint-disable-next-line func-names
+    return function (event) {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (event.target.value) {
+          search = event.target.value;
+          writeQueryParams({ search });
+        } else {
+          search = '';
+          removeQueryParams(['search']);
+        }
+        createAnalyticsTableContent(campaignAnalyticsData, search);
+      }, 300);
+    };
+  }());
+
+  createAnalyticsTableContent(campaignAnalyticsData, search);
 
   const calculateCampaignStats = (hasCampaign) => {
     let sentCount = 0;
@@ -230,20 +273,6 @@ export default async function renderCampaignsAnalytics({
 
   onHistoryPopArray.push((currentItem) => {
     campaignList.querySelector(`[href="${currentItem}"]`).click();
-  });
-
-  container.querySelectorAll('.click-details').forEach((el) => {
-    el.onclick = () => {
-      const clone = el.nextElementSibling.cloneNode(true);
-      clone.hidden = false;
-      const content = parseFragment(`
-            <div>
-                <h3>${el.textContent}</h3>
-                ${clone.outerHTML}    
-            </div>
-          `);
-      window.createDialog(content);
-    };
   });
 
   calculateCampaignStats(window.location.pathname.startsWith(`${pathname}/campaign-analytics/`));
