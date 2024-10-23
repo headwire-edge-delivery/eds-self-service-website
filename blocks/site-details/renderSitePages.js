@@ -6,6 +6,7 @@ import {
   parseFragment,
   SCRIPT_API,
   loadingSpinner,
+  projectRepo,
 } from '../../scripts/scripts.js';
 
 export function renderTable({
