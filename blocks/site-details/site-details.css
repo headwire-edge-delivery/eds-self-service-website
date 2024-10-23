@@ -20,6 +20,11 @@
   padding-bottom: 12px;
 }
 
+.site-details.block #pages-overview h2 {
+  margin-top: 0;
+  padding-top: 0;
+}
+
 .site-details.block h3 {
   font-size: 13px;
   margin-top: 8px;
@@ -53,6 +58,7 @@
     background-size: 20px;
     background-repeat: no-repeat;
     padding: 12px 20px 12px 40px;
+    margin-bottom: 16px;
 }
 
 .site-details.block .filter::-webkit-search-cancel-button {
@@ -131,15 +137,46 @@
   font-weight: 500;
 }
 
-.site-details.block table .table-actions > .button {
-  margin: 3px;
-}
-
 @media (width <= 1200px) {
   .site-details.block table img[alt="loading"] {
     height: 64px;
     width: 64px;
   }
+}
+
+.site-details.block .badge {
+  border-radius: var(--small-border-radius);
+  background: var(--light-gray);
+  padding: 8px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 12px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.site-details.block .badge:has(img[alt="loading"]) {
+  padding: 2px;
+}
+
+.site-details.block .badge:has(img[alt="loading"]) p {
+  line-height: 0;
+  margin: 0;
+}
+
+.site-details.block .badge:has(img[alt="loading"]) img {
+  height: 24px;
+  width: 24px;
+}
+
+.site-details.block .badge.green {
+  background-color: var(--green);
+  color: var(--white);
+}
+
+.site-details.block .badge.orange {
+  background-color: var(--orange);
+  color: var(--white);
 }
 
 @media (width < 768px) {
@@ -262,7 +299,7 @@
   text-transform: uppercase;
   padding: 32px;
   font-weight: bold;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 dialog .clicked-links li {

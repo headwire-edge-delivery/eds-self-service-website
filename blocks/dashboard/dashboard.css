@@ -113,7 +113,7 @@
 
 .dashboard.block .details {
   flex: 1;
-  max-width: calc(100% - 200px - 64px);
+  max-width: calc(100% - var(--nav-width) - 64px);
 }
 
 .dashboard.block .details > :not(.is-selected) {
@@ -176,7 +176,7 @@ dialog:has(.admin) {
 
 :is(.dashboard.block, dialog) .admin table {
   width: 100%;
-  table-layout: fixed;  
+  table-layout: fixed;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -186,7 +186,7 @@ dialog:has(.admin) {
   text-transform: uppercase;
   padding: 32px;
   font-weight: bold;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .dashboard.block .details .admin img,

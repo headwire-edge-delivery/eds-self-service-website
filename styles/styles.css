@@ -1,6 +1,7 @@
 /* Global */
 :root {
   --layout-width: 1280px;
+  --nav-width: 220px;
   --blue: #004990;
   --dark-blue: rgb(63 92 133);
   --light-blue: rgb(80 146 188);
@@ -8,6 +9,7 @@
   --red: rgb(200 0 0);
   --green: rgb(50 200 100);
   --gray: #bbb;
+  --light-gray: #eee;
   --white: #fff;
   --black: #000;
   --animation-duration: 300ms;
@@ -19,6 +21,7 @@
   --loading-backdrop: rgba(128 128 128 / 80%);
   --icon-drop-shadow: drop-shadow(0 0 1px var(--black));
   --border-radius: 15px;
+  --small-border-radius: 8px;
 
   font-synthesis: none;
   text-rendering: optimizelegibility;
@@ -182,6 +185,7 @@ a:hover {
 
 table .button-container {
   flex-wrap: nowrap;
+  justify-content: flex-end;
 }
 
 .button-container:has(.button.action) {
@@ -198,7 +202,7 @@ input, textarea, select {
   font-weight: 400;
   letter-spacing: 0.1em;
   border: 1px solid var(--gray);
-  border-radius: calc(var(--border-radius) / 2);
+  border-radius: var(--small-border-radius);
   width: 100%;
 }
 
@@ -276,7 +280,7 @@ input[type="file"]::file-selector-button {
   border-width: 0 1px 0 0;
   padding: 9px;
   font-size: 13px;
-  border-radius: calc(var(--border-radius) / 2);
+  border-radius: var(--small-border-radius);
   text-transform: none;
   background-color: var(--black);
   color: var(--white);
@@ -294,7 +298,7 @@ input[type="color"] {
   padding: 4px;
   font-weight: 400;
   border: 1px solid var(--gray);
-  border-radius: calc(var(--border-radius) / 2);
+  border-radius: var(--small-border-radius);
   background-color: var(--white);
   width: 100%;
 }
@@ -330,7 +334,7 @@ input[type="color"] {
 .button.action {
   padding: 9px;
   font-size: 13px;
-  border-radius: calc(var(--border-radius) / 2);
+  border-radius: var(--small-border-radius);
   text-transform: none;
 }
 
@@ -383,7 +387,8 @@ table th {
 }
 
 table td {
-  border-top: 1px solid var(--gray);
+  border-top: 1px solid var(--light-gray);
+  font-size: 14px;
 }
 
 table:has(tbody:empty) {
@@ -714,7 +719,7 @@ img[src="/icons/loading.svg"] {
 
 .tabs-wrapper .tabs-content-container {
   flex: 1;
-  max-width: calc(100% - 200px - 64px);
+  max-width: calc(100% - var(--nav-width) - 64px);
 }
 
 .tabs-wrapper .tabs-content {
@@ -740,7 +745,7 @@ img[src="/icons/loading.svg"] {
 
 .tabs-wrapper .tabs-content aside {
   height: max-content;
-  width: 200px;
+  width: var(--nav-width);
 }
 
 .tabs-wrapper .tabs-content aside ul {
@@ -756,6 +761,9 @@ img[src="/icons/loading.svg"] {
   width: 100%;
   justify-content: flex-start;
   border-color: transparent;
+  font-weight: normal;
+  line-height: 1.5;
+  text-transform: uppercase;
 }
 
 .tabs-wrapper .tabs-content aside .button:hover {
@@ -869,3 +877,4 @@ img[src="/icons/loading.svg"] {
   max-height: calc(1.5em * 3);
   overflow-y: auto;
 }
+

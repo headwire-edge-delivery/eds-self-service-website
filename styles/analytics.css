@@ -48,7 +48,7 @@
 .analytics .cards.metrics > div > strong:only-child::after {
     content: ' (Not enough data)';
     display: block;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .analytics .cards .red {
