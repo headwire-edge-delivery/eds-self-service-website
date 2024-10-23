@@ -24,9 +24,10 @@ function parseBrowser(str) {
   try {
     let output = '';
     for (const browserStr of browserParts) {
-      const browserName = browserStr.split(';')[0].trim().replaceAll('"', '');
+      // matches semicolon that is not within quotes
+      const browserName = browserStr.match(/(?:[^";]|"(?:\\.|[^"\\])*")+/g)[0].trim().replaceAll('"', '');
 
-      if (/not\?a_brand/i.test(browserName)) continue;
+      if (/not(\?|\))a(_|;)brand/i.test(browserName)) continue;
       if (/chromium/i.test(browserName)) {
         output = browserName;
         continue;
@@ -120,7 +121,7 @@ function createTable({
   }
 
   if (!rows.length) {
-    tbody.innerHTML = `<tr class="clusterize-no-data"><td class="empty" colspan="${headers.length}">No Data found</td></tr>`;
+    tbody.innerHTML = `<tr class="clusterize-no-data"><td class="empty" colspan="${columns.length}">No Data found</td></tr>`;
   }
 
   return {
@@ -464,7 +465,7 @@ export default async function renderAdmin({ container, nav }) {
         headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
         rows: Object.keys(timestamps)
           .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
-          .map((timestamp) => {
+          .map((timestamp, index) => {
             const timestampItem = timestamps[timestamp];
             const serverEvent = ['server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
             const timestampDate = new Date(Number(timestamp));

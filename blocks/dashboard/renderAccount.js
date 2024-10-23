@@ -1,5 +1,4 @@
 import {
-  dateToRelativeSpan,
   getUserSettings,
   SCRIPT_API,
   updateUserSettings,
@@ -12,6 +11,7 @@ export default async function renderAccount({ container, nav }) {
     getUserSettings(SCRIPT_API),
     window.auth0Client.getUser(),
   ]);
+  console.log('user:', user);
 
   nav.innerHTML = `<a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>`;
 
@@ -26,10 +26,6 @@ export default async function renderAccount({ container, nav }) {
     <div>
         <strong>Email</strong>
         <span title="${user.email}">${user.email}</span>
-    </div>
-    <div>
-        <strong>Last login</strong>
-        ${dateToRelativeSpan(user.updated_at).outerHTML}
     </div>
     <div id="current-plan-wrapper">
         <strong>Plan</strong>
