@@ -1,6 +1,6 @@
 import {
   SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE,
-  projectRepo,
+  projectRepo, daProjectRepo,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -349,7 +349,7 @@ export default async function decorate(block) {
         const daEditLink = document.createElement('a');
         daEditLink.classList.add('button', 'action', 'secondary', 'edit');
         daEditLink.target = '_blank';
-        daEditLink.href = `https://da.live/edit#/da-self-service/${id}${path}`;
+        daEditLink.href = `https://da.live/edit#/${daProjectRepo}/${id}${path}`;
         daEditLink.innerText = 'Edit';
         daEditLink.id = 'edit-button';
         editButton.replaceWith(daEditLink);

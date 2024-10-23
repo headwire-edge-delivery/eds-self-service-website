@@ -112,7 +112,7 @@ function sitePagesTour({ showAutoTour }) {
       {
         title: 'Edit or Open your Page',
         description: `You can Edit your Page (which will take you to ${isDarkAlley ? 'Dark Alley' : 'Google Drive'}) or Open your Page in a new tab.`,
-        element: '.table-actions',
+        element: '.button-container',
         destroyOnClicked: false,
         side: 'left',
       },

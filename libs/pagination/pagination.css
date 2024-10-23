@@ -44,7 +44,7 @@
 
 .paginator.prev,
 .paginator.next {
-  border-radius: calc(var(--border-radius) / 2);
+  border-radius: var(--small-border-radius);
   padding: 0 16px;
   margin: 0 4px;
 }
