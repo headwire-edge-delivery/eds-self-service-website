@@ -19,8 +19,8 @@
 }
 
 .dashboard.block .filter::-webkit-search-cancel-button {
-    cursor: pointer;
-    padding: 2px;
+  cursor: pointer;
+  padding: 2px;
 }
 
 .dashboard.block h1 {
@@ -35,18 +35,18 @@
 }
 
 .dashboard.block .sites .owner-selector {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin: 0 0 16px;
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
 }
 
 .dashboard.block .sites .owner-selector .button.is-selected {
-    background-color: var(--light-blue);
-    color: white;
-    border-color: var(--light-blue);
+  background-color: var(--light-blue);
+  color: white;
+  border-color: var(--light-blue);
 }
 
 .dashboard.block .sites ul {
@@ -247,6 +247,10 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .admin {
 
   :is(.dashboard.block, dialog) .admin table {
     table-layout: auto;
+  }
+
+  canvas#chart {
+    width: 100% !important;
   }
 }
 
