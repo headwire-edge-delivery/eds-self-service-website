@@ -1043,8 +1043,7 @@ export default async function decorate(block) {
         const pages = data.filter(({ path }) => !path.startsWith('/drafts/')
           && !path.startsWith('/emails/')
           && path !== '/footer'
-          && path !== '/nav'
-          && path !== '/newsletter');
+          && path !== '/nav');
 
         // Theme pages
         publishThemeSelector.innerHTML = `${pages

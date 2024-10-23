@@ -1,6 +1,6 @@
 import {
   SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE,
-  projectRepo,
+  projectRepo, daProjectRepo,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -20,6 +20,7 @@ export default async function decorate(block) {
   onAuthenticated(async () => {
     const split = window.location.pathname.split('/');
     const id = split[2];
+    const campaignSlug = split[4];
     const path = `/${split.slice(3).join('/')}`;
     const url = `https://preview--${id}.${KESTREL_ONE}${path}`;
 
@@ -63,7 +64,7 @@ export default async function decorate(block) {
               Dashboard
             </a>
             <span>&rsaquo;</span>
-            <a href="/site/${id}">
+            <a href="/site/${id}/emails/${campaignSlug}">
               ${id}
             </a>
           </div>
@@ -98,7 +99,7 @@ export default async function decorate(block) {
               Dashboard
             </a>
             <span>&rsaquo;</span>
-            <a href="/site/${id}">
+            <a href="/site/${id}/emails/${campaignSlug}">
               ${id}
             </a>
             <span>&rsaquo;</span>
@@ -348,7 +349,7 @@ export default async function decorate(block) {
         const daEditLink = document.createElement('a');
         daEditLink.classList.add('button', 'action', 'secondary', 'edit');
         daEditLink.target = '_blank';
-        daEditLink.href = `https://da.live/edit#/da-self-service/${id}${path}`;
+        daEditLink.href = `https://da.live/edit#/${daProjectRepo}/${id}${path}`;
         daEditLink.innerText = 'Edit';
         daEditLink.id = 'edit-button';
         editButton.replaceWith(daEditLink);

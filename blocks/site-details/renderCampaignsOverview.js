@@ -25,7 +25,7 @@ export default async function renderCampaignsOverview({
     return;
   }
 
-  const emailDocuments = indexData.data.filter(({ path }) => path.startsWith('/emails/') || path === '/newsletter');
+  const emailDocuments = indexData.data.filter(({ path }) => path.startsWith('/emails/'));
 
   nav.innerHTML = `
     <button id="delete-campaign" title="Delete the Campaign" class="button secondary delete-campaign action" hidden>Delete</button>
@@ -135,7 +135,7 @@ export default async function renderCampaignsOverview({
     });
   });
 
-  if (!container.querySelector('.campaign-list .selected')) {
+  if (!container.querySelector('.campaign-list .is-selected')) {
     container.querySelector('.campaign-list[data-type="emails"] a').click();
     replaceHistory(`${pathname}/emails`);
   }

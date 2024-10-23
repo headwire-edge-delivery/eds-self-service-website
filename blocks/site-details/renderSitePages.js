@@ -1,16 +1,24 @@
 import {
-  daProjectRepo, dateToRelativeSpan, EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API,
+  daProjectRepo,
+  dateToRelativeSpan,
+  EMAIL_WORKER_API,
+  OOPS,
+  parseFragment,
+  SCRIPT_API,
+  loadingSpinner,
 } from '../../scripts/scripts.js';
 
 export function renderTable({
   table, tableData, type, projectDetails, token,
 }) {
+  const isEmail = type === 'emails';
   table.innerHTML = `
     <thead>
       <tr>
         <th>Name</th>
         <th>Path</th>
         <th>Last update</th>
+        ${!isEmail ? '<th>Status</th>' : ''}
         <th></th>
       </tr>  
     </thead>
@@ -20,7 +28,7 @@ export function renderTable({
   const tableRows = tableData.map((item) => {
     const tableRow = document.createElement('tr');
 
-    if (type === 'emails') {
+    if (isEmail) {
       const split = item.path.split('/');
       const isDeletable = item.path.startsWith('/emails/') && split.length === 4;
       const campaign = split[2];
@@ -75,12 +83,30 @@ export function renderTable({
       <td>${item.name}</td>
       <td>${item.path}</td>
       <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>
-      <td class="table-actions">
+      <td class="status"><div class="badge">${loadingSpinner}</div></td>
+      <td class="button-container">
           <a class="button action secondary" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
           <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
           <a class="button action secondary" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>
       </td>
     `;
+
+    fetch(`https://admin.hlx.page/status/${projectDetails.darkAlleyProject ? daProjectRepo : projectRepo}/${projectDetails.projectSlug}/main${item.path}?editUrl=auto`)
+      .then((res) => res.json())
+      .then((res) => {
+        const renderStatus = (status, variant = '') => {
+          tableRow.querySelector('.status').innerHTML = `<div class="badge ${variant}">${status}</div>`;
+        };
+
+        if (res?.live?.status === 200) {
+          renderStatus('Published', 'green');
+        } else if (res?.preview?.status === 200) {
+          renderStatus('Previewed', 'orange');
+        } else {
+          renderStatus('Not published');
+        }
+      })
+      .catch(() => null);
 
     return tableRow;
   });
@@ -214,7 +240,7 @@ function addPageDialogSetup({
             <td>${body.pageName}</td>
             <td>/drafts/${responseData.pageSlug}</td>
             <td>Just now</td>
-            <td class="table-actions">
+            <td class="button-container">
                 <a class="button action secondary" href="${editHref}" target="_blank">Edit</a>
                 <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Open</a>
             </td>
@@ -284,7 +310,7 @@ export default async function renderSitePages({ container, nav, renderOptions })
   for (const page of indexData.data) {
     if (page.path.startsWith('/drafts/')) {
       drafts.push(page);
-    } else if (page.path.startsWith('/emails/') || page.path === '/newsletter') {
+    } else if (page.path.startsWith('/emails/')) {
       // emails.push(page);
       continue;
     } else if (page.path.endsWith('/nav')) {

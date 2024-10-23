@@ -248,7 +248,7 @@ export default async function renderAnalytics({
               ${['lcp', 'inp', 'fid', 'cls']
     .map(
       (metric) => `
-                <div class="cwp-box">
+                <div class="cwp-box box">
                   <strong>${metric.toUpperCase()}</strong>
                   <span>Excellent (${
   metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'

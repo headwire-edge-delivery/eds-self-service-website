@@ -19,8 +19,8 @@
 }
 
 .dashboard.block .filter::-webkit-search-cancel-button {
-    cursor: pointer;
-    padding: 2px;
+  cursor: pointer;
+  padding: 2px;
 }
 
 .dashboard.block h1 {
@@ -35,18 +35,18 @@
 }
 
 .dashboard.block .sites .owner-selector {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin: 0 0 16px;
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
 }
 
 .dashboard.block .sites .owner-selector .button.is-selected {
-    background-color: var(--light-blue);
-    color: white;
-    border-color: var(--light-blue);
+  background-color: var(--light-blue);
+  color: white;
+  border-color: var(--light-blue);
 }
 
 .dashboard.block .sites ul {
@@ -113,7 +113,7 @@
 
 .dashboard.block .details {
   flex: 1;
-  max-width: calc(100% - 200px - 64px);
+  max-width: calc(100% - var(--nav-width) - 64px);
 }
 
 .dashboard.block .details > :not(.is-selected) {
@@ -176,7 +176,7 @@ dialog:has(.admin) {
 
 :is(.dashboard.block, dialog) .admin table {
   width: 100%;
-  table-layout: fixed;  
+  table-layout: fixed;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -186,7 +186,7 @@ dialog:has(.admin) {
   text-transform: uppercase;
   padding: 32px;
   font-weight: bold;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .dashboard.block .details .admin img,
@@ -251,6 +251,10 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .admin {
 
   :is(.dashboard.block, dialog) .admin table {
     table-layout: auto;
+  }
+
+  canvas#chart {
+    width: 100% !important;
   }
 }
 
