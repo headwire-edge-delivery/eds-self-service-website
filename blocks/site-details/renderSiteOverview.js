@@ -1,5 +1,6 @@
 import {
   OOPS, parseFragment, SCRIPT_API, KESTREL_ONE, getThumbnail,
+  dateToRelativeSpan,
 } from '../../scripts/scripts.js';
 
 export default async function renderSiteOverview({ container, nav, renderOptions }) {
@@ -33,16 +34,14 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     window?.zaraz?.track('click site guides');
   };
 
-  let lastUpdated = projectDetails.lastUpdated || projectDetails.createdAt || 'N/A';
+  let lastUpdated = projectDetails.lastUpdated || projectDetails.createdAt;
   if (typeof lastUpdated === 'number') {
-    lastUpdated = new Date(lastUpdated).toLocaleTimeString([], {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    lastUpdated = dateToRelativeSpan(lastUpdated);
+  } else {
+    lastUpdated = document.createElement('span');
+    lastUpdated.textContent = 'N/A';
   }
+  lastUpdated.classList.add('last-update');
 
   container.innerHTML = `
   <div class="project-container">
@@ -58,7 +57,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
       </div>
       <div id="last-updated" class="box">
         <strong>Last update</strong>
-        <span class="last-update">${lastUpdated}</span>
+        ${lastUpdated.outerHTML}
       </div>
       <div id="site-template" class="box">
         <strong>Site template</strong>

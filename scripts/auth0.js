@@ -75,7 +75,6 @@ window.auth0.createAuth0Client({
   document.body.classList.add(isAuthenticated ? 'is-authenticated' : 'is-anonymous');
 
   if (isAuthenticated) {
-    document.dispatchEvent(new CustomEvent('auth0:authenticated'));
     window.auth0Client.getUser().then((user) => {
       if (user?.email?.endsWith('@headwire.com')) {
         document.body.classList.add('is-headwire');
@@ -86,6 +85,7 @@ window.auth0.createAuth0Client({
       if (user?.email?.toLowerCase() === 'self.service.test.user@gmail.com') {
         document.body.classList.add('is-test-user');
       }
+      document.dispatchEvent(new CustomEvent('auth0:authenticated'));
     });
 
     const sessionInterval = window.setInterval(() => {

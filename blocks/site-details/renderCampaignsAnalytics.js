@@ -1,5 +1,6 @@
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import {
+  dateToRelativeSpan,
   EMAIL_WORKER_API, loadingSpinner, parseFragment, SCRIPT_API,
 } from '../../scripts/scripts.js';
 
@@ -64,14 +65,14 @@ const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
         <tr data-email="${emailId}" data-campaign="${campaign}">
           <td>${emailURL ? `<a href="/redirect?url=${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${subject}</a>` : subject}</td>
           <td>${campaignAnalyticsData[emailId][0].data.to.join(',')}</td>
-          <td>${sent ? new Date(sent.created_at).toLocaleString() : ''}</td>
-          <td>${delivered ? new Date(delivered.created_at).toLocaleString() : ''}</td>
-          <td>${bounced ? new Date(bounced.created_at).toLocaleString() : ''}</td>
-          <td>${complained ? new Date(complained.created_at).toLocaleString() : ''}</td>
-          <td>${opened ? new Date(opened.created_at).toLocaleString() : ''}</td>
+          <td>${sent ? dateToRelativeSpan(sent.created_at).outerHTML : ''}</td>
+          <td>${delivered ? dateToRelativeSpan(delivered.created_at).outerHTML : ''}</td>
+          <td>${bounced ? dateToRelativeSpan(bounced.created_at).outerHTML : ''}</td>
+          <td>${complained ? dateToRelativeSpan(complained.created_at).outerHTML : ''}</td>
+          <td>${opened ? dateToRelativeSpan(opened.created_at).outerHTML : ''}</td>
           <td>${clicks.length ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button>
                 <div hidden><ul class="clicked-links">${clicks.map(
-    (clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${clicked.data.click.link}</a> at ${new Date(clicked.data.click.timestamp).toLocaleString()}</li>`,
+    (clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${clicked.data.click.link}</a> ${dateToRelativeSpan(clicked.data.click.timestamp).outerHTML}</li>`,
   ).join('')}</ul></div>`
     : ''
 }</td>

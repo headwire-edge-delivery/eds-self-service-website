@@ -44,6 +44,50 @@ export function hasDarkAlleyAccess() {
   return daClassRegex.test(document.body.className);
 }
 
+const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+export function dateToRelativeString(date) {
+  if (!(date instanceof Date)) {
+    date = new Date(date); // eslint-disable-line no-param-reassign
+  }
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+
+  const intervals = [
+    { unit: 'year', seconds: 31536000 },
+    { unit: 'month', seconds: 2592000 },
+    { unit: 'week', seconds: 604800 },
+    { unit: 'day', seconds: 86400 },
+    { unit: 'hour', seconds: 3600 },
+    { unit: 'minute', seconds: 60 },
+    { unit: 'second', seconds: 1 },
+  ];
+
+  for (const interval of intervals) {
+    const count = Math.floor(diffInSeconds / interval.seconds);
+    if (count !== 0) {
+      return rtf.format(-count, interval.unit);
+    }
+  }
+
+  return rtf.format(0, 'second'); // Default to "now"
+}
+export function dateToRelativeSpan(date, className, lang = [], format = {
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+}) {
+  if (!(date instanceof Date)) {
+    date = new Date(date); // eslint-disable-line no-param-reassign
+  }
+  const span = document.createElement('span');
+  span.innerText = dateToRelativeString(date);
+  if (className) span.className = className;
+  span.title = date.toLocaleTimeString(lang, format);
+  return span;
+}
+
 export function onAuthenticated(cb) {
   if (document.body.classList.contains('is-authenticated')) {
     cb();

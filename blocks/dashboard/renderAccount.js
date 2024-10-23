@@ -26,10 +26,6 @@ export default async function renderAccount({ container, nav }) {
         <strong>Email</strong>
         <span title="${user.email}">${user.email}</span>
     </div>
-    <div>
-        <strong>Last update</strong>
-        <span>${new Date(user.updated_at).toLocaleDateString()}</span>
-    </div>
     <div id="current-plan-wrapper">
         <strong>Plan</strong>
         <span id="current-plan">Free</span>
