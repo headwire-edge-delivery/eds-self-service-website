@@ -284,7 +284,7 @@ export default async function renderSitePages({ container, nav, renderOptions })
   for (const page of indexData.data) {
     if (page.path.startsWith('/drafts/')) {
       drafts.push(page);
-    } else if (page.path.startsWith('/emails/') || page.path === '/newsletter') {
+    } else if (page.path.startsWith('/emails/')) {
       // emails.push(page);
       continue;
     } else if (page.path.endsWith('/nav')) {

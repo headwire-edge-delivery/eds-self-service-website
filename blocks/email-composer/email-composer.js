@@ -20,6 +20,7 @@ export default async function decorate(block) {
   onAuthenticated(async () => {
     const split = window.location.pathname.split('/');
     const id = split[2];
+    const campaignSlug = split[4];
     const path = `/${split.slice(3).join('/')}`;
     const url = `https://preview--${id}.${KESTREL_ONE}${path}`;
 
@@ -63,7 +64,7 @@ export default async function decorate(block) {
               Dashboard
             </a>
             <span>&rsaquo;</span>
-            <a href="/site/${id}">
+            <a href="/site/${id}/emails/${campaignSlug}">
               ${id}
             </a>
           </div>
@@ -98,7 +99,7 @@ export default async function decorate(block) {
               Dashboard
             </a>
             <span>&rsaquo;</span>
-            <a href="/site/${id}">
+            <a href="/site/${id}/emails/${campaignSlug}">
               ${id}
             </a>
             <span>&rsaquo;</span>
