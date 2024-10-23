@@ -45,11 +45,11 @@ export function hasDarkAlleyAccess() {
 }
 
 const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-const now = new Date();
 export function dateToRelativeString(date) {
   if (!(date instanceof Date)) {
-    return date;
+    date = new Date(date); // eslint-disable-line no-param-reassign
   }
+  const now = new Date();
   const diffInSeconds = Math.floor((now - date) / 1000);
 
   const intervals = [
@@ -70,6 +70,22 @@ export function dateToRelativeString(date) {
   }
 
   return rtf.format(0, 'second'); // Default to "now"
+}
+export function dateToRelativeSpan(date, className, lang = [], format = {
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+}) {
+  if (!(date instanceof Date)) {
+    date = new Date(date); // eslint-disable-line no-param-reassign
+  }
+  const span = document.createElement('span');
+  span.innerText = dateToRelativeString(date);
+  if (className) span.className = className;
+  span.title = date.toLocaleTimeString(lang, format);
+  return span;
 }
 
 export function onAuthenticated(cb) {

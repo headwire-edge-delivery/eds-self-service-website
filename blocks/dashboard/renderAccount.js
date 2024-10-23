@@ -1,4 +1,5 @@
 import {
+  dateToRelativeSpan,
   getUserSettings,
   SCRIPT_API,
   updateUserSettings,
@@ -27,8 +28,8 @@ export default async function renderAccount({ container, nav }) {
         <span title="${user.email}">${user.email}</span>
     </div>
     <div>
-        <strong>Last update</strong>
-        <span>${new Date(user.updated_at).toLocaleDateString()}</span>
+        <strong>Last login</strong>
+        ${dateToRelativeSpan(user.updated_at).outerHTML}
     </div>
     <div id="current-plan-wrapper">
         <strong>Plan</strong>

@@ -1,5 +1,5 @@
 import {
-  daProjectRepo, EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API,
+  daProjectRepo, dateToRelativeSpan, EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API,
 } from '../../scripts/scripts.js';
 
 export function renderTable({
@@ -30,7 +30,7 @@ export function renderTable({
       tableRow.innerHTML = `
         <td>${item.name}</td>
         <td>${item.path}</td>
-        <td>${new Date(item.lastModified).toLocaleString()}</td>          
+        <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>          
         <td>
           <div id="email-open-edit" class="button-container">
             <a class="button action secondary" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
@@ -74,7 +74,7 @@ export function renderTable({
     tableRow.innerHTML = `
       <td>${item.name}</td>
       <td>${item.path}</td>
-      <td>${new Date(item.lastModified).toLocaleString()}</td>
+      <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>
       <td class="table-actions">
           <a class="button action secondary" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
           <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
@@ -295,7 +295,6 @@ export default async function renderSitePages({ container, nav, renderOptions })
       pages.push(page);
     }
   }
-
   renderTable({ table: container.querySelector('.pages'), tableData: pages, projectDetails });
   renderTable({ table: container.querySelector('.navs'), tableData: navs, projectDetails });
   renderTable({ table: container.querySelector('.footers'), tableData: footers, projectDetails });

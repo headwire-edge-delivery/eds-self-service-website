@@ -1,5 +1,7 @@
 import {
   daProjectRepo,
+  dateToRelativeSpan,
+  dateToRelativeString,
   EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API, slugify,
 } from '../../scripts/scripts.js';
 import { renderTable } from './renderSitePages.js';
@@ -113,11 +115,11 @@ export default async function renderCampaignsOverview({
           </div class="box">
           <div class="box">
               <strong>Created</strong>
-              <span>${new Date(campaign.created).toLocaleString()}</span>
+              ${dateToRelativeSpan(campaign.created).outerHTML}
           </div>
           <div class="box">
               <strong>Last update</strong>
-              <span class="last-updated">${new Date(campaign.lastUpdated).toLocaleString()}</span>
+              ${dateToRelativeSpan(campaign.lastUpdated, 'last-updated').outerHTML}
           </div>
         </div>
         
@@ -181,7 +183,10 @@ export default async function renderCampaignsOverview({
           dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
 
           description.textContent = update.description;
-          campaign.querySelector('.last-updated').textContent = new Date(update.lastUpdated).toLocaleString();
+          const updateDate = new Date(update.lastUpdated);
+          const lastUpdatedSpan = campaign.querySelector('.last-updated');
+          lastUpdatedSpan.title = new Date(update.lastUpdated).toLocaleString();
+          lastUpdatedSpan.textContent = dateToRelativeString(updateDate);
         } else {
           await window.alertDialog(OOPS);
         }
@@ -273,11 +278,11 @@ export default async function renderCampaignsOverview({
                 </div>
                 <div class="box">
                     <strong>Created</strong>
-                    <span>${new Date(newCampaign.created).toLocaleString()}</span>
+                    ${dateToRelativeSpan(newCampaign.created).outerHTML}
                 </div>
                 <div class="box">
                     <strong>Last update</strong>
-                    <span class="last-updated">${new Date(newCampaign.lastUpdated).toLocaleString()}</span>
+                    ${dateToRelativeSpan(newCampaign.lastUpdated).outerHTML}
                 </div>
               </div>
               

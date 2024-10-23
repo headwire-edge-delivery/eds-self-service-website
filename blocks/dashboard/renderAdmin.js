@@ -13,7 +13,6 @@ import { toClassName } from '../../scripts/aem.js';
 const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
 function parseAcceptLanguage(str) {
   if (!str) return null;
-  // const mainLanguage =
   return langNames.of(str.split(',')[0]);
 }
 
@@ -45,18 +44,27 @@ function parseBrowser(str) {
   }
 }
 
+// MARK: createTable
 function createTable({
+  tableId,
   headers, rows, tableClass = '', columns = [],
 }) {
   if (!columns || !columns.length) {
     // eslint-disable-next-line no-param-reassign
     columns = headers.map(toClassName);
   }
+  const tableWrapper = document.createElement('div');
+  if (tableId) tableWrapper.id = `scrollArea-${tableId}`;
+  tableWrapper.className = 'clusterize-scroll';
+
   const table = document.createElement('table');
   table.className = tableClass;
+  tableWrapper.append(table);
 
   const thead = document.createElement('thead');
   const tbody = document.createElement('tbody');
+  if (tableId) tbody.id = `contentArea-${tableId}`;
+  tbody.className = 'clusterize-content';
 
   table.append(thead, tbody);
 
@@ -111,9 +119,16 @@ function createTable({
     tbody.append(tr);
   }
 
-  return { table, thead, tbody };
+  if (!rows.length) {
+    tbody.innerHTML = `<tr class="clusterize-no-data"><td class="empty" colspan="${headers.length}">No Data found</td></tr>`;
+  }
+
+  return {
+    table, thead, tbody, wrapper: tableWrapper,
+  };
 }
 
+// MARK: paginator listener
 const paginatorEventlistener = (container, queryParam, functionName) => {
   container.addEventListener('click', (event) => {
     const button = event.target.closest('.paginator');
@@ -125,23 +140,6 @@ const paginatorEventlistener = (container, queryParam, functionName) => {
       functionName(true);
     }
   });
-};
-
-const clusterizeTable = (id, tableHeader) => {
-  const tableHead = tableHeader.map((header) => `<th>${header}</th>`).join('');
-  return `
-  <div id="scrollArea-${id}" class="clusterize-scroll">
-    <table>
-      <thead>
-        ${tableHead}
-      </thead>
-      <tbody id="contentArea-${id}" class="clusterize-content">
-        <tr class="clusterize-no-data">
-          <td>No Data found</td>
-        </tr>
-      </tbody>
-    </table>
-</div>`;
 };
 
 // MARK: render
@@ -214,6 +212,7 @@ export default async function renderAdmin({ container, nav }) {
     }());
   };
 
+  // MARK: activity dialog
   const onActivitiesClick = async (event) => {
     const button = event.target;
     button.classList.add('loading');
@@ -228,32 +227,52 @@ export default async function renderAdmin({ container, nav }) {
       const tracking = await reqTracking.json();
       const timestamps = Object.keys(tracking);
 
-      const rows = timestamps.length
-        ? timestamps
-          .reverse()
-          .map(
-            (timestamp) => `<tr>
-              <td>${tracking[timestamp].event}${tracking[timestamp].isSPA ? ' SPA' : ''}</td>
-              <td>${new Date(Number(timestamp)).toLocaleString()}</td>
-              <td><a href="${tracking[timestamp].url}" target="_blank">${tracking[timestamp].url}</a></td>
-              <td>${tracking[timestamp].location?.city} - ${tracking[timestamp].location?.country}</td>
-              <td>${tracking[timestamp].ip}</td>
-              <td>${tracking[timestamp].referrer ? `<a href="${tracking[timestamp].referrer}" target="_blank">${tracking[timestamp].referrer}` : ''}</td>
-              <td>${tracking[timestamp].userAgent?.browser.name} ${tracking[timestamp].userAgent?.browser.version} ${tracking[timestamp].language}</td>
-              <td>${tracking[timestamp].userAgent?.device?.vendor ?? ''} ${tracking[timestamp].userAgent?.os.name} ${tracking[timestamp].userAgent?.os.version}</td>
-            </tr>`,
-          )
-        : ['<tr><td colspan="8" class="empty">Not enough data</td></tr>'];
+      const contentWrapper = document.createElement('div');
+      contentWrapper.className = 'admin clusterize';
+      contentWrapper.innerHTML = `<h3>${button.dataset.user} recent activity</h3>`;
 
-      window.createDialog(`
-              <div class="admin clusterize">
-                <h3>${button.dataset.user} recent activity</h3>
-                ${clusterizeTable('recent-activity', ['Event', 'Date', 'URL', 'Location', 'IP', 'Referrer', 'Browser', 'Device'])}
-              </div>
-            `);
+      const activitiesDialogTable = createTable({
+        tableId: 'recent-activity',
+        tableClass: 'recent-activity',
+        headers: ['Event', 'Date', 'URL', 'Location', 'IP', 'Referrer', 'Browser', 'Device'],
+        rows: timestamps.reverse().map((timestamp) => {
+          const timestampItem = tracking[timestamp];
+          const date = new Date(Number(timestamp));
 
-      const clusterize = new Clusterize({
-        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
+          return {
+            ...timestampItem,
+            event: `${timestampItem.event}${timestampItem.isSPA ? ' SPA' : ''}`,
+            date: {
+              value: dateToRelativeString(date),
+              title: date.toLocaleString(),
+            },
+            url: {
+              value: timestampItem.url,
+              link: timestampItem.url,
+            },
+            location: [timestampItem.location?.city, timestampItem.location?.country].filter(Boolean).join(', '),
+            referrer: {
+              value: timestampItem.referrer,
+              link: timestampItem.referrer,
+            },
+            browser: {
+              value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
+              title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
+            },
+            device: {
+              value: `${timestampItem.userAgent.os.name}`,
+              title: `${timestampItem.userAgent.device?.vendor}, ${timestampItem.userAgent.os.name}, ${timestampItem.userAgent.os.version}`,
+            },
+          };
+        }),
+      });
+
+      contentWrapper.appendChild(activitiesDialogTable.wrapper);
+      window.createDialog(contentWrapper);
+
+      // eslint-disable-next-line no-new
+      new Clusterize({
+        rows: activitiesDialogTable.tbody.children,
         scrollId: 'scrollArea-recent-activity',
         contentId: 'contentArea-recent-activity',
       });
@@ -264,6 +283,7 @@ export default async function renderAdmin({ container, nav }) {
     button.classList.remove('loading');
   };
 
+  // MARK: renderUsers
   const renderUsers = async (scrollTo) => {
     filterEventlistener('.filter-users', 'user', renderUsers);
     const usersContainer = container.querySelector('.admin .known-users');
@@ -280,65 +300,42 @@ export default async function renderAdmin({ container, nav }) {
     }).catch(() => ({ ok: false }));
 
     if (reqUsers.ok) {
-      // const { users, total, limit } = await reqUsers.json();
-      // console.log('users:', users);
-
-      // let pages = '';
-      // for (let i = 0; i < Math.ceil(total / limit); i += 1) {
-      //   pages += `<button class="page button action ${i === page ? 'primary' : 'secondary'}">${i + 1}</button>`;
-      // }
-
-      // const usersTable = createTable({
-      //   headers: ['Email', 'Name', 'Created at', 'Last login', 'Logins count', ''],
-      //   columns: ['email', 'name', 'created_at', 'last_login', 'logins_count', 'buttons'],
-      //   rows: users.map((u) => {
-      //     const createdAt = new Date(u.created_at);
-      //     const lastLogin = new Date(u.last_login);
-      //     return {
-      //       ...u,
-      //       created_at: {
-      //         title: createdAt.toLocaleString(),
-      //         value: dateToRelativeString(createdAt),
-      //       },
-      //       last_login: {
-      //         title: lastLogin.toLocaleString(),
-      //         value: dateToRelativeString(lastLogin),
-      //       },
-      //       buttons: {
-      //         html: `<button data-user="${u.email}" class="button action secondary">Show activity</button>`,
-      //       },
-      //     };
-      //   }),
-      // });
-
-      // usersContainer.innerHTML = '<input type="text" placeholder="Filter by user email" class="filter-users filter">';
-      // usersContainer.appendChild(usersTable.table);
       const usersJSON = await reqUsers.json();
       const users = usersJSON.data;
       const { pagination } = usersJSON;
 
-      usersContainer.innerHTML = `
-        ${clusterizeTable('user-activity', ['Email', 'Name', 'Created at', 'Last login', 'Logins count', ''])}
-        ${paginator(pagination.totalItems, limit, pagination.currentPage)}
-      `;
+      const usersTable = createTable({
+        tableId: 'user-activity',
+        headers: ['Email', 'Name', 'Created at', 'Last login', 'Logins count', ''],
+        columns: ['email', 'name', 'created_at', 'last_login', 'logins_count', 'buttons'],
+        rows: users.map((u) => {
+          const createdAt = new Date(u.created_at);
+          const lastLogin = new Date(u.last_login);
+          return {
+            ...u,
+            created_at: {
+              title: createdAt.toLocaleString(),
+              value: dateToRelativeString(createdAt),
+            },
+            last_login: {
+              title: lastLogin.toLocaleString(),
+              value: dateToRelativeString(lastLogin),
+            },
+            buttons: {
+              html: `<button data-user="${u.email}" class="button action secondary">Show activity</button>`,
+            },
+          };
+        }),
+      });
 
-      const rows = users?.map(
-        (u) => `
-            <tr>
-              <td>${u.email}</td>
-              <td>${u.name}</td>
-              <td>${new Date(u.created_at).toLocaleString()}</td>
-              <td>${new Date(u.last_login).toLocaleString()}</td>
-              <td>${u.logins_count}</td>
-              <td><button data-user="${u.email}" class="button action secondary">Show activity</button></td>
-            </tr>
-          `,
-      );
+      usersContainer.innerHTML = paginator(pagination.totalItems, limit, pagination.currentPage);
+      usersContainer.prepend(usersTable.wrapper);
 
       paginatorEventlistener(usersContainer, 'page', renderUsers);
 
-      const clusterize = new Clusterize({
-        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
+      // eslint-disable-next-line no-new
+      new Clusterize({
+        rows: usersTable.tbody.children,
         scrollId: 'scrollArea-user-activity',
         contentId: 'contentArea-user-activity',
       });
@@ -355,6 +352,7 @@ export default async function renderAdmin({ container, nav }) {
     }
   };
 
+  // MARK: renderDeletedUsers
   const renderDeletedUsers = async (scrollTo) => {
     filterEventlistener('.filter-deleted-users', 'deleteduser', renderDeletedUsers);
     const deletedUsersContainer = container.querySelector('.admin .deleted-users');
@@ -373,62 +371,53 @@ export default async function renderAdmin({ container, nav }) {
       const deletedUsers = deletedUsersJSON.data;
       const { pagination } = deletedUsersJSON;
 
-      // const deletedUsersTable = createTable({
-      //   tableClass: 'deleted-users',
-      //   headers: ['Email', 'Name', 'Created at', 'Deleted at', 'Last login', 'Logins count', ''],
-      //   columns: ['email', 'name', 'created_at', 'deleted_at', 'last_login', 'logins_count', 'buttons'],
-      //   rows: Object.keys(deletedUsers.data)
-      //     .sort((uA, uB) => new Date(deletedUsers.data[uB].deleted_at) - new Date(deletedUsers.data[uA].deleted_at))
-      //     .map((u) => {
-      //       const user = deletedUsers.data[u];
-      //       const createdAt = new Date(user.created_at);
-      //       const deletedAt = new Date(user.deleted_at);
-      //       const lastLogin = new Date(user.last_login);
+      const deletedUsersTable = createTable({
+        tableId: 'deleted-users',
+        tableClass: 'deleted-users',
+        headers: ['Email', 'Name', 'Created at', 'Deleted at', 'Last login', 'Logins count', ''],
+        columns: ['email', 'name', 'created_at', 'deleted_at', 'last_login', 'logins_count', 'buttons'],
+        rows: Object.keys(deletedUsers)
+          .sort((uA, uB) => new Date(deletedUsers[uB].deleted_at) - new Date(deletedUsers[uA].deleted_at)) // eslint-disable-line max-len
+          .map((u) => {
+            const user = deletedUsers[u];
+            const createdAt = new Date(user.created_at);
+            const deletedAt = new Date(user.deleted_at);
+            const lastLogin = new Date(user.last_login);
 
-      //       return {
-      //         ...user,
-      //         created_at: {
-      //           title: createdAt.toLocaleString(),
-      //           value: dateToRelativeString(createdAt),
-      //         },
-      //         deleted_at: {
-      //           title: deletedAt.toLocaleString(),
-      //           value: dateToRelativeString(deletedAt),
-      //         },
-      //         last_login: {
-      //           title: lastLogin.toLocaleString(),
-      //           value: dateToRelativeString(lastLogin),
-      //         },
-      //         buttons: {
-      //           html: `<button data-user="${user.email}" class="button action secondary">Show activity</button>`,
-      //         },
-      //       };
-      //     }),
-      // });
+            return {
+              ...user,
+              created_at: {
+                title: createdAt.toLocaleString(),
+                value: dateToRelativeString(createdAt),
+              },
+              deleted_at: {
+                title: deletedAt.toLocaleString(),
+                value: dateToRelativeString(deletedAt),
+              },
+              last_login: {
+                title: lastLogin.toLocaleString(),
+                value: dateToRelativeString(lastLogin),
+              },
+              buttons: {
+                html: `<button data-user="${user.email}" class="button action secondary">Show activity</button>`,
+              },
+            };
+          }),
+      });
 
-      // deletedUsersContainer.innerHTML = '<input type="text" placeholder="Filter by user email" class="filter-deleted-users filter">';
+      deletedUsersContainer.innerHTML = paginator(
+        pagination.totalItems,
+        limit,
+        pagination.currentPage,
+      );
 
-      // deletedUsersContainer.append(deletedUsersTable.table);
-      deletedUsersContainer.innerHTML = `
-      ${clusterizeTable('deleted-users', ['Email', 'Name', 'Created at', 'Deleted at', 'Last login', 'Logins count', ''])}
-      ${paginator(pagination.totalItems, limit, pagination.currentPage)}`;
+      deletedUsersContainer.prepend(deletedUsersTable.wrapper);
 
       paginatorEventlistener(deletedUsersContainer, 'deletedpage', renderDeletedUsers);
 
-      const rows = Object.keys(deletedUsers).map((u) => `
-        <tr>
-          <td>${deletedUsers[u].email}</td>
-          <td>${deletedUsers[u].name}</td>
-          <td>${new Date(deletedUsers[u].created_at).toLocaleString()}</td>
-          <td>${new Date(deletedUsers[u].deleted_at).toLocaleString()}</td>
-          <td>${new Date(deletedUsers[u].last_login).toLocaleString()}</td>
-          <td>${deletedUsers[u].logins_count}</td>
-          <td><button data-user="${deletedUsers[u].email}" class="button action secondary">Show activity</button></td>
-        </tr>
-      `);
-
-      const clusterize = new Clusterize({
-        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
+      // eslint-disable-next-line no-new
+      new Clusterize({
+        rows: deletedUsersTable.tbody.children,
         scrollId: 'scrollArea-deleted-users',
         contentId: 'contentArea-deleted-users',
       });
@@ -445,6 +434,7 @@ export default async function renderAdmin({ container, nav }) {
     }
   };
 
+  // MARK: renderAnonymous
   const renderAnonymous = async (scrollTo) => {
     const anonymousContainer = container.querySelector('.admin .anonymous-users');
     filterEventlistener('.filter-anonymous', 'ip', renderAnonymous);
@@ -458,7 +448,6 @@ export default async function renderAdmin({ container, nav }) {
 
     if (reqAnonymous.ok) {
       const anonymous = await reqAnonymous.json();
-      console.log('anonymous:', anonymous);
       const ips = Object.keys(anonymous);
       const timestamps = {};
       ips.forEach((ip) => {
@@ -469,91 +458,64 @@ export default async function renderAdmin({ container, nav }) {
         });
       });
 
-      // const anonymousTable = createTable({
-      //   tableClass: 'anonymous',
-      //   headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
-      //   rows: Object.keys(timestamps)
-      //     .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA)))
-      //     .map((timestamp) => {
-      //       const serverEvent = ['server api request', 'server page request', 'server redirect request'].includes(timestamps[timestamp].event);
-      //       const timestampDate = new Date(Number(timestamp));
+      const anonymousTable = createTable({
+        tableId: 'anonymous',
+        tableClass: 'anonymous',
+        headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
+        rows: Object.keys(timestamps)
+          .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
+          .map((timestamp) => {
+            const timestampItem = timestamps[timestamp];
+            const serverEvent = ['server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
+            const timestampDate = new Date(Number(timestamp));
 
-      //       return {
-      //         ip: timestamps[timestamp].ip,
-      //         event: timestamps[timestamp].event + (!serverEvent && timestamps[timestamp].isSPA ? ' SPA' : ''),
-      //         date: {
-      //           value: dateToRelativeString(timestampDate),
-      //           title: timestampDate.toLocaleString(),
-      //         },
-      //         url: {
-      //           value: timestamps[timestamp].url.replace(SCRIPT_API, ''),
-      //           title: timestamps[timestamp].url,
-      //         },
-      //         location: [timestamps[timestamp].city, timestamps[timestamp].country].filter(Boolean).join(', '),
-      //         referrer: {
-      //           value: timestamps[timestamp].referrer,
-      //           link: timestamps[timestamp].referrer,
-      //         },
-      //         browser: !serverEvent ? {
-      //           value: `${timestamps[timestamp].userAgent.browser.name} ${
-      //             timestamps[timestamp].userAgent.browser.version
-      //           } ${timestamps[timestamp].language}`,
-      //         } : {
-      //           title: [
-      //             timestamps[timestamp].browser ? `Full sec-ch-ua header: ${timestamps[timestamp].browser.replaceAll('"', '&quot;')}` : null,
-      //             timestamps[timestamp].language ? `Full accept-language header: ${timestamps[timestamp].language.replaceAll('"', '&quot;')}` : null,
-      //           ].filter(Boolean).join('\n'),
-      //           value: [
-      //             parseBrowser(timestamps[timestamp].browser),
-      //             parseAcceptLanguage(timestamps[timestamp].language),
-      //           ].filter(Boolean).join(', '),
-      //         },
-      //         device: !serverEvent ? `${
-      //           timestamps[timestamp].userAgent.device?.vendor} ${
-      //           timestamps[timestamp].userAgent.os.name} ${
-      //           timestamps[timestamp].userAgent.os.version
-      //         }` : timestamps[timestamp]?.device?.replaceAll('"', ''),
-      //       };
-      //     }),
-      // });
-
-      // anonymousContainer.innerHTML = '<input type="text" placeholder="Filter by IP" class="filter-anonymous filter">';
-      // anonymousContainer.append(anonymousTable.table);
-      const rows = Object.keys(timestamps)
-        .sort((timestampA, timestampB) => new Date(Number(timestampB))
-         - new Date(Number(timestampA)))
-        .map(
-          (timestamp) => (['server api request', 'server page request', 'server redirect request'].includes(timestamps[timestamp].event) ? `
-          <tr>
-            <td>${timestamps[timestamp].ip}</td>
-            <td>${timestamps[timestamp].event}</td>
-            <td>${new Date(Number(timestamp)).toLocaleString()}</td>
-            <td><a href="${timestamps[timestamp].url}" target="_blank">${timestamps[timestamp].url}</a></td>
-            <td>${timestamps[timestamp].city ?? ''} ${timestamps[timestamp].country}</td>
-            <td>${timestamps[timestamp].referrer ? `<a href="${timestamps[timestamp].referrer}" target="_blank">${timestamps[timestamp].referrer}</a>` : ''}</td>
-            <td>${timestamps[timestamp].browser ?? ''} ${timestamps[timestamp].language ?? ''}</td>
-            <td>${timestamps[timestamp].platform?.replaceAll('"', '') ?? ''}</td>
-          </tr>` : `
-          <tr>
-            <td>${timestamps[timestamp].ip}</td>
-            <td>${timestamps[timestamp].event}${timestamps[timestamp].isSPA ? ' SPA' : ''}</td>
-            <td>${new Date(Number(timestamp)).toLocaleString()}</td>
-            <td><a href="${timestamps[timestamp].url}" target="_blank">${timestamps[timestamp].url}</a></td>
-            <td>${timestamps[timestamp].location.city} - ${timestamps[timestamp].location.country}</td>
-            <td>${timestamps[timestamp].referrer ? `<a href="${timestamps[timestamp].referrer}" target="_blank">${timestamps[timestamp].referrer}</a>` : 'None'}</td>
-            <td>${timestamps[timestamp].userAgent.browser.name} ${timestamps[timestamp].userAgent.browser.version} ${timestamps[timestamp].language}</td>
-            <td>${timestamps[timestamp].userAgent.device?.vendor ?? 'Unknwon'} ${timestamps[timestamp].userAgent.os.name} ${timestamps[timestamp].userAgent.os.version}</td>
-          </tr>`).trim(),
-        );
+            return {
+              ...timestampItem,
+              event: timestampItem.event + (!serverEvent && timestampItem.isSPA ? ' SPA' : ''),
+              date: {
+                value: dateToRelativeString(timestampDate),
+                title: timestampDate.toLocaleString(),
+              },
+              url: {
+                value: timestampItem.url.replace(SCRIPT_API, ''),
+                title: timestampItem.url,
+              },
+              location: [timestampItem.city, timestampItem.country].filter(Boolean).join(', '),
+              referrer: {
+                value: timestampItem.referrer,
+                link: timestampItem.referrer,
+              },
+              browser: !serverEvent ? {
+                value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
+                title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
+              } : {
+                title: [
+                  timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
+                  timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
+                ].filter(Boolean).join('\n'),
+                value: [
+                  parseBrowser(timestampItem.browser),
+                  parseAcceptLanguage(timestampItem.language),
+                ].filter(Boolean).join(', '),
+              },
+              device: !serverEvent ? {
+                title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
+                value: timestampItem.userAgent.os.name,
+              } : timestampItem?.device?.replaceAll('"', ''),
+            };
+          }),
+      });
 
       if (scrollTo) {
         window.location.hash = '#anonymous-activity';
       }
 
-      anonymousContainer.innerHTML = clusterizeTable('anonymous', ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device']);
+      anonymousContainer.innerHTML = '';
+      anonymousContainer.append(anonymousTable.wrapper);
 
-      const clusterize = new Clusterize({
-        rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
+      // eslint-disable-next-line no-new
+      new Clusterize({
+        rows: anonymousTable.tbody.children,
         rows_in_block: 80,
         scrollId: 'scrollArea-anonymous',
         contentId: 'contentArea-anonymous',
@@ -563,6 +525,7 @@ export default async function renderAdmin({ container, nav }) {
     }
   };
 
+  // MARK: analytics
   loadWebAnalytics('1d').then((analytics) => {
     renderAnalytics({
       analytics,

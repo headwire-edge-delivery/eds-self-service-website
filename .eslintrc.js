@@ -10,6 +10,9 @@ module.exports = {
     sourceType: 'module',
     requireConfigFile: false,
   },
+  globals: {
+    Clusterize: true,
+  },
   rules: {
     // allow reassigning param
     'no-param-reassign': [2, { props: false }],
