@@ -11,7 +11,6 @@ export default async function renderAccount({ container, nav }) {
     getUserSettings(SCRIPT_API),
     window.auth0Client.getUser(),
   ]);
-  console.log('user:', user);
 
   nav.innerHTML = `<a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>`;
 

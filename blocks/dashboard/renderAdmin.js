@@ -465,7 +465,7 @@ export default async function renderAdmin({ container, nav }) {
         headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
         rows: Object.keys(timestamps)
           .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
-          .map((timestamp, index) => {
+          .map((timestamp) => {
             const timestampItem = timestamps[timestamp];
             const serverEvent = ['server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
             const timestampDate = new Date(Number(timestamp));
