@@ -82,7 +82,7 @@ export default async function decorate(block) {
         name: 'Campaigns',
       },
       {
-        name: 'Overview',
+        name: 'Emails',
         href: `${pathname}/emails`,
         iconSrc: '/icons/email.svg',
         renderTab: renderCampaignsOverview,
