@@ -136,7 +136,7 @@
     width: 100%;
 }
 
-.theme-editor.block input {
+.theme-editor.block input:not([type="color"]) {
     margin-bottom: 24px;
     display: block;
     width: 100%;
@@ -177,6 +177,7 @@
 .theme-editor.block .color-picker {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
     margin-bottom: 16px;
 }
