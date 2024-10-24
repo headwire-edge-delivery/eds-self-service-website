@@ -216,7 +216,7 @@ export default async function renderUserTab({ container }) {
 
       const contentWrapper = document.createElement('div');
       contentWrapper.className = 'users clusterize';
-      contentWrapper.innerHTML = `<h3>${button.dataset.user} recent activity</h3>`;
+      contentWrapper.innerHTML = `<h2>${button.dataset.user} recent activity</h2>`;
 
       const activitiesDialogTable = createTable({
         tableId: 'recent-activity',
@@ -297,7 +297,7 @@ export default async function renderUserTab({ container }) {
       return;
     }
     lastLength = userFilterLength;
-    usersContainer.innerHTML = loadingSpinner;
+    usersContainer.innerHTML = renderSkeleton('admin');
     const page = readQueryParams().page || 1;
     const limit = readQueryParams().limit || 100;
 
@@ -375,7 +375,7 @@ export default async function renderUserTab({ container }) {
   // MARK: renderDeletedUsers
   const deletedUsersContainer = container.querySelector('.users .deleted-users');
   const renderDeletedUsers = async (scrollTo) => {
-    deletedUsersContainer.innerHTML = loadingSpinner;
+    deletedUsersContainer.innerHTML = renderSkeleton('admin');
     filterByDeletedMail = readQueryParams().deleteduser || '';
     const page = readQueryParams().deletedpage || 1;
     const limit = readQueryParams().deletedlimit || 100;
@@ -463,7 +463,7 @@ export default async function renderUserTab({ container }) {
   // MARK: renderAnonymous
   const anonymousContainer = container.querySelector('.users .anonymous-users');
   const renderAnonymous = async (scrollTo) => {
-    anonymousContainer.innerHTML = loadingSpinner;
+    anonymousContainer.innerHTML = renderSkeleton('admin');
     filterByIp = readQueryParams().ip || '';
 
     if (!anonymousUserResponse) {

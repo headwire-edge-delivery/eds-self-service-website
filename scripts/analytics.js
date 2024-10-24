@@ -96,10 +96,9 @@ export default async function renderAnalytics({
       - 100
       : 0;
 
-    const headingLevel = cww ? 2 : 3;
     container.innerHTML = `
           <div class="title">
-              <h${headingLevel}>Last ${periodSelector.value === '1d' ? '24 Hours' : periodSelector.value.replace('d', ' Days')}</h${headingLevel}>
+              <h2>Last ${periodSelector.value === '1d' ? '24 Hours' : periodSelector.value.replace('d', ' Days')}</h2>
               ${periodSelector.value === '30d' ? '<i>(Based on a 10% sample of page load events)</i>' : ''}
           </div>
           <div class="cards">
@@ -126,7 +125,7 @@ export default async function renderAnalytics({
 
           <div id="monitoring-details">
             <div id="visits-details">
-              <h${headingLevel}>Visits details</h${headingLevel}>
+              <h2>Visits details</h2>
               <div class="cards metrics">
                   <div id="visits-details-country" class="box">
                       <strong>By country</strong>
@@ -168,7 +167,7 @@ export default async function renderAnalytics({
             </div>
   
             <div id="page-views-details">
-              <h${headingLevel}>Page views details</h${headingLevel}>
+              <h2>Page views details</h2>
               <div class="cards metrics">
                 <div id="page-views-details-country" class="box">
                     <strong>By country</strong>
@@ -204,7 +203,7 @@ export default async function renderAnalytics({
             </div>
   
             <div id="pageload-details">
-              <h${headingLevel}>Page load time details</h${headingLevel}>
+              <h2>Page load time details</h2>
               <div class="cards metrics">
                 <div id="pageload-details-country" class="box">
                     <strong>By country</strong>

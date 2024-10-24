@@ -5,11 +5,10 @@ import renderAnalytics from '../../scripts/analytics.js';
 
 export default async function renderAnalyticsTab({ container, nav }) {
   container.innerHTML = `
-  <h2 id="web-analytics">Web analytics</h2>
     <div class="analytics">
       ${renderSkeleton('site-analytics')}
     </div>
-    `;
+  `;
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
 
