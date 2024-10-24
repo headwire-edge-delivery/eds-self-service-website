@@ -2,8 +2,7 @@ import {
   OOPS,
   SCRIPT_API,
   waitForAuthenticated,
-  loadingSpinner,
-  dateToRelativeString,
+  dateToRelativeString, renderSkeleton,
 } from '../../scripts/scripts.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
@@ -135,7 +134,7 @@ const paginatorEventlistener = (container, queryParam, functionName) => {
     if (button) {
       const newPage = Number(button.getAttribute('data-change-to'));
       writeQueryParams({ [queryParam]: newPage });
-      container.innerHTML = `<p style="display: flex; justify-content: center;">${loadingSpinner}</p>`;
+      container.innerHTML = renderSkeleton('admin-tracking');
 
       functionName(true);
     }
@@ -153,19 +152,19 @@ export default async function renderUserTab({ container }) {
     <input value="${filterByMail}" type="search" minlength="3" placeholder="Filter by user email" class="filter-users filter">
     <p id="user-filter-info" style="display: none">Must be at least ${userSearchMinLength} Characters long</p>
     <div class="known-users clusterize">
-      ${loadingSpinner}
+      ${renderSkeleton('tracking')}
     </div>
     
     <h2 id="deleted-users">Deleted users</h2>
     <input value="${filterByDeletedMail}" type="search" placeholder="Filter by user email" class="filter-deleted-users filter">
     <div class="deleted-users clusterize">
-      ${loadingSpinner}
+      ${renderSkeleton('tracking')}
     </div>
         
     <h2 id="anonymous-activity">Anonymous activity</h2>
     <input value="${filterByIp}" type="search" placeholder="Filter by IP" class="filter-anonymous filter">
     <div class="anonymous-users clusterize">
-      ${loadingSpinner}
+      ${renderSkeleton('tracking')}
     </div>
   `;
   const userActivityTitle = container.querySelector('#user-activity');
@@ -302,6 +301,8 @@ export default async function renderUserTab({ container }) {
     const page = readQueryParams().page || 1;
     const limit = readQueryParams().limit || 100;
 
+    usersContainer.innerHTML = renderSkeleton('tracking');
+
     const reqUsers = await fetch(`${SCRIPT_API}/tracking?mail=${filterByMail}&page=${page}&limit=${limit}`, {
       headers: {
         authorization: `bearer ${token}`,
@@ -366,7 +367,7 @@ export default async function renderUserTab({ container }) {
         });
       }
     } else {
-      usersContainer.querySelector('p').textContent = OOPS;
+      usersContainer.querySelector('[aria-label="loading"]').textContent = OOPS;
     }
   };
   filterEventlistener('.filter-users', 'user', renderUsers, userSearchMinLength);
@@ -452,7 +453,7 @@ export default async function renderUserTab({ container }) {
         });
       }
     } else {
-      deletedUsersContainer.querySelector('p').textContent = OOPS;
+      deletedUsersContainer.querySelector('[aria-label="loading"]').textContent = OOPS;
     }
   };
   filterEventlistener('.filter-deleted-users', 'deleteduser', renderDeletedUsers);

@@ -1,4 +1,6 @@
-import { OOPS, parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
+import {
+  OOPS, parseFragment, renderSkeleton, SCRIPT_API,
+} from '../../scripts/scripts.js';
 import {
   addIconDialogSetup, manageGoogleCalendarLink, renderBlocksList, renderIconsList,
   renderPrevUpdatesSection,
@@ -11,7 +13,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     projectDetails, authHeaders, authHeadersWithBody, siteSlug,
   } = renderOptions;
 
-  container.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
+  container.innerHTML = renderSkeleton('settings');
 
   const [
     authors,

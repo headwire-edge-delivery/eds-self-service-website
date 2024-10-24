@@ -2,7 +2,7 @@ import {
   SCRIPT_API,
   onAuthenticated,
   OOPS,
-  KESTREL_ONE,
+  KESTREL_ONE, renderSkeleton,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -79,9 +79,7 @@ export default async function decorate(block) {
         </div>
         
         <div class="content">
-            <p>
-                <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
-            </p>
+            ${renderSkeleton('theme-editor')}
         </div>
       </div>`;
 
@@ -99,7 +97,7 @@ export default async function decorate(block) {
       });
 
     if (!cssVarsData) {
-      block.querySelector('.content p').textContent = OOPS;
+      block.querySelector('.content [aria-label="loading"]').textContent = OOPS;
       return;
     }
 
@@ -154,7 +152,7 @@ export default async function decorate(block) {
               <div class="preview">
                 <div class="preview-container">
                   <iframe src="https://preview--${id}.${KESTREL_ONE}" class="iframe is-loading"></iframe>
-                  <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+                  <div class="skeleton" style="height: 100%; width: 100%;"></div>
                 </div>
               </div>
               <aside>

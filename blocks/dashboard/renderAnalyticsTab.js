@@ -1,5 +1,5 @@
 import {
-  loadingSpinner, OOPS, SCRIPT_API, waitForAuthenticated,
+  OOPS, renderSkeleton, SCRIPT_API, waitForAuthenticated,
 } from '../../scripts/scripts.js';
 import renderAnalytics from '../../scripts/analytics.js';
 
@@ -7,7 +7,7 @@ export default async function renderAnalyticsTab({ container, nav }) {
   container.innerHTML = `
   <h2 id="web-analytics">Web analytics</h2>
     <div class="analytics">
-      ${loadingSpinner}
+      ${renderSkeleton('site-analytics')}
     </div>
     `;
   await waitForAuthenticated();
