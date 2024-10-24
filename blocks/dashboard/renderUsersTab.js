@@ -148,8 +148,6 @@ export default async function renderUserTab({ container }) {
   let filterByMail = readQueryParams().user || '';
   let filterByDeletedMail = readQueryParams().deleteduser || '';
   container.innerHTML = `
-  
-
     <h2 id="user-activity">User activity</h2>
     <input value="${filterByMail}" type="search" placeholder="Filter by user email" class="filter-users filter">
     <div class="known-users clusterize">
@@ -180,18 +178,19 @@ export default async function renderUserTab({ container }) {
     functionName(true);
   };
 
-  const filterEventlistener = (filterClass, filterName, functionName) => {
-    // eslint-disable-next-line func-names
-    document.querySelector(filterClass).oninput = (function () {
+  const filterEventlistener = (filterClass, filterName, functionName, minLength = 1) => {
+    const filterInput = document.querySelector(filterClass);
+    filterInput.oninput = () => {
+      if (filterInput.value.length < minLength) return;
       let debounceTimer;
       // eslint-disable-next-line func-names
-      return function (event) {
+      (() => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-          onFilterInput(event.target.value, filterName, functionName);
+          onFilterInput(filterInput.value, filterName, functionName);
         }, 300);
-      };
-    }());
+      })();
+    };
   };
 
   // MARK: activity dialog
@@ -265,15 +264,19 @@ export default async function renderUserTab({ container }) {
     button.classList.remove('loading');
   };
 
+  const userSearchMinLength = 3; // auth0 returns nothing if query is less than 3 characters
   // MARK: renderUsers
+  const usersContainer = container.querySelector('.users .known-users');
   const renderUsers = async (scrollTo) => {
-    filterEventlistener('.filter-users', 'user', renderUsers);
-    const usersContainer = container.querySelector('.users .known-users');
+    usersContainer.innerHTML = loadingSpinner;
     filterByMail = readQueryParams().user || '';
+    if (filterByMail.length < userSearchMinLength) {
+      filterByMail = '';
+      writeQueryParams({ user: '' });
+      container.querySelector('.filter-users').value = '';
+    }
     const page = readQueryParams().page || 1;
     const limit = readQueryParams().limit || 100;
-
-    usersContainer.innerHTML = loadingSpinner;
 
     const reqUsers = await fetch(`${SCRIPT_API}/tracking?mail=${filterByMail}&page=${page}&limit=${limit}`, {
       headers: {
@@ -283,7 +286,7 @@ export default async function renderUserTab({ container }) {
 
     if (reqUsers.ok) {
       const usersJSON = await reqUsers.json();
-      const users = usersJSON.data;
+      const users = usersJSON.data || [];
       const { pagination } = usersJSON;
 
       const usersTable = createTable({
@@ -326,6 +329,7 @@ export default async function renderUserTab({ container }) {
         button.onclick = onActivitiesClick;
       });
 
+      // TODO: maybe change how this whole scrolling thing works or remove it? It's very annoying
       if (scrollTo) {
         window.location.hash = '#user-activity';
       }
@@ -333,11 +337,12 @@ export default async function renderUserTab({ container }) {
       usersContainer.querySelector('p').textContent = OOPS;
     }
   };
+  filterEventlistener('.filter-users', 'user', renderUsers, userSearchMinLength);
 
   // MARK: renderDeletedUsers
+  const deletedUsersContainer = container.querySelector('.users .deleted-users');
   const renderDeletedUsers = async (scrollTo) => {
-    filterEventlistener('.filter-deleted-users', 'deleteduser', renderDeletedUsers);
-    const deletedUsersContainer = container.querySelector('.users .deleted-users');
+    deletedUsersContainer.innerHTML = loadingSpinner;
     filterByDeletedMail = readQueryParams().deleteduser || '';
     const page = readQueryParams().deletedpage || 1;
     const limit = readQueryParams().deletedlimit || 100;
@@ -350,7 +355,7 @@ export default async function renderUserTab({ container }) {
 
     if (reqDeletedUsers.ok) {
       const deletedUsersJSON = await reqDeletedUsers.json();
-      const deletedUsers = deletedUsersJSON.data;
+      const deletedUsers = deletedUsersJSON.data || [];
       const { pagination } = deletedUsersJSON;
 
       const deletedUsersTable = createTable({
@@ -415,97 +420,108 @@ export default async function renderUserTab({ container }) {
       deletedUsersContainer.querySelector('p').textContent = OOPS;
     }
   };
+  filterEventlistener('.filter-deleted-users', 'deleteduser', renderDeletedUsers);
 
+  let anonymousUserResponse = null;
+  let anonymousUserData = null;
   // MARK: renderAnonymous
+  const anonymousContainer = container.querySelector('.users .anonymous-users');
   const renderAnonymous = async (scrollTo) => {
-    const anonymousContainer = container.querySelector('.users .anonymous-users');
-    filterEventlistener('.filter-anonymous', 'ip', renderAnonymous);
+    anonymousContainer.innerHTML = loadingSpinner;
     filterByIp = readQueryParams().ip || '';
 
-    const reqAnonymous = await fetch(`${SCRIPT_API}/tracking?user=anonymous`, {
-      headers: {
-        authorization: `bearer ${token}`,
-      },
-    }).catch(() => ({ ok: false }));
-
-    if (reqAnonymous.ok) {
-      const anonymous = await reqAnonymous.json();
-      const ips = Object.keys(anonymous);
-      const timestamps = {};
-      ips.forEach((ip) => {
-        Object.keys(anonymous[ip]).forEach((timestamp) => {
-          if (!filterByIp || ip.includes(filterByIp.replaceAll('.', '(DOT)'))) {
-            timestamps[timestamp] = anonymous[ip][timestamp];
-          }
-        });
-      });
-
-      const anonymousTable = createTable({
-        tableId: 'anonymous',
-        tableClass: 'anonymous',
-        headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
-        rows: Object.keys(timestamps)
-          .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
-          .map((timestamp) => {
-            const timestampItem = timestamps[timestamp];
-            const serverEvent = ['server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
-            const timestampDate = new Date(Number(timestamp));
-
-            return {
-              ...timestampItem,
-              event: timestampItem.event + (!serverEvent && timestampItem.isSPA ? ' SPA' : ''),
-              date: {
-                value: dateToRelativeString(timestampDate),
-                title: timestampDate.toLocaleString(),
-              },
-              url: {
-                value: timestampItem.url.replace(SCRIPT_API, ''),
-                title: timestampItem.url,
-              },
-              location: [timestampItem.city, timestampItem.country].filter(Boolean).join(', '),
-              referrer: {
-                value: timestampItem.referrer,
-                link: timestampItem.referrer,
-              },
-              browser: !serverEvent ? {
-                value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
-                title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
-              } : {
-                title: [
-                  timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
-                  timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
-                ].filter(Boolean).join('\n'),
-                value: [
-                  parseBrowser(timestampItem.browser),
-                  parseAcceptLanguage(timestampItem.language),
-                ].filter(Boolean).join(', '),
-              },
-              device: !serverEvent ? {
-                title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
-                value: timestampItem.userAgent.os.name,
-              } : timestampItem?.device?.replaceAll('"', ''),
-            };
-          }),
-      });
-
-      if (scrollTo) {
-        window.location.hash = '#anonymous-activity';
-      }
-
-      anonymousContainer.innerHTML = '';
-      anonymousContainer.append(anonymousTable.wrapper);
-
-      // eslint-disable-next-line no-new
-      new Clusterize({
-        rows: anonymousTable.tbody.children,
-        rows_in_block: 80,
-        scrollId: 'scrollArea-anonymous',
-        contentId: 'contentArea-anonymous',
-      });
-    } else {
-      anonymousContainer.textContent = OOPS;
+    if (!anonymousUserResponse) {
+      const reqAnonymous = await fetch(`${SCRIPT_API}/tracking?user=anonymous`, {
+        headers: {
+          authorization: `bearer ${token}`,
+        },
+      }).catch(() => ({ ok: false }));
+      anonymousUserResponse = reqAnonymous;
     }
+
+    if (!anonymousUserResponse.ok) {
+      anonymousContainer.querySelector('p').textContent = OOPS;
+      return;
+    }
+
+    if (!anonymousUserData) {
+      anonymousUserData = await anonymousUserResponse.json();
+    }
+
+    const ips = Object.keys(anonymousUserData);
+    const timestamps = {};
+    ips.forEach((ip) => {
+      Object.keys(anonymousUserData[ip]).forEach((timestamp) => {
+        if (!filterByIp || ip.includes(filterByIp.replaceAll('.', '(DOT)'))) {
+          timestamps[timestamp] = anonymousUserData[ip][timestamp];
+        }
+      });
+    });
+
+    const anonymousTable = createTable({
+      tableId: 'anonymous',
+      tableClass: 'anonymous',
+      headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
+      rows: Object.keys(timestamps)
+        .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
+        .map((timestamp) => {
+          const timestampItem = timestamps[timestamp];
+          const serverEvent = ['server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
+          const timestampDate = new Date(Number(timestamp));
+
+          return {
+            ...timestampItem,
+            event: timestampItem.event + (!serverEvent && timestampItem.isSPA ? ' SPA' : ''),
+            date: {
+              value: dateToRelativeString(timestampDate),
+              title: timestampDate.toLocaleString(),
+            },
+            url: {
+              value: timestampItem.url.replace(SCRIPT_API, ''),
+              title: timestampItem.url,
+            },
+            location: [timestampItem.city, timestampItem.country].filter(Boolean).join(', '),
+            referrer: {
+              value: timestampItem.referrer,
+              link: timestampItem.referrer,
+            },
+            browser: !serverEvent ? {
+              value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
+              title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
+            } : {
+              title: [
+                timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
+                timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
+              ].filter(Boolean).join('\n'),
+              value: [
+                parseBrowser(timestampItem.browser),
+                parseAcceptLanguage(timestampItem.language),
+              ].filter(Boolean).join(', '),
+            },
+            device: !serverEvent ? {
+              title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
+              value: timestampItem.userAgent.os.name,
+            } : timestampItem?.device?.replaceAll('"', ''),
+          };
+        }),
+    });
+
+    if (scrollTo) {
+      window.location.hash = '#anonymous-activity';
+    }
+
+    anonymousContainer.innerHTML = '';
+    anonymousContainer.append(anonymousTable.wrapper);
+
+    // eslint-disable-next-line no-new
+    new Clusterize({
+      rows: anonymousTable.tbody.children,
+      rows_in_block: 80,
+      scrollId: 'scrollArea-anonymous',
+      contentId: 'contentArea-anonymous',
+    });
   };
+  filterEventlistener('.filter-anonymous', 'ip', renderAnonymous);
 
   renderUsers();
   renderDeletedUsers();
