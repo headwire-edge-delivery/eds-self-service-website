@@ -147,9 +147,11 @@ export default async function renderUserTab({ container }) {
   let filterByIp = readQueryParams().ip || '';
   let filterByMail = readQueryParams().user || '';
   let filterByDeletedMail = readQueryParams().deleteduser || '';
+  const userSearchMinLength = 3; // auth0 returns nothing if query is less than 3 characters
   container.innerHTML = `
     <h2 id="user-activity">User activity</h2>
-    <input value="${filterByMail}" type="search" placeholder="Filter by user email" class="filter-users filter">
+    <input value="${filterByMail}" type="search" minlength="3" placeholder="Filter by user email" class="filter-users filter">
+    <p id="user-filter-info" style="display: none">Must be at least ${userSearchMinLength} Characters long</p>
     <div class="known-users clusterize">
       ${loadingSpinner}
     </div>
@@ -173,25 +175,26 @@ export default async function renderUserTab({ container }) {
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
 
-  const onFilterInput = (value, filterName, functionName) => {
+  const onFilterInput = (value, filterName, functionName, minLength) => {
+    const validLength = value.length >= minLength || value.length === 0;
     if (value) {
       writeQueryParams({ [filterName]: value });
     } else {
       removeQueryParams([filterName]);
     }
-    functionName(true);
+    functionName(true, validLength);
   };
 
   const filterEventlistener = (filterClass, filterName, functionName, minLength = 1) => {
     const filterInput = document.querySelector(filterClass);
-    filterInput.oninput = () => {
-      if (filterInput.value.length !== 0 && filterInput.value.length < minLength) return;
+    filterInput.oninput = (event) => {
+      event.preventDefault();
       let debounceTimer;
       // eslint-disable-next-line func-names
       (() => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-          onFilterInput(filterInput.value, filterName, functionName);
+          onFilterInput(filterInput.value, filterName, functionName, minLength);
         }, 300);
       })();
     };
@@ -268,17 +271,34 @@ export default async function renderUserTab({ container }) {
     button.classList.remove('loading');
   };
 
-  const userSearchMinLength = 3; // auth0 returns nothing if query is less than 3 characters
   // MARK: renderUsers
   const usersContainer = container.querySelector('.users .known-users');
-  const renderUsers = async (scrollTo) => {
-    usersContainer.innerHTML = loadingSpinner;
+  let lastLength = 0;
+  const renderUsers = async (scrollTo, rerender = true) => {
     filterByMail = readQueryParams().user || '';
+    const userFilterInfo = container.querySelector('#user-filter-info');
+    const userFilterLength = container.querySelector('.filter-users').value.length;
+    let rerequest = false;
     if (filterByMail.length < userSearchMinLength) {
       filterByMail = '';
-      writeQueryParams({ user: '' });
-      container.querySelector('.filter-users').value = '';
+      removeQueryParams(['user']);
+      if (userFilterInfo.style.display !== 'flex' && userFilterLength > 0) {
+        userFilterInfo.style.display = 'flex';
+        if (userFilterLength >= userSearchMinLength || lastLength === userSearchMinLength) {
+          rerequest = true;
+        }
+      }
     }
+    if (userFilterInfo.style.display === 'flex' && (userFilterLength === 0 || userFilterLength >= userSearchMinLength)) {
+      userFilterInfo.style.display = 'none';
+      rerequest = true;
+    }
+    if (!rerender && !rerequest) {
+      // no refetch needed
+      return;
+    }
+    lastLength = userFilterLength;
+    usersContainer.innerHTML = loadingSpinner;
     const page = readQueryParams().page || 1;
     const limit = readQueryParams().limit || 100;
 
@@ -340,7 +360,10 @@ export default async function renderUserTab({ container }) {
       // I can't find out why this happens, but I didn't spend too much time looking.
       // So, I'm just going to leave it here.
       if (scrollTo) {
-        userActivityTitle.scrollIntoView();
+        window.scrollTo({
+          top: userActivityTitle.offsetTop,
+          behavior: 'smooth',
+        });
       }
     } else {
       usersContainer.querySelector('p').textContent = OOPS;
@@ -423,7 +446,10 @@ export default async function renderUserTab({ container }) {
       });
 
       if (scrollTo) {
-        deletedUsersTitle.scrollIntoView();
+        window.scrollTo({
+          top: deletedUsersTitle.offsetTop,
+          behavior: 'smooth',
+        });
       }
     } else {
       deletedUsersContainer.querySelector('p').textContent = OOPS;
@@ -516,7 +542,10 @@ export default async function renderUserTab({ container }) {
     });
 
     if (scrollTo) {
-      anonymousActivityTitle.scrollIntoView();
+      window.scrollTo({
+        top: anonymousActivityTitle.offsetTop,
+        behavior: 'smooth',
+      });
     }
 
     anonymousContainer.innerHTML = '';
