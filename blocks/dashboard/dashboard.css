@@ -8,27 +8,6 @@
   padding: 16px;
 }
 
-.dashboard.block .filter {
-  width: 100%;
-  font-size: 16px;
-  background-image: url("/icons/search.svg");
-  background-position: 12px 12px;
-  background-size: 20px;
-  background-repeat: no-repeat;
-  padding: 12px 20px 12px 40px;
-}
-
-.dashboard.block .filter::-webkit-search-cancel-button {
-  cursor: pointer;
-  padding: 2px;
-}
-
-.dashboard.block h1 {
-  font-size: 16px;
-  padding: 0;
-  line-height: 16px;
-}
-
 .dashboard.block h2 {
   font-size: 16px;
   padding-block: 0;
@@ -55,7 +34,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, 286px);
   gap: 48px;
-  margin-top: 48px;
+  margin-top: 24px;
 }
 
 .dashboard.block .sites li a {
@@ -120,48 +99,16 @@
   display: none;
 }
 
-.dashboard.block .account-details {
-  display: flex;
-  gap: 64px;
+.dashboard.block .cards {
   margin-bottom: 32px;
-  flex-wrap: wrap;
-}
-
-.dashboard.block .account-details span {
-  font-weight: 300;
-  display: inline-block;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dashboard.block .account-details > div {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 25%;
-}
-
-.dashboard.block .account-details > div strong {
-  text-transform: uppercase;
-}
-
-.dashboard.block .account-details > div img {
-  max-width: 100px;
-}
-
-.dashboard.block .account-details .upgrade {
-  align-self: flex-start;
-  margin-top: 16px;
 }
 
 .dashboard.block .plans-dialog-wrapper {
   padding-inline: 0;
 }
 
-.dashboard.block .sites section h3 {
-  padding-top: 48px;
+.dashboard.block .sites section > h2 {
+  padding-top: 32px;
   padding-bottom: 0;
 }
 

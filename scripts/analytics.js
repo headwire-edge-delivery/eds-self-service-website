@@ -1,4 +1,4 @@
-import { OOPS, parseFragment } from './scripts.js';
+import { OOPS, parseFragment, renderSkeleton } from './scripts.js';
 import { loadCSS } from './aem.js';
 
 loadCSS('/styles/analytics.css');
@@ -394,7 +394,7 @@ export default async function renderAnalytics({
   };
 
   periodSelector.onchange = async () => {
-    container.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
+    container.innerHTML = renderSkeleton('site-analytics');
     const newAnalytics = await loadWebAnalytics(periodSelector.value);
     if (newAnalytics) {
       renderWebAnalytics(newAnalytics);

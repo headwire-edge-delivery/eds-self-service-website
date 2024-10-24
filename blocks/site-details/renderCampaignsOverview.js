@@ -2,7 +2,7 @@ import {
   daProjectRepo,
   dateToRelativeSpan,
   dateToRelativeString,
-  EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API, slugify,
+  EMAIL_WORKER_API, OOPS, parseFragment, renderSkeleton, SCRIPT_API, slugify,
 } from '../../scripts/scripts.js';
 import { renderTable } from './renderSitePages.js';
 
@@ -12,7 +12,7 @@ export default async function renderCampaignsOverview({
   const {
     projectDetails, user, token, siteSlug, pathname,
   } = renderOptions;
-  container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
+  container.innerHTML = renderSkeleton('campaigns');
 
   // get required data
   const [indexData, campaignsData] = await Promise.all([

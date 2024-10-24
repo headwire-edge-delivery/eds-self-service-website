@@ -1,6 +1,6 @@
 import {
   SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE,
-  projectRepo, daProjectRepo,
+  projectRepo, daProjectRepo, renderSkeleton,
 } from '../../scripts/scripts.js';
 import { loadCSS } from '../../scripts/aem.js';
 
@@ -45,7 +45,7 @@ export default async function decorate(block) {
 
     // no project
     if (!project) {
-      block.querySelector('.content p').textContent = OOPS;
+      block.querySelector('.content [aria-label="loading"]').textContent = OOPS;
       return;
     }
 
@@ -71,9 +71,7 @@ export default async function decorate(block) {
         </div>
         
         <div class="content">
-            <p>
-                <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
-            </p>
+            ${renderSkeleton('email-composer')}
         </div>
       </div>`;
 
@@ -126,11 +124,7 @@ export default async function decorate(block) {
                 
                 <div class="recipients-wrapper">
                     <table class="recipients">
-                        <tr>
-                          <td>
-                              <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
-                          </td>
-                        </tr>
+                        ${renderSkeleton('recipients')}
                     </table>
                 </div>
                 </div>
@@ -607,7 +601,7 @@ export default async function decorate(block) {
           };
         });
     } else {
-      block.querySelector('.content p').textContent = OOPS;
+      block.querySelector('.content [aria-label="loading"]').textContent = OOPS;
     }
   });
 }

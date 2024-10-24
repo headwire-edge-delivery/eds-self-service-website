@@ -1,7 +1,7 @@
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import {
   dateToRelativeSpan,
-  EMAIL_WORKER_API, loadingSpinner, parseFragment, SCRIPT_API,
+  EMAIL_WORKER_API, parseFragment, renderSkeleton, SCRIPT_API,
 } from '../../scripts/scripts.js';
 
 const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
@@ -119,7 +119,7 @@ export default async function renderCampaignsAnalytics({
     token, siteSlug, pathname,
   } = renderOptions;
 
-  container.innerHTML = loadingSpinner;
+  container.innerHTML = renderSkeleton('campaign-analytics');
 
   const [campaignAnalyticsData, campaignsData] = await Promise.all([
     fetch(`${SCRIPT_API}/email/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -172,7 +172,7 @@ export default async function renderCampaignsAnalytics({
         <h2 id="email-details">Email details</h2>
         <input value="${search}" type="search" placeholder="Filter" class="filter-email-details filter">
         <div class="email-details clusterize">
-          ${loadingSpinner}
+          ${renderSkeleton('campaign-tracking')}
         </div>
       `;
 

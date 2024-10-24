@@ -36,9 +36,9 @@ let userData = {};
 // Function to check if all elements are loaded
 function checkAllLoaded() {
   const elements = document.querySelectorAll('[data-block-status]');
-  const loadingImages = document.querySelectorAll('.is-selected img[alt="loading"], .site-details img[alt="loading"]');
+  const loading = document.querySelectorAll('.is-selected [aria-label="loading"], .site-details [aria-label="loading"]');
 
-  if (loadingImages.length > 0) {
+  if (loading.length > 0) {
     setTimeout(checkAllLoaded, 100);
     document.querySelector('#help-btn').style.display = 'none';
     document.querySelector('#help-btn').setAttribute('data-loaded', 'false');

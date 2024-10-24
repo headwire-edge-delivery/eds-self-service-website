@@ -1,13 +1,13 @@
 import {
   OOPS, parseFragment, SCRIPT_API, KESTREL_ONE, getThumbnail,
-  dateToRelativeSpan,
+  dateToRelativeSpan, renderSkeleton,
 } from '../../scripts/scripts.js';
 
 export default async function renderSiteOverview({ container, nav, renderOptions }) {
   // TODO: if projectdetails are not required on most tabs, only request it here
   const { projectDetails, user, token } = renderOptions;
 
-  container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
+  container.innerHTML = renderSkeleton('site-overview');
 
   nav.innerHTML = `
     ${!projectDetails.darkAlleyProject ? `<a href="/redirect?url=${projectDetails.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>` : ''}

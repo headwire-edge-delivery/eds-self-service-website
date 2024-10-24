@@ -1,11 +1,11 @@
 import {
-  getUserSettings,
+  getUserSettings, renderSkeleton,
   SCRIPT_API,
   updateUserSettings,
 } from '../../scripts/scripts.js';
 
 export default async function renderAccount({ container, nav }) {
-  container.insertAdjacentHTML('afterbegin', '<img src="/icons/loading.svg" alt="loading"/>');
+  container.insertAdjacentHTML('afterbegin', renderSkeleton('account'));
 
   const [userSettings, user] = await Promise.all([
     getUserSettings(SCRIPT_API),
@@ -17,16 +17,16 @@ export default async function renderAccount({ container, nav }) {
   container.insertAdjacentHTML(
     'afterbegin',
     `
-  <div class="account-details">
-    <div>
+  <div class="cards">
+    <div class="box">
         <strong>Name</strong>
         <span title="${user.name}">${user.name}</span>
     </div>
-    <div>
+    <div class="box">
         <strong>Email</strong>
         <span title="${user.email}">${user.email}</span>
     </div>
-    <div id="current-plan-wrapper">
+    <div class="box" id="current-plan-wrapper">
         <strong>Plan</strong>
         <span id="current-plan">Free</span>
     </div>
@@ -37,7 +37,7 @@ export default async function renderAccount({ container, nav }) {
   `,
   );
 
-  container.querySelector('img[src="/icons/loading.svg"]').remove();
+  container.querySelector('[aria-label="loading"]').remove();
 
   const toggleAutoTourButton = container.querySelector('#toggle-auto-tour-button');
 
