@@ -7,7 +7,6 @@ import {
 } from '../../scripts/scripts.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
-import renderAnalytics from '../../scripts/analytics.js';
 import { toClassName } from '../../scripts/aem.js';
 
 const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
@@ -144,15 +143,12 @@ const paginatorEventlistener = (container, queryParam, functionName) => {
 };
 
 // MARK: render
-export default async function renderAdmin({ container, nav }) {
+export default async function renderUserTab({ container }) {
   let filterByIp = readQueryParams().ip || '';
   let filterByMail = readQueryParams().user || '';
   let filterByDeletedMail = readQueryParams().deleteduser || '';
   container.innerHTML = `
-  <h2 id="web-analytics">Web analytics</h2>
-    <div class="analytics">
-      ${loadingSpinner}
-    </div>
+  
 
     <h2 id="user-activity">User activity</h2>
     <input value="${filterByMail}" type="search" placeholder="Filter by user email" class="filter-users filter">
@@ -174,21 +170,6 @@ export default async function renderAdmin({ container, nav }) {
   `;
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
-
-  // Load web analytics
-  const loadWebAnalytics = async (interval) => {
-    try {
-      const req = await fetch(`${SCRIPT_API}/monitoring/admin?period=${interval}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
-      if (!req?.ok) {
-        throw new Error();
-      }
-      return [await req.json()];
-    } catch (e) {
-      window.alertDialog(OOPS);
-    }
-
-    return false;
-  };
 
   const onFilterInput = (value, filterName, functionName) => {
     if (value) {
@@ -229,7 +210,7 @@ export default async function renderAdmin({ container, nav }) {
       const timestamps = Object.keys(tracking);
 
       const contentWrapper = document.createElement('div');
-      contentWrapper.className = 'admin clusterize';
+      contentWrapper.className = 'users clusterize';
       contentWrapper.innerHTML = `<h3>${button.dataset.user} recent activity</h3>`;
 
       const activitiesDialogTable = createTable({
@@ -287,7 +268,7 @@ export default async function renderAdmin({ container, nav }) {
   // MARK: renderUsers
   const renderUsers = async (scrollTo) => {
     filterEventlistener('.filter-users', 'user', renderUsers);
-    const usersContainer = container.querySelector('.admin .known-users');
+    const usersContainer = container.querySelector('.users .known-users');
     filterByMail = readQueryParams().user || '';
     const page = readQueryParams().page || 1;
     const limit = readQueryParams().limit || 100;
@@ -356,7 +337,7 @@ export default async function renderAdmin({ container, nav }) {
   // MARK: renderDeletedUsers
   const renderDeletedUsers = async (scrollTo) => {
     filterEventlistener('.filter-deleted-users', 'deleteduser', renderDeletedUsers);
-    const deletedUsersContainer = container.querySelector('.admin .deleted-users');
+    const deletedUsersContainer = container.querySelector('.users .deleted-users');
     filterByDeletedMail = readQueryParams().deleteduser || '';
     const page = readQueryParams().deletedpage || 1;
     const limit = readQueryParams().deletedlimit || 100;
@@ -437,7 +418,7 @@ export default async function renderAdmin({ container, nav }) {
 
   // MARK: renderAnonymous
   const renderAnonymous = async (scrollTo) => {
-    const anonymousContainer = container.querySelector('.admin .anonymous-users');
+    const anonymousContainer = container.querySelector('.users .anonymous-users');
     filterEventlistener('.filter-anonymous', 'ip', renderAnonymous);
     filterByIp = readQueryParams().ip || '';
 
@@ -525,16 +506,6 @@ export default async function renderAdmin({ container, nav }) {
       anonymousContainer.textContent = OOPS;
     }
   };
-
-  // MARK: analytics
-  loadWebAnalytics('1d').then((analytics) => {
-    renderAnalytics({
-      analytics,
-      container: container.querySelector('.analytics'),
-      nav,
-      loadWebAnalytics,
-    });
-  });
 
   renderUsers();
   renderDeletedUsers();
