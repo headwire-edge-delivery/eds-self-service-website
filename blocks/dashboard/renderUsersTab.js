@@ -7,7 +7,6 @@ import {
 } from '../../scripts/scripts.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
-import renderAnalytics from '../../scripts/analytics.js';
 import { toClassName } from '../../scripts/aem.js';
 
 const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
@@ -144,18 +143,15 @@ const paginatorEventlistener = (container, queryParam, functionName) => {
 };
 
 // MARK: render
-export default async function renderAdmin({ container, nav }) {
+export default async function renderUserTab({ container }) {
   let filterByIp = readQueryParams().ip || '';
   let filterByMail = readQueryParams().user || '';
   let filterByDeletedMail = readQueryParams().deleteduser || '';
+  const userSearchMinLength = 3; // auth0 returns nothing if query is less than 3 characters
   container.innerHTML = `
-  <h2 id="web-analytics">Web analytics</h2>
-    <div class="analytics">
-      ${loadingSpinner}
-    </div>
-
     <h2 id="user-activity">User activity</h2>
-    <input value="${filterByMail}" type="search" placeholder="Filter by user email" class="filter-users filter">
+    <input value="${filterByMail}" type="search" minlength="3" placeholder="Filter by user email" class="filter-users filter">
+    <p id="user-filter-info" style="display: none">Must be at least ${userSearchMinLength} Characters long</p>
     <div class="known-users clusterize">
       ${loadingSpinner}
     </div>
@@ -172,45 +168,36 @@ export default async function renderAdmin({ container, nav }) {
       ${loadingSpinner}
     </div>
   `;
+  const userActivityTitle = container.querySelector('#user-activity');
+  const deletedUsersTitle = container.querySelector('#deleted-users');
+  const anonymousActivityTitle = container.querySelector('#anonymous-activity');
+
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
 
-  // Load web analytics
-  const loadWebAnalytics = async (interval) => {
-    try {
-      const req = await fetch(`${SCRIPT_API}/monitoring/admin?period=${interval}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
-      if (!req?.ok) {
-        throw new Error();
-      }
-      return [await req.json()];
-    } catch (e) {
-      window.alertDialog(OOPS);
-    }
-
-    return false;
-  };
-
-  const onFilterInput = (value, filterName, functionName) => {
+  const onFilterInput = (value, filterName, functionName, minLength) => {
+    const validLength = value.length >= minLength || value.length === 0;
     if (value) {
       writeQueryParams({ [filterName]: value });
     } else {
       removeQueryParams([filterName]);
     }
-    functionName(true);
+    functionName(true, validLength);
   };
 
-  const filterEventlistener = (filterClass, filterName, functionName) => {
-    // eslint-disable-next-line func-names
-    document.querySelector(filterClass).oninput = (function () {
+  const filterEventlistener = (filterClass, filterName, functionName, minLength = 1) => {
+    const filterInput = document.querySelector(filterClass);
+    filterInput.oninput = (event) => {
+      event.preventDefault();
       let debounceTimer;
       // eslint-disable-next-line func-names
-      return function (event) {
+      (() => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-          onFilterInput(event.target.value, filterName, functionName);
+          onFilterInput(filterInput.value, filterName, functionName, minLength);
         }, 300);
-      };
-    }());
+      })();
+    };
   };
 
   // MARK: activity dialog
@@ -229,7 +216,7 @@ export default async function renderAdmin({ container, nav }) {
       const timestamps = Object.keys(tracking);
 
       const contentWrapper = document.createElement('div');
-      contentWrapper.className = 'admin clusterize';
+      contentWrapper.className = 'users clusterize';
       contentWrapper.innerHTML = `<h3>${button.dataset.user} recent activity</h3>`;
 
       const activitiesDialogTable = createTable({
@@ -285,14 +272,35 @@ export default async function renderAdmin({ container, nav }) {
   };
 
   // MARK: renderUsers
-  const renderUsers = async (scrollTo) => {
-    filterEventlistener('.filter-users', 'user', renderUsers);
-    const usersContainer = container.querySelector('.admin .known-users');
+  const usersContainer = container.querySelector('.users .known-users');
+  let lastLength = 0;
+  const renderUsers = async (scrollTo, rerender = true) => {
     filterByMail = readQueryParams().user || '';
+    const userFilterInfo = container.querySelector('#user-filter-info');
+    const userFilterLength = container.querySelector('.filter-users').value.length;
+    let rerequest = false;
+    if (filterByMail.length < userSearchMinLength) {
+      filterByMail = '';
+      removeQueryParams(['user']);
+      if (userFilterInfo.style.display !== 'flex' && userFilterLength > 0) {
+        userFilterInfo.style.display = 'flex';
+        if (userFilterLength >= userSearchMinLength || lastLength === userSearchMinLength) {
+          rerequest = true;
+        }
+      }
+    }
+    if (userFilterInfo.style.display === 'flex' && (userFilterLength === 0 || userFilterLength >= userSearchMinLength)) {
+      userFilterInfo.style.display = 'none';
+      rerequest = true;
+    }
+    if (!rerender && !rerequest) {
+      // no refetch needed
+      return;
+    }
+    lastLength = userFilterLength;
+    usersContainer.innerHTML = loadingSpinner;
     const page = readQueryParams().page || 1;
     const limit = readQueryParams().limit || 100;
-
-    usersContainer.innerHTML = loadingSpinner;
 
     const reqUsers = await fetch(`${SCRIPT_API}/tracking?mail=${filterByMail}&page=${page}&limit=${limit}`, {
       headers: {
@@ -302,7 +310,7 @@ export default async function renderAdmin({ container, nav }) {
 
     if (reqUsers.ok) {
       const usersJSON = await reqUsers.json();
-      const users = usersJSON.data;
+      const users = usersJSON.data || [];
       const { pagination } = usersJSON;
 
       const usersTable = createTable({
@@ -345,18 +353,28 @@ export default async function renderAdmin({ container, nav }) {
         button.onclick = onActivitiesClick;
       });
 
+      // TODO: I'm pretty sure this scrollTo stuff could be avoided:
+      // After filtering is done, something scrolls the page to the top.
+      // I don't think this is because of the DOM changing, I think it's forced somewhere because
+      // the scroll-behavior CSS rule is respected when this happens.
+      // I can't find out why this happens, but I didn't spend too much time looking.
+      // So, I'm just going to leave it here.
       if (scrollTo) {
-        window.location.hash = '#user-activity';
+        window.scrollTo({
+          top: userActivityTitle.offsetTop,
+          behavior: 'smooth',
+        });
       }
     } else {
       usersContainer.querySelector('p').textContent = OOPS;
     }
   };
+  filterEventlistener('.filter-users', 'user', renderUsers, userSearchMinLength);
 
   // MARK: renderDeletedUsers
+  const deletedUsersContainer = container.querySelector('.users .deleted-users');
   const renderDeletedUsers = async (scrollTo) => {
-    filterEventlistener('.filter-deleted-users', 'deleteduser', renderDeletedUsers);
-    const deletedUsersContainer = container.querySelector('.admin .deleted-users');
+    deletedUsersContainer.innerHTML = loadingSpinner;
     filterByDeletedMail = readQueryParams().deleteduser || '';
     const page = readQueryParams().deletedpage || 1;
     const limit = readQueryParams().deletedlimit || 100;
@@ -369,7 +387,7 @@ export default async function renderAdmin({ container, nav }) {
 
     if (reqDeletedUsers.ok) {
       const deletedUsersJSON = await reqDeletedUsers.json();
-      const deletedUsers = deletedUsersJSON.data;
+      const deletedUsers = deletedUsersJSON.data || [];
       const { pagination } = deletedUsersJSON;
 
       const deletedUsersTable = createTable({
@@ -428,113 +446,120 @@ export default async function renderAdmin({ container, nav }) {
       });
 
       if (scrollTo) {
-        window.location.hash = '#deleted-users';
+        window.scrollTo({
+          top: deletedUsersTitle.offsetTop,
+          behavior: 'smooth',
+        });
       }
     } else {
       deletedUsersContainer.querySelector('p').textContent = OOPS;
     }
   };
+  filterEventlistener('.filter-deleted-users', 'deleteduser', renderDeletedUsers);
 
+  let anonymousUserResponse = null;
+  let anonymousUserData = null;
   // MARK: renderAnonymous
+  const anonymousContainer = container.querySelector('.users .anonymous-users');
   const renderAnonymous = async (scrollTo) => {
-    const anonymousContainer = container.querySelector('.admin .anonymous-users');
-    filterEventlistener('.filter-anonymous', 'ip', renderAnonymous);
+    anonymousContainer.innerHTML = loadingSpinner;
     filterByIp = readQueryParams().ip || '';
 
-    const reqAnonymous = await fetch(`${SCRIPT_API}/tracking?user=anonymous`, {
-      headers: {
-        authorization: `bearer ${token}`,
-      },
-    }).catch(() => ({ ok: false }));
-
-    if (reqAnonymous.ok) {
-      const anonymous = await reqAnonymous.json();
-      const ips = Object.keys(anonymous);
-      const timestamps = {};
-      ips.forEach((ip) => {
-        Object.keys(anonymous[ip]).forEach((timestamp) => {
-          if (!filterByIp || ip.includes(filterByIp.replaceAll('.', '(DOT)'))) {
-            timestamps[timestamp] = anonymous[ip][timestamp];
-          }
-        });
-      });
-
-      const anonymousTable = createTable({
-        tableId: 'anonymous',
-        tableClass: 'anonymous',
-        headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
-        rows: Object.keys(timestamps)
-          .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
-          .map((timestamp) => {
-            const timestampItem = timestamps[timestamp];
-            const serverEvent = ['server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
-            const timestampDate = new Date(Number(timestamp));
-
-            return {
-              ...timestampItem,
-              event: timestampItem.event + (!serverEvent && timestampItem.isSPA ? ' SPA' : ''),
-              date: {
-                value: dateToRelativeString(timestampDate),
-                title: timestampDate.toLocaleString(),
-              },
-              url: {
-                value: timestampItem.url.replace(SCRIPT_API, ''),
-                title: timestampItem.url,
-              },
-              location: [timestampItem.city, timestampItem.country].filter(Boolean).join(', '),
-              referrer: {
-                value: timestampItem.referrer,
-                link: timestampItem.referrer,
-              },
-              browser: !serverEvent ? {
-                value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
-                title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
-              } : {
-                title: [
-                  timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
-                  timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
-                ].filter(Boolean).join('\n'),
-                value: [
-                  parseBrowser(timestampItem.browser),
-                  parseAcceptLanguage(timestampItem.language),
-                ].filter(Boolean).join(', '),
-              },
-              device: !serverEvent ? {
-                title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
-                value: timestampItem.userAgent.os.name,
-              } : timestampItem?.device?.replaceAll('"', ''),
-            };
-          }),
-      });
-
-      if (scrollTo) {
-        window.location.hash = '#anonymous-activity';
-      }
-
-      anonymousContainer.innerHTML = '';
-      anonymousContainer.append(anonymousTable.wrapper);
-
-      // eslint-disable-next-line no-new
-      new Clusterize({
-        rows: anonymousTable.tbody.children,
-        rows_in_block: 80,
-        scrollId: 'scrollArea-anonymous',
-        contentId: 'contentArea-anonymous',
-      });
-    } else {
-      anonymousContainer.textContent = OOPS;
+    if (!anonymousUserResponse) {
+      const reqAnonymous = await fetch(`${SCRIPT_API}/tracking?user=anonymous`, {
+        headers: {
+          authorization: `bearer ${token}`,
+        },
+      }).catch(() => ({ ok: false }));
+      anonymousUserResponse = reqAnonymous;
     }
-  };
 
-  // MARK: analytics
-  loadWebAnalytics('1d').then((analytics) => {
-    renderAnalytics({
-      analytics,
-      container: container.querySelector('.analytics'),
-      nav,
-      loadWebAnalytics,
+    if (!anonymousUserResponse.ok) {
+      anonymousContainer.querySelector('p').textContent = OOPS;
+      return;
+    }
+
+    if (!anonymousUserData) {
+      anonymousUserData = await anonymousUserResponse.json();
+    }
+
+    const ips = Object.keys(anonymousUserData);
+    const timestamps = {};
+    ips.forEach((ip) => {
+      Object.keys(anonymousUserData[ip]).forEach((timestamp) => {
+        if (!filterByIp || ip.includes(filterByIp.replaceAll('.', '(DOT)'))) {
+          timestamps[timestamp] = anonymousUserData[ip][timestamp];
+        }
+      });
     });
-  });
+
+    const anonymousTable = createTable({
+      tableId: 'anonymous',
+      tableClass: 'anonymous',
+      headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
+      rows: Object.keys(timestamps)
+        .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
+        .map((timestamp) => {
+          const timestampItem = timestamps[timestamp];
+          const serverEvent = ['server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
+          const timestampDate = new Date(Number(timestamp));
+
+          return {
+            ...timestampItem,
+            event: timestampItem.event + (!serverEvent && timestampItem.isSPA ? ' SPA' : ''),
+            date: {
+              value: dateToRelativeString(timestampDate),
+              title: timestampDate.toLocaleString(),
+            },
+            url: {
+              value: timestampItem.url.replace(SCRIPT_API, ''),
+              title: timestampItem.url,
+            },
+            location: [timestampItem.city, timestampItem.country].filter(Boolean).join(', '),
+            referrer: {
+              value: timestampItem.referrer,
+              link: timestampItem.referrer,
+            },
+            browser: !serverEvent ? {
+              value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
+              title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
+            } : {
+              title: [
+                timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
+                timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
+              ].filter(Boolean).join('\n'),
+              value: [
+                parseBrowser(timestampItem.browser),
+                parseAcceptLanguage(timestampItem.language),
+              ].filter(Boolean).join(', '),
+            },
+            device: !serverEvent ? {
+              title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
+              value: timestampItem.userAgent.os.name,
+            } : timestampItem?.device?.replaceAll('"', ''),
+          };
+        }),
+    });
+
+    if (scrollTo) {
+      window.scrollTo({
+        top: anonymousActivityTitle.offsetTop,
+        behavior: 'smooth',
+      });
+    }
+
+    anonymousContainer.innerHTML = '';
+    anonymousContainer.append(anonymousTable.wrapper);
+
+    // eslint-disable-next-line no-new
+    new Clusterize({
+      rows: anonymousTable.tbody.children,
+      rows_in_block: 80,
+      scrollId: 'scrollArea-anonymous',
+      contentId: 'contentArea-anonymous',
+    });
+  };
+  filterEventlistener('.filter-anonymous', 'ip', renderAnonymous);
 
   renderUsers();
   renderDeletedUsers();
