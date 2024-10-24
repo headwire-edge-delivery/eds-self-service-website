@@ -429,8 +429,8 @@ export default async function decorate(block) {
         .then((data) => {
           const recipients = block.querySelector('.recipients');
 
-          if (!data) {
-            recipients.textContent = 'No recipient spreadsheet found.';
+          if (!data?.headers?.length) {
+            recipients.textContent = 'No recipients found.';
             return;
           }
 
@@ -444,7 +444,7 @@ export default async function decorate(block) {
                 </tr>
               </thead>
               <tbody>
-                ${recipientsData.data.map((row) => `<tr data-email="${row.email}">
+                ${recipientsData.data ? recipientsData.data.map((row) => `<tr data-email="${row.email}">
                     <td><input type="checkbox" class="select"></td>
                     ${recipientsData.headers.map((key) => `<td>${row[key] ? row[key] : ''}</td>`).join('')}
                     <td>
@@ -453,7 +453,7 @@ export default async function decorate(block) {
                           <button class="button secondary action remove">Remove</button>
                         </div>
                     </td>
-                </tr>`).join('')}
+                </tr>`).join('') : ''}
                 <tr>
                     <td></td>
                     ${recipientsData.headers.map(() => '<td><input type="text"></td>').join('')}
