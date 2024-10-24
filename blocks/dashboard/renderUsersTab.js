@@ -216,7 +216,7 @@ export default async function renderUserTab({ container }) {
 
       const contentWrapper = document.createElement('div');
       contentWrapper.className = 'users clusterize';
-      contentWrapper.innerHTML = `<h2>${button.dataset.user} recent activity</h2>`;
+      contentWrapper.innerHTML = `<h3>${button.dataset.user} recent activity</h3>`;
 
       const activitiesDialogTable = createTable({
         tableId: 'recent-activity',

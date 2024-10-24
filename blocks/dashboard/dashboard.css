@@ -84,7 +84,7 @@
   -webkit-box-orient: vertical;
 }
 
-.dashboard.block :is(.sites, .admin-section.users) > p:only-child {
+.dashboard.block :is(.sites, .users) > p:only-child {
   display: grid;
   place-items: center;
   min-height: calc(100vh - 350px);
@@ -112,23 +112,23 @@
   padding-bottom: 0;
 }
 
-dialog:has(.admin-section.users) {
+dialog:has(.users) {
   width: auto;
 }
 
-:is(.dashboard.block, dialog) .admin-section.users .clusterize {
+:is(.dashboard.block, dialog) .users .clusterize {
   margin-top: 48px;
   margin-bottom: 48px;
 }
 
-:is(.dashboard.block, dialog) .admin-section.users table {
+:is(.dashboard.block, dialog) .users table {
   width: 100%;
   table-layout: fixed;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-:is(.dashboard.block, dialog) .admin-section.users td.empty {
+:is(.dashboard.block, dialog) .users td.empty {
   text-align: center;
   text-transform: uppercase;
   padding: 32px;
@@ -136,13 +136,13 @@ dialog:has(.admin-section.users) {
   font-size: 12px;
 }
 
-.dashboard.block .details .admin-section.users img,
-dialog .admin-section.users img {
+.dashboard.block .details .users img,
+dialog .users img {
   height: 64px;
   width: 64px;
 }
 
-.dashboard.block .admin-section.users .filter {
+.dashboard.block .users .filter {
   margin-top: 16px;
 }
 
@@ -152,46 +152,46 @@ dialog .admin-section.users img {
   margin: 0;
 }
 
-:is(.dashboard.block, dialog) .admin-section.users table :is(th, td) {
+:is(.dashboard.block, dialog) .users table :is(th, td) {
   max-width: 100%;
   overflow: auto;
   word-wrap: break-word;
 }
 
-:is(.dashboard.block) .admin-section.users table :is(th) {
+:is(.dashboard.block) .users table :is(th) {
   position: sticky;
   top: 0;
   background-color: var(--white);
 }
 
-:is(dialog) .admin-section.users table :is(th) {
+:is(dialog) .users table :is(th) {
   position: sticky;
   top: 0;
   background-color: var(--white);
 }
 
-:is(.dashboard.block, dialog) .admin-section.users table td:first-child {
+:is(.dashboard.block, dialog) .users table td:first-child {
   font-weight: 500;
 }
 
-:is(.dashboard.block, dialog) .admin-section.users table [data-column="event"] {
+:is(.dashboard.block, dialog) .users table [data-column="event"] {
   text-transform: capitalize;
 }
 
-.dashboard.block .admin-section.users table + .button-container:has(button:only-child) {
+.dashboard.block .users table + .button-container:has(button:only-child) {
   display: none;
 }
 
-body:not(.is-headwire, .is-test-user) .dashboard.block .admin-section.users {
+body:not(.is-headwire, .is-test-user) .dashboard.block .users {
   display: none;
 }
 
 @media (width < 768px) {
-  .dashboard.block .tab-content.admin-section.users.is-selected > div {
+  .dashboard.block .tab-content.users.is-selected > div {
     overflow-x: auto;
   }
 
-  :is(.dashboard.block, dialog) .admin-section.users table {
+  :is(.dashboard.block, dialog) .users table {
     table-layout: auto;
   }
 
