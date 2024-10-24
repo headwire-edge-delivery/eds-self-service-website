@@ -1,4 +1,5 @@
-import { OOPS, renderSkeleton, SCRIPT_API } from '../../scripts/scripts.js';
+import { OOPS, SCRIPT_API } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import renderAnalytics from '../../scripts/analytics.js';
 
 export default async function renderSiteAnalytics({ container, nav, renderOptions }) {

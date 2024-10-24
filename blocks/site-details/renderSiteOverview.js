@@ -1,7 +1,8 @@
 import {
   OOPS, parseFragment, SCRIPT_API, KESTREL_ONE, getThumbnail,
-  dateToRelativeSpan, renderSkeleton,
+  dateToRelativeSpan,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 
 export default async function renderSiteOverview({ container, nav, renderOptions }) {
   // TODO: if projectdetails are not required on most tabs, only request it here

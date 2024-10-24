@@ -1,6 +1,7 @@
 import {
-  OOPS, parseFragment, renderSkeleton, SCRIPT_API,
+  OOPS, parseFragment, SCRIPT_API,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import {
   addIconDialogSetup, manageGoogleCalendarLink, renderBlocksList, renderIconsList,
   renderPrevUpdatesSection,

@@ -1,7 +1,8 @@
 import {
   SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE,
-  projectRepo, daProjectRepo, renderSkeleton,
+  projectRepo, daProjectRepo,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
 
 let timer;
@@ -111,7 +112,8 @@ export default async function decorate(block) {
         
         <div class="content">
             <div class="preview">
-                <iframe name="preview" src="${EMAIL_WORKER_API}/preview/${url}"></iframe>
+                <iframe class="iframe is-loading" name="preview" src="${EMAIL_WORKER_API}/preview/${url}"></iframe>
+                <div class="skeleton" style="height: 100%; width: 100%; min-height: calc(100vh - 200px);"></div>
             </div>
             <aside>
                 <div id="email-subject">
@@ -160,12 +162,23 @@ export default async function decorate(block) {
 
       const subject = block.querySelector('h1.subject');
       const subjectInput = block.querySelector('input.subject');
-      const iframe = block.querySelector('.preview iframe');
+      const iframe = block.querySelector('.iframe');
       const form = block.querySelector('.form');
       const previewVars = block.querySelector('.preview-variables');
       const saveVars = block.querySelector('.save-variables');
       let warning = { hidden: true };
       let savedEditorStyles;
+
+      iframe.addEventListener('load', () => {
+        // Add loading buffer
+        setTimeout(() => {
+          iframe.classList.remove('is-loading');
+        }, 1000);
+      });
+      // Loading timeout
+      setTimeout(() => {
+        iframe.classList.remove('is-loading');
+      }, 2000);
 
       const hideWarning = () => {
         try {
@@ -258,6 +271,8 @@ export default async function decorate(block) {
 
       // Render preview with custom variables
       previewVars.onclick = (event) => {
+        iframe.classList.add('is-loading');
+
         if (event.isTrusted) {
           window?.zaraz?.track('click email preview variables');
         }

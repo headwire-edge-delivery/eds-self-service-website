@@ -2,8 +2,9 @@ import {
   OOPS,
   SCRIPT_API,
   waitForAuthenticated,
-  dateToRelativeString, renderSkeleton,
+  dateToRelativeString,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
 import { toClassName } from '../../scripts/aem.js';

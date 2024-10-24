@@ -1,4 +1,5 @@
-import { OOPS, parseFragment, renderSkeleton } from './scripts.js';
+import { OOPS, parseFragment } from './scripts.js';
+import renderSkeleton from './skeletons.js';
 import { loadCSS } from './aem.js';
 
 loadCSS('/styles/analytics.css');

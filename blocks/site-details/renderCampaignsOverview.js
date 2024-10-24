@@ -2,8 +2,9 @@ import {
   daProjectRepo,
   dateToRelativeSpan,
   dateToRelativeString,
-  EMAIL_WORKER_API, OOPS, parseFragment, renderSkeleton, SCRIPT_API, slugify,
+  EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API, slugify,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import { renderTable } from './renderSitePages.js';
 
 export default async function renderCampaignsOverview({

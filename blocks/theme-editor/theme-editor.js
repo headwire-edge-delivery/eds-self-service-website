@@ -2,8 +2,9 @@ import {
   SCRIPT_API,
   onAuthenticated,
   OOPS,
-  KESTREL_ONE, renderSkeleton,
+  KESTREL_ONE,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
 
 let timer;
@@ -152,7 +153,7 @@ export default async function decorate(block) {
               <div class="preview">
                 <div class="preview-container">
                   <iframe src="https://preview--${id}.${KESTREL_ONE}" class="iframe is-loading"></iframe>
-                  <div class="skeleton" style="height: 100%; width: 100%;"></div>
+                  <div class="skeleton" style="height: 100%; width: 100%; min-height: calc(100vh - 200px);"></div>
                 </div>
               </div>
               <aside>

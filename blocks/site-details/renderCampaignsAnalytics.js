@@ -1,8 +1,9 @@
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import {
   dateToRelativeSpan,
-  EMAIL_WORKER_API, parseFragment, renderSkeleton, SCRIPT_API,
+  EMAIL_WORKER_API, parseFragment, SCRIPT_API,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 
 const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
   if (!campaignAnalyticsData) {

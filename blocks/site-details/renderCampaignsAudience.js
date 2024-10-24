@@ -1,6 +1,7 @@
 import {
-  daProjectRepo, parseFragment, renderSkeleton, SCRIPT_API,
+  daProjectRepo, parseFragment, SCRIPT_API,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 
 export default async function renderCampaignsAudience({ container, nav, renderOptions }) {
   const {

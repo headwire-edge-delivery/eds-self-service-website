@@ -5,8 +5,9 @@ import {
   OOPS,
   parseFragment,
   SCRIPT_API,
-  projectRepo, renderSkeleton,
+  projectRepo,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 
 export function renderTable({
   table, tableData, type, projectDetails, token,

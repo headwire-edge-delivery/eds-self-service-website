@@ -1,8 +1,9 @@
 import {
-  getUserSettings, renderSkeleton,
+  getUserSettings,
   SCRIPT_API,
   updateUserSettings,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 
 export default async function renderAccount({ container, nav }) {
   container.insertAdjacentHTML('afterbegin', renderSkeleton('account'));

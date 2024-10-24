@@ -1,6 +1,7 @@
 import {
-  OOPS, renderSkeleton, SCRIPT_API, waitForAuthenticated,
+  OOPS, SCRIPT_API, waitForAuthenticated,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import renderAnalytics from '../../scripts/analytics.js';
 
 export default async function renderAnalyticsTab({ container, nav }) {
