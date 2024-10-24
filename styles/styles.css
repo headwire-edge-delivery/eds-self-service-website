@@ -46,6 +46,7 @@ html {
   font-family: var(--font-family);
   background-color: var(--white);
   color: var(--black);
+  scroll-behavior: smooth;
 }
 
 html:has(dialog[open]) {
@@ -54,6 +55,7 @@ html:has(dialog[open]) {
 
 * {
   box-sizing: border-box;
+  scroll-margin-top: var(--header-height);
 }
 
 body {

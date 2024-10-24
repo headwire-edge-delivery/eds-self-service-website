@@ -166,6 +166,10 @@ export default async function renderUserTab({ container }) {
       ${loadingSpinner}
     </div>
   `;
+  const userActivityTitle = container.querySelector('#user-activity');
+  const deletedUsersTitle = container.querySelector('#deleted-users');
+  const anonymousActivityTitle = container.querySelector('#anonymous-activity');
+
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
 
@@ -181,7 +185,7 @@ export default async function renderUserTab({ container }) {
   const filterEventlistener = (filterClass, filterName, functionName, minLength = 1) => {
     const filterInput = document.querySelector(filterClass);
     filterInput.oninput = () => {
-      if (filterInput.value.length < minLength) return;
+      if (filterInput.value.length !== 0 && filterInput.value.length < minLength) return;
       let debounceTimer;
       // eslint-disable-next-line func-names
       (() => {
@@ -329,9 +333,14 @@ export default async function renderUserTab({ container }) {
         button.onclick = onActivitiesClick;
       });
 
-      // TODO: maybe change how this whole scrolling thing works or remove it? It's very annoying
+      // TODO: I'm pretty sure this scrollTo stuff could be avoided:
+      // After filtering is done, something scrolls the page to the top.
+      // I don't think this is because of the DOM changing, I think it's forced somewhere because
+      // the scroll-behavior CSS rule is respected when this happens.
+      // I can't find out why this happens, but I didn't spend too much time looking.
+      // So, I'm just going to leave it here.
       if (scrollTo) {
-        window.location.hash = '#user-activity';
+        userActivityTitle.scrollIntoView();
       }
     } else {
       usersContainer.querySelector('p').textContent = OOPS;
@@ -414,7 +423,7 @@ export default async function renderUserTab({ container }) {
       });
 
       if (scrollTo) {
-        window.location.hash = '#deleted-users';
+        deletedUsersTitle.scrollIntoView();
       }
     } else {
       deletedUsersContainer.querySelector('p').textContent = OOPS;
@@ -507,7 +516,7 @@ export default async function renderUserTab({ container }) {
     });
 
     if (scrollTo) {
-      window.location.hash = '#anonymous-activity';
+      anonymousActivityTitle.scrollIntoView();
     }
 
     anonymousContainer.innerHTML = '';
