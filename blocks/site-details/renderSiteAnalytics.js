@@ -1,8 +1,9 @@
 import { OOPS, SCRIPT_API } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import renderAnalytics from '../../scripts/analytics.js';
 
 export default async function renderSiteAnalytics({ container, nav, renderOptions }) {
-  container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
+  container.innerHTML = renderSkeleton('site-analytics');
 
   const {
     token, siteSlug,

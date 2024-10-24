@@ -49,6 +49,8 @@
     content: ' (Not enough data)';
     display: block;
     font-size: 12px;
+    font-weight: normal;
+    margin-top: 8px;
 }
 
 .analytics .cards .red {

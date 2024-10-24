@@ -19,7 +19,6 @@ export const SCRIPT_API = window.location.hostname === 'localhost'
   ? 'http://localhost:4000' : 'https://api.kestrelone.com';
 export const EMAIL_WORKER_API = 'https://emails.headwire.workers.dev';
 export const OOPS = 'Oops ! Something went wrong …';
-export const loadingSpinner = '<p><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p>';
 
 export const defaultBranch = 'main';
 export const projectRepo = 'headwire-self-service';
