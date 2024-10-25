@@ -3,6 +3,7 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import renderAnalytics from '../../scripts/analytics.js';
+import { alertDialog } from '../../scripts/dialogs.js';
 
 export default async function renderAnalyticsTab({ container, nav }) {
   container.innerHTML = `
@@ -22,7 +23,7 @@ export default async function renderAnalyticsTab({ container, nav }) {
       }
       return [await req.json()];
     } catch (e) {
-      window.alertDialog(OOPS);
+      alertDialog(OOPS);
     }
 
     return false;

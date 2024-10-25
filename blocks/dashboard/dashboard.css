@@ -22,12 +22,6 @@
   margin: 0 0 16px;
 }
 
-.dashboard.block .sites .owner-selector .button.is-selected {
-  background-color: var(--light-blue);
-  color: white;
-  border-color: var(--light-blue);
-}
-
 .dashboard.block .sites ul {
   list-style: none;
   padding: 0;

@@ -126,8 +126,8 @@ export default async function renderSites({ container, nav }) {
   const owner = readQueryParams().owner || userSettings?.filterByOwner || 'all';
   const sites = container.querySelector('.sites');
   const filter = `<ul class="owner-selector">
-          <li data-owner="all"><div class="button action secondary ${owner === 'all' ? 'is-selected' : ''}">Owner: Anyone</div></li>
-          <li data-owner="me"><div class="button action secondary ${owner === 'me' ? 'is-selected' : ''}">Owner: Me</div></li>
+          <li data-owner="all"><button class="button selector action secondary ${owner === 'all' ? 'is-selected' : ''}">Owner: Anyone</button></li>
+          <li data-owner="me"><button class="button selector action secondary ${owner === 'me' ? 'is-selected' : ''}">Owner: Me</button></li>
         </ul>`;
   sites.innerHTML = `${filter}<input value="${search}" type="search" placeholder="Filter sites" class="filter-sites filter"><div class="sites-list"><section class="sites-list-dark-alley"></section><section class="sites-list-google-drive"></section></div>`;
 

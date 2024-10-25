@@ -1,4 +1,5 @@
 import { SCRIPT_API } from '../../scripts/scripts.js';
+import { confirmDialog, createDialog } from '../../scripts/dialogs.js';
 
 // MARK: helpers
 function generateProjectListHtml(projectsList) {
@@ -107,7 +108,7 @@ async function createDeleteDialog(event, deleteAccount = false) {
   closeButton.classList.add('action', 'button', 'secondary');
   closeButton.textContent = 'Close';
 
-  const deleteDialog = window.createDialog(deleteAccountContent, [cancelButton, confirmButton]);
+  const deleteDialog = createDialog(deleteAccountContent, [cancelButton, confirmButton]);
 
   closeButton.addEventListener('click', () => {
     deleteDialog.close();
@@ -115,7 +116,7 @@ async function createDeleteDialog(event, deleteAccount = false) {
 
   confirmButton.addEventListener('click', async () => {
     if (
-      !(await window.confirmDialog(textLookup[lookupStr].confirmDialog))
+      !(await confirmDialog(textLookup[lookupStr].confirmDialog))
     ) {
       deleteDialog.close();
       return;

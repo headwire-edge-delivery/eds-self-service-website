@@ -3,6 +3,7 @@ import {
   dateToRelativeSpan,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
+import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 
 export default async function renderSiteOverview({ container, nav, renderOptions }) {
   // TODO: if projectdetails are not required on most tabs, only request it here
@@ -94,7 +95,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
           </div>
         `);
 
-    const dialog = window.createDialog(content, [submit]);
+    const dialog = createDialog(content, [submit]);
 
     const form = document.getElementById('update-project-form');
 
@@ -117,7 +118,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
         const descriptionSpan = container.querySelector('.project-description.card .project-description.span');
         if (descriptionSpan) descriptionSpan.textContent = body.projectDescription;
       } else {
-        await window.alertDialog(OOPS);
+        await alertDialog(OOPS);
       }
 
       dialog.setLoading(false);
@@ -130,7 +131,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     const block = container.closest('.site-details.block');
 
     block.classList.add('is-deleting');
-    if (await window.confirmDialog('Are you sure you want to delete your site? (This can\'t be undone)')) {
+    if (await confirmDialog('Are you sure you want to delete your site? (This can\'t be undone)')) {
       window?.zaraz?.track('click site delete submit');
 
       const reqDelete = await fetch(`${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'da-' : ''}delete/${projectDetails.projectSlug}`, {
@@ -140,7 +141,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
       if (reqDelete?.ok) {
         window.location.href = '/dashboard/sites';
       } else {
-        await window.alertDialog(OOPS);
+        await alertDialog(OOPS);
         block.classList.remove('is-deleting');
       }
     } else {

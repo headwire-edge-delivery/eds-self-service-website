@@ -4,6 +4,7 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
+import { alertDialog, confirmDialog } from '../../scripts/dialogs.js';
 
 let timer;
 const debounce = (fn) => {
@@ -263,7 +264,7 @@ export default async function decorate(block) {
             css: btoa(editor.getValue()),
           }),
         });
-        await window.alertDialog(req.ok ? 'Styles successfully updated! Updates can take up to 1 minute to be reflected for all users.' : OOPS);
+        await alertDialog(req.ok ? 'Styles successfully updated! Updates can take up to 1 minute to be reflected for all users.' : OOPS);
         saveStyles.classList.remove('loading');
 
         hideWarning();
@@ -512,7 +513,7 @@ export default async function decorate(block) {
               if (req.ok) {
                 tr.remove();
               } else {
-                await window.alertDialog(OOPS);
+                await alertDialog(OOPS);
               }
 
               button.classList.remove('loading');
@@ -569,7 +570,7 @@ export default async function decorate(block) {
                 input.value = '';
               });
             } else {
-              await window.alertDialog(OOPS);
+              await alertDialog(OOPS);
             }
 
             add.classList.remove('loading');
@@ -583,7 +584,7 @@ export default async function decorate(block) {
 
             const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
 
-            if (await window.confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
+            if (await confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
               window?.zaraz?.track('click email copy submit');
 
               block.classList.add('is-sending');
@@ -606,9 +607,9 @@ export default async function decorate(block) {
               });
 
               if (req.ok) {
-                await window.alertDialog('Email delivered successfully!');
+                await alertDialog('Email delivered successfully!');
               } else {
-                await window.alertDialog(OOPS);
+                await alertDialog(OOPS);
               }
 
               block.classList.remove('is-sending');
