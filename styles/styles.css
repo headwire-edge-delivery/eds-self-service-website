@@ -15,6 +15,7 @@
   --animation-duration: 300ms;
   --font-family: system-ui, sans-serif;
   --header-height: 64px;
+  --footer-height: 64px;
   --body-font-size: 16px;
   --box-shadow-color: rgb(213 213 213);
   --box-shadow: 0 2px 5px var(--box-shadow-color);
@@ -302,38 +303,25 @@ input[type="color"] {
   width: 40px;
   height: 40px;
   cursor: pointer;
+  border: 1px solid var(--gray);
 }
 
-@supports selector(input[type="color"]::-webkit-color-swatch) {
-  input[type="color"] {
-    border-radius: 50%;
-  }
-
-  input[type="color"]::-webkit-color-swatch {
-    border: 1px solid var(--gray);
-    border-radius: 50%;
-  }
-  
-  input[type="color"]::-webkit-color-swatch-wrapper {
-    padding: 0;
-  }
+.color-input-circle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--gray);
+  overflow: hidden;
 }
 
-@supports selector(input[type="color"]::-moz-color-swatch) {
-  input[type="color"] {
-    border-radius: 50%;
-  }
-
-  input[type="color"]::-moz-color-swatch {
-    border: 1px solid var(--gray);
-    border-radius: 50%;
-  }
-
-  input[type="color"]::-moz-color-swatch-wrapper {
-    padding: 0;
-  }
+.color-input-circle-wrapper input[type="color"] {
+  min-width: 150%;
+  min-height: 150%;
+  border: none;
 }
-
 
 .button.primary {
   background-color: var(--black);
