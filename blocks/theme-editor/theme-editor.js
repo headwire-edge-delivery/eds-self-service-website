@@ -55,6 +55,8 @@ const findCSSVar = (vars, name, isFont) => {
   };
 };
 
+const isMobile = window.matchMedia('(width < 768px)');
+
 /**
  * @param {Element} block
  */
@@ -128,22 +130,20 @@ export default async function decorate(block) {
                 <button type="button" aria-label="close">&#x2715;</button>
               </div>
               <div class="button-container">
-                <div class="viewers" role="radiogroup" hidden>
-                    <button aria-checked="false" title="mobile" aria-label="mobile" data-width="375px" class="button secondary action">
+                <div class="viewers" role="radiogroup">
+                    <button aria-checked="false" title="Mobile" aria-label="mobile" data-width="375px" class="button secondary action">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M280-40q-33 0-56.5-23.5T200-120v-720q0-33 23.5-56.5T280-920h400q33 0 56.5 23.5T760-840v720q0 33-23.5 56.5T680-40H280Zm0-120v40h400v-40H280Zm0-80h400v-480H280v480Zm0-560h400v-40H280v40Zm0 0v-40 40Zm0 640v40-40Z"/></svg>
                     </button>
-                    <button aria-checked="false" title="tablet" aria-label="tablet" data-width="810px" class="button secondary action">
+                    <button aria-checked="false" title="Tablet" aria-label="tablet" data-width="810px" class="button secondary action">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M120-160q-33 0-56.5-23.5T40-240v-480q0-33 23.5-56.5T120-800h720q33 0 56.5 23.5T920-720v480q0 33-23.5 56.5T840-160H120Zm40-560h-40v480h40v-480Zm80 480h480v-480H240v480Zm560-480v480h40v-480h-40Zm0 0h40-40Zm-640 0h-40 40Z"/></svg>
                     </button>
-                    <button aria-checked="false" title="laptop" aria-label="laptop" data-width="1280px" class="button secondary action">
+                    <button aria-checked="false" title="Laptop" aria-label="laptop" data-width="1280px" class="button secondary action">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M40-120v-80h880v80H40Zm120-120q-33 0-56.5-23.5T80-320v-440q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v440q0 33-23.5 56.5T800-240H160Zm0-80h640v-440H160v440Zm0 0v-440 440Z"/></svg>
                     </button>
-                    <button aria-checked="true" title="desktop" aria-label="desktop" data-width="1440px" class="button secondary action">
+                    <button aria-checked="false" title="Desktop" aria-label="desktop" data-width="1440px" class="button secondary action">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M320-120v-80h80v-80H160q-33 0-56.5-23.5T80-360v-400q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v400q0 33-23.5 56.5T800-280H560v80h80v80H320ZM160-360h640v-400H160v400Zm0 0v-400 400Z"/></svg>
                     </button>
                 </div>
-                <button id="toggle-editing" title="Edit your Theme" class="button action secondary edit-mode" hidden>Editing mode</button>
-                <button id="toggle-preview" title="Preview your theme" class="button action secondary preview-mode">Preview mode</button>
                 <select id="publish-theme-selector" title="Select the previewed page" class="button action secondary publish-theme-selector"></select>
                 <button id="save-button" title="Save your changes" class="button action primary is-disabled publish-theme">Save</button>
               </div>
@@ -527,6 +527,50 @@ export default async function decorate(block) {
     let selectedPreset;
     const presetsPicker = block.querySelector('.presets-picker');
     const customPreset = presetsPicker.querySelector('.custom');
+    const vars = block.querySelector('.vars');
+
+    const previewFrame = block.querySelector('.iframe');
+    previewFrame.addEventListener('load', () => {
+      // Add loading buffer
+      setTimeout(() => {
+        previewFrame.classList.remove('is-loading');
+      }, 1000);
+    });
+    // Loading timeout
+    setTimeout(() => {
+      previewFrame.classList.remove('is-loading');
+    }, 2000);
+    vars.value = cssVarsData;
+
+    // MARK: screen sizes
+    const viewers = block.querySelector('.viewers');
+    const [mobileViewer, tabletViewer, laptopViewer, desktopViewer] = viewers.children;
+
+    const onViewerClick = (event) => {
+      if (event.currentTarget.ariaChecked === 'false') {
+        const checkedEl = viewers.querySelector('[aria-checked="true"]');
+        if (checkedEl) checkedEl.ariaChecked = 'false';
+        event.currentTarget.ariaChecked = 'true';
+        previewFrame.style.width = event.currentTarget.dataset.width;
+      }
+    };
+
+    mobileViewer.onclick = onViewerClick;
+    tabletViewer.onclick = onViewerClick;
+    laptopViewer.onclick = onViewerClick;
+    desktopViewer.onclick = onViewerClick;
+
+    if (isMobile.matches) {
+      mobileViewer.click();
+    } else {
+      tabletViewer.click();
+    }
+
+    isMobile.addEventListener('change', (event) => {
+      if (event.matches) {
+        mobileViewer.click();
+      }
+    });
 
     // eslint-disable-next-line max-len
     const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => cssVars.includes(cssVar)));
@@ -635,20 +679,6 @@ export default async function decorate(block) {
     ];
 
     // Render codemirror
-    const vars = block.querySelector('.vars');
-    const previewContainer = block.querySelector('.preview-container');
-    const previewFrame = block.querySelector('.iframe');
-    previewFrame.addEventListener('load', () => {
-      // Add loading buffer
-      setTimeout(() => {
-        previewFrame.classList.remove('is-loading');
-      }, 1000);
-    });
-    // Loading timeout
-    setTimeout(() => {
-      previewFrame.classList.remove('is-loading');
-    }, 2000);
-    vars.value = cssVarsData;
 
     // Load codemirror to edit styles
     loadCSS('/libs/codemirror/codemirror.min.css');
@@ -732,36 +762,6 @@ export default async function decorate(block) {
     // TODO: change this to debounce if needed, & find out how to get correct value
     // debounce causes weird issues, where editor reverts to value of first change
     editor.on('change', editorOnChange);
-
-    // Init Modes
-    const previewMode = block.querySelector('.preview-mode');
-    const editMode = block.querySelector('.edit-mode');
-    const viewers = block.querySelector('.viewers');
-    previewMode.onclick = () => {
-      previewContainer.classList.add('preview-mode');
-      previewMode.hidden = true;
-      editMode.hidden = false;
-      viewers.hidden = false;
-      previewFrame.style.width = viewers.querySelector('[aria-checked="true"]').dataset.width;
-    };
-    editMode.onclick = () => {
-      previewContainer.classList.remove('preview-mode');
-      editMode.hidden = true;
-      viewers.hidden = true;
-      previewMode.hidden = false;
-      previewFrame.style.width = '';
-    };
-    viewers.querySelectorAll('.button').forEach((el) => {
-      el.onclick = () => {
-        if (el.ariaChecked === 'false') {
-          const checkedEl = viewers.querySelector('[aria-checked="true"]');
-          checkedEl.ariaChecked = 'false';
-          el.ariaChecked = 'true';
-
-          previewFrame.style.width = el.dataset.width;
-        }
-      };
-    });
 
     // Init font-weight picker
     const fontWeights = ['300', '400', '700'];
