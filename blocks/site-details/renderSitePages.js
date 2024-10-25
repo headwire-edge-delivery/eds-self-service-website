@@ -8,6 +8,7 @@ import {
   projectRepo,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
+import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 
 export function renderTable({
   table, tableData, type, projectDetails, token,
@@ -52,7 +53,7 @@ export function renderTable({
       const deleteEmail = tableRow.querySelector('.delete-email');
       if (deleteEmail) {
         deleteEmail.onclick = async () => {
-          if (await window.confirmDialog('Are you sure ?')) {
+          if (await confirmDialog('Are you sure ?')) {
             window?.zaraz?.track('click email delete');
 
             deleteEmail.classList.add('loading');
@@ -70,7 +71,7 @@ export function renderTable({
                 el.remove();
               });
             } else {
-              await window.alertDialog(OOPS);
+              await alertDialog(OOPS);
             }
             deleteEmail.classList.remove('loading');
           }
@@ -181,7 +182,7 @@ function addPageDialogSetup({
     previewIframe.src = `${templateUrl}${dropdown.value}`;
   };
 
-  const dialog = window.createDialog(content, [submit], { fullscreen: true });
+  const dialog = createDialog(content, [submit], { fullscreen: true });
 
   const form = dialog.querySelector('form');
   // submit.onclick = () => form.dispatchEvent(new Event('submit', { cancelable: true }));
@@ -241,14 +242,16 @@ function addPageDialogSetup({
             <td>${body.pageName}</td>
             <td>/drafts/${responseData.pageSlug}</td>
             <td>Just now</td>
+            <td class="status"><div class="badge orange">Previewed</div></td>
             <td class="button-container">
                 <a class="button action secondary" href="${editHref}" target="_blank">Edit</a>
-                <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Open</a>
+                <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Preview</a>
+                <a class="button action secondary" href="/redirect?url=${projectDetails.customLiveUrl}/drafts/${responseData.pageSlug}" target="_blank">Live</a>
             </td>
         </tr>
       `);
     } else {
-      await window.alertDialog(OOPS);
+      await alertDialog(OOPS);
     }
     dialog.setLoading(false);
   };

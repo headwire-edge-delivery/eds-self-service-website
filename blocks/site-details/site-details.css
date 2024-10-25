@@ -252,12 +252,6 @@
   margin: 0 0 24px;
 }
 
-.site-details.block .campaigns-section .campaign-list .button.is-selected {
-  background-color: var(--light-blue);
-  color: white;
-  border-color: var(--light-blue);
-}
-
 .site-details.block .period-selector {
   padding-block: 6.5px;
   width: auto;

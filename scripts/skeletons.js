@@ -1,3 +1,7 @@
+import { loadCSS } from './aem.js';
+
+loadCSS(`${window.hlx.codeBasePath}/styles/skeletons.css`);
+
 /**
  * Renders an animated loading skeleton for a given type
  * @param {String} type

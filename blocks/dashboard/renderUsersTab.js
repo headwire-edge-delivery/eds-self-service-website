@@ -8,6 +8,7 @@ import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
 import { toClassName } from '../../scripts/aem.js';
+import { alertDialog, createDialog } from '../../scripts/dialogs.js';
 
 const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
 function parseAcceptLanguage(str) {
@@ -256,7 +257,7 @@ export default async function renderUserTab({ container }) {
       });
 
       contentWrapper.appendChild(activitiesDialogTable.wrapper);
-      window.createDialog(contentWrapper);
+      createDialog(contentWrapper);
 
       // eslint-disable-next-line no-new
       new Clusterize({
@@ -265,7 +266,7 @@ export default async function renderUserTab({ container }) {
         contentId: 'contentArea-recent-activity',
       });
     } else {
-      window.alertDialog(OOPS);
+      alertDialog(OOPS);
     }
 
     button.classList.remove('loading');

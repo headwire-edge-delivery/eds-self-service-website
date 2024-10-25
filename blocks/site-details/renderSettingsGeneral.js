@@ -7,6 +7,7 @@ import {
   renderPrevUpdatesSection,
   renderUpdatesSection,
 } from './renderSettingsUtils.js';
+import { alertDialog, confirmDialog } from '../../scripts/dialogs.js';
 
 // MARK: render
 export default async function renderSettingsGeneral({ container, nav, renderOptions }) {
@@ -103,7 +104,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     revoke.onclick = async () => {
       window?.zaraz?.track('click site share delete');
 
-      if (await window.confirmDialog('Are you sure ?')) {
+      if (await confirmDialog('Are you sure ?')) {
         window?.zaraz?.track('click site share delete submit');
 
         authorsList.classList.add('is-disabled');
@@ -114,7 +115,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
         if (revokeResponse?.ok) {
           authorsList.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
         } else {
-          await window.alertDialog(OOPS);
+          await alertDialog(OOPS);
         }
         authorsList.classList.remove('is-disabled');
       }
@@ -124,7 +125,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     changeOwnerButton.onclick = async () => {
       window?.zaraz?.track('click site share make owner');
 
-      if (await window.confirmDialog('Are you sure ?')) {
+      if (await confirmDialog('Are you sure ?')) {
         window?.zaraz?.track('click site share make owner submit');
 
         authorsList.classList.add('is-disabled');
@@ -143,7 +144,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
           changeOwnerButton.disabled = true;
           listItem.classList.add('is-owner');
         } else {
-          await window.alertDialog(OOPS);
+          await alertDialog(OOPS);
         }
         authorsList.classList.remove('is-disabled');
       }
@@ -164,14 +165,14 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
 
     const email = event.target.email.value;
     if (authorsList.querySelector(`[data-author-email="${email}"]`)) {
-      window.alertDialog('Author already exists');
+      alertDialog('Author already exists');
       return;
     }
 
     addAuthorForm.classList.add('is-disabled');
     const isValid = /^(?!@).*@.*(?<!@)$/.test(email);
     if (!isValid) {
-      await window.alertDialog('Please enter a valid email.');
+      await alertDialog('Please enter a valid email.');
       addAuthorForm.classList.remove('is-disabled');
       return;
     }
@@ -183,7 +184,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
       addAuthorListItem({ email });
       event.target.email.value = '';
     } else {
-      await window.alertDialog(OOPS);
+      await alertDialog(OOPS);
     }
     addAuthorForm.classList.remove('is-disabled');
   };
@@ -238,10 +239,10 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
       body: JSON.stringify({ contactEmail: contactEmailFormInput.value }),
     }).catch(() => null);
     if (response?.ok) {
-      await window.alertDialog('Contact email updated!');
+      await alertDialog('Contact email updated!');
       projectDetails.contactEmail = contactEmailFormInput.value;
     } else {
-      await window.alertDialog(OOPS);
+      await alertDialog(OOPS);
     }
 
     contactEmailForm.classList.remove('is-disabled');

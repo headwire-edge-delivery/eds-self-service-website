@@ -1,5 +1,6 @@
 import { OOPS, SCRIPT_API } from '../../scripts/scripts.js';
 import createForm from './generateForm.js';
+import { alertDialog } from '../../scripts/dialogs.js';
 
 function disableForm(form, disable = true) {
   form.classList.toggle('loading', disable);
@@ -32,7 +33,7 @@ async function onFeedbackFormSubmit(event) {
       disableForm(form, false);
     }, { once: true });
   } else {
-    await window.alertDialog(OOPS);
+    await alertDialog(OOPS);
     disableForm(form, false);
   }
   form.classList.remove('loading');
@@ -54,7 +55,7 @@ async function onSalesContactFormSubmit(event) {
   if (response.ok) {
     form.classList.add('success');
   } else {
-    await window.alertDialog(OOPS);
+    await alertDialog(OOPS);
     disableForm(form, false);
   }
   form.classList.remove('loading');

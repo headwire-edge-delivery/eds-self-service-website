@@ -6,6 +6,7 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
+import { alertDialog, confirmDialog } from '../../scripts/dialogs.js';
 
 let timer;
 const debounce = (fn) => {
@@ -1090,7 +1091,7 @@ export default async function decorate(block) {
       window?.zaraz?.track('click site theme submit');
 
       if (contrastIssuesExist) {
-        if (!(await window.confirmDialog('Contrast issues exist, do you want to continue?'))) {
+        if (!(await confirmDialog('Contrast issues exist, do you want to continue?'))) {
           window?.zaraz?.track('cancel site theme submit due to contrast issues');
           return;
         }
@@ -1129,7 +1130,7 @@ export default async function decorate(block) {
         failed = !res.ok;
       }
 
-      await window.alertDialog(
+      await alertDialog(
         failed
           ? OOPS
           : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.',
