@@ -97,6 +97,7 @@
     max-width: var(--aside-max-width);
     transition: all var(--animation-duration);
 }
+
 .theme-editor.block.show-aside .ghost-aside {
     width: var(--aside-width);
 }
@@ -297,6 +298,7 @@
     transform-origin: 38% 50%;
     transform: rotate(-180deg);
 }
+
 .theme-editor.block .toggle-sidebar.button:not([aria-checked="true"]) svg path.triangle {
     transform: rotate(0deg);
 }
