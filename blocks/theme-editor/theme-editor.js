@@ -154,7 +154,7 @@ export default async function decorate(block) {
               <div class="preview">
                 <div class="preview-container">
                   <iframe src="https://preview--${id}.${KESTREL_ONE}" class="iframe is-loading"></iframe>
-                  <div class="skeleton" style="height: 100%; width: 100%; min-height: calc(100vh - 200px);"></div>
+                  ${renderSkeleton('theme-editor-preview')}
                 </div>
               </div>
               <aside>

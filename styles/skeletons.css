@@ -26,3 +26,15 @@
         transform: translateX(100%);
     }
 }
+
+
+.skeleton-theme-editor-iframe {
+    width: 810px;
+    margin: 0 auto;
+}
+
+@media (width < 768px) {
+    .skeleton-theme-editor-iframe {
+        width: 375px;
+    }
+}

@@ -329,6 +329,9 @@ export default function renderSkeleton(type) {
       </div> 
     `;
   }
+  if (type === 'theme-editor-preview') {
+    return '<div class="skeleton skeleton-theme-editor-iframe"></div>';
+  }
 
   return '';
 }

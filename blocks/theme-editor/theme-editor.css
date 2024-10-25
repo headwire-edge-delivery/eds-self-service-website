@@ -85,7 +85,7 @@
     max-width: 100%;
 }
 
-.theme-editor.block .preview img[src$="loading.svg"] {
+.theme-editor.block .preview .skeleton {
     width: 810px;
 }
 
@@ -252,7 +252,7 @@
         flex: none;
     }
 
-    .theme-editor.block .preview img[src$="loading.svg"] {
+    .theme-editor.block .preview .skeleton {
         width: 375px;
     }
 
