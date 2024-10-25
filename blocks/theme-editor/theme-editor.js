@@ -1073,7 +1073,10 @@ export default async function decorate(block) {
         // Theme pages
         publishThemeSelector.innerHTML = `${pages
           .map(({ path }) => {
-            const shortenedPath = `/${path.split('/').pop()}`;
+            let shortenedPath = `/${path.split('/').pop()}`;
+            if (shortenedPath.length > 40) {
+              shortenedPath = `${shortenedPath.slice(0, 37)}...`;
+            }
             return `<option ${path === '/' ? 'selected' : ''} value="${path}">Preview: ${shortenedPath}</option>`;
           })
           .join('')}`;
