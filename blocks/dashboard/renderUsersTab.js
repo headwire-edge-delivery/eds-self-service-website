@@ -2,12 +2,13 @@ import {
   OOPS,
   SCRIPT_API,
   waitForAuthenticated,
-  loadingSpinner,
   dateToRelativeString,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
 import { toClassName } from '../../scripts/aem.js';
+import { alertDialog, createDialog } from '../../scripts/dialogs.js';
 
 const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
 function parseAcceptLanguage(str) {
@@ -135,7 +136,7 @@ const paginatorEventlistener = (container, queryParam, functionName) => {
     if (button) {
       const newPage = Number(button.getAttribute('data-change-to'));
       writeQueryParams({ [queryParam]: newPage });
-      container.innerHTML = `<p style="display: flex; justify-content: center;">${loadingSpinner}</p>`;
+      container.innerHTML = renderSkeleton('admin-tracking');
 
       functionName(true);
     }
@@ -153,19 +154,19 @@ export default async function renderUserTab({ container }) {
     <input value="${filterByMail}" type="search" minlength="3" placeholder="Filter by user email" class="filter-users filter">
     <p id="user-filter-info" style="display: none">Must be at least ${userSearchMinLength} Characters long</p>
     <div class="known-users clusterize">
-      ${loadingSpinner}
+      ${renderSkeleton('tracking')}
     </div>
     
     <h2 id="deleted-users">Deleted users</h2>
     <input value="${filterByDeletedMail}" type="search" placeholder="Filter by user email" class="filter-deleted-users filter">
     <div class="deleted-users clusterize">
-      ${loadingSpinner}
+      ${renderSkeleton('tracking')}
     </div>
         
     <h2 id="anonymous-activity">Anonymous activity</h2>
     <input value="${filterByIp}" type="search" placeholder="Filter by IP" class="filter-anonymous filter">
     <div class="anonymous-users clusterize">
-      ${loadingSpinner}
+      ${renderSkeleton('tracking')}
     </div>
   `;
   const userActivityTitle = container.querySelector('#user-activity');
@@ -256,7 +257,7 @@ export default async function renderUserTab({ container }) {
       });
 
       contentWrapper.appendChild(activitiesDialogTable.wrapper);
-      window.createDialog(contentWrapper);
+      createDialog(contentWrapper);
 
       // eslint-disable-next-line no-new
       new Clusterize({
@@ -265,7 +266,7 @@ export default async function renderUserTab({ container }) {
         contentId: 'contentArea-recent-activity',
       });
     } else {
-      window.alertDialog(OOPS);
+      alertDialog(OOPS);
     }
 
     button.classList.remove('loading');
@@ -298,9 +299,11 @@ export default async function renderUserTab({ container }) {
       return;
     }
     lastLength = userFilterLength;
-    usersContainer.innerHTML = loadingSpinner;
+    usersContainer.innerHTML = renderSkeleton('admin');
     const page = readQueryParams().page || 1;
     const limit = readQueryParams().limit || 100;
+
+    usersContainer.innerHTML = renderSkeleton('tracking');
 
     const reqUsers = await fetch(`${SCRIPT_API}/tracking?mail=${filterByMail}&page=${page}&limit=${limit}`, {
       headers: {
@@ -366,7 +369,7 @@ export default async function renderUserTab({ container }) {
         });
       }
     } else {
-      usersContainer.querySelector('p').textContent = OOPS;
+      usersContainer.querySelector('[aria-label="loading"]').textContent = OOPS;
     }
   };
   filterEventlistener('.filter-users', 'user', renderUsers, userSearchMinLength);
@@ -374,7 +377,7 @@ export default async function renderUserTab({ container }) {
   // MARK: renderDeletedUsers
   const deletedUsersContainer = container.querySelector('.users .deleted-users');
   const renderDeletedUsers = async (scrollTo) => {
-    deletedUsersContainer.innerHTML = loadingSpinner;
+    deletedUsersContainer.innerHTML = renderSkeleton('admin');
     filterByDeletedMail = readQueryParams().deleteduser || '';
     const page = readQueryParams().deletedpage || 1;
     const limit = readQueryParams().deletedlimit || 100;
@@ -452,7 +455,7 @@ export default async function renderUserTab({ container }) {
         });
       }
     } else {
-      deletedUsersContainer.querySelector('p').textContent = OOPS;
+      deletedUsersContainer.querySelector('[aria-label="loading"]').textContent = OOPS;
     }
   };
   filterEventlistener('.filter-deleted-users', 'deleteduser', renderDeletedUsers);
@@ -462,7 +465,7 @@ export default async function renderUserTab({ container }) {
   // MARK: renderAnonymous
   const anonymousContainer = container.querySelector('.users .anonymous-users');
   const renderAnonymous = async (scrollTo) => {
-    anonymousContainer.innerHTML = loadingSpinner;
+    anonymousContainer.innerHTML = renderSkeleton('admin');
     filterByIp = readQueryParams().ip || '';
 
     if (!anonymousUserResponse) {

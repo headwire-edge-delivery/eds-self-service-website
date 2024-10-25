@@ -1,15 +1,16 @@
 import {
-  loadingSpinner, OOPS, SCRIPT_API, waitForAuthenticated,
+  OOPS, SCRIPT_API, waitForAuthenticated,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import renderAnalytics from '../../scripts/analytics.js';
+import { alertDialog } from '../../scripts/dialogs.js';
 
 export default async function renderAnalyticsTab({ container, nav }) {
   container.innerHTML = `
-  <h2 id="web-analytics">Web analytics</h2>
     <div class="analytics">
-      ${loadingSpinner}
+      ${renderSkeleton('site-analytics')}
     </div>
-    `;
+  `;
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
 
@@ -22,7 +23,7 @@ export default async function renderAnalyticsTab({ container, nav }) {
       }
       return [await req.json()];
     } catch (e) {
-      window.alertDialog(OOPS);
+      alertDialog(OOPS);
     }
 
     return false;

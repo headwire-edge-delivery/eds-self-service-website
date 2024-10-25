@@ -1,10 +1,13 @@
-import { daProjectRepo, parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
+import {
+  daProjectRepo, parseFragment, SCRIPT_API,
+} from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 
 export default async function renderCampaignsAudience({ container, nav, renderOptions }) {
   const {
     projectDetails, token, siteSlug,
   } = renderOptions;
-  container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
+  container.innerHTML = renderSkeleton('audience');
 
   const audienceSheetData = await fetch(`${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daSheets' : 'sheets'}/${siteSlug}?sheetPath=recipients`, {
     headers: {

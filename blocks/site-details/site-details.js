@@ -18,8 +18,6 @@ import renderSitePages from './renderSitePages.js';
  * @param {Element} block
  */
 export default async function decorate(block) {
-  block.innerHTML = '<img src="/icons/loading.svg" alt="loading" loading="lazy"/>';
-
   await waitForAuthenticated();
   const [, path, siteSlug] = window.location.pathname.split('/');
   const darkAlleyVariation = block.classList.contains('dark-alley');

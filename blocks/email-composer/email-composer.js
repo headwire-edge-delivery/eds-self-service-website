@@ -2,7 +2,9 @@ import {
   SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE,
   projectRepo, daProjectRepo,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
+import { alertDialog, confirmDialog } from '../../scripts/dialogs.js';
 
 let timer;
 const debounce = (fn) => {
@@ -45,7 +47,7 @@ export default async function decorate(block) {
 
     // no project
     if (!project) {
-      block.querySelector('.content p').textContent = OOPS;
+      block.querySelector('.content [aria-label="loading"]').textContent = OOPS;
       return;
     }
 
@@ -71,9 +73,7 @@ export default async function decorate(block) {
         </div>
         
         <div class="content">
-            <p>
-                <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
-            </p>
+            ${renderSkeleton('email-composer')}
         </div>
       </div>`;
 
@@ -113,7 +113,8 @@ export default async function decorate(block) {
         
         <div class="content">
             <div class="preview">
-                <iframe name="preview" src="${EMAIL_WORKER_API}/preview/${url}"></iframe>
+                <iframe class="iframe is-loading" name="preview" src="${EMAIL_WORKER_API}/preview/${url}"></iframe>
+                <div class="skeleton" style="height: 100%; width: 100%; min-height: calc(100vh - 200px);"></div>
             </div>
             <aside>
                 <div id="email-subject">
@@ -126,11 +127,7 @@ export default async function decorate(block) {
                 
                 <div class="recipients-wrapper">
                     <table class="recipients">
-                        <tr>
-                          <td>
-                              <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
-                          </td>
-                        </tr>
+                        ${renderSkeleton('recipients')}
                     </table>
                 </div>
                 </div>
@@ -166,12 +163,23 @@ export default async function decorate(block) {
 
       const subject = block.querySelector('h1.subject');
       const subjectInput = block.querySelector('input.subject');
-      const iframe = block.querySelector('.preview iframe');
+      const iframe = block.querySelector('.iframe');
       const form = block.querySelector('.form');
       const previewVars = block.querySelector('.preview-variables');
       const saveVars = block.querySelector('.save-variables');
       let warning = { hidden: true };
       let savedEditorStyles;
+
+      iframe.addEventListener('load', () => {
+        // Add loading buffer
+        setTimeout(() => {
+          iframe.classList.remove('is-loading');
+        }, 1000);
+      });
+      // Loading timeout
+      setTimeout(() => {
+        iframe.classList.remove('is-loading');
+      }, 2000);
 
       const hideWarning = () => {
         try {
@@ -256,7 +264,7 @@ export default async function decorate(block) {
             css: btoa(editor.getValue()),
           }),
         });
-        await window.alertDialog(req.ok ? 'Styles successfully updated! Updates can take up to 1 minute to be reflected for all users.' : OOPS);
+        await alertDialog(req.ok ? 'Styles successfully updated! Updates can take up to 1 minute to be reflected for all users.' : OOPS);
         saveStyles.classList.remove('loading');
 
         hideWarning();
@@ -264,6 +272,8 @@ export default async function decorate(block) {
 
       // Render preview with custom variables
       previewVars.onclick = (event) => {
+        iframe.classList.add('is-loading');
+
         if (event.isTrusted) {
           window?.zaraz?.track('click email preview variables');
         }
@@ -420,8 +430,8 @@ export default async function decorate(block) {
         .then((data) => {
           const recipients = block.querySelector('.recipients');
 
-          if (!data) {
-            recipients.textContent = 'No recipient spreadsheet found.';
+          if (!data?.headers?.length) {
+            recipients.textContent = 'No recipients found.';
             return;
           }
 
@@ -435,7 +445,7 @@ export default async function decorate(block) {
                 </tr>
               </thead>
               <tbody>
-                ${recipientsData.data.map((row) => `<tr data-email="${row.email}">
+                ${recipientsData.data ? recipientsData.data.map((row) => `<tr data-email="${row.email}">
                     <td><input type="checkbox" class="select"></td>
                     ${recipientsData.headers.map((key) => `<td>${row[key] ? row[key] : ''}</td>`).join('')}
                     <td>
@@ -444,7 +454,7 @@ export default async function decorate(block) {
                           <button class="button secondary action remove">Remove</button>
                         </div>
                     </td>
-                </tr>`).join('')}
+                </tr>`).join('') : ''}
                 <tr>
                     <td></td>
                     ${recipientsData.headers.map(() => '<td><input type="text"></td>').join('')}
@@ -503,7 +513,7 @@ export default async function decorate(block) {
               if (req.ok) {
                 tr.remove();
               } else {
-                await window.alertDialog(OOPS);
+                await alertDialog(OOPS);
               }
 
               button.classList.remove('loading');
@@ -560,7 +570,7 @@ export default async function decorate(block) {
                 input.value = '';
               });
             } else {
-              await window.alertDialog(OOPS);
+              await alertDialog(OOPS);
             }
 
             add.classList.remove('loading');
@@ -574,7 +584,7 @@ export default async function decorate(block) {
 
             const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
 
-            if (await window.confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
+            if (await confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
               window?.zaraz?.track('click email copy submit');
 
               block.classList.add('is-sending');
@@ -597,9 +607,9 @@ export default async function decorate(block) {
               });
 
               if (req.ok) {
-                await window.alertDialog('Email delivered successfully!');
+                await alertDialog('Email delivered successfully!');
               } else {
-                await window.alertDialog(OOPS);
+                await alertDialog(OOPS);
               }
 
               block.classList.remove('is-sending');
@@ -607,7 +617,7 @@ export default async function decorate(block) {
           };
         });
     } else {
-      block.querySelector('.content p').textContent = OOPS;
+      block.querySelector('.content [aria-label="loading"]').textContent = OOPS;
     }
   });
 }

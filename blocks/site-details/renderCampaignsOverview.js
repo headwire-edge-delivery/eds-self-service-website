@@ -4,7 +4,9 @@ import {
   dateToRelativeString,
   EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API, slugify,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import { renderTable } from './renderSitePages.js';
+import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 
 export default async function renderCampaignsOverview({
   container, nav, renderOptions, pushHistory, replaceHistory, onHistoryPopArray,
@@ -12,7 +14,7 @@ export default async function renderCampaignsOverview({
   const {
     projectDetails, user, token, siteSlug, pathname,
   } = renderOptions;
-  container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
+  container.innerHTML = renderSkeleton('campaigns');
 
   // get required data
   const [indexData, campaignsData] = await Promise.all([
@@ -38,8 +40,8 @@ export default async function renderCampaignsOverview({
 
   container.innerHTML = `
       <ul class="campaign-list" data-type="emails">
-        <li><a class="button action secondary ${window.location.pathname.startsWith(`${pathname}/emails/`) ? '' : 'is-selected'}" href="${pathname}/emails">All emails</a></li>
-        ${allCampaignSlugs.map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button action secondary ${window.location.pathname === `${pathname}/emails/${campaignSlug}` ? 'is-selected' : ''}" href="${pathname}/emails/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`).join('')}</a>
+        <li><a class="button selector action secondary ${window.location.pathname.startsWith(`${pathname}/emails/`) ? '' : 'is-selected'}" href="${pathname}/emails">All emails</a></li>
+        ${allCampaignSlugs.map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button selector action secondary ${window.location.pathname === `${pathname}/emails/${campaignSlug}` ? 'is-selected' : ''}" href="${pathname}/emails/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`).join('')}</a>
       </ul>
       <div class="campaign-container"></div>
     `;
@@ -162,7 +164,7 @@ export default async function renderCampaignsOverview({
           </div>
         `);
 
-      const dialog = window.createDialog(content, [submit]);
+      const dialog = createDialog(content, [submit]);
       const form = document.getElementById('update-campaign-form');
 
       form.onsubmit = async (e) => {
@@ -188,7 +190,7 @@ export default async function renderCampaignsOverview({
           lastUpdatedSpan.title = new Date(update.lastUpdated).toLocaleString();
           lastUpdatedSpan.textContent = dateToRelativeString(updateDate);
         } else {
-          await window.alertDialog(OOPS);
+          await alertDialog(OOPS);
         }
 
         dialog.setLoading(false);
@@ -218,7 +220,7 @@ export default async function renderCampaignsOverview({
         </div>
       `);
 
-    const dialog = window.createDialog(content, [submit]);
+    const dialog = createDialog(content, [submit]);
     const existingCampaigns = [...campaignList.querySelectorAll('li[data-campaign]')].map((el) => el.dataset.campaign);
     const form = content.querySelector('#create-campaign-form');
     const nameInput = form.querySelector('input[name="name"]');
@@ -254,13 +256,13 @@ export default async function renderCampaignsOverview({
 
       if (!req?.ok) {
         dialog.setLoading(false);
-        await window.alertDialog(OOPS);
+        await alertDialog(OOPS);
       } else {
         const newCampaign = await req.json();
 
         container.querySelectorAll('.campaign-list').forEach((el) => {
           el.insertAdjacentHTML('beforeend', `
-              <li data-campaign="${newCampaign.slug}"><a class="button action secondary" href="${pathname}/${el.dataset.type}/${newCampaign.slug}">${newCampaign.name}</li></a>
+              <li data-campaign="${newCampaign.slug}"><a class="button selector action secondary" href="${pathname}/${el.dataset.type}/${newCampaign.slug}">${newCampaign.name}</li></a>
             `);
         });
 
@@ -329,7 +331,7 @@ export default async function renderCampaignsOverview({
         </div>
       `);
 
-    const dialog = window.createDialog(content, [submit], { fullscreen: true });
+    const dialog = createDialog(content, [submit], { fullscreen: true });
     const form = document.getElementById('add-email-form');
     const existingEmails = [...container.querySelectorAll(`.campaign-${campaignSlug} .emails tbody tr td:first-child`)].map((el) => el.textContent);
 
@@ -367,7 +369,7 @@ export default async function renderCampaignsOverview({
 
       if (!req?.ok) {
         dialog.setLoading(false);
-        await window.alertDialog(OOPS);
+        await alertDialog(OOPS);
       } else {
         dialog.setLoading(false);
         dialog.close();
@@ -380,7 +382,7 @@ export default async function renderCampaignsOverview({
   nav.querySelector('.delete-campaign').onclick = async (event) => {
     const campaignSlug = campaignList.querySelector('li a.is-selected').parentElement.dataset.campaign;
     if (campaignSlug) {
-      if (await window.confirmDialog('Are you sure ?')) {
+      if (await confirmDialog('Are you sure ?')) {
         window?.zaraz?.track('click campaign delete submit');
 
         event.target.classList.add('loading');
@@ -404,7 +406,7 @@ export default async function renderCampaignsOverview({
 
           replaceHistory(`${pathname}/emails`);
         } else {
-          await window.alertDialog(OOPS);
+          await alertDialog(OOPS);
         }
         event.target.classList.remove('loading');
       }

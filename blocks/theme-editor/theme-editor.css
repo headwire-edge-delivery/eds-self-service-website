@@ -24,21 +24,6 @@
     gap: 16px;
 }
 
-.theme-editor.block .breadcrumbs {
-    font-size: 16px;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    line-height: 16px;
-    text-transform: uppercase;
-}
-
-.theme-editor.block .breadcrumbs h1 {
-    font-size: 16px;
-    line-height: 16px;
-    padding: 0;
-}
-
 .theme-editor.block .actions {
     display: flex;
     gap: 8px;
@@ -123,7 +108,11 @@
     display: none;
 }
 
-.theme-editor.block .iframe:not(.is-loading) + img {
+.theme-editor.block .iframe + .skeleton {
+    border-radius: 0;
+}
+
+.theme-editor.block .iframe:not(.is-loading) + .skeleton {
     display: none;
 }
 

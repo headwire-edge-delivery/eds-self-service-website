@@ -4,7 +4,9 @@ import {
   OOPS,
   KESTREL_ONE,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
+import { alertDialog, confirmDialog } from '../../scripts/dialogs.js';
 
 let timer;
 const debounce = (fn) => {
@@ -81,9 +83,7 @@ export default async function decorate(block) {
         </div>
         
         <div class="content">
-            <p>
-                <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
-            </p>
+            ${renderSkeleton('theme-editor')}
         </div>
       </div>`;
 
@@ -101,7 +101,7 @@ export default async function decorate(block) {
       });
 
     if (!cssVarsData) {
-      block.querySelector('.content p').textContent = OOPS;
+      block.querySelector('.content [aria-label="loading"]').textContent = OOPS;
       return;
     }
 
@@ -154,7 +154,7 @@ export default async function decorate(block) {
               <div class="preview">
                 <div class="preview-container">
                   <iframe src="https://preview--${id}.${KESTREL_ONE}" class="iframe is-loading"></iframe>
-                  <img src="/icons/loading.svg" alt="loading" loading="lazy"/>
+                  <div class="skeleton" style="height: 100%; width: 100%; min-height: calc(100vh - 200px);"></div>
                 </div>
               </div>
               <aside>
@@ -1091,7 +1091,7 @@ export default async function decorate(block) {
       window?.zaraz?.track('click site theme submit');
 
       if (contrastIssuesExist) {
-        if (!(await window.confirmDialog('Contrast issues exist, do you want to continue?'))) {
+        if (!(await confirmDialog('Contrast issues exist, do you want to continue?'))) {
           window?.zaraz?.track('cancel site theme submit due to contrast issues');
           return;
         }
@@ -1130,7 +1130,7 @@ export default async function decorate(block) {
         failed = !res.ok;
       }
 
-      await window.alertDialog(
+      await alertDialog(
         failed
           ? OOPS
           : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.',

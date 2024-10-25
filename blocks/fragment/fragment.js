@@ -12,6 +12,7 @@ import {
   loadBlocks,
   updateSectionsStatus,
 } from '../../scripts/aem.js';
+import { createDialog } from '../../scripts/dialogs.js';
 
 /**
  * Loads a fragment.
@@ -35,7 +36,7 @@ export async function loadFragment(path, createInDialog) {
       resetAttributeBase('source', 'srcset');
 
       if (createInDialog) {
-        window.createDialog(main, [], { open: false, surviveClose: true });
+        createDialog(main, [], { open: false, surviveClose: true });
       }
       decorateMain(main);
       await loadBlocks(main);

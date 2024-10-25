@@ -1,4 +1,5 @@
 import { OOPS, parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
+import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 
 const protectedBlocks = {
   header: true,
@@ -107,7 +108,7 @@ export function addIconDialogSetup({
     }
   };
 
-  const dialog = window.createDialog(content, [submit]);
+  const dialog = createDialog(content, [submit]);
 
   const form = document.getElementById(formId);
   form.onsubmit = async (event) => {
@@ -116,12 +117,12 @@ export function addIconDialogSetup({
     window?.zaraz?.track(`click site ${isFavicon ? 'favicon' : 'icon'} add submit`);
 
     if (!file) {
-      await window.alertDialog('Please select a file');
+      await alertDialog('Please select a file');
       return;
     }
 
     if (!validateFileType(fileAccept, file.name)) {
-      await window.alertDialog('Please select a valid file!');
+      await alertDialog('Please select a valid file!');
       return;
     }
 
@@ -143,7 +144,7 @@ export function addIconDialogSetup({
         itemList?.addItem({ name: file.name, base64: fileAsBase64 });
       }
     } else {
-      await window.alertDialog('Something went wrong! Make sure this icon doesn\'t already exist.');
+      await alertDialog('Something went wrong! Make sure this icon doesn\'t already exist.');
     }
 
     dialog.setLoading(false);
@@ -222,7 +223,7 @@ export function blockIconDialogSetup({
     submit.disabled = true;
   }
 
-  const dialog = window.createDialog(content, buttonList);
+  const dialog = createDialog(content, buttonList);
   const form = document.getElementById(formId);
 
   form.onsubmit = async (event) => {
@@ -247,7 +248,7 @@ export function blockIconDialogSetup({
         manageGoogleCalendarLink(null, document.querySelector('.block .tabs-nav-items'), true);
       }
     } else {
-      await window.alertDialog(OOPS);
+      await alertDialog(OOPS);
     }
 
     submit.disabled = false;
@@ -261,7 +262,7 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
 
   const dialogContent = document.createElement('div');
   dialogContent.innerHTML = '<h3 class="centered-info" >Loading available blocks...</h3>';
-  const dialog = window.createDialog(dialogContent);
+  const dialog = createDialog(dialogContent);
 
   Promise.all([
     fetch(`${SCRIPT_API}/compatibleBlocks/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()),
@@ -328,7 +329,7 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
       window?.zaraz?.track('click site block add submit');
 
       if (!select.value) {
-        await window.alertDialog('Please select a block');
+        await alertDialog('Please select a block');
         return;
       }
 
@@ -353,7 +354,7 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
         dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`, buttons);
         itemList.addItem({ name: select.value });
       } else {
-        await window.alertDialog(OOPS);
+        await alertDialog(OOPS);
       }
 
       dialog.setLoading(false);
@@ -520,7 +521,7 @@ export async function renderUpdatesSection(
         <button class="button action primary update-button">Cancel</button>
       `);
 
-      const projectUpdateDialog = window.createDialog(dialogContent, [confirmUpdateButton,
+      const projectUpdateDialog = createDialog(dialogContent, [confirmUpdateButton,
         cancelButton]);
 
       confirmUpdateButton.onclick = async () => {
@@ -569,7 +570,7 @@ export async function renderPrevUpdatesSection(div, {
         <h4 class="centered-info">Loading previous updates...</h4>
       </div>
     `);
-    const revertUpdateDialog = window.createDialog(content, []);
+    const revertUpdateDialog = createDialog(content, []);
 
     const updateList = await fetch(`${endpoint}appliedUpdates/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null);
     if (updateList.length > 0) {
@@ -608,7 +609,7 @@ export async function renderPrevUpdatesSection(div, {
         event.preventDefault();
         window?.zaraz?.track('did site update revert');
 
-        if (await window.confirmDialog(`
+        if (await confirmDialog(`
             <div>
                 <h3>Are you sure you want to revert ${`the ${currentSelectedUpdate}` || 'to before a previous'} update?</h3>
                 <p class="error"><strong>any changes made on the options and theme pages after an update will also be reverted!</strong></p>

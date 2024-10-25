@@ -1,6 +1,7 @@
 import {
   slugMaxLength, slugify, SCRIPT_API, OOPS,
 } from '../../scripts/scripts.js';
+import { confirmDialog } from '../../scripts/dialogs.js';
 
 const progressSteps = [
   'name',
@@ -243,7 +244,7 @@ export default async function decorate(block) {
                   const plansDialog = document.querySelector('.plans-dialog');
                   if (plansDialog) {
                     plansDialog.showModal();
-                  } else if (await window.confirmDialog('Please login to continue')) {
+                  } else if (await confirmDialog('Please login to continue')) {
                     // fallback if plans isn't found
                     window.auth0Client.loginWithRedirect();
                   }

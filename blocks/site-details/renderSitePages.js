@@ -5,9 +5,10 @@ import {
   OOPS,
   parseFragment,
   SCRIPT_API,
-  loadingSpinner,
   projectRepo,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
+import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 
 export function renderTable({
   table, tableData, type, projectDetails, token,
@@ -52,7 +53,7 @@ export function renderTable({
       const deleteEmail = tableRow.querySelector('.delete-email');
       if (deleteEmail) {
         deleteEmail.onclick = async () => {
-          if (await window.confirmDialog('Are you sure ?')) {
+          if (await confirmDialog('Are you sure ?')) {
             window?.zaraz?.track('click email delete');
 
             deleteEmail.classList.add('loading');
@@ -70,7 +71,7 @@ export function renderTable({
                 el.remove();
               });
             } else {
-              await window.alertDialog(OOPS);
+              await alertDialog(OOPS);
             }
             deleteEmail.classList.remove('loading');
           }
@@ -84,7 +85,7 @@ export function renderTable({
       <td>${item.name}</td>
       <td>${item.path}</td>
       <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>
-      <td class="status"><div class="badge">${loadingSpinner}</div></td>
+      <td class="status"><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
       <td class="button-container">
           <a class="button action secondary" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
           <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
@@ -181,7 +182,7 @@ function addPageDialogSetup({
     previewIframe.src = `${templateUrl}${dropdown.value}`;
   };
 
-  const dialog = window.createDialog(content, [submit], { fullscreen: true });
+  const dialog = createDialog(content, [submit], { fullscreen: true });
 
   const form = dialog.querySelector('form');
   // submit.onclick = () => form.dispatchEvent(new Event('submit', { cancelable: true }));
@@ -241,14 +242,16 @@ function addPageDialogSetup({
             <td>${body.pageName}</td>
             <td>/drafts/${responseData.pageSlug}</td>
             <td>Just now</td>
+            <td class="status"><div class="badge orange">Previewed</div></td>
             <td class="button-container">
                 <a class="button action secondary" href="${editHref}" target="_blank">Edit</a>
-                <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Open</a>
+                <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Preview</a>
+                <a class="button action secondary" href="/redirect?url=${projectDetails.customLiveUrl}/drafts/${responseData.pageSlug}" target="_blank">Live</a>
             </td>
         </tr>
       `);
     } else {
-      await window.alertDialog(OOPS);
+      await alertDialog(OOPS);
     }
     dialog.setLoading(false);
   };
@@ -259,7 +262,7 @@ export default async function renderSitePages({ container, nav, renderOptions })
   const {
     projectDetails, user, token, siteSlug,
   } = renderOptions;
-  container.innerHTML = '<img src="/icons/loading.svg" alt="loading"/>';
+  container.innerHTML = renderSkeleton('pages');
 
   // add page button
   const addPageButton = document.createElement('button');
@@ -284,22 +287,22 @@ export default async function renderSitePages({ container, nav, renderOptions })
   container.innerHTML = `
   <div id="pages-overview">
     <h2>Pages</h2>
-    <table class="pages"><tr><td><img src="/icons/loading.svg" alt="loading" loading="lazy"/></td></tr></table>
+    <table class="pages"></table>
   </div>
   
   <div id="nav-overview">
     <h2>Navigation</h2>
-    <table class="navs"><tr><td><img src="/icons/loading.svg" alt="loading" loading="lazy"/></td></tr></table>
+    <table class="navs"></table>
   </div>
   
   <div id="footer-overview">
     <h2>Footer</h2>
-    <table class="footers"><tr><td><img src="/icons/loading.svg" alt="loading" loading="lazy"/></td></tr></table>
+    <table class="footers"></table>
   </div>
   
   <div id="drafts-overview">
     <h2>Drafts</h2>
-    <table class="drafts"><tr><td><img src="/icons/loading.svg" alt="loading" loading="lazy"/></td></tr></table>
+    <table class="drafts"></table>
   </div>`;
 
   const pages = [];

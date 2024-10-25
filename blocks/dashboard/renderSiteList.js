@@ -1,6 +1,8 @@
 import {
-  waitForAuthenticated, SCRIPT_API, KESTREL_ONE, getUserSettings, updateUserSettings, OOPS,
+  waitForAuthenticated, SCRIPT_API, KESTREL_ONE, getUserSettings, updateUserSettings,
+  OOPS,
 } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
 
@@ -41,7 +43,7 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
   const actualPage = isDarkAlley ? currentDaPage : currentPage;
   const url = `${SCRIPT_API}/${isDarkAlley ? 'darkAlleyList' : 'list'}?search=${encodeURIComponent(search)}&limit=${currentLimit}&page=${actualPage}&owner=${owner}`;
 
-  const title = isDarkAlley ? '<h3 id="da-sites">Dark Alley Sites (Experimental)</h3>' : '<h3 id="sites">Google Drive Sites</h3>';
+  const title = isDarkAlley ? '<h2 id="da-sites">Dark Alley Sites (Experimental)</h2>' : '<h2 id="sites">Google Drive Sites</h2>';
   try {
     const response = await fetch(url, {
       headers: {
@@ -85,7 +87,7 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
           currentPage = newPage;
           writeQueryParams({ page: currentPage });
         }
-        newSitesList.innerHTML = '<p style="display: flex; justify-content: center;"><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p>';
+        newSitesList.innerHTML = renderSkeleton('sites');
 
         fetchProjects(token, type, scrollY);
       }
@@ -108,13 +110,13 @@ export default async function renderSites({ container, nav }) {
   const token = await window.auth0Client.getTokenSilently();
   // List all sites (Dark Alley & Google Drive)
   const fetchAllSites = (scrollTo = false) => {
-    container.querySelector('.sites-list-dark-alley').innerHTML = '<div class="sites"><p><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p></div>';
-    container.querySelector('.sites-list-google-drive').innerHTML = '<div class="sites"><p><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p></div>';
+    container.querySelector('.sites-list-dark-alley').innerHTML = `<div class="sites">${renderSkeleton('sites')}</div>`;
+    container.querySelector('.sites-list-google-drive').innerHTML = `<div class="sites">${renderSkeleton('sites')}</div>`;
     fetchProjects(token, 'darkAlley', scrollTo);
     fetchProjects(token, 'googleDrive', scrollTo);
   };
 
-  container.innerHTML = '<div class="sites"><p><img src="/icons/loading.svg" alt="loading" loading="lazy"/></p></div>';
+  container.innerHTML = '<div class="sites"></div>';
   nav.innerHTML = '<a href="/" id="create-new-button" title="Create new site" class="button primary action new">Create new site</a>';
 
   await waitForAuthenticated();
@@ -124,8 +126,8 @@ export default async function renderSites({ container, nav }) {
   const owner = readQueryParams().owner || userSettings?.filterByOwner || 'all';
   const sites = container.querySelector('.sites');
   const filter = `<ul class="owner-selector">
-          <li data-owner="all"><div class="button action secondary ${owner === 'all' ? 'is-selected' : ''}">Owner: Anyone</div></li>
-          <li data-owner="me"><div class="button action secondary ${owner === 'me' ? 'is-selected' : ''}">Owner: Me</div></li>
+          <li data-owner="all"><button class="button selector action secondary ${owner === 'all' ? 'is-selected' : ''}">Owner: Anyone</button></li>
+          <li data-owner="me"><button class="button selector action secondary ${owner === 'me' ? 'is-selected' : ''}">Owner: Me</button></li>
         </ul>`;
   sites.innerHTML = `${filter}<input value="${search}" type="search" placeholder="Filter sites" class="filter-sites filter"><div class="sites-list"><section class="sites-list-dark-alley"></section><section class="sites-list-google-drive"></section></div>`;
 
