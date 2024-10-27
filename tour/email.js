@@ -13,7 +13,7 @@ function campaignEmailsTour({ showAutoTour }) {
       {
         title: 'Campaigns filter',
         description: 'A list of all campaigns. Click on a campaign to filter your emails.',
-        element: '.emails-panel .campaign-list',
+        element: '.emails .campaign-list',
       },
       {
         title: 'New Campaign',
@@ -32,6 +32,7 @@ function campaignEmailsTour({ showAutoTour }) {
         element: '#email-open-edit',
         destroyOnClicked: false,
         side: 'left',
+        skip: document.querySelector('.emails > tbody > tr').textContent.includes('Not enough data'),
       },
     ],
   };

@@ -2,8 +2,8 @@ import { hasDarkAlleyAccess } from '../scripts/scripts.js';
 
 function dashboardSitesTour({ showAutoTour }) {
   const hasDarkAlley = hasDarkAlleyAccess();
-  const driveProjectListQuery = '#google-drive-section > ul';
-  const darkAlleyProjectListQuery = '#dark-alley-section > ul';
+  const driveProjectListQuery = '.sites-list-google-drive > .my-sites-overview';
+  const darkAlleyProjectListQuery = '.sites-list-dark-alley > .my-sites-overview';
   const tourData = {
     showDisableTour: true,
     onFinished: () => {
@@ -26,14 +26,14 @@ function dashboardSitesTour({ showAutoTour }) {
       },
       {
         title: 'My Sites Overview (Dark Alley)',
-        description: `Here you can see all your Dark Alley sites (Currently ${document.querySelector(darkAlleyProjectListQuery)?.children?.length} Sites). <br /> Click on a site to see more details.`,
-        element: '#dark-alley-section',
+        description: `Here you can see all your Dark Alley sites (Currently ${document.querySelector(darkAlleyProjectListQuery)?.getAttribute('data-totalitems')} Sites). <br /> Click on a site to see more details.`,
+        element: darkAlleyProjectListQuery,
         skip: !document.querySelector(darkAlleyProjectListQuery)?.children?.length || !hasDarkAlley,
       },
       {
         title: 'My Sites Overview',
-        description: `Here you can see all your sites (Currently ${document.querySelector(driveProjectListQuery)?.children?.length} Sites). <br /> Click on a site to see more details.`,
-        element: '#google-drive-section',
+        description: `Here you can see all your sites (Currently ${document.querySelector(driveProjectListQuery)?.getAttribute('data-totalitems')} Sites). <br /> Click on a site to see more details.`,
+        element: driveProjectListQuery,
         skip: !document.querySelector(driveProjectListQuery)?.children?.length,
       },
       {
