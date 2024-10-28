@@ -30,4 +30,6 @@ const helpButton = () => {
   startTour(true, true);
 };
 
-helpButton();
+setTimeout(() => {
+  helpButton();
+}, 750);

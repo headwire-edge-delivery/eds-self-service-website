@@ -54,7 +54,7 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
     const { projects, pagination } = await response.json();
     sitesList.innerHTML = `
             ${title}
-            <ul id="my-sites-overview">
+            <ul class="my-sites-overview" data-totalitems=${pagination.totalItems}>
               ${projects.map(({ projectSlug, projectName, projectDescription }) => `
                 <li>
                   <a href="/${isDarkAlley ? 'da-site' : 'site'}/${projectSlug}/overview">
@@ -135,7 +135,7 @@ export default async function renderSites({ container, nav }) {
   ownerSelectorContainer.addEventListener('click', async (event) => {
     const ownerSelector = event.target.closest('li');
     if (ownerSelector) {
-      if (ownerSelector.querySelector('div').classList.contains('is-selected')) {
+      if (ownerSelector.querySelector('div')?.classList.contains('is-selected')) {
         return;
       }
       const newOwner = ownerSelector.getAttribute('data-owner');
