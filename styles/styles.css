@@ -142,6 +142,12 @@ label:first-child > span {
   padding-top: 0;
 }
 
+label:has(> input[type="checkbox"] + span) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 h1 {
   padding-block: 32px;
   font-size: 42px;
@@ -406,6 +412,19 @@ table td {
 
 table:has(tbody:empty) {
   display: none;
+}
+
+table td.empty {
+  text-align: center;
+  text-transform: uppercase;
+  padding: 32px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+table tr.loading {
+  opacity: .4;
+  pointer-events: none;
 }
 
 .clusterize-scroll {

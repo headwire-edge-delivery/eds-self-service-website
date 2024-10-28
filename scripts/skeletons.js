@@ -164,11 +164,14 @@ export default function renderSkeleton(type) {
     const rows = [...Array(10)].map(() => `
       <tr>
         <td><div class="skeleton" style="width: 200px; height: 30px;"></div></td>
+        <td><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
+        <td><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
+        <td><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
         <td>
             <div style="display: flex; justify-content: flex-end; gap: 12px;">
                 <div class="skeleton" style="width: 80px; height: 34px;"></div>
-                <div class="skeleton" style="width: 100px; height: 34px;"></div>
+                <div class="skeleton" style="width: 80px; height: 34px;"></div>
             </div>
         </td>
       </tr>
@@ -180,7 +183,10 @@ export default function renderSkeleton(type) {
             <thead>
                 <tr>
                     <th><div class="skeleton" style="width: 80px;height: 24px;"></div></th>
-                    <th><div class="skeleton" style="width: 80px;height: 24px;"></div></th>
+                    <th><div class="skeleton" style="width: 120px;height: 24px;"></div></th>
+                    <th><div class="skeleton" style="width: 120px;height: 24px;"></div></th>
+                    <th><div class="skeleton" style="width: 120px;height: 24px;"></div></th>
+                    <th><div class="skeleton" style="width: 100px;height: 24px;"></div></th>
                     <th></th>
                 </tr>
             </thead>
@@ -290,8 +296,9 @@ export default function renderSkeleton(type) {
     const rows = [...Array(10)].map(() => `
       <tr>
         <td><div class="skeleton" style="width: 34px; height: 34px;"></div></td>
-        <td><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
+        <td><div class="skeleton" style="width: 80px; height: 30px;"></div></td>
+        <td><div class="skeleton" style="width: 80px; height: 30px;"></div></td>
         <td>
           <div style="display: flex; justify-content: flex-end; gap: 12px;">
             <div class="skeleton" style="width: 100px; height: 34px;"></div>
@@ -305,6 +312,7 @@ export default function renderSkeleton(type) {
       <thead>
           <tr>
               <th><div class="skeleton" style="width: 34px;height: 34px;"></div></th>
+              <th><div class="skeleton" style="width: 80px;height: 24px;"></div></th>
               <th><div class="skeleton" style="width: 100px;height: 24px;"></div></th>
               <th><div class="skeleton" style="width: 100px;height: 24px;"></div></th>
               <th</th>
