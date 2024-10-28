@@ -84,8 +84,8 @@ export default async function decorate(block) {
           </div>
         </div>
         
-        <div class="content">
-            ${renderSkeleton('theme-editor')}
+        <div class="content with-skeleton">
+          ${renderSkeleton('theme-editor')}
         </div>
       </div>`;
 
@@ -155,7 +155,7 @@ export default async function decorate(block) {
           <div class="content">
               <div class="preview">
                 <div class="preview-container">
-                  <iframe src="https://preview--${id}.${KESTREL_ONE}" class="iframe is-loading"></iframe>
+                  <iframe src="https://preview--${id}.${KESTREL_ONE}?ispreview=true" class="iframe is-loading"></iframe>
                   ${renderSkeleton('theme-editor-preview')}
                 </div>
               </div>
@@ -543,8 +543,16 @@ export default async function decorate(block) {
       // Add loading buffer
       setTimeout(() => {
         previewFrame.classList.remove('is-loading');
+        previewFrame.contentWindow.postMessage({
+          type: 'getHeightInterval',
+        }, '*');
+        window.addEventListener('message', (event) => {
+          if (event.data.type !== 'previewHeight') return;
+          previewFrame.style.height = event.data.height;
+        });
       }, 1000);
     });
+
     // Loading timeout
     setTimeout(() => {
       previewFrame.classList.remove('is-loading');
@@ -561,6 +569,8 @@ export default async function decorate(block) {
         if (checkedEl) checkedEl.ariaChecked = 'false';
         event.currentTarget.ariaChecked = 'true';
         previewFrame.style.width = event.currentTarget.dataset.width;
+        previewFrame.style.height = null; // reset height
+        previewFrame.style.overflow = null;
       }
     };
 
@@ -583,6 +593,7 @@ export default async function decorate(block) {
 
     // MARK: aside
     const aside = block.querySelector('aside');
+    const content = block.querySelector('.content');
     const toggleAsideButton = block.querySelector('.toggle-aside');
 
     const toggleAside = (setTo) => {
@@ -596,6 +607,27 @@ export default async function decorate(block) {
     aside.addEventListener('focusin', () => {
       toggleAside(true);
     });
+
+    // move aside with scroll of window. now that preview grows in height
+    const moveAside = () => {
+      if (!previewFrame.style.height) return;
+      const contentRect = content.getBoundingClientRect();
+      const asideRect = aside.getBoundingClientRect();
+
+      // center it in window
+      const offset = (window.innerHeight * 0.5) - (asideRect.height * 0.5);
+
+      let newTop = Math.max(0, (contentRect.top - offset) * -1);
+
+      if (newTop < 0) {
+        newTop = 0;
+      } else if (newTop + asideRect.height > contentRect.height) {
+        newTop = contentRect.height - asideRect.height;
+      }
+
+      aside.style.top = `${newTop}px`;
+    };
+    window.addEventListener('scroll', moveAside);
 
     // eslint-disable-next-line max-len
     const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => cssVars.includes(cssVar)));

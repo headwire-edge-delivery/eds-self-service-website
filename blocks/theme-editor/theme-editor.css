@@ -46,18 +46,22 @@
     background-color: var(--gray);
 }
 
+.theme-editor.block .content.with-skeleton {
+    background-color: transparent;
+}
+
 .theme-editor.block aside {
     border: 1px solid var(--gray);
     flex-grow: 1;
     position: absolute;
     top: 0;
     right: 0;
-    height: 100%;
+    height: var(--content-height);
     width: var(--aside-width);
     max-width: var(--aside-max-width);
     background-color: var(--white);
     transform: translateX(100%);
-    transition: all var(--animation-duration);
+    transition: transform var(--animation-duration);
 }
 
 .theme-editor.block aside.is-open {
@@ -106,7 +110,7 @@
 
 .theme-editor.block aside,
 .theme-editor.block .preview {
-    height: var(--content-height);
+    min-height: var(--content-height);
 }
 
 .theme-editor.block aside select {
