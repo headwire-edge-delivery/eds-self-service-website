@@ -162,7 +162,7 @@ export default function renderSkeleton(type) {
   }
   if (type === 'audience') {
     const rows = [...Array(10)].map(() => `
-      <tr>
+      <tr class="skeleton-row">
         <td><div class="skeleton" style="width: 200px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
         <td>
