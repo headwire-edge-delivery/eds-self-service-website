@@ -52,10 +52,7 @@ export default async function decorate(block) {
     }
 
     let editor;
-    let recipientsData = {
-      headers: [],
-      data: [],
-    };
+    let audience;
     // replace variables
     const regExp = /(?<=\{).+?(?=\})/g;
 
@@ -213,9 +210,7 @@ export default async function decorate(block) {
             return newValue;
           }
 
-          const selectedEmail = rendering.dataset.email;
-          const selectedRecipient = recipientsData.data
-            .find(({ email }) => email === selectedEmail);
+          const selectedRecipient = audience.find((contact) => contact.id === rendering.dataset.id);
 
           matches.forEach((match) => {
             const matchingCol = Object.keys(selectedRecipient).find((col) => col === match);
@@ -415,7 +410,7 @@ export default async function decorate(block) {
         });
 
       // Load email metadata
-      fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
+      fetch(`${SCRIPT_API}/audience/${id}`, {
         headers: {
           authorization: `bearer ${token}`,
         },
@@ -430,34 +425,40 @@ export default async function decorate(block) {
         .then((data) => {
           const recipients = block.querySelector('.recipients');
 
-          if (!data?.headers?.length) {
-            recipients.textContent = 'No recipients found.';
+          if (!data?.length) {
+            recipients.textContent = 'No audience found.';
             return;
           }
 
-          recipientsData = data;
+          audience = data.filter(({ unsubscribed }) => !unsubscribed);
           recipients.innerHTML = `
               <thead>
                 <tr>
                     <th><input type="checkbox"></th>
-                    ${recipientsData.headers.map((key) => `<th>${key}</th>`).join('')}
+                    <th>Email</th>
+                    <th>First name</th>
+                    <th>Last name</th>
                     <th></th>
                 </tr>
               </thead>
               <tbody>
-                ${recipientsData.data ? recipientsData.data.map((row) => `<tr data-email="${row.email}">
+                ${audience?.length ? audience.map((contact) => `<tr data-id="${contact.id}">
                     <td><input type="checkbox" class="select"></td>
-                    ${recipientsData.headers.map((key) => `<td>${row[key] ? row[key] : ''}</td>`).join('')}
+                    <td>${contact.email}</td>
+                    <td>${contact.firstName}</td>
+                    <td>${contact.lastName}</td>
                     <td>
                         <div class="button-container">
                           <button class="button secondary action render">Preview</button>
-                          <button class="button secondary action remove">Remove</button>
+                          <button class="button secondary action remove">Delete</button>
                         </div>
                     </td>
                 </tr>`).join('') : ''}
                 <tr>
                     <td></td>
-                    ${recipientsData.headers.map(() => '<td><input type="text"></td>').join('')}
+                    <td><input name="email" type="email" placeholder="john.doe@example.com" required></td>
+                    <td><input name="firstName" type="text" placeholder="John"></td>
+                    <td><input name="lastName" type="text" placeholder="Doe"></td>
                     <td>
                         <button class="button secondary action add is-disabled">Add</button>
                     </td>
@@ -497,17 +498,18 @@ export default async function decorate(block) {
             } else if (e.target.matches('.remove')) {
               window?.zaraz?.track('click email recipients remove');
 
-              const button = e.target;
-              button.classList.add('loading');
+              const tr = e.target.closest('tr[data-id]');
+              tr.classList.add('loading');
 
-              const tr = e.target.closest('tr');
-              const index = [...tr.parentElement.children].indexOf(tr);
-
-              const req = await fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients&row=${index}`, {
+              const req = await fetch(`${SCRIPT_API}/audience/${id}`, {
                 method: 'DELETE',
                 headers: {
                   authorization: `bearer ${token}`,
+                  'content-type': 'application/json',
                 },
+                body: JSON.stringify({
+                  id: tr.dataset.id,
+                }),
               });
 
               if (req.ok) {
@@ -516,57 +518,60 @@ export default async function decorate(block) {
                 await alertDialog(OOPS);
               }
 
-              button.classList.remove('loading');
+              tr.classList.remove('loading');
               toggleSendDisabled();
             }
           };
 
           const add = recipients.querySelector('.add');
-          const addInputs = [...recipients.querySelectorAll('tbody tr:last-child input')];
-          addInputs.forEach((input) => {
-            input.onkeydown = () => {
-              const values = addInputs.map((addInput) => addInput.value).join('');
-              add.classList.toggle('is-disabled', values.length === 0);
-            };
-          });
+          recipients.querySelector('input[name="email"]').oninput = (e) => {
+            const { value } = e.target;
+            add.classList.toggle('is-disabled', !(value.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)));
+          };
 
           add.onclick = async () => {
             window?.zaraz?.track('click email recipients add');
 
             add.classList.add('loading');
 
-            const newRecipient = {};
-            recipientsData.headers.forEach((key, index) => {
-              newRecipient[key] = addInputs[index].value;
+            const contact = {};
+            ['email', 'firstName', 'lastName'].forEach((name) => {
+              contact[name] = recipients.querySelector(`input[name="${name}"]`).value;
             });
 
-            const req = await fetch(`${SCRIPT_API}/${project.darkAlleyProject ? 'daSheets' : 'sheets'}/${id}?sheetPath=recipients`, {
+            const req = await fetch(`${SCRIPT_API}/audience/${id}`, {
               method: 'POST',
               headers: {
                 authorization: `bearer ${token}`,
                 'content-type': 'application/json',
               },
-              body: JSON.stringify(newRecipient),
+              body: JSON.stringify(contact),
             });
 
             if (req.ok) {
+              const res = await req.json();
+              contact.id = res.id;
+              audience.push(contact);
+
               const tr = document.createElement('tr');
               tr.innerHTML = `
                 <td><input type="checkbox" class="select"></td>
-                ${addInputs.map((input) => `<td>${input.value}</td>`).join('')}   
+                <td>${contact.email}</td>
+                <td>${contact.firstName}</td>
+                <td>${contact.lastName}</td>   
                 <td>
                     <div class="button-container">
                         <button class="button secondary action render">Preview</button>
-                        <button class="button secondary action remove">Remove</button>
+                        <button class="button secondary action remove">Delete</button>
                     </div>
                 </td>
               `;
-              recipientsData.data.push(newRecipient);
-              tr.dataset.email = newRecipient.email;
+
+              tr.dataset.id = contact.id;
               add.closest('tr').before(tr);
 
               // Reset
-              addInputs.forEach((input) => {
+              recipients.querySelectorAll('input[name]').forEach((input) => {
                 input.value = '';
               });
             } else {
@@ -600,14 +605,14 @@ export default async function decorate(block) {
                   url: previewSource.pathname.replace('/preview/', ''),
                   subject: subjectInput.value,
                   variables: customVariables,
-                  to: recipientsData.data.filter(({ email }) => selectedRecipients
-                    .find((el) => el.dataset.email === email)),
+                  to: audience.filter((contact) => selectedRecipients
+                    .find((el) => el.dataset.id === contact.id)),
                 }),
                 method: 'POST',
               });
 
               if (req.ok) {
-                await alertDialog('Email delivered successfully!');
+                await alertDialog('Email delivered successfully');
               } else {
                 await alertDialog(OOPS);
               }

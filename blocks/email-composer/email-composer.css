@@ -120,7 +120,7 @@
     width: 64px;
 }
 
-.email-composer .recipients input[type="text"] {
+.email-composer .recipients input {
     margin-bottom: 0;
 }
 
