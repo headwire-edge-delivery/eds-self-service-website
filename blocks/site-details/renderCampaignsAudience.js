@@ -30,12 +30,6 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
   const { token, siteSlug } = renderOptions;
   container.innerHTML = renderSkeleton('audience');
 
-  const audienceData = await fetch(`${SCRIPT_API}/audience/${siteSlug}`, {
-    headers: {
-      authorization: `bearer ${token}`,
-    },
-  }).then((res) => res.json()).catch(() => null);
-
   const addContact = parseFragment(`
     <button class="button primary action" id="add-contact">Add Contact</button>
   `);
@@ -106,6 +100,12 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
   };
 
   nav.append(addContact);
+
+  const audienceData = await fetch(`${SCRIPT_API}/audience/${siteSlug}`, {
+    headers: {
+      authorization: `bearer ${token}`,
+    },
+  }).then((res) => res.json()).catch(() => null);
 
   container.innerHTML = `
     <table>
