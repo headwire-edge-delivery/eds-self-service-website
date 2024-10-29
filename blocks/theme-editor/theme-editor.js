@@ -592,8 +592,8 @@ export default async function decorate(block) {
     });
 
     // MARK: aside
+    const preview = block.querySelector('.preview');
     const aside = block.querySelector('aside');
-    const content = block.querySelector('.content');
     const toggleAsideButton = block.querySelector('.toggle-aside');
 
     const toggleAside = (setTo) => {
@@ -608,26 +608,32 @@ export default async function decorate(block) {
       toggleAside(true);
     });
 
-    // move aside with scroll of window. now that preview grows in height
-    const moveAside = () => {
-      if (!previewFrame.style.height) return;
-      const contentRect = content.getBoundingClientRect();
-      const asideRect = aside.getBoundingClientRect();
+    const headerHeight = Math.round(document.querySelector('header').clientHeight);
+    const anchorAside = () => {
+      const previewTop = Math.round(preview.getBoundingClientRect().top);
 
-      // center it in window
-      const offset = (window.innerHeight * 0.5) - (asideRect.height * 0.5);
+      if (previewTop > headerHeight) {
+        aside.style.top = `${previewTop}px`;
+        aside.style.height = `calc(100vh - ${previewTop}px)`;
+      } else {
+        aside.style.top = `${headerHeight}px`;
 
-      let newTop = Math.max(0, (contentRect.top - offset) * -1);
+        const { scrollingElement } = document;
+        const { scrollHeight } = scrollingElement;
+        const { scrollTop } = scrollingElement;
+        const height = scrollingElement.clientHeight;
+        const bottom = Math.round(scrollHeight - scrollTop - height);
 
-      if (newTop < 0) {
-        newTop = 0;
-      } else if (newTop + asideRect.height > contentRect.height) {
-        newTop = contentRect.height - asideRect.height;
+        const footerHeight = Math.round(document.querySelector('footer').clientHeight);
+        if (bottom > footerHeight) {
+          aside.style.height = `calc(100vh - ${headerHeight}px)`;
+        } else {
+          aside.style.height = `calc(100vh - ${headerHeight}px - ${footerHeight - bottom}px)`;
+        }
       }
-
-      aside.style.top = `${newTop}px`;
     };
-    window.addEventListener('scroll', moveAside);
+    window.addEventListener('scroll', anchorAside, { passive: true });
+    anchorAside();
 
     // eslint-disable-next-line max-len
     const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => cssVars.includes(cssVar)));
