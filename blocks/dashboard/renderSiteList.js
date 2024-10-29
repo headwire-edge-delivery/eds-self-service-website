@@ -135,7 +135,7 @@ export default async function renderSites({ container, nav }) {
   ownerSelectorContainer.addEventListener('click', async (event) => {
     const ownerSelector = event.target.closest('li');
     if (ownerSelector) {
-      if (ownerSelector.querySelector('div').classList.contains('is-selected')) {
+      if (ownerSelector.querySelector('button').classList.contains('is-selected')) {
         return;
       }
       const newOwner = ownerSelector.getAttribute('data-owner');
