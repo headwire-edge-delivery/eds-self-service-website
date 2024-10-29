@@ -265,14 +265,6 @@
   margin-bottom: 0;
 }
 
-.site-details.block table td.empty {
-  text-align: center;
-  text-transform: uppercase;
-  padding: 32px;
-  font-weight: bold;
-  font-size: 12px;
-}
-
 dialog .clicked-links li {
   margin-block: 8px;
 }

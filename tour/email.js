@@ -50,17 +50,17 @@ function campaignEmailsAudienceTour({ showAutoTour }) {
     steps: [
       {
         title: 'Audience',
-        description: 'Manage your audience here. Add, update, retrieve and remove subscribers.',
+        description: 'Manage your audience here. Add, update, retrieve and delete contacts.',
       },
       {
         title: 'Audience members',
         description: 'List of your audience members.',
-        element: '.audience-panel',
+        element: '.audience table',
       },
       {
-        title: 'Edit audience',
-        description: 'Edit your audience directly from a sheet.',
-        element: '.audience-actions',
+        title: 'Add contact',
+        description: 'Add a contact to your audience.',
+        element: '#add-contact',
         side: 'left',
       },
     ],
