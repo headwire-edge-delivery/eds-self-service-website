@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Fast Sites",
   "scripts": {
-    "dev": "aem up --no-open --url 'https://main--eds-self-service-website--headwire-edge-delivery.aem.live'",
+    "dev": "aem up --no-open --url https://main--eds-self-service-website--headwire-edge-delivery.aem.live",
     "lint:js": "eslint .",
     "lint:js-fix": "eslint . --fix",
     "lint:css": "stylelint blocks/**/*.css styles/*.css",

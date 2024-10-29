@@ -1,7 +1,7 @@
 .footer.block {
   display: flex;
   align-items: center;
-  height: 100%;
+  height: var(--footer-height);
   justify-content: center;
   background-color: var(--black);
   color: var(--white);

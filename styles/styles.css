@@ -15,6 +15,7 @@
   --animation-duration: 300ms;
   --font-family: system-ui, sans-serif;
   --header-height: 64px;
+  --footer-height: 64px;
   --body-font-size: 16px;
   --box-shadow-color: rgb(213 213 213);
   --box-shadow: 0 2px 5px var(--box-shadow-color);
@@ -207,6 +208,10 @@ input, textarea, select {
   width: 100%;
 }
 
+select {
+  max-width: 100%;
+}
+
 input:focus {
   outline: none;
   border-color: var(--orange);
@@ -296,12 +301,29 @@ input[type="file"]::file-selector-button:hover,
 }
 
 input[type="color"] {
-  padding: 4px;
-  font-weight: 400;
+  padding: 0;
+  background-color: transparent;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
   border: 1px solid var(--gray);
-  border-radius: var(--small-border-radius);
-  background-color: var(--white);
-  width: 100%;
+}
+
+.color-input-circle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--gray);
+  overflow: hidden;
+}
+
+.color-input-circle-wrapper input[type="color"] {
+  min-width: 150%;
+  min-height: 150%;
+  border: none;
 }
 
 .button.primary {
