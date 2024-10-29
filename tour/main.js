@@ -46,8 +46,11 @@ function checkAllLoaded() {
   }
 
   setTimeout(() => {
-    document.querySelector('#help-btn').style.display = 'flex';
-    document.querySelector('#help-btn').setAttribute('data-loaded', 'true');
+    const helpBtn = document.querySelector('#help-btn');
+    if (helpBtn) {
+      document.querySelector('#help-btn').style.display = 'flex';
+      document.querySelector('#help-btn').setAttribute('data-loaded', 'true');
+    }
   }, 500);
   return Array.from(elements).every((el) => el.getAttribute('data-block-status') === 'loaded');
 }

@@ -149,6 +149,18 @@ export function getExpirationTime(expirationDays) {
   return date.getTime();
 }
 
+export function colorInput(colorVar, disabled = false, returnEl = false) {
+  const input = document.createElement('input');
+  input.type = 'color';
+  if (colorVar) input.dataset.var = colorVar;
+  if (disabled) input.disabled = true;
+
+  const colorWrapper = document.createElement('div');
+  colorWrapper.classList.add('color-input-circle-wrapper');
+  colorWrapper.append(input);
+  return returnEl ? colorWrapper : colorWrapper.outerHTML;
+}
+
 /**
  * Parse HTML fragment
  * @param {String} fragmentString

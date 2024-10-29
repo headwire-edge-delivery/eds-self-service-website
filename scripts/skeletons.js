@@ -162,7 +162,7 @@ export default function renderSkeleton(type) {
   }
   if (type === 'audience') {
     const rows = [...Array(10)].map(() => `
-      <tr>
+      <tr class="skeleton-row">
         <td><div class="skeleton" style="width: 200px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
         <td>
@@ -321,13 +321,16 @@ export default function renderSkeleton(type) {
         <div class="skeleton" style="height: 34px;"></div>`).join('');
 
     return `
-      <div style="flex: 1; min-height: calc(100vh - 200px);" class="skeleton" aria-label="loading"></div>
-      <div style="max-width: 30%; min-width: 30%; height: calc(100vh - 200px);" aria-label="loading">
+      <div class="skeleton skeleton-theme-editor-iframe" style="min-height: calc(100vh - 200px);" class="skeleton" aria-label="loading"></div>
+      <div style="padding: 14px; max-width: 30%; min-width: 30%; height: calc(100vh - 200px);" aria-label="loading">
           <div class="skeleton" style="width: 150px; height: 24px;margin-bottom: 24px;"></div>
           <div class="skeleton" style="width: 100px; height: 20px;margin-block: 14px;"></div>
           ${pickers}
       </div> 
     `;
+  }
+  if (type === 'theme-editor-preview') {
+    return '<div class="skeleton skeleton-theme-editor-iframe"></div>';
   }
 
   return '';

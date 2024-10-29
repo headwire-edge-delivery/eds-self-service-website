@@ -54,7 +54,7 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
     const { projects, pagination } = await response.json();
     sitesList.innerHTML = `
             ${title}
-            <ul id="my-sites-overview">
+            <ul class="my-sites-overview" data-totalitems=${pagination.totalItems}>
               ${projects.map(({ projectSlug, projectName, projectDescription }) => `
                 <li>
                   <a href="/${isDarkAlley ? 'da-site' : 'site'}/${projectSlug}/overview">

@@ -3,6 +3,7 @@ import {
   onAuthenticated,
   OOPS,
   KESTREL_ONE,
+  colorInput,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
@@ -57,6 +58,8 @@ const findCSSVar = (vars, name, isFont) => {
   };
 };
 
+const isMobile = window.matchMedia('(width < 768px)');
+
 /**
  * @param {Element} block
  */
@@ -67,6 +70,7 @@ export default async function decorate(block) {
     const token = await window.auth0Client.getTokenSilently();
     const headers = { authorization: `bearer ${token}` };
 
+    block.classList.add('show-aside');
     block.innerHTML = `
         <div class="nav">
           <div class="breadcrumbs">
@@ -80,8 +84,8 @@ export default async function decorate(block) {
           </div>
         </div>
         
-        <div class="content">
-            ${renderSkeleton('theme-editor')}
+        <div class="content with-skeleton">
+          ${renderSkeleton('theme-editor')}
         </div>
       </div>`;
 
@@ -128,22 +132,20 @@ export default async function decorate(block) {
                 <button type="button" aria-label="close">&#x2715;</button>
               </div>
               <div class="button-container">
-                <div class="viewers" role="radiogroup" hidden>
-                    <button aria-checked="false" title="mobile" aria-label="mobile" data-width="375px" class="button secondary action">
+                <div class="viewers" role="radiogroup">
+                    <button aria-checked="false" title="Mobile" aria-label="mobile" data-width="375px" class="button secondary action">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M280-40q-33 0-56.5-23.5T200-120v-720q0-33 23.5-56.5T280-920h400q33 0 56.5 23.5T760-840v720q0 33-23.5 56.5T680-40H280Zm0-120v40h400v-40H280Zm0-80h400v-480H280v480Zm0-560h400v-40H280v40Zm0 0v-40 40Zm0 640v40-40Z"/></svg>
                     </button>
-                    <button aria-checked="false" title="tablet" aria-label="tablet" data-width="810px" class="button secondary action">
+                    <button aria-checked="false" title="Tablet" aria-label="tablet" data-width="810px" class="button secondary action">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M120-160q-33 0-56.5-23.5T40-240v-480q0-33 23.5-56.5T120-800h720q33 0 56.5 23.5T920-720v480q0 33-23.5 56.5T840-160H120Zm40-560h-40v480h40v-480Zm80 480h480v-480H240v480Zm560-480v480h40v-480h-40Zm0 0h40-40Zm-640 0h-40 40Z"/></svg>
                     </button>
-                    <button aria-checked="false" title="laptop" aria-label="laptop" data-width="1280px" class="button secondary action">
+                    <button aria-checked="false" title="Laptop" aria-label="laptop" data-width="1280px" class="button secondary action">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M40-120v-80h880v80H40Zm120-120q-33 0-56.5-23.5T80-320v-440q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v440q0 33-23.5 56.5T800-240H160Zm0-80h640v-440H160v440Zm0 0v-440 440Z"/></svg>
                     </button>
-                    <button aria-checked="true" title="desktop" aria-label="desktop" data-width="1440px" class="button secondary action">
+                    <button aria-checked="false" title="Desktop" aria-label="desktop" data-width="1440px" class="button secondary action">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M320-120v-80h80v-80H160q-33 0-56.5-23.5T80-360v-400q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v400q0 33-23.5 56.5T800-280H560v80h80v80H320ZM160-360h640v-400H160v400Zm0 0v-400 400Z"/></svg>
                     </button>
                 </div>
-                <button id="toggle-editing" title="Edit your Theme" class="button action secondary edit-mode" hidden>Editing mode</button>
-                <button id="toggle-preview" title="Preview your theme" class="button action secondary preview-mode">Preview mode</button>
                 <select id="publish-theme-selector" title="Select the previewed page" class="button action secondary publish-theme-selector"></select>
                 <button id="save-button" title="Save your changes" class="button action primary is-disabled publish-theme">Save</button>
               </div>
@@ -153,11 +155,17 @@ export default async function decorate(block) {
           <div class="content">
               <div class="preview">
                 <div class="preview-container">
-                  <iframe src="https://preview--${id}.${KESTREL_ONE}" class="iframe is-loading"></iframe>
-                  <div class="skeleton" style="height: 100%; width: 100%; min-height: calc(100vh - 200px);"></div>
+                  <iframe src="https://preview--${id}.${KESTREL_ONE}?ispreview=true" class="iframe is-loading"></iframe>
+                  ${renderSkeleton('theme-editor-preview')}
                 </div>
               </div>
-              <aside>
+              <div class="ghost-aside"></div>
+              <aside class="aside settings is-open">
+                <button class="toggle-aside" aria-checked="true" title="Toggle Theme Settings">
+                  <span class="icon"><img src="/icons/chevron-down.svg" alt="chevron-down"></span>
+                </button>
+
+                <div class="aside-content">
                   <h2>Typography</h2>
                   
                   <h3>Heading</h3>
@@ -190,49 +198,49 @@ export default async function decorate(block) {
                     <span>Light</span>
                     <div title="Open the color picker" class="color-picker base">
                         <span></span>
-                        <input type="color" data-var="color-light">
+                        ${colorInput('color-light')}
                     </div>
                   </label>
                   <label>
                     <span>Dark</span>
                     <div title="Open the color picker" class="color-picker base">
                         <span></span>
-                        <input type="color" data-var="color-dark">
+                        ${colorInput('color-dark')}
                     </div>
                   </label>
                   <label>
                     <span>Lightest</span>
                     <div title="Open the color picker" class="color-picker base">
                         <span></span>
-                        <input type="color" data-var="color-lightest">
+                        ${colorInput('color-lightest')}
                     </div>
                   </label>
                   <label>
                     <span>Darkest</span>
                     <div title="Open the color picker" class="color-picker base">
                         <span></span>
-                        <input type="color" data-var="color-darkest">
+                        ${colorInput('color-darkest')}
                     </div>
                   </label>
                   <label>
                     <span>Brand primary</span>
                     <div title="Open the color picker" class="color-picker base">
                         <span></span>
-                        <input type="color" data-var="color-brand-primary">
+                        ${colorInput('color-brand-primary')}
                     </div>
                   </label>
                   <label>
                     <span>Brand secondary</span>
                     <div title="Open the color picker" class="color-picker base">
                         <span></span>
-                        <input type="color" data-var="color-brand-secondary">
+                        ${colorInput('color-brand-secondary')}
                     </div>
                   </label>
                   <label>
                     <span>Brand tertiary</span>
                     <div title="Open the color picker" class="color-picker base">
                         <span></span>
-                        <input type="color" data-var="color-brand-tertiary">
+                        ${colorInput('color-brand-tertiary')}
                     </div>
                   </label>
                   
@@ -241,7 +249,7 @@ export default async function decorate(block) {
                       <span>Background color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="background-color">
+                        ${colorInput('background-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -250,16 +258,16 @@ export default async function decorate(block) {
                       <span>Header background color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="header-background-color">
+                        ${colorInput('header-background-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
-                 
+                  
                   <label>
                       <span>Heading text color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="heading-color">
+                        ${colorInput('heading-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -268,7 +276,7 @@ export default async function decorate(block) {
                       <span>Body text color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="text-color">
+                        ${colorInput('text-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -277,7 +285,7 @@ export default async function decorate(block) {
                       <span>Links text color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="link-color">
+                        ${colorInput('link-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -285,7 +293,7 @@ export default async function decorate(block) {
                       <span>Links text color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="link-color-hover">
+                        ${colorInput('link-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -298,7 +306,7 @@ export default async function decorate(block) {
                       <span>Text color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-text-color">
+                        ${colorInput('button-text-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -306,7 +314,7 @@ export default async function decorate(block) {
                       <span>Background color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-background-color">
+                        ${colorInput('button-background-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -314,7 +322,7 @@ export default async function decorate(block) {
                       <span>Border color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-border-color">
+                        ${colorInput('button-border-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -322,7 +330,7 @@ export default async function decorate(block) {
                       <span>Text color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-text-color-hover">
+                        ${colorInput('button-text-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -330,7 +338,7 @@ export default async function decorate(block) {
                       <span>Background color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-background-color-hover">
+                        ${colorInput('button-background-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -338,7 +346,7 @@ export default async function decorate(block) {
                       <span>Border color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-border-color-hover">
+                        ${colorInput('button-border-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -349,7 +357,7 @@ export default async function decorate(block) {
                       <span>Text color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-primary-text-color">
+                        ${colorInput('button-primary-text-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -357,7 +365,7 @@ export default async function decorate(block) {
                       <span>Background color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-primary-background-color">
+                        ${colorInput('button-primary-background-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -365,7 +373,7 @@ export default async function decorate(block) {
                       <span>Border color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-primary-border-color">
+                        ${colorInput('button-primary-border-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -373,7 +381,7 @@ export default async function decorate(block) {
                       <span>Text color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-primary-text-color-hover">
+                        ${colorInput('button-primary-text-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -381,7 +389,7 @@ export default async function decorate(block) {
                       <span>Background color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-primary-background-color-hover">
+                        ${colorInput('button-primary-background-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -389,7 +397,7 @@ export default async function decorate(block) {
                       <span>Border color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-primary-border-color-hover">
+                        ${colorInput('button-primary-border-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -400,7 +408,7 @@ export default async function decorate(block) {
                       <span>Text color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-secondary-text-color">
+                        ${colorInput('button-secondary-text-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -408,7 +416,7 @@ export default async function decorate(block) {
                       <span>Background color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-secondary-background-color">
+                        ${colorInput('button-secondary-background-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -416,7 +424,7 @@ export default async function decorate(block) {
                       <span>Border color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-secondary-border-color">
+                        ${colorInput('button-secondary-border-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -424,7 +432,7 @@ export default async function decorate(block) {
                       <span>Text color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-secondary-text-color-hover">
+                        ${colorInput('button-secondary-text-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -432,7 +440,7 @@ export default async function decorate(block) {
                       <span>Background color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-secondary-background-color-hover">
+                        ${colorInput('button-secondary-background-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -440,7 +448,7 @@ export default async function decorate(block) {
                       <span>Border color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="button-secondary-border-color-hover">
+                        ${colorInput('button-secondary-border-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -451,7 +459,7 @@ export default async function decorate(block) {
                       <span>Input text color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="input-text-color">
+                        ${colorInput('input-text-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -459,7 +467,7 @@ export default async function decorate(block) {
                       <span>Input background color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="input-background-color">
+                        ${colorInput('input-background-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -467,18 +475,18 @@ export default async function decorate(block) {
                       <span>Input border color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="input-border-color">
+                        ${colorInput('input-border-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
 
                   <h2>Footer</h2>
-                 
+                  
                   <label>
                       <span>Footer background color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="footer-background-color">
+                        ${colorInput('footer-background-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -487,7 +495,7 @@ export default async function decorate(block) {
                       <span>Footer text color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="footer-text-color">
+                        ${colorInput('footer-text-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -496,7 +504,7 @@ export default async function decorate(block) {
                       <span>Footer Links text color</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="footer-link-color">
+                        ${colorInput('footer-link-color', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
@@ -505,14 +513,15 @@ export default async function decorate(block) {
                       <span>Footer Links text color on hover</span>
                       <div title="Open the color picker" class="color-picker elements">
                         <select></select>
-                        <input type="color" disabled data-var="footer-link-color-hover">
+                        ${colorInput('footer-link-color-hover', true)}
                       </div>
                       <span class="contrast-issues"></span>
                   </label>
-               
+                
                   <!--<h2>Styles (Developer)</h2>-->
                   <!--<button class="button secondary action enable-styles">Edit styles (developer mode)</button>-->
                   <textarea class="vars"></textarea>
+                </div>
               </aside>
             </div>
           </div>
@@ -527,6 +536,105 @@ export default async function decorate(block) {
     let selectedPreset;
     const presetsPicker = block.querySelector('.presets-picker');
     const customPreset = presetsPicker.querySelector('.custom');
+    const vars = block.querySelector('.vars');
+
+    const previewFrame = block.querySelector('.iframe');
+    previewFrame.addEventListener('load', () => {
+      // Add loading buffer
+      setTimeout(() => {
+        previewFrame.classList.remove('is-loading');
+        previewFrame.contentWindow.postMessage({
+          type: 'getHeightInterval',
+        }, '*');
+        window.addEventListener('message', (event) => {
+          if (event.data.type !== 'previewHeight') return;
+          previewFrame.style.height = event.data.height;
+        });
+      }, 1000);
+    });
+
+    // Loading timeout
+    setTimeout(() => {
+      previewFrame.classList.remove('is-loading');
+    }, 2000);
+    vars.value = cssVarsData;
+
+    // MARK: screen sizes
+    const viewers = block.querySelector('.viewers');
+    const [mobileViewer, tabletViewer, laptopViewer, desktopViewer] = viewers.children;
+
+    const onViewerClick = (event) => {
+      if (event.currentTarget.ariaChecked === 'false') {
+        const checkedEl = viewers.querySelector('[aria-checked="true"]');
+        if (checkedEl) checkedEl.ariaChecked = 'false';
+        event.currentTarget.ariaChecked = 'true';
+        previewFrame.style.width = event.currentTarget.dataset.width;
+        previewFrame.style.height = null; // reset height
+        previewFrame.style.overflow = null;
+      }
+    };
+
+    mobileViewer.onclick = onViewerClick;
+    tabletViewer.onclick = onViewerClick;
+    laptopViewer.onclick = onViewerClick;
+    desktopViewer.onclick = onViewerClick;
+
+    if (isMobile.matches) {
+      mobileViewer.click();
+    } else {
+      tabletViewer.click();
+    }
+
+    isMobile.addEventListener('change', (event) => {
+      if (event.matches) {
+        mobileViewer.click();
+      }
+    });
+
+    // MARK: aside
+    const preview = block.querySelector('.preview');
+    const aside = block.querySelector('aside');
+    const toggleAsideButton = block.querySelector('.toggle-aside');
+
+    const toggleAside = (setTo) => {
+      toggleAsideButton.ariaChecked = setTo;
+      block.classList.toggle('show-aside', setTo);
+      aside.classList.toggle('is-open', setTo);
+    };
+    toggleAsideButton.onclick = () => {
+      toggleAside(!(toggleAsideButton.ariaChecked === 'true'));
+    };
+    aside.addEventListener('focusin', () => {
+      toggleAside(true);
+    });
+
+    const headerHeight = Math.round(document.querySelector('header').clientHeight);
+    const anchorAside = () => {
+      const previewTop = Math.round(preview.getBoundingClientRect().top);
+
+      if (previewTop > headerHeight) {
+        aside.style.top = `${previewTop}px`;
+        aside.style.height = `calc(100vh - ${previewTop}px)`;
+      } else {
+        aside.style.top = `${headerHeight}px`;
+
+        const { scrollingElement } = document;
+        const { scrollHeight } = scrollingElement;
+        const { scrollTop } = scrollingElement;
+        const height = scrollingElement.clientHeight;
+        const bottom = Math.round(scrollHeight - scrollTop - height);
+
+        const footerHeight = Math.round(document.querySelector('footer').clientHeight);
+        if (bottom > footerHeight) {
+          aside.style.height = `calc(100vh - ${headerHeight}px)`;
+        } else {
+          aside.style.height = `calc(100vh - ${headerHeight}px - ${footerHeight - bottom}px)`;
+        }
+      }
+    };
+    window.addEventListener('scroll', anchorAside, { passive: true });
+    window.addEventListener('resize', anchorAside, { passive: true });
+    anchorAside();
 
     // eslint-disable-next-line max-len
     const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => cssVars.includes(cssVar)));
@@ -635,20 +743,6 @@ export default async function decorate(block) {
     ];
 
     // Render codemirror
-    const vars = block.querySelector('.vars');
-    const previewContainer = block.querySelector('.preview-container');
-    const previewFrame = block.querySelector('.iframe');
-    previewFrame.addEventListener('load', () => {
-      // Add loading buffer
-      setTimeout(() => {
-        previewFrame.classList.remove('is-loading');
-      }, 1000);
-    });
-    // Loading timeout
-    setTimeout(() => {
-      previewFrame.classList.remove('is-loading');
-    }, 2000);
-    vars.value = cssVarsData;
 
     // Load codemirror to edit styles
     loadCSS('/libs/codemirror/codemirror.min.css');
@@ -732,36 +826,6 @@ export default async function decorate(block) {
     // TODO: change this to debounce if needed, & find out how to get correct value
     // debounce causes weird issues, where editor reverts to value of first change
     editor.on('change', editorOnChange);
-
-    // Init Modes
-    const previewMode = block.querySelector('.preview-mode');
-    const editMode = block.querySelector('.edit-mode');
-    const viewers = block.querySelector('.viewers');
-    previewMode.onclick = () => {
-      previewContainer.classList.add('preview-mode');
-      previewMode.hidden = true;
-      editMode.hidden = false;
-      viewers.hidden = false;
-      previewFrame.style.width = viewers.querySelector('[aria-checked="true"]').dataset.width;
-    };
-    editMode.onclick = () => {
-      previewContainer.classList.remove('preview-mode');
-      editMode.hidden = true;
-      viewers.hidden = true;
-      previewMode.hidden = false;
-      previewFrame.style.width = '';
-    };
-    viewers.querySelectorAll('.button').forEach((el) => {
-      el.onclick = () => {
-        if (el.ariaChecked === 'false') {
-          const checkedEl = viewers.querySelector('[aria-checked="true"]');
-          checkedEl.ariaChecked = 'false';
-          el.ariaChecked = 'true';
-
-          previewFrame.style.width = el.dataset.width;
-        }
-      };
-    });
 
     // Init font-weight picker
     const fontWeights = ['300', '400', '700'];
@@ -1047,7 +1111,13 @@ export default async function decorate(block) {
 
         // Theme pages
         publishThemeSelector.innerHTML = `${pages
-          .map(({ path }) => `<option ${path === '/' ? 'selected' : ''} value="${path}">Preview: ${path}</option>`)
+          .map(({ path }) => {
+            let shortenedPath = `/${path.split('/').pop()}`;
+            if (shortenedPath.length > 40) {
+              shortenedPath = `${shortenedPath.slice(0, 37)}...`;
+            }
+            return `<option ${path === '/' ? 'selected' : ''} value="${path}">Preview: ${shortenedPath}</option>`;
+          })
           .join('')}`;
       });
 
