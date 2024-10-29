@@ -633,6 +633,7 @@ export default async function decorate(block) {
       }
     };
     window.addEventListener('scroll', anchorAside, { passive: true });
+    window.addEventListener('resize', anchorAside, { passive: true });
     anchorAside();
 
     // eslint-disable-next-line max-len
