@@ -442,7 +442,7 @@ export default async function decorate(block) {
                 </tr>
               </thead>
               <tbody>
-                ${audience?.length ? audience.map((contact) => `<tr data-id="${contact.id}">
+                ${audience?.length ? audience.map((contact) => `<tr data-id="${contact.id}" data-email="${contact.email}">
                     <td><input type="checkbox" class="select"></td>
                     <td>${contact.email}</td>
                     <td>${contact.firstName}</td>
@@ -568,6 +568,7 @@ export default async function decorate(block) {
               `;
 
               tr.dataset.id = contact.id;
+              tr.dataset.email = contact.email;
               add.closest('tr').before(tr);
 
               // Reset
