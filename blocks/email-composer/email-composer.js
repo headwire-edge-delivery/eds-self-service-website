@@ -3,7 +3,7 @@ import {
   projectRepo, daProjectRepo,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
-import { loadCSS } from '../../scripts/aem.js';
+import { loadCSS, toCamelCase } from '../../scripts/aem.js';
 import { alertDialog, confirmDialog } from '../../scripts/dialogs.js';
 
 let timer;
@@ -171,6 +171,7 @@ export default async function decorate(block) {
         // Add loading buffer
         setTimeout(() => {
           iframe.classList.remove('is-loading');
+          iframe.parentElement.querySelector('.skeleton')?.remove();
         }, 1000);
       });
       // Loading timeout
@@ -200,7 +201,7 @@ export default async function decorate(block) {
         }
       };
 
-      // Find variable in first selected recipient columns
+      // MARK: Find variable in first selected recipient columns
       const replaceMatches = (value) => {
         let newValue = value;
         const matches = value.match(regExp);
@@ -213,7 +214,9 @@ export default async function decorate(block) {
           const selectedRecipient = audience.find((contact) => contact.id === rendering.dataset.id);
 
           matches.forEach((match) => {
-            const matchingCol = Object.keys(selectedRecipient).find((col) => col === match);
+            const matchingCol = Object.keys(selectedRecipient).find((col) => (
+              col === toCamelCase(match)
+            ));
             newValue = value.replace(`{${match}}`, selectedRecipient[matchingCol] ?? `{${match}}`);
           });
         }
@@ -221,14 +224,14 @@ export default async function decorate(block) {
         return newValue;
       };
 
-      // Handle subject changes
+      // MARK: Handle subject changes
       subjectInput.oninput = () => {
         debounce(() => {
           previewVars.click();
         });
       };
 
-      // Render codemirror
+      // MARK: Render codemirror
       block.querySelector('.enable-styles').onclick = (event) => {
         window?.zaraz?.track('click email styles enable');
 
@@ -265,7 +268,7 @@ export default async function decorate(block) {
         hideWarning();
       };
 
-      // Render preview with custom variables
+      // MARK: Render preview with custom variables
       previewVars.onclick = (event) => {
         iframe.classList.add('is-loading');
 
@@ -308,7 +311,7 @@ export default async function decorate(block) {
         form.action = newSource.toString();
         form.submit();
       };
-      // Re-render with saved variables
+      // MARK: Re-render with saved variables
       previewVars.click();
 
       saveVars.onclick = () => {

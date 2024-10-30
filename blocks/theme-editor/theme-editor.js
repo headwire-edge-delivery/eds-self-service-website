@@ -132,7 +132,7 @@ export default async function decorate(block) {
                 <button type="button" aria-label="close">&#x2715;</button>
               </div>
               <div class="button-container">
-                <div class="viewers" role="radiogroup">
+                <div class="viewers" id="viewers" role="radiogroup">
                     <button aria-checked="false" title="Mobile" aria-label="mobile" data-width="375px" class="button secondary action">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M280-40q-33 0-56.5-23.5T200-120v-720q0-33 23.5-56.5T280-920h400q33 0 56.5 23.5T760-840v720q0 33-23.5 56.5T680-40H280Zm0-120v40h400v-40H280Zm0-80h400v-480H280v480Zm0-560h400v-40H280v40Zm0 0v-40 40Zm0 640v40-40Z"/></svg>
                     </button>
@@ -777,10 +777,12 @@ export default async function decorate(block) {
       for (let index = 0; index < contrastIssueArray.length; index += 1) {
         const offendingElementInput1 = block.querySelector(`[data-var="${contrastIssueArray[index].var1}"]`);
         const offendingElementInput2 = block.querySelector(`[data-var="${contrastIssueArray[index].var2}"]`);
-        const item1Name = offendingElementInput1.parentElement.previousElementSibling.textContent;
-        const item2Name = offendingElementInput2.parentElement.previousElementSibling.textContent;
-        const issueSpan1 = offendingElementInput1.parentElement.nextElementSibling;
-        const issueSpan2 = offendingElementInput2.parentElement.nextElementSibling;
+        const item1Name = offendingElementInput1
+          .parentElement.parentElement.previousElementSibling.textContent;
+        const item2Name = offendingElementInput2
+          .parentElement.parentElement.previousElementSibling.textContent;
+        const issueSpan1 = offendingElementInput1.parentElement.parentElement.nextElementSibling;
+        const issueSpan2 = offendingElementInput2.parentElement.parentElement.nextElementSibling;
 
         issueSpan1.textContent += issueSpan1.textContent ? `, ${item2Name}` : `Contrast issue with: ${item2Name}`;
         issueSpan2.textContent += issueSpan2.textContent ? `, ${item1Name}` : `Contrast issue with: ${item1Name}`;

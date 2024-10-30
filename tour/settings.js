@@ -124,9 +124,9 @@ function settingsThemeTour({ showAutoTour }) {
         description: 'Welcome to the Theme Editor. Here you can edit your Theme and customize it to your needs.',
       },
       {
-        title: 'Toggle between Editing and Preview Mode',
-        description: 'You can toggle here between Editing and Preview Mode. <br /> In Editing Mode, you can edit your Theme. <br /> In Preview Mode, you can see how your Theme looks like. <br /> Default is Editing Mode.',
-        element: '#toggle-preview',
+        title: 'Toggle between Viewports',
+        description: 'You can toggle between Mobile, Tablet, Laptop and Desktop Viewports.',
+        element: '#viewers',
       },
       {
         title: 'Preview your Page',
