@@ -426,8 +426,8 @@ export default async function decorate(block) {
           const recipients = block.querySelector('.recipients');
 
           if (!data?.length) {
-            recipients.textContent = 'No audience found.';
-            return;
+            // eslint-disable-next-line no-param-reassign
+            data = [];
           }
 
           audience = data.filter(({ unsubscribed }) => !unsubscribed);
