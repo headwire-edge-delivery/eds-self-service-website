@@ -79,6 +79,16 @@ export default async function decorate(block) {
       const { meta, variables } = await reqEmail.json();
       let customVariables = {};
 
+      // Default contact email
+      if (variables.includes('email')) {
+        customVariables.email = project.contactEmail;
+      }
+
+      // Default unsubscribe link
+      if (variables.includes('unsubscribe')) {
+        customVariables.unsubscribe = `${SCRIPT_API}/unsubscribe/${project.projectSlug}/{id}`;
+      }
+
       let localSave;
       if (window.localStorage[window.location.href]) {
         try {
