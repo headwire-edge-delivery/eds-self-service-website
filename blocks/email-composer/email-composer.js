@@ -89,6 +89,11 @@ export default async function decorate(block) {
         customVariables.unsubscribe = `${SCRIPT_API}/unsubscribe/${project.projectSlug}/{id}`;
       }
 
+      // Default copyright
+      if (variables.includes('copyright')) {
+        customVariables.copyright = `${new Date().getFullYear()}`;
+      }
+
       let localSave;
       if (window.localStorage[window.location.href]) {
         try {
