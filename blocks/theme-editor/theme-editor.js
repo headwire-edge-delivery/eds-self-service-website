@@ -1121,6 +1121,7 @@ export default async function decorate(block) {
             return `<option ${path === '/' ? 'selected' : ''} value="${path}">Preview: ${shortenedPath}</option>`;
           })
           .join('')}`;
+        anchorAside(); // this sometimes shifts content, reset aside
       });
 
     publishThemeSelector.onchange = () => {

@@ -10,7 +10,7 @@ function renderContact(contact) {
   const firstName = contact.firstName ?? '';
   const lastName = contact.lastName ?? '';
   return `
-    <tr data-id="${contact.id}">
+    <tr data-id="${contact.id}" data-email="${contact.email}">
         <td data-name="email">${contact.email}</td>
         <td data-name="firstName">${firstName}</td>
         <td data-name="lastName">${lastName}</td>
