@@ -517,6 +517,7 @@ export default async function renderUserTab({ container }) {
             url: {
               value: timestampItem.url.replace(SCRIPT_API, ''),
               title: timestampItem.url,
+              link: timestampItem.url,
             },
             location: [timestampItem.city, timestampItem.country].filter(Boolean).join(', '),
             referrer: {
