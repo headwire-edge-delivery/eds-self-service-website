@@ -504,7 +504,7 @@ export default async function renderUserTab({ container }) {
         .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
         .map((timestamp) => {
           const timestampItem = timestamps[timestamp];
-          const serverEvent = ['server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
+          const serverEvent = ['server email request', 'server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
           const timestampDate = new Date(Number(timestamp));
 
           return {
