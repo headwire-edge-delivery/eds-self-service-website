@@ -316,10 +316,16 @@ export default async function decorate(block) {
   }
 
   const createStep = block.querySelector(':scope > div:has(a[href="#create"])');
-  const input = document.createElement('input');
-  input.placeholder = 'My Site';
-  input.id = 'site-name';
+  // MARK: create form
+  const createForm = document.createElement('form');
+  createForm.id = 'create-form';
 
+  // name
+  const nameInput = document.createElement('input');
+  nameInput.placeholder = 'My Site';
+  nameInput.id = 'site-name';
+
+  // slug
   const slugInputWrapper = document.createElement('label');
   const slugInput = document.createElement('input');
   slugInputWrapper.id = 'slug-input-wrapper';
@@ -330,21 +336,41 @@ export default async function decorate(block) {
 
   slugInput.dataset.copyName = true;
 
+  // create site button
   const createButton = createStep.querySelector('a[href="#create"]');
   createButton.classList.add('is-disabled');
   createButton.id = 'create-button';
+
+  // description
+  const descriptionTextarea = document.createElement('textarea');
+  descriptionTextarea.placeholder = 'Description';
+  descriptionTextarea.id = 'description-input';
+
+  // dark alley toggle
+  const darkAlleyCheckbox = document.createElement('input');
+  darkAlleyCheckbox.type = 'checkbox';
+  darkAlleyCheckbox.id = 'dark-alley-checkbox';
+  const darkAlleyLabel = document.createElement('label');
+  darkAlleyLabel.classList.add('checkbox-label', 'dark-alley-label');
+  const darkAlleySpan = document.createElement('span');
+  darkAlleySpan.textContent = 'Use Dark alley?';
+  darkAlleyLabel.append(darkAlleyCheckbox, darkAlleySpan);
+
+  const daSlugPrefixRegex = /^da-/i;
+
+  createForm.append(nameInput, slugInputWrapper, descriptionTextarea, darkAlleyLabel);
 
   // MARK: Valid slug check
   let createButtonTimer;
   function updateCreateButton() {
     clearTimeout(createButtonTimer);
     createButton.classList.add('is-disabled');
-    if (input.value.length < 2 || slugInput.value.length < 2) {
+    if (nameInput.value.length < 2 || slugInput.value.length < 2) {
       return;
     }
 
     createButtonTimer = setTimeout(async () => {
-      const res = await fetch(`${SCRIPT_API}/checkAvailability/${slugInput.value}`);
+      const res = await fetch(`${SCRIPT_API}/checkAvailability/${slugInput.value}${darkAlleyCheckbox.checked ? '?darkAlley=true' : ''}`);
       if (res.ok) {
         const data = await res.json().catch(() => {});
         if (data.projectSlug !== slugInput.value) {
@@ -358,52 +384,52 @@ export default async function decorate(block) {
       }
     }, 300);
   }
-  const descriptionTextarea = document.createElement('textarea');
-  descriptionTextarea.placeholder = 'Description';
-  descriptionTextarea.id = 'description-input';
 
-  const darkAlleyCheckbox = document.createElement('input');
-  darkAlleyCheckbox.type = 'checkbox';
-  darkAlleyCheckbox.id = 'dark-alley-checkbox';
-  const darkAlleyLabel = document.createElement('label');
-  darkAlleyLabel.classList.add('checkbox-label', 'dark-alley-label');
-  const darkAlleySpan = document.createElement('span');
-  darkAlleySpan.textContent = 'Use Dark alley?';
-  darkAlleyLabel.append(darkAlleyCheckbox, darkAlleySpan);
+  function daPrefixCheck() {
+    // make sure slug has DA prefix if checkbox is checked
+    if (darkAlleyCheckbox.checked) {
+      if (!daSlugPrefixRegex.test(slugInput.value)) {
+        slugInput.value = `da-${slugInput.value}`;
+      }
+    } else {
+      slugInput.value = slugInput.value.replace(daSlugPrefixRegex, '');
+    }
+  }
+
+  createForm.oninput = (event) => {
+    if (event.target === descriptionTextarea) return; // no special handling
+    if (event.target === nameInput && (!slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === 'da-'))) {
+      slugInput.dataset.copyName = true;
+    }
+    // slug copy handling
+    if (event.target === slugInput) {
+      slugInput.dataset.copyName = null;
+    }
+    if (slugInput.dataset.copyName === 'true') {
+      slugInput.value = nameInput.value;
+    }
+    daPrefixCheck();
+    // slugifying slug input
+    slugInput.value = slugify(slugInput.value);
+
+    slugInput.value = slugInput.value.substring(0, slugMaxLength);
+    slugInputWrapper.dataset.leftoverChars = slugMaxLength - slugInput.value.length;
+
+    updateCreateButton();
+  };
+
+  createForm.onchange = () => {
+    nameInput.value = nameInput.value.trim();
+    if (!slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === 'da-')) {
+      slugInput.dataset.copyName = true;
+    }
+    daPrefixCheck();
+    slugInput.value = slugInput.value.replace(/(^-+|-+$)/g, '');
+    slugInputWrapper.dataset.leftoverChars = slugMaxLength - slugInput.value.length;
+  };
 
   if (createStep) {
-    createStep.querySelector('h2').after(input);
-    input.after(slugInputWrapper);
-    slugInputWrapper.after(descriptionTextarea);
-    descriptionTextarea.after(darkAlleyLabel);
-
-    slugInput.oninput = (event) => {
-      slugInput.value = slugify(slugInput.value);
-      if (slugInput.value.length > slugMaxLength) {
-        slugInput.value = slugInput.value.slice(0, slugMaxLength);
-      }
-      slugInputWrapper.dataset.leftoverChars = slugMaxLength - slugInput.value.length;
-      if (event) {
-        slugInput.dataset.copyName = '';
-      }
-      if (!slugInput.value) {
-        slugInput.dataset.copyName = true;
-      }
-      updateCreateButton();
-    };
-    slugInput.onchange = () => {
-      slugInput.value = slugInput.value
-        .replace(/(^-+|-+$)/g, '');
-    };
-
-    input.oninput = () => {
-      if (slugInput.dataset.copyName) {
-        slugInput.value = input.value;
-        slugInput.oninput();
-        slugInput.onchange();
-      }
-      updateCreateButton();
-    };
+    createStep.querySelector('h2').after(createForm);
   }
 
   const successStep = block.lastElementChild;
@@ -428,7 +454,7 @@ export default async function decorate(block) {
         authorization: `bearer ${token}`,
       },
       body: JSON.stringify({
-        inputProjectName: input.value,
+        inputProjectName: nameInput.value,
         inputProjectSlug: slugInput.value,
         inputProjectDescription: descriptionTextarea.value,
         preferDarkAlley: darkAlleyCheckbox.checked,
