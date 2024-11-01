@@ -10,6 +10,8 @@ const progressSteps = [
   'publish',
 ];
 
+const daPrefix = 'da-';
+
 /**
  * decorates the header, mainly the nav
  * @param {Element} block The header block element
@@ -356,7 +358,7 @@ export default async function decorate(block) {
   darkAlleySpan.textContent = 'Use Dark alley?';
   darkAlleyLabel.append(darkAlleyCheckbox, darkAlleySpan);
 
-  const daSlugPrefixRegex = /^da-/i;
+  const daSlugPrefixRegex = new RegExp(`^${daPrefix}`, 'i');
 
   createForm.append(nameInput, slugInputWrapper, descriptionTextarea, darkAlleyLabel);
 
@@ -389,7 +391,7 @@ export default async function decorate(block) {
     // make sure slug has DA prefix if checkbox is checked
     if (darkAlleyCheckbox.checked) {
       if (!daSlugPrefixRegex.test(slugInput.value)) {
-        slugInput.value = `da-${slugInput.value}`;
+        slugInput.value = daPrefix + slugInput.value;
       }
     } else {
       slugInput.value = slugInput.value.replace(daSlugPrefixRegex, '');
@@ -398,7 +400,9 @@ export default async function decorate(block) {
 
   createForm.oninput = (event) => {
     if (event.target === descriptionTextarea) return; // no special handling
-    if (event.target === nameInput && (!slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === 'da-'))) {
+    if (event.target === nameInput && (
+      !slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === daPrefix))
+    ) {
       slugInput.dataset.copyName = true;
     }
     // slug copy handling
@@ -420,7 +424,7 @@ export default async function decorate(block) {
 
   createForm.onchange = () => {
     nameInput.value = nameInput.value.trim();
-    if (!slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === 'da-')) {
+    if (!slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === daPrefix)) {
       slugInput.dataset.copyName = true;
     }
     daPrefixCheck();
