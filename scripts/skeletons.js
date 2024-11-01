@@ -6,7 +6,7 @@ loadCSS(`${window.hlx.codeBasePath}/styles/skeletons.css`);
  * Renders an animated loading skeleton for a given type
  * @param {String} type
  */
-export default function renderSkeleton(type) {
+export default function renderSkeleton(type, children = undefined) {
   if (type === 'site-overview') {
     return `
       <div aria-label="loading">
@@ -29,7 +29,7 @@ export default function renderSkeleton(type) {
     `;
   }
   if (type === 'tracking') {
-    const rows = [...Array(5)].map(() => `
+    const rows = [...Array(children ?? 5)].map(() => `
       <tr>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
