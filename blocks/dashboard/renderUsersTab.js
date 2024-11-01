@@ -12,7 +12,7 @@ import { alertDialog, createDialog } from '../../scripts/dialogs.js';
 
 const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
 function parseAcceptLanguage(str) {
-  if (!str) return null;
+  if (!str || str === '*') return null;
   return langNames.of(str.split(',')[0]);
 }
 
