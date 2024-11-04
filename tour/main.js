@@ -37,19 +37,21 @@ let userData = {};
 function checkAllLoaded() {
   const elements = document.querySelectorAll('[data-block-status]');
   const loading = document.querySelectorAll('.is-selected [aria-label="loading"], .site-details [aria-label="loading"]');
+  const helpBtn = document.querySelector('#help-btn');
 
   if (loading.length > 0) {
     setTimeout(checkAllLoaded, 100);
-    document.querySelector('#help-btn').style.display = 'none';
-    document.querySelector('#help-btn').setAttribute('data-loaded', 'false');
+    if (helpBtn) {
+      helpBtn.style.display = 'none';
+      helpBtn.setAttribute('data-loaded', 'false');
+    }
     return false;
   }
 
   setTimeout(() => {
-    const helpBtn = document.querySelector('#help-btn');
     if (helpBtn) {
-      document.querySelector('#help-btn').style.display = 'flex';
-      document.querySelector('#help-btn').setAttribute('data-loaded', 'true');
+      helpBtn.style.display = 'flex';
+      helpBtn.setAttribute('data-loaded', 'true');
     }
   }, 500);
   return Array.from(elements).every((el) => el.getAttribute('data-block-status') === 'loaded');
@@ -110,7 +112,6 @@ function getTour(siteTour) {
 }
 
 const startTour = (isAutoTour, showDisableTour = false) => {
-  window.scrollTo(0, 0);
   if (isAutoTour) {
     onAuthenticated(async () => {
       const data = await getUserSettings();
@@ -127,6 +128,7 @@ const startTour = (isAutoTour, showDisableTour = false) => {
       }
     });
   } else {
+    window.scrollTo(0, 0);
     onAuthenticated(async () => {
       const data = await getUserSettings();
       userData = data;

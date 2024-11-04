@@ -130,17 +130,23 @@ function createTable({
 }
 
 // MARK: paginator listener
-const paginatorEventlistener = (container, queryParam, functionName) => {
-  container.addEventListener('click', (event) => {
+const paginatorEventlistener = (container, queryParam, functionName, skeletonChildren = 5) => {
+  if (container.paginatorEventListener) {
+    container.removeEventListener('click', container.paginatorEventListener);
+  }
+
+  const paginatorClickHandler = (event) => {
     const button = event.target.closest('.paginator');
     if (button) {
       const newPage = Number(button.getAttribute('data-change-to'));
       writeQueryParams({ [queryParam]: newPage });
-      container.innerHTML = renderSkeleton('admin-tracking');
-
-      functionName(true);
+      container.innerHTML = renderSkeleton('tracking', skeletonChildren);
+      functionName();
     }
-  });
+  };
+
+  container.addEventListener('click', paginatorClickHandler);
+  container.paginatorEventListener = paginatorClickHandler;
 };
 
 // MARK: render
@@ -154,13 +160,13 @@ export default async function renderUserTab({ container }) {
     <input value="${filterByMail}" type="search" minlength="3" placeholder="Filter by user email" class="filter-users filter">
     <p id="user-filter-info" style="display: none">Must be at least ${userSearchMinLength} Characters long</p>
     <div class="known-users clusterize">
-      ${renderSkeleton('tracking')}
+      ${renderSkeleton('tracking', Math.min(readQueryParams().limit || 100, 5))}
     </div>
     
     <h2 id="deleted-users">Deleted users</h2>
     <input value="${filterByDeletedMail}" type="search" placeholder="Filter by user email" class="filter-deleted-users filter">
     <div class="deleted-users clusterize">
-      ${renderSkeleton('tracking')}
+      ${renderSkeleton('tracking', Math.min(readQueryParams().deletedlimit || 100, 5))}
     </div>
         
     <h2 id="anonymous-activity">Anonymous activity</h2>
@@ -169,10 +175,6 @@ export default async function renderUserTab({ container }) {
       ${renderSkeleton('tracking')}
     </div>
   `;
-  const userActivityTitle = container.querySelector('#user-activity');
-  const deletedUsersTitle = container.querySelector('#deleted-users');
-  const anonymousActivityTitle = container.querySelector('#anonymous-activity');
-
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
 
@@ -275,7 +277,7 @@ export default async function renderUserTab({ container }) {
   // MARK: renderUsers
   const usersContainer = container.querySelector('.users .known-users');
   let lastLength = 0;
-  const renderUsers = async (scrollTo, rerender = true) => {
+  const renderUsers = async (rerender = true) => {
     filterByMail = readQueryParams().user || '';
     const userFilterInfo = container.querySelector('#user-filter-info');
     const userFilterLength = container.querySelector('.filter-users').value.length;
@@ -299,11 +301,8 @@ export default async function renderUserTab({ container }) {
       return;
     }
     lastLength = userFilterLength;
-    usersContainer.innerHTML = renderSkeleton('admin');
     const page = readQueryParams().page || 1;
     const limit = readQueryParams().limit || 100;
-
-    usersContainer.innerHTML = renderSkeleton('tracking');
 
     const reqUsers = await fetch(`${SCRIPT_API}/tracking?mail=${filterByMail}&page=${page}&limit=${limit}`, {
       headers: {
@@ -343,7 +342,7 @@ export default async function renderUserTab({ container }) {
       usersContainer.innerHTML = paginator(pagination.totalItems, limit, pagination.currentPage);
       usersContainer.prepend(usersTable.wrapper);
 
-      paginatorEventlistener(usersContainer, 'page', renderUsers);
+      paginatorEventlistener(usersContainer, 'page', renderUsers, Math.min(limit, 5));
 
       // eslint-disable-next-line no-new
       new Clusterize({
@@ -355,19 +354,6 @@ export default async function renderUserTab({ container }) {
       usersContainer.querySelectorAll('button[data-user]').forEach((button) => {
         button.onclick = onActivitiesClick;
       });
-
-      // TODO: I'm pretty sure this scrollTo stuff could be avoided:
-      // After filtering is done, something scrolls the page to the top.
-      // I don't think this is because of the DOM changing, I think it's forced somewhere because
-      // the scroll-behavior CSS rule is respected when this happens.
-      // I can't find out why this happens, but I didn't spend too much time looking.
-      // So, I'm just going to leave it here.
-      if (scrollTo) {
-        window.scrollTo({
-          top: userActivityTitle.offsetTop,
-          behavior: 'smooth',
-        });
-      }
     } else {
       usersContainer.querySelector('[aria-label="loading"]').textContent = OOPS;
     }
@@ -376,8 +362,7 @@ export default async function renderUserTab({ container }) {
 
   // MARK: renderDeletedUsers
   const deletedUsersContainer = container.querySelector('.users .deleted-users');
-  const renderDeletedUsers = async (scrollTo) => {
-    deletedUsersContainer.innerHTML = renderSkeleton('admin');
+  const renderDeletedUsers = async () => {
     filterByDeletedMail = readQueryParams().deleteduser || '';
     const page = readQueryParams().deletedpage || 1;
     const limit = readQueryParams().deletedlimit || 100;
@@ -435,7 +420,7 @@ export default async function renderUserTab({ container }) {
 
       deletedUsersContainer.prepend(deletedUsersTable.wrapper);
 
-      paginatorEventlistener(deletedUsersContainer, 'deletedpage', renderDeletedUsers);
+      paginatorEventlistener(deletedUsersContainer, 'deletedpage', renderDeletedUsers, Math.min(limit, 5));
 
       // eslint-disable-next-line no-new
       new Clusterize({
@@ -447,13 +432,6 @@ export default async function renderUserTab({ container }) {
       deletedUsersContainer.querySelectorAll('button[data-user]').forEach((button) => {
         button.onclick = onActivitiesClick;
       });
-
-      if (scrollTo) {
-        window.scrollTo({
-          top: deletedUsersTitle.offsetTop,
-          behavior: 'smooth',
-        });
-      }
     } else {
       deletedUsersContainer.querySelector('[aria-label="loading"]').textContent = OOPS;
     }
@@ -464,8 +442,7 @@ export default async function renderUserTab({ container }) {
   let anonymousUserData = null;
   // MARK: renderAnonymous
   const anonymousContainer = container.querySelector('.users .anonymous-users');
-  const renderAnonymous = async (scrollTo) => {
-    anonymousContainer.innerHTML = renderSkeleton('admin');
+  const renderAnonymous = async () => {
     filterByIp = readQueryParams().ip || '';
 
     if (!anonymousUserResponse) {
@@ -544,13 +521,6 @@ export default async function renderUserTab({ container }) {
           };
         }),
     });
-
-    if (scrollTo) {
-      window.scrollTo({
-        top: anonymousActivityTitle.offsetTop,
-        behavior: 'smooth',
-      });
-    }
 
     anonymousContainer.innerHTML = '';
     anonymousContainer.append(anonymousTable.wrapper);
