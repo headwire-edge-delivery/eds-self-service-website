@@ -1,5 +1,5 @@
 import {
-  OOPS, parseFragment, SCRIPT_API,
+  OOPS, parseFragment, safeText, SCRIPT_API,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import {
@@ -93,8 +93,8 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     const isOwner = author.owner;
 
     const listItem = parseFragment(`
-          <li class="author ${isOwner ? 'is-owner' : ''}" data-author-email="${authorEmail}">
-            <span>${authorEmail}</span>
+          <li class="author ${isOwner ? 'is-owner' : ''}" data-author-email="${safeText(authorEmail)}">
+            <span>${safeText(authorEmail)}</span>
             <button ${isOwner ? 'disabled' : ''} class="transfer-button button action secondary">Make Owner</button>
             <button ${isOwner ? 'disabled' : ''} class="revoke-button button action secondary">Revoke</button>
           </li>
@@ -164,7 +164,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     event.preventDefault();
 
     const email = event.target.email.value;
-    if (authorsList.querySelector(`[data-author-email="${email}"]`)) {
+    if (authorsList.querySelector(`[data-author-email="${safeText(email)}"]`)) {
       alertDialog('Author already exists');
       return;
     }

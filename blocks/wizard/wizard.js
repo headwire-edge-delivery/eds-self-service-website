@@ -1,5 +1,6 @@
 import {
   slugMaxLength, slugify, SCRIPT_API, OOPS,
+  sanitizeName,
 } from '../../scripts/scripts.js';
 import { confirmDialog } from '../../scripts/dialogs.js';
 
@@ -400,6 +401,9 @@ export default async function decorate(block) {
 
   createForm.oninput = (event) => {
     if (event.target === descriptionTextarea) return; // no special handling
+    if (event.target === nameInput) {
+      nameInput.value = sanitizeName(nameInput.value);
+    }
     if (event.target === nameInput && (
       !slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === daPrefix))
     ) {
@@ -424,6 +428,7 @@ export default async function decorate(block) {
 
   createForm.onchange = () => {
     nameInput.value = nameInput.value.trim();
+    nameInput.value = sanitizeName(nameInput.value);
     if (!slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === daPrefix)) {
       slugInput.dataset.copyName = true;
     }

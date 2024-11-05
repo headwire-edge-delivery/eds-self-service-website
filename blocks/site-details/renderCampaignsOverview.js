@@ -2,7 +2,7 @@ import {
   daProjectRepo,
   dateToRelativeSpan,
   dateToRelativeString,
-  EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API, slugify,
+  EMAIL_WORKER_API, OOPS, parseFragment, safeText, sanitizeName, SCRIPT_API, slugify,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { renderTable } from './renderSitePages.js';
@@ -108,11 +108,11 @@ export default async function renderCampaignsOverview({
         <div class="cards">
           <div class="box">
               <strong>Campaign</strong>
-              <span>${campaign.name} (${campaignSlug})</span>
+              <span>${safeText(campaign.name)} (${campaignSlug})</span>
           </div>
           <div class="box">
               <strong>Campaign description</strong>
-              <span class="description">${campaign.description}</span>
+              <span class="description">${safeText(campaign.description)}</span>
               <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
           </div class="box">
           <div class="box">
@@ -125,7 +125,7 @@ export default async function renderCampaignsOverview({
           </div>
         </div>
         
-        <h2>${campaign.name} emails</h2>
+        <h2>${safeText(campaign.name)} emails</h2>
         <table class="emails"></table>
       </div>
       `);
@@ -225,6 +225,7 @@ export default async function renderCampaignsOverview({
     const form = content.querySelector('#create-campaign-form');
     const nameInput = form.querySelector('input[name="name"]');
     nameInput.oninput = (event = { target: nameInput }) => {
+      event.target.value = sanitizeName(event?.target?.value || '');
       const value = slugify(event?.target?.value || '');
       if (!value) {
         submit.disabled = true;
@@ -271,11 +272,11 @@ export default async function renderCampaignsOverview({
               <div class="cards">
                 <div class="box">
                     <strong>Campaign</strong>
-                    <span>${newCampaign.name} (${newCampaign.slug})</span>
+                    <span class="campaign-name">${safeText(newCampaign.name)} (${newCampaign.slug})</span>
                 </div>
                 <div class="box">
                     <strong>Campaign description</strong>
-                    <span class="description">${newCampaign.description}</span>
+                    <span class="description">${safeText(newCampaign.description)}</span>
                     <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
                 </div>
                 <div class="box">
@@ -288,7 +289,7 @@ export default async function renderCampaignsOverview({
                 </div>
               </div>
               
-              <h2>${newCampaign.name} emails</h2>
+              <h2>${safeText(newCampaign.name)} emails</h2>
               <table class="emails"></table>
             </div>
           `);
@@ -337,6 +338,7 @@ export default async function renderCampaignsOverview({
 
     const nameInput = form.querySelector('input[name="pageName"]');
     nameInput.oninput = (event = { target: nameInput }) => {
+      event.target.value = sanitizeName(event?.target?.value || '');
       const value = slugify(event?.target?.value || '');
       if (!value) {
         submit.disabled = true;

@@ -53,23 +53,40 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
     });
     const { projects, pagination } = await response.json();
     sitesList.innerHTML = `
-            ${title}
-            <ul class="my-sites-overview" data-totalitems=${pagination.totalItems}>
-              ${projects.map(({ projectSlug, projectName, projectDescription }) => `
-                <li>
-                  <a href="/${isDarkAlley ? 'da-site' : 'site'}/${projectSlug}/overview">
-                    <div class="project-thumbnail" data-src="https://${projectSlug}.${KESTREL_ONE}"></div>
-                    <div class="project-content">
-                      <h2 title="${projectName}">${projectName}</h2>
-                      <p title="${projectSlug}"><strong>${projectSlug}</strong></p>
-                      <p class="project-description" title="${projectDescription || ''}">${projectDescription || ''}</p>
-                    </div>
-                  </a>
-                </li>
-              `).join('')}
-            </ul>
-            ${paginator(pagination.totalItems, currentLimit, actualPage)}
-          `;
+    ${title}
+    <ul class="my-sites-overview" data-totalitems=${pagination.totalItems}></ul>
+    ${paginator(pagination.totalItems, currentLimit, actualPage)}
+    `;
+
+    const ul = sitesList.querySelector('.my-sites-overview');
+    sitesList.append(ul);
+
+    projects.forEach(({ projectSlug, projectName, projectDescription }) => {
+      const listItem = document.createElement('li');
+      listItem.innerHTML = `
+        <a>
+          <div class="project-thumbnail" ></div>
+          <div class="project-content">
+            <h2></h2>
+            <p><strong></strong></p>
+            <p class="project-description"></p>
+          </div>
+        </a>
+      `;
+
+      listItem.querySelector('a').href = `/${isDarkAlley ? 'da-site' : 'site'}/${projectSlug}/overview`;
+      listItem.querySelector('.project-thumbnail').dataset.src = `https://${projectSlug}.${KESTREL_ONE}`;
+      const h2 = listItem.querySelector('h2');
+      h2.textContent = projectName;
+      h2.title = projectName;
+      const [slugP, descP] = listItem.querySelectorAll('p');
+      slugP.title = projectSlug;
+      slugP.children[0].textContent = projectSlug; // in strong
+      descP.title = projectDescription || '';
+      descP.innerText = projectDescription || '';
+
+      ul.append(listItem);
+    });
 
     const newSitesList = sitesList.cloneNode(true);
     // This clears the old event listeners
@@ -129,7 +146,9 @@ export default async function renderSites({ container, nav }) {
           <li data-owner="all"><button class="button selector action secondary ${owner === 'all' ? 'is-selected' : ''}">Owner: Anyone</button></li>
           <li data-owner="me"><button class="button selector action secondary ${owner === 'me' ? 'is-selected' : ''}">Owner: Me</button></li>
         </ul>`;
-  sites.innerHTML = `${filter}<input value="${search}" type="search" placeholder="Filter sites" class="filter-sites filter"><div class="sites-list"><section class="sites-list-dark-alley"></section><section class="sites-list-google-drive"></section></div>`;
+  sites.innerHTML = `${filter}<input type="search" placeholder="Filter sites" class="filter-sites filter"><div class="sites-list"><section class="sites-list-dark-alley"></section><section class="sites-list-google-drive"></section></div>`;
+  const filterSitesInput = sites.querySelector('.filter-sites');
+  filterSitesInput.value = search;
 
   const ownerSelectorContainer = sites.querySelector('.owner-selector');
   ownerSelectorContainer.addEventListener('click', async (event) => {
@@ -150,7 +169,7 @@ export default async function renderSites({ container, nav }) {
   });
 
   // eslint-disable-next-line func-names
-  document.querySelector('.filter-sites').oninput = (function () {
+  filterSitesInput.oninput = (function () {
     let debounceTimer;
     // eslint-disable-next-line func-names
     return function (event) {

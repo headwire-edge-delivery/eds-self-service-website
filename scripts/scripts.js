@@ -202,6 +202,18 @@ export function slugify(str) {
     .toLowerCase();
 }
 
+export function safeText(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+const sanitizedNameRegex = /[`\\~!@#$%*+=[\]{};:'",<.>/?]/g;
+export const sanitizeName = (name) => name.replace(sanitizedNameRegex, '');
+
 export function getThumbnail(el) {
   fetch(el.dataset.src)
     .then((res) => {

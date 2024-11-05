@@ -172,14 +172,17 @@ export default async function renderCampaignsAnalytics({
         </div>
         
         <h2 id="email-details">Email details</h2>
-        <input value="${search}" type="search" placeholder="Filter" class="filter-email-details filter">
+        <input type="search" placeholder="Filter" class="filter-email-details filter">
         <div class="email-details clusterize">
           ${renderSkeleton('campaign-tracking')}
         </div>
       `;
 
+  const emailFilter = container.querySelector('.filter-email-details');
+  emailFilter.value = search; // setting value here, XXS
+
   // eslint-disable-next-line func-names
-  document.querySelector('.filter-email-details').oninput = (function () {
+  emailFilter.oninput = (function () {
     let debounceTimer;
     // eslint-disable-next-line func-names
     return function (event) {
