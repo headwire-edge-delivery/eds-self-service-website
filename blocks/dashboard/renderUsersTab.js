@@ -27,7 +27,7 @@ function parseBrowser(str) {
       // matches semicolon that is not within quotes
       const browserName = browserStr.match(/(?:[^";]|"(?:\\.|[^"\\])*")+/g)[0].trim().replaceAll('"', '');
 
-      if (/not(\?|\))a(_|;)brand/i.test(browserName)) continue;
+      if (/not[\s\S]*a[\s\S]*brand/i.test(browserName)) continue; // NOSONAR
       if (/chromium/i.test(browserName)) {
         output = browserName;
         continue;
@@ -188,18 +188,19 @@ export default async function renderUserTab({ container }) {
     functionName(true, validLength);
   };
 
-  const filterEventlistener = (filterClass, filterName, functionName, minLength = 1) => {
+  const filterEventlistener = (filterClass, filterName, functionName, minLength = 1, noValueFunction = () => {}) => { // eslint-disable-line max-len
     const filterInput = document.querySelector(filterClass);
+    let debounceTimer;
+    function debounce(callback, delay) {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(callback, delay);
+    }
     filterInput.oninput = (event) => {
       event.preventDefault();
-      let debounceTimer;
-      // eslint-disable-next-line func-names
-      (() => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          onFilterInput(filterInput.value, filterName, functionName, minLength);
-        }, 300);
-      })();
+      debounce(() => {
+        if (!filterInput.value) noValueFunction();
+        onFilterInput(filterInput.value, filterName, functionName, minLength);
+      }, 300);
     };
   };
 
@@ -262,7 +263,7 @@ export default async function renderUserTab({ container }) {
       createDialog(contentWrapper);
 
       // eslint-disable-next-line no-new
-      new Clusterize({
+      new Clusterize({ // NOSONAR
         rows: activitiesDialogTable.tbody.children,
         scrollId: 'scrollArea-recent-activity',
         contentId: 'contentArea-recent-activity',
@@ -345,7 +346,7 @@ export default async function renderUserTab({ container }) {
       paginatorEventlistener(usersContainer, 'page', renderUsers, Math.min(limit, 5));
 
       // eslint-disable-next-line no-new
-      new Clusterize({
+      new Clusterize({ // NOSONAR
         rows: usersTable.tbody.children,
         scrollId: 'scrollArea-user-activity',
         contentId: 'contentArea-user-activity',
@@ -423,7 +424,7 @@ export default async function renderUserTab({ container }) {
       paginatorEventlistener(deletedUsersContainer, 'deletedpage', renderDeletedUsers, Math.min(limit, 5));
 
       // eslint-disable-next-line no-new
-      new Clusterize({
+      new Clusterize({ // NOSONAR
         rows: deletedUsersTable.tbody.children,
         scrollId: 'scrollArea-deleted-users',
         contentId: 'contentArea-deleted-users',
@@ -440,8 +441,17 @@ export default async function renderUserTab({ container }) {
 
   let anonymousUserResponse = null;
   let anonymousUserData = null;
+  const anonymousFilter = {
+    event: readQueryParams().anonymousEvent || 'all',
+    location: readQueryParams().anonymousLocation || 'all',
+    referrer: readQueryParams().anonymousReferrer || 'all',
+    browser: readQueryParams().anonymousBrowser || 'all',
+    device: readQueryParams().anonymousDevice || 'all',
+  };
+
   // MARK: renderAnonymous
   const anonymousContainer = container.querySelector('.users .anonymous-users');
+  let anonymousTable = null;
   const renderAnonymous = async () => {
     filterByIp = readQueryParams().ip || '';
 
@@ -472,12 +482,103 @@ export default async function renderUserTab({ container }) {
         }
       });
     });
+    const filteredTimestamps = {};
 
-    const anonymousTable = createTable({
+    // get all event names
+    const events = ['all'];
+    Object.values(timestamps).forEach((timestamp) => {
+      if (!events.includes(timestamp.event)) {
+        events.push(timestamp.event);
+      }
+    });
+
+    // get all locations
+    const locations = ['all'];
+    Object.values(timestamps).forEach((timestamp) => {
+      if (timestamp.city) {
+        const location = [timestamp.city, timestamp.country].filter(Boolean).join(', ');
+        if (!locations.includes(location)) {
+          locations.push(location);
+        }
+      }
+    });
+
+    // get all referrers
+    const referrers = ['all'];
+    Object.values(timestamps).forEach((timestamp) => {
+      if (timestamp.referrer && !referrers.includes(timestamp.referrer)) {
+        referrers.push(timestamp.referrer);
+      }
+    });
+
+    // get all browser names
+    const browsers = ['all'];
+
+    Object.values(timestamps).forEach((timestamp) => {
+      if (timestamp.userAgent && timestamp.userAgent.browser && timestamp.userAgent.browser.name) {
+        const browserName = timestamp.userAgent.browser.name;
+        const language = parseAcceptLanguage(timestamp.language) || 'unknown';
+
+        const browserEntry = `${browserName} (${language})`;
+        if (!browsers.includes(browserEntry)) {
+          browsers.push(browserEntry);
+        }
+      } else if (timestamp.browser) {
+        const browserName = parseBrowser(timestamp.browser);
+        const language = parseAcceptLanguage(timestamp.language) || 'unknown';
+
+        const browserEntry = `${browserName} (${language})`;
+        if (!browsers.includes(browserEntry)) {
+          browsers.push(browserEntry);
+        }
+      }
+    });
+
+    // get all devices
+    const devices = ['all'];
+    Object.values(timestamps).forEach((timestamp) => {
+      if (timestamp.userAgent && timestamp.userAgent.os && timestamp.userAgent.os.name) {
+        const deviceName = timestamp.userAgent.os.name;
+        if (!devices.includes(deviceName)) {
+          devices.push(deviceName);
+        }
+      } else if (timestamp.device) {
+        const deviceName = timestamp.device.replaceAll('"', '');
+        if (!devices.includes(deviceName)) {
+          devices.push(deviceName);
+        }
+      }
+    });
+
+    Object.keys(timestamps).forEach((timestamp) => {
+      const timestampItem = timestamps[timestamp];
+      const { ip } = timestampItem;
+
+      /* eslint-disable */
+      const matchesIpFilter = !filterByIp || ip.includes(filterByIp.replaceAll('.', '(DOT)'));
+      const matchesEventFilter = anonymousFilter.event === 'all' || anonymousFilter.event === timestampItem.event;
+      const matchesLocationFilter = anonymousFilter.location === 'all' || [timestampItem.city, timestampItem.country].filter(Boolean).join(', ') === anonymousFilter.location;
+      const matchesReferrerFilter = anonymousFilter.referrer === 'all' || anonymousFilter.referrer === timestampItem.referrer;
+      const matchesBrowserFilter = anonymousFilter.browser === 'all'
+          || (timestampItem.userAgent && timestampItem.userAgent.browser && timestampItem.userAgent.browser.name
+           && anonymousFilter.browser === `${timestampItem.userAgent.browser.name} (${parseAcceptLanguage(timestampItem.language)})`)
+          || (timestampItem.browser && anonymousFilter.browser === `${parseBrowser(timestampItem.browser)} (${parseAcceptLanguage(timestampItem.language)})`);
+      const matchesDeviceFilter = anonymousFilter.device === 'all'
+          || (timestampItem.userAgent && timestampItem.userAgent.os && timestampItem.userAgent.os.name
+           && anonymousFilter.device === timestampItem.userAgent.os.name)
+          || (timestampItem.device && anonymousFilter.device === timestampItem.device.replaceAll('"', ''));
+
+      if (matchesIpFilter && matchesEventFilter && matchesLocationFilter && matchesReferrerFilter && matchesBrowserFilter && matchesDeviceFilter) {
+        filteredTimestamps[timestamp] = timestampItem;
+      }
+      /* eslint-enable */
+    });
+
+    anonymousTable = createTable({
       tableId: 'anonymous',
       tableClass: 'anonymous',
       headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
-      rows: Object.keys(timestamps)
+      rows: Object.keys(filteredTimestamps)
         .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
         .map((timestamp) => {
           const timestampItem = timestamps[timestamp];
@@ -522,18 +623,137 @@ export default async function renderUserTab({ container }) {
         }),
     });
 
-    anonymousContainer.innerHTML = '';
+    const generateCombobox = (inputId, comboBoxId, options, name) => {
+      const comboContainer = document.createElement('div');
+      comboContainer.classList.add('combobox');
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = inputId;
+      input.autocomplete = 'off';
+      const currentValue = anonymousFilter[name.toLowerCase()];
+      input.placeholder = (typeof options === 'object' && !Array.isArray(options) && options[currentValue])
+          || (Array.isArray(options) && options.includes(currentValue) && currentValue)
+          || 'Select...';
+      input.classList.add('button', 'action', 'secondary');
+
+      const comboBox = document.createElement('div');
+      comboBox.id = comboBoxId;
+      comboBox.classList.add('combobox-content');
+
+      if (Array.isArray(options)) {
+        options.forEach((option) => {
+          const item = document.createElement('div');
+          item.textContent = option;
+          item.dataset.value = option;
+          comboBox.appendChild(item);
+
+          if (option === currentValue) {
+            item.classList.add('selected');
+          }
+        });
+      } else if (typeof options === 'object') {
+        for (const key in options) {
+          // eslint-disable-next-line no-prototype-builtins
+          if (options.hasOwnProperty(key)) {
+            const item = document.createElement('div');
+            item.textContent = options[key];
+            item.dataset.value = key;
+            comboBox.appendChild(item);
+
+            if (key === currentValue) {
+              item.classList.add('selected');
+            }
+          }
+        }
+      }
+
+      comboContainer.appendChild(input);
+      comboContainer.appendChild(comboBox);
+
+      input.addEventListener('focus', () => {
+        document.querySelectorAll('.combobox-content').forEach((box) => { // NOSONAR
+          if (box !== comboBoxId) {
+            box.classList.remove('combobox-show');
+          }
+        });
+        comboBox.classList.add('combobox-show');
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('.combobox')) {
+          document.querySelectorAll('.combobox-content').forEach((box) => { // NOSONAR
+            box.classList.remove('combobox-show');
+          });
+        }
+      });
+
+      input.addEventListener('input', () => {
+        const filter = input.value.toLowerCase();
+        const items = comboBox.getElementsByTagName('div');
+
+        for (const element of items) {
+          const textValue = element.textContent || element.innerText;
+          if (textValue.toLowerCase().includes(filter)) {
+            element.style.display = '';
+          } else {
+            element.style.display = 'none';
+          }
+        }
+      });
+
+      comboBox.addEventListener('click', (event) => {
+        if (event.target.tagName === 'DIV') {
+          const selectedValue = event.target.dataset.value;
+          input.value = event.target.textContent;
+          comboBox.classList.remove('combobox-show');
+          const filterName = name.toLowerCase();
+          anonymousFilter[filterName] = selectedValue;
+          if (selectedValue === 'all') {
+            anonymousUserResponse = null;
+            anonymousUserData = null;
+          }
+          anonymousContainer.innerHTML = renderSkeleton('tracking');
+          onFilterInput(selectedValue === 'all' ? '' : selectedValue, `anonymous${name}`, renderAnonymous, 0);
+        }
+      });
+
+      return comboContainer;
+    };
+
+    const anonymousGridContent = ['ip', 'event', 'date', 'url', 'location', 'referrer', 'browser', 'device']
+      .map((id) => `<div id="anon-${id}"></div>`)
+      .join('');
+    anonymousContainer.innerHTML = `<div class="anonymous-grid">${anonymousGridContent}</div>`;
+    document.getElementById('anon-event').appendChild(generateCombobox('event-input', 'event-content', events, 'Event'));
+
+    document.getElementById('anon-location').appendChild(
+      generateCombobox('location-input', 'location-content', locations, 'Location'),
+    );
+
+    document.getElementById('anon-referrer').appendChild(
+      generateCombobox('referrer-input', 'referrer-content', referrers, 'Referrer'),
+    );
+
+    document.getElementById('anon-browser').appendChild(
+      generateCombobox('browser-input', 'browser-content', browsers, 'Browser'),
+    );
+
+    document.getElementById('anon-device').appendChild(generateCombobox('device-input', 'device-content', devices, 'Device'));
+
     anonymousContainer.append(anonymousTable.wrapper);
 
     // eslint-disable-next-line no-new
-    new Clusterize({
+    const anonClusterize = new Clusterize({ // NOSONAR
       rows: anonymousTable.tbody.children,
       rows_in_block: 80,
       scrollId: 'scrollArea-anonymous',
       contentId: 'contentArea-anonymous',
     });
+    filterEventlistener('.filter-anonymous', 'ip', renderAnonymous, 0, () => {
+      anonClusterize.clear(); anonymousContainer.innerHTML = renderSkeleton('tracking'); anonymousTable = null; anonymousUserResponse = null; anonymousUserData = null;
+    });
   };
-  filterEventlistener('.filter-anonymous', 'ip', renderAnonymous);
 
   renderUsers();
   renderDeletedUsers();
