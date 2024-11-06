@@ -208,12 +208,11 @@ body:is(.is-headwire, .is-adobe, .is-test-user)
 
 .anonymous-grid {
   display: grid;
+  gap: 0 1px;
+  grid-auto-flow: row;
+  grid-template: "anon-ip anon-event anon-date anon-url anon-location anon-ref anon-browser anon-device";
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   grid-template-rows: 1fr;
-  gap: 0px 1px;
-  grid-auto-flow: row;
-  grid-template-areas:
-    "anon-ip anon-event anon-date anon-url anon-location anon-ref anon-browser anon-device";
 }
 
 .anonymous-grid #select-event {
@@ -254,7 +253,7 @@ body:is(.is-headwire, .is-adobe, .is-test-user)
   position: absolute;
   background-color: #f9f9f9;
   min-width: 100%;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 16px 0 #0003;
   z-index: 1;
   border-radius: var(--border-radius);
 }

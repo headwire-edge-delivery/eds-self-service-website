@@ -744,14 +744,14 @@ export default async function renderUserTab({ container }) {
     anonymousContainer.append(anonymousTable.wrapper);
 
     // eslint-disable-next-line no-new
-    const anonClusterize = new Clusterize({ // NOSONAR
+    new Clusterize({ // NOSONAR
       rows: anonymousTable.tbody.children,
       rows_in_block: 80,
       scrollId: 'scrollArea-anonymous',
       contentId: 'contentArea-anonymous',
     });
     filterEventlistener('.filter-anonymous', 'ip', renderAnonymous, 0, () => {
-      anonClusterize.clear(); anonymousContainer.innerHTML = renderSkeleton('tracking'); anonymousTable = null; anonymousUserResponse = null; anonymousUserData = null;
+      anonymousContainer.innerHTML = renderSkeleton('tracking'); anonymousUserResponse = null; anonymousUserData = null;
     });
   };
 
