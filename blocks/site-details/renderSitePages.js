@@ -6,6 +6,7 @@ import {
   parseFragment,
   SCRIPT_API,
   projectRepo,
+  safeText,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
@@ -38,7 +39,7 @@ export function renderTable({
 
       tableRow.dataset.path = item.path;
       tableRow.innerHTML = `
-        <td></td>
+        <td>${safeText(item.name)}</td>
         <td>${item.path}</td>
         <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>          
         <td>
@@ -49,7 +50,6 @@ export function renderTable({
           </div>
         </td>
       `;
-      tableRow.children[0].textContent = item.name; // setting name here, prevent XXS from doc name
 
       const deleteEmail = tableRow.querySelector('.delete-email');
       if (deleteEmail) {
@@ -83,7 +83,7 @@ export function renderTable({
     }
 
     tableRow.innerHTML = `
-      <td></td>
+      <td>${safeText(item.name)}</td>
       <td>${item.path}</td>
       <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>
       <td class="status"><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
@@ -93,7 +93,6 @@ export function renderTable({
           <a class="button action secondary" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>
       </td>
     `;
-    tableRow.children[0].textContent = item.name; // setting name here, prevent XXS from doc name
 
     fetch(`https://admin.hlx.page/status/${projectDetails.darkAlleyProject ? daProjectRepo : projectRepo}/${projectDetails.projectSlug}/main${item.path}?editUrl=auto`)
       .then((res) => res.json())
@@ -226,11 +225,11 @@ function addPageDialogSetup({
       buttons.push(draftsLink);
 
       const editLink = parseFragment(`
-        <a class="button primary action" target="_blank" href="${editHref}">Edit ${body.pageName}</a>
+        <a class="button primary action" target="_blank" href="${editHref}">Edit ${safeText(body.pageName)}</a>
       `);
       buttons.push(editLink);
 
-      dialog.renderDialog(`<h3 class="centered-info" >${body.pageName} page added to drafts</h3>`, buttons);
+      dialog.renderDialog(`<h3 class="centered-info" >${safeText(body.pageName)} page added to drafts</h3>`, buttons);
 
       // Update drafts table
       const tableBody = document.body.querySelector('table.drafts tbody');
@@ -241,7 +240,7 @@ function addPageDialogSetup({
 
       tableBody.insertAdjacentHTML('afterbegin', `
         <tr>
-            <td>${body.pageName}</td>
+            <td>${safeText(body.pageName)}</td>
             <td>/drafts/${responseData.pageSlug}</td>
             <td>Just now</td>
             <td class="status"><div class="badge orange">Previewed</div></td>

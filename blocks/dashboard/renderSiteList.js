@@ -1,6 +1,7 @@
 import {
   waitForAuthenticated, SCRIPT_API, KESTREL_ONE, getUserSettings, updateUserSettings,
   OOPS,
+  safeText,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
@@ -59,7 +60,6 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
     `;
 
     const ul = sitesList.querySelector('.my-sites-overview');
-    sitesList.append(ul);
 
     projects.forEach(({ projectSlug, projectName, projectDescription }) => {
       const listItem = document.createElement('li');
@@ -146,9 +146,8 @@ export default async function renderSites({ container, nav }) {
           <li data-owner="all"><button class="button selector action secondary ${owner === 'all' ? 'is-selected' : ''}">Owner: Anyone</button></li>
           <li data-owner="me"><button class="button selector action secondary ${owner === 'me' ? 'is-selected' : ''}">Owner: Me</button></li>
         </ul>`;
-  sites.innerHTML = `${filter}<input type="search" placeholder="Filter sites" class="filter-sites filter"><div class="sites-list"><section class="sites-list-dark-alley"></section><section class="sites-list-google-drive"></section></div>`;
+  sites.innerHTML = `${filter}<input value="${safeText(search)}" type="search" placeholder="Filter sites" class="filter-sites filter"><div class="sites-list"><section class="sites-list-dark-alley"></section><section class="sites-list-google-drive"></section></div>`;
   const filterSitesInput = sites.querySelector('.filter-sites');
-  filterSitesInput.value = search;
 
   const ownerSelectorContainer = sites.querySelector('.owner-selector');
   ownerSelectorContainer.addEventListener('click', async (event) => {

@@ -1,6 +1,7 @@
 import {
   OOPS, parseFragment, SCRIPT_API, KESTREL_ONE, getThumbnail,
   dateToRelativeSpan,
+  safeText,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
@@ -54,7 +55,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
       </div>
       <div id="site-description" class="project-description card box">
         <strong>Site description</strong>
-        <span class="project-description description span"></span>
+        <span class="project-description description span">${safeText(projectDetails.projectDescription || '')}</span>
         <button id="update-desc-button" title="Edit the Project Description" class="button secondary update-description action">Update</button>
       </div>
       <div id="last-updated" class="box">
@@ -76,7 +77,6 @@ export default async function renderSiteOverview({ container, nav, renderOptions
   </div>`;
 
   const descriptionSpan = container.querySelector('.project-description.card .project-description.span');
-  descriptionSpan.textContent = projectDetails.projectDescription || '';
 
   getThumbnail(container.querySelector('.project-thumbnail'));
 

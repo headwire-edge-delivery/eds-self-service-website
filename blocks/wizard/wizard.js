@@ -427,8 +427,7 @@ export default async function decorate(block) {
   };
 
   createForm.onchange = () => {
-    nameInput.value = nameInput.value.trim();
-    nameInput.value = sanitizeName(nameInput.value);
+    nameInput.value = sanitizeName(nameInput.value).trim();
     if (!slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === daPrefix)) {
       slugInput.dataset.copyName = true;
     }

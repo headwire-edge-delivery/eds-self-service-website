@@ -205,6 +205,8 @@ export function slugify(str) {
 export function safeText(text) {
   return text
     .replace(/&/g, '&amp;')
+    .replace(/\n/g, '&#10;')
+    .replace(/\//g, '&#47;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
