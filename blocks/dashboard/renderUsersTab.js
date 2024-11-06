@@ -151,22 +151,25 @@ const paginatorEventlistener = (container, queryParam, functionName, skeletonChi
 
 // MARK: render
 export default async function renderUserTab({ container }) {
-  let filterByIp = readQueryParams().ip || '';
-  let filterByMail = readQueryParams().user || '';
-  let filterByDeletedMail = readQueryParams().deleteduser || '';
+  const {
+    ip, user, deleteduser, limit = 100, deletedlimit, page = 1, deletedpage = 1,
+  } = readQueryParams();
+  let filterByIp = ip || '';
+  let filterByMail = user || '';
+  let filterByDeletedMail = deleteduser || '';
   const userSearchMinLength = 3; // auth0 returns nothing if query is less than 3 characters
   container.innerHTML = `
     <h2 id="user-activity">User activity</h2>
     <input value="${filterByMail}" type="search" minlength="3" placeholder="Filter by user email" class="filter-users filter">
     <p id="user-filter-info" style="display: none">Must be at least ${userSearchMinLength} Characters long</p>
     <div class="known-users clusterize">
-      ${renderSkeleton('tracking', Math.min(readQueryParams().limit || 100, 5))}
+      ${renderSkeleton('tracking', Math.min(limit || 100, 5))}
     </div>
     
     <h2 id="deleted-users">Deleted users</h2>
     <input value="${filterByDeletedMail}" type="search" placeholder="Filter by user email" class="filter-deleted-users filter">
     <div class="deleted-users clusterize">
-      ${renderSkeleton('tracking', Math.min(readQueryParams().deletedlimit || 100, 5))}
+      ${renderSkeleton('tracking', Math.min(deletedlimit || 100, 5))}
     </div>
         
     <h2 id="anonymous-activity">Anonymous activity</h2>
@@ -302,8 +305,6 @@ export default async function renderUserTab({ container }) {
       return;
     }
     lastLength = userFilterLength;
-    const page = readQueryParams().page || 1;
-    const limit = readQueryParams().limit || 100;
 
     const reqUsers = await fetch(`${SCRIPT_API}/tracking?mail=${filterByMail}&page=${page}&limit=${limit}`, {
       headers: {
@@ -365,10 +366,8 @@ export default async function renderUserTab({ container }) {
   const deletedUsersContainer = container.querySelector('.users .deleted-users');
   const renderDeletedUsers = async () => {
     filterByDeletedMail = readQueryParams().deleteduser || '';
-    const page = readQueryParams().deletedpage || 1;
-    const limit = readQueryParams().deletedlimit || 100;
 
-    const reqDeletedUsers = await fetch(`${SCRIPT_API}/tracking/deletedUsers?user=${filterByDeletedMail}&page=${page}&limit=${limit}`, {
+    const reqDeletedUsers = await fetch(`${SCRIPT_API}/tracking/deletedUsers?user=${filterByDeletedMail}&page=${deletedpage}&limit=${deletedlimit}`, {
       headers: {
         authorization: `bearer ${token}`,
       },
@@ -387,13 +386,13 @@ export default async function renderUserTab({ container }) {
         rows: Object.keys(deletedUsers)
           .sort((uA, uB) => new Date(deletedUsers[uB].deleted_at) - new Date(deletedUsers[uA].deleted_at)) // eslint-disable-line max-len
           .map((u) => {
-            const user = deletedUsers[u];
-            const createdAt = new Date(user.created_at);
-            const deletedAt = new Date(user.deleted_at);
-            const lastLogin = new Date(user.last_login);
+            const deletedUser = deletedUsers[u];
+            const createdAt = new Date(deletedUser.created_at);
+            const deletedAt = new Date(deletedUser.deleted_at);
+            const lastLogin = new Date(deletedUser.last_login);
 
             return {
-              ...user,
+              ...deletedUser,
               created_at: {
                 title: createdAt.toLocaleString(),
                 value: dateToRelativeString(createdAt),
@@ -407,7 +406,7 @@ export default async function renderUserTab({ container }) {
                 value: dateToRelativeString(lastLogin),
               },
               buttons: {
-                html: `<button data-user="${user.email}" class="button action secondary">Show activity</button>`,
+                html: `<button data-user="${deletedUser.email}" class="button action secondary">Show activity</button>`,
               },
             };
           }),
@@ -441,12 +440,15 @@ export default async function renderUserTab({ container }) {
 
   let anonymousUserResponse = null;
   let anonymousUserData = null;
+  const {
+    anonymousEvent, anonymousLocation, anonymousReferrer, anonymousBrowser, anonymousDevice,
+  } = readQueryParams();
   const anonymousFilter = {
-    event: readQueryParams().anonymousEvent || 'all',
-    location: readQueryParams().anonymousLocation || 'all',
-    referrer: readQueryParams().anonymousReferrer || 'all',
-    browser: readQueryParams().anonymousBrowser || 'all',
-    device: readQueryParams().anonymousDevice || 'all',
+    event: anonymousEvent || 'all',
+    location: anonymousLocation || 'all',
+    referrer: anonymousReferrer || 'all',
+    browser: anonymousBrowser || 'all',
+    device: anonymousDevice || 'all',
   };
 
   // MARK: renderAnonymous
@@ -475,10 +477,10 @@ export default async function renderUserTab({ container }) {
 
     const ips = Object.keys(anonymousUserData);
     const timestamps = {};
-    ips.forEach((ip) => {
-      Object.keys(anonymousUserData[ip]).forEach((timestamp) => {
-        if (!filterByIp || ip.includes(filterByIp.replaceAll('.', '(DOT)'))) {
-          timestamps[timestamp] = anonymousUserData[ip][timestamp];
+    ips.forEach((innerIp) => {
+      Object.keys(anonymousUserData[innerIp]).forEach((timestamp) => {
+        if (!filterByIp || innerIp.includes(filterByIp.replaceAll('.', '(DOT)'))) {
+          timestamps[timestamp] = anonymousUserData[innerIp][timestamp];
         }
       });
     });
@@ -552,17 +554,17 @@ export default async function renderUserTab({ container }) {
 
     Object.keys(timestamps).forEach((timestamp) => {
       const timestampItem = timestamps[timestamp];
-      const { ip } = timestampItem;
+      const { ip: timestampIp } = timestampItem;
 
       /* eslint-disable */
-      const matchesIpFilter = !filterByIp || ip.includes(filterByIp.replaceAll('.', '(DOT)'));
+      const matchesIpFilter = !filterByIp || timestampIp.includes(filterByIp.replaceAll('.', '(DOT)'));
       const matchesEventFilter = anonymousFilter.event === 'all' || anonymousFilter.event === timestampItem.event;
       const matchesLocationFilter = anonymousFilter.location === 'all' || [timestampItem.city, timestampItem.country].filter(Boolean).join(', ') === anonymousFilter.location;
       const matchesReferrerFilter = anonymousFilter.referrer === 'all' || anonymousFilter.referrer === timestampItem.referrer;
       const matchesBrowserFilter = anonymousFilter.browser === 'all'
           || (timestampItem.userAgent && timestampItem.userAgent.browser && timestampItem.userAgent.browser.name
-           && anonymousFilter.browser === `${timestampItem.userAgent.browser.name} (${parseAcceptLanguage(timestampItem.language)})`)
-          || (timestampItem.browser && anonymousFilter.browser === `${parseBrowser(timestampItem.browser)} (${parseAcceptLanguage(timestampItem.language)})`);
+           && anonymousFilter.browser === `${timestampItem.userAgent.browser.name} (${parseAcceptLanguage(timestampItem.language) || 'unknown'})`)
+          || (timestampItem.browser && anonymousFilter.browser === `${parseBrowser(timestampItem.browser)} (${parseAcceptLanguage(timestampItem.language) || 'unknown'})`);
       const matchesDeviceFilter = anonymousFilter.device === 'all'
           || (timestampItem.userAgent && timestampItem.userAgent.os && timestampItem.userAgent.os.name
            && anonymousFilter.device === timestampItem.userAgent.os.name)
@@ -677,6 +679,20 @@ export default async function renderUserTab({ container }) {
             box.classList.remove('combobox-show');
           }
         });
+        const triggerRect = input.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - triggerRect.bottom;
+        // get the height of the client
+        const { clientHeight } = document.documentElement;
+
+        // Check if the space below is less than 400px to place the dropdown on top or bottom
+        if (spaceBelow < Math.min(400, clientHeight / 2)) {
+          comboBox.style.bottom = `${triggerRect.height}px`;
+          comboBox.style.top = 'auto';
+        } else {
+          comboBox.style.top = 'auto';
+          comboBox.style.bottom = 'auto';
+        }
+
         comboBox.classList.add('combobox-show');
       });
 

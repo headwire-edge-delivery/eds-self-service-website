@@ -280,6 +280,6 @@ body:is(.is-headwire, .is-adobe, .is-test-user)
 .combobox-show {
   display: block;
   overflow: auto;
-  max-height: 400px;
+  max-height: min(400px, 50vh);
   max-width: 360px;
 }
