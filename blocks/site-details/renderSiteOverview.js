@@ -1,6 +1,7 @@
 import {
   OOPS, parseFragment, SCRIPT_API, KESTREL_ONE, getThumbnail,
   dateToRelativeSpan,
+  safeText,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
@@ -54,7 +55,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
       </div>
       <div id="site-description" class="project-description card box">
         <strong>Site description</strong>
-        <span class="project-description description span">${projectDetails.projectDescription ?? ''}</span>
+        <span class="project-description description span">${safeText(projectDetails.projectDescription || '')}</span>
         <button id="update-desc-button" title="Edit the Project Description" class="button secondary update-description action">Update</button>
       </div>
       <div id="last-updated" class="box">
@@ -74,6 +75,8 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     <p>Delete this project. Once you delete a project, there is no going back. Please be certain.</p>
     <button id="delete-site-button" title="Delete your Project" class="button delete action destructive">Delete</button>
   </div>`;
+
+  const descriptionSpan = container.querySelector('.project-description.card .project-description.span');
 
   getThumbnail(container.querySelector('.project-thumbnail'));
 
@@ -115,7 +118,6 @@ export default async function renderSiteOverview({ container, nav, renderOptions
       if (response?.ok) {
         dialog.renderDialog('<h3 class="centered-info">Description successfully updated</h3>');
         projectDetails.projectDescription = body.projectDescription;
-        const descriptionSpan = container.querySelector('.project-description.card .project-description.span');
         if (descriptionSpan) descriptionSpan.textContent = body.projectDescription;
       } else {
         await alertDialog(OOPS);

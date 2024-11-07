@@ -1,17 +1,17 @@
 import {
   dateToRelativeSpan,
   OOPS,
-  parseFragment, SCRIPT_API,
+  parseFragment, safeText, SCRIPT_API,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 
 function renderContact(contact) {
-  const firstName = contact.firstName ?? '';
-  const lastName = contact.lastName ?? '';
+  const firstName = safeText(contact.firstName) ?? '';
+  const lastName = safeText(contact.lastName) ?? '';
   return `
-    <tr data-id="${contact.id}" data-email="${contact.email}">
-        <td data-name="email">${contact.email}</td>
+    <tr data-id="${safeText(contact.id)}" data-email="${safeText(contact.email)}">
+        <td data-name="email">${safeText(contact.email)}</td>
         <td data-name="firstName">${firstName}</td>
         <td data-name="lastName">${lastName}</td>
         <td data-name="createAt">${contact.createdAt === 'Just now' ? contact.createdAt : dateToRelativeSpan(contact.createdAt).outerHTML}</td>
@@ -148,14 +148,14 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
         <h3>Update Contact</h3>
         
         <form id="update-contact-form">
-          <input type="hidden" name="id" value="${contact.id}">
+          <input type="hidden" name="id" value="${safeText(contact.id)}">
           <label>
               <span>First name</span>
-              <input type="text" name="firstName" placeholder="John" value="${contact.firstName}"/>
+              <input type="text" name="firstName" placeholder="John" value="${safeText(contact.firstName)}"/>
           </label>
           <label>
               <span>Last name</span>
-              <input type="text" name="lastName" placeholder="Doe" value="${contact.lastName}"/>
+              <input type="text" name="lastName" placeholder="Doe" value="${safeText(contact.lastName)}"/>
           </label>
           <label>
               <input type="checkbox" name="unsubscribed" ${contact.unsubscribed ? 'checked' : ''}/>
