@@ -16,5 +16,7 @@ export default async function decorate(block) {
       e.preventDefault();
       window.auth0Client.loginWithRedirect();
     };
+  } else {
+    block.querySelector('div').classList.add('is-selected');
   }
 }

@@ -12,7 +12,7 @@ export default function renderSkeleton(type, children = undefined) {
       <div aria-label="loading">
         <div style="display: flex;gap: 32px;">
             <div style="display: flex;flex-wrap: wrap;gap: 32px;align-items: stretch;justify-content: center;">
-                ${[...new Array(4)].map(() => '<div style="height: 100px;flex:1;min-width: 200px;max-width: 300px;width: 100%;" class="skeleton"></div>').join('')}
+                ${[...Array(4)].map(() => '<div style="height: 100px;flex:1;min-width: 200px;max-width: 300px;width: 100%;" class="skeleton"></div>').join('')}
             </div>
             <div style="min-width: 40%;max-width: 40%;" class="skeleton"></div>
         </div>
@@ -21,10 +21,16 @@ export default function renderSkeleton(type, children = undefined) {
   }
   if (type === 'account') {
     return `
-      <div aria-label="loading">
+      <div aria-label="loading" class="account-details-skeleton">
         <div style="margin-bottom: 32px; height: 80px; display: flex;flex-wrap: wrap;gap: 32px;align-items: stretch;justify-content: center;">
-            ${[...new Array(3).map(() => '<div class="skeleton" style="width: 300px;"></div>').join('')]}
+            ${[...Array(3)].map(() => '<div class="skeleton" style="width: 300px;"></div>').join('')}
         </div>
+        <div class="skeleton" style="margin-top:32px; width: 150px; height: 34px"></div>
+      </div>
+      <div aria-label="loading" class="account-usage-skeleton">
+        <div class="skeleton" style="margin-top: 32px;height: 24px; width: 200px;"></div>
+        <div class="skeleton" style="margin-top: 24px;height: 32px;"></div>
+        <div class="skeleton" style="margin-top: 24px;height: 32px;"></div>
       </div>
     `;
   }
