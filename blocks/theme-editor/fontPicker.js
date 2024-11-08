@@ -9,6 +9,8 @@ const fontWeightLabels = {
   700: 'Bold',
 };
 
+const moreOptionValue = 'FONTS_MORE_VALUE';
+
 export default async function initFontPicker({
   varsObj,
   editor,
@@ -45,7 +47,6 @@ export default async function initFontPicker({
     ...validFonts.slice(0, 10),
     ...defaultFonts.map((font) => ({ family: font })),
   ];
-  console.log('dropdownFonts:', dropdownFonts);
 
   // customFonts = [
   //   ...customFonts,
@@ -146,19 +147,26 @@ export default async function initFontPicker({
       // google fonts
       appendFontStyles({ family, files, variants });
     }
-    selectElement.append(option);
+    const moreOption = selectElement.querySelector(`option[value="${moreOptionValue}"]`);
+    if (moreOption) {
+      moreOption.before(option);
+    } else {
+      selectElement.append(option);
+    }
+    dropdownFonts.push({ family, files, variants });
     return option;
   };
 
   const moreFontsSelectionDialog = (selectElement) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'more-font-selection-wrapper';
+    wrapper.id = 'additional-font-picker';
 
-    wrapper.innerHTML = /* html */`
+    wrapper.innerHTML = `
       <aside class="font-list">
         <ul></ul>
       </aside>
-      <div class="preview">
+      <div class="font-preview">
         <h1 class="heading1">Main Heading</h1>
         <h2 class="heading2">Sub Heading</h2>
         <p class="paragraph">Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente enim exercitationem alias delectus, voluptates accusantium voluptas itaque accusamus illo saepe? Nesciunt quod itaque maxime! Deserunt temporibus quia vel autem consectetur nulla aspernatur facilis ratione repellendus odio commodi rerum, sed voluptatem, doloremque officia molestiae recusandae iste consequatur ipsam. Corporis, nostrum minima!</p>
@@ -166,12 +174,11 @@ export default async function initFontPicker({
     `;
 
     const fontList = wrapper.querySelector('ul');
-    const preview = wrapper.querySelector('.preview');
+    const preview = wrapper.querySelector('.font-preview');
 
     const itemViewObserver = new IntersectionObserver((entries, observer) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          console.log('\x1b[34m ~ TEST:', entry.target.dataset.value);
           appendFontStyles(validFonts[entry.target.dataset.index]);
 
           observer.unobserve(entry.target);
@@ -180,6 +187,7 @@ export default async function initFontPicker({
     }, { root: fontList });
 
     const liOnclick = (event) => {
+      fontList.querySelectorAll('.is-selected').forEach((item) => item.classList.remove('is-selected'));
       event.target.classList.add('is-selected');
       fontList.dataset.selectedIndex = event.target.dataset.index;
       preview.style.fontFamily = event.target.style.fontFamily;
@@ -191,7 +199,7 @@ export default async function initFontPicker({
       li.dataset.value = font.family;
       li.innerText = font.family;
       li.dataset.index = index;
-      li.style.fontFamily = `font-family: '${font.family}', sans-serif;`;
+      li.style.fontFamily = `'${font.family}', sans-serif`;
       fontList.append(li);
       // adding fontfamily when visible
       if (!dropdownFontStyles.innerHTML.includes(font.family)) {
@@ -217,22 +225,14 @@ export default async function initFontPicker({
 
   block.querySelectorAll('.font-picker').forEach((el) => {
     let selectedFont = findCSSVar(varsObj.cssVars, el.dataset.var, true);
-    // el.innerHTML = `${dropdownFonts
-    //   .map(
-    //     ({ family }) => `<option ${family === selectedFont?.value ? 'selected' : ''} value="${family}">${family}</option>`,
-    //   )
-    //   .join('')}`;
     dropdownFonts.forEach((gFont) => {
       appendOption(el, gFont);
-      // const option = appendOption(el, gFont);
-      // if (gFont.family === selectedFont.value) {
-      //   option.selected = true;
-      // }
     });
 
     el.onchange = () => {
-      if (el.value === 'MORE...') {
+      if (el.value === 'FONTS_MORE_VALUE') {
         moreFontsSelectionDialog(el);
+        el.value = selectedFont.value;
         return;
       }
       selectedFont = findCSSVar(varsObj.cssVars, el.dataset.var, true);
@@ -242,7 +242,7 @@ export default async function initFontPicker({
     };
 
     // set selection to currently used font
-    let selectedFontOption = el.querySelector(`option[value="${el.value}"]`);
+    let selectedFontOption = el.querySelector(`option[value="${selectedFont.value}"]`);
     if (!selectedFontOption) {
       // add selected font, if it was not in the reduced list
       selectedFontOption = appendOption(el, validFonts.find(
@@ -253,8 +253,8 @@ export default async function initFontPicker({
     el.style.fontFamily = selectedFontOption.style.fontFamily;
 
     const moreOption = document.createElement('option');
-    moreOption.value = 'MORE...';
-    moreOption.innerText = 'More...';
+    moreOption.value = 'FONTS_MORE_VALUE';
+    moreOption.innerText = 'More Fonts...';
     el.append(moreOption);
   });
 }

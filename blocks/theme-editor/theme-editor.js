@@ -599,7 +599,7 @@ export default async function decorate(block) {
             previewFrame.contentWindow.postMessage(
               {
                 type: 'update:styles',
-                styles: varsObj.fontCss,
+                styles: varsObj.cssFonts,
                 file: 'fonts',
               },
               '*',
@@ -623,6 +623,7 @@ export default async function decorate(block) {
       }
     };
 
+    // MARK: save button
     block.querySelector('.publish-theme').onclick = async () => {
       window?.zaraz?.track('click site theme submit');
 
@@ -638,7 +639,7 @@ export default async function decorate(block) {
 
       editor.setOption('readOnly', true);
       let failed = false;
-      if (varsObj.fontCss) {
+      if (varsObj.cssFonts) {
         let res = await fetch(`${SCRIPT_API}/cssVariables/${projectSlug}`, {
           method: 'POST',
           headers: { ...headers, 'content-type': 'application/json' },
@@ -651,7 +652,7 @@ export default async function decorate(block) {
           res = await fetch(`${SCRIPT_API}/cssFonts/${projectSlug}`, {
             method: 'POST',
             headers: { ...headers, 'content-type': 'application/json' },
-            body: JSON.stringify({ css: btoa(varsObj.fontCss) }),
+            body: JSON.stringify({ css: btoa(varsObj.cssFonts) }),
           });
 
           failed = !res.ok;
