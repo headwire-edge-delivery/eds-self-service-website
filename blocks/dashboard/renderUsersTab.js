@@ -557,7 +557,7 @@ export default async function renderUserTab({ container }) {
       const { ip: timestampIp } = timestampItem;
 
       /* eslint-disable */
-      const matchesIpFilter = !filterByIp || timestampIp.includes(filterByIp.replaceAll('.', '(DOT)'));
+      const matchesIpFilter = !filterByIp || timestampIp.includes(filterByIp);
       const matchesEventFilter = anonymousFilter.event === 'all' || anonymousFilter.event === timestampItem.event;
       const matchesLocationFilter = anonymousFilter.location === 'all' || [timestampItem.city, timestampItem.country].filter(Boolean).join(', ') === anonymousFilter.location;
       const matchesReferrerFilter = anonymousFilter.referrer === 'all' || anonymousFilter.referrer === timestampItem.referrer;

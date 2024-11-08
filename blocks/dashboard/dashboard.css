@@ -181,10 +181,6 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .users {
 }
 
 @media (width < 768px) {
-  .dashboard.block .tab-content.users.is-selected > div {
-    overflow-x: auto;
-  }
-
   :is(.dashboard.block, dialog) .users table {
     table-layout: auto;
   }
