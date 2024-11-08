@@ -115,6 +115,40 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
+  if (type === 'seo') {
+    const rows = [...Array(10)].map(() => `
+      <tr>
+        <td><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
+        <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
+        <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
+        <td><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
+        <td><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
+        <td>
+            <div class="skeleton" style="width: 50px; height: 34px;"></div>
+        </td>
+      </tr>
+    `).join('');
+
+    return `
+      <div aria-label="loading">
+        <div class="skeleton" style="width: 100px; height: 24px;margin-bottom: 24px;"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th><div class="skeleton" style="width: 80px;height: 24px;"></div></th>
+                    <th><div class="skeleton" style="width: 80px;height: 24px;"></div></th>
+                    <th><div class="skeleton" style="width: 120px;height: 24px;"></div></th>
+                    <th><div class="skeleton" style="width: 100px;height: 24px;"></div></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows}
+            </tbody>
+        </table>
+      </div>
+    `;
+  }
   if (type === 'site-analytics') {
     const boxes = [...Array(3)].map(() => '<div class="skeleton" style="height: 80px; width: 300px"></div>').join('');
 
