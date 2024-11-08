@@ -263,6 +263,7 @@
 }
 
 .site-details.block .seo-audit .og-image img {
+  display: block;
   width: 64px;
   height: 64px;
   object-fit: cover;

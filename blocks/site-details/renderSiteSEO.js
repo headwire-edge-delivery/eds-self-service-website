@@ -16,9 +16,9 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
   container.innerHTML = renderSkeleton('seo');
 
   nav.insertAdjacentHTML('beforeend', `
-    <button class="button secondary action sitemap">Open sitemap</button>
-    <button class="button secondary action robots">Edit robots</button>
-    ${projectDetails.darkAlleyProject ? `<a href="/redirect?url=https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}/metadata" target="_blank" class="button secondary action">Edit Bulk Metadata</a>` : '<button class="button secondary action bulk-metadata">Edit Bulk Metadata</button>'}
+    <button id="open-sitemap" class="button secondary action sitemap">Open sitemap</button>
+    <button id="edit-robots" class="button secondary action robots">Edit robots</button>
+    ${projectDetails.darkAlleyProject ? `<a id="edit-bulk-metadata" href="/redirect?url=https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}/metadata" target="_blank" class="button secondary action">Edit Bulk Metadata</a>` : '<button id="edit-bulk-metadata" class="button secondary action bulk-metadata">Edit Bulk Metadata</button>'}
   `);
 
   // TODO Allow editing robots.txt for non kestrelone.com domains
@@ -126,7 +126,8 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
             if (content) {
               content = content.replace(`<meta ${type}="${property}" content="`, '').replace('">', '');
               if (property === 'og:image') {
-                el.innerHTML = `<img src="${content}" alt="thumbnail" loading="lazy"/>`;
+                const noImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                el.innerHTML = `<img src="${content}" alt="" loading="lazy" onerror="this.src = '${noImage}'"/>`;
               } else if (property === 'keywords') {
                 el.innerHTML = content.split(',').map((s) => `<div class="badge small">${s.trim()}</div>`).join('');
               } else if (property === 'robots') {
