@@ -181,10 +181,6 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .users {
 }
 
 @media (width < 768px) {
-  .dashboard.block .tab-content.users.is-selected > div {
-    overflow-x: auto;
-  }
-
   :is(.dashboard.block, dialog) .users table {
     table-layout: auto;
   }
@@ -232,4 +228,82 @@ body:is(.is-headwire, .is-adobe, .is-test-user)
   .dashboard.block
   .dark-alley-section {
   display: block;
+}
+
+.anonymous-grid {
+  display: grid;
+  gap: 0 1px;
+  grid-auto-flow: row;
+  grid-template: "anon-ip anon-event anon-date anon-url anon-location anon-ref anon-browser anon-device";
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr;
+}
+
+.anonymous-grid #select-event {
+  grid-area: anon-event;
+}
+
+.anonymous-grid #select-location {
+  grid-area: anon-location;
+}
+
+.anonymous-grid #anon-referrer {
+  grid-area: anon-ref;
+}
+
+.anonymous-grid #select-browser {
+  grid-area: anon-browser;
+}
+
+.anonymous-grid #select-device {
+  grid-area: anon-device;
+}
+
+.combobox {
+  position: relative;
+  display: inline-block;
+}
+
+.combobox input {
+  height: 100%;
+}
+
+.combobox input::placeholder {
+  color: black;
+}
+
+.combobox-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 100%;
+  box-shadow: 0 8px 16px 0 #0003;
+  z-index: 1;
+  border-radius: var(--border-radius);
+}
+
+.combobox-content div {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.combobox-content div:first-child {
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+}
+
+.combobox-content div:last-child {
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+}
+
+.combobox-content div:hover {
+  background-color: #ddd;
+}
+
+.combobox-show {
+  display: block;
+  overflow: auto;
+  max-height: min(400px, 50vh);
+  max-width: 360px;
 }

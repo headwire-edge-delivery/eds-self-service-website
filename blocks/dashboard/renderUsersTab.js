@@ -27,7 +27,7 @@ function parseBrowser(str) {
       // matches semicolon that is not within quotes
       const browserName = browserStr.match(/(?:[^";]|"(?:\\.|[^"\\])*")+/g)[0].trim().replaceAll('"', '');
 
-      if (/not(\?|\))a(_|;)brand/i.test(browserName)) continue;
+      if (/not[\s\S]*a[\s\S]*brand/i.test(browserName)) continue; // NOSONAR
       if (/chromium/i.test(browserName)) {
         output = browserName;
         continue;
@@ -149,26 +149,27 @@ const paginatorEventlistener = (container, queryParam, functionName, skeletonChi
   container.paginatorEventListener = paginatorClickHandler;
 };
 
-const initialParams = readQueryParams();
-
 // MARK: render
 export default async function renderUserTab({ container }) {
-  let filterByMail = initialParams.user || '';
-  let filterByDeletedMail = initialParams.deleteduser || '';
-  let filterByIp = initialParams.ip || '';
+  const {
+    ip, user, deleteduser, limit = 100, deletedlimit, page = 1, deletedpage = 1,
+  } = readQueryParams();
+  let filterByIp = ip || '';
+  let filterByMail = user || '';
+  let filterByDeletedMail = deleteduser || '';
   const userSearchMinLength = 3; // auth0 returns nothing if query is less than 3 characters
   container.innerHTML = `
     <h2 id="user-activity">User activity</h2>
     <input type="search" minlength="3" placeholder="Filter by user email" class="filter-users filter">
     <p id="user-filter-info" style="display: none">Must be at least ${userSearchMinLength} Characters long</p>
     <div class="known-users clusterize">
-      ${renderSkeleton('tracking', Math.min(readQueryParams().limit || 100, 5))}
+      ${renderSkeleton('tracking', Math.min(limit || 100, 5))}
     </div>
     
     <h2 id="deleted-users">Deleted users</h2>
     <input type="search" placeholder="Filter by user email" class="filter-deleted-users filter">
     <div class="deleted-users clusterize">
-      ${renderSkeleton('tracking', Math.min(readQueryParams().deletedlimit || 100, 5))}
+      ${renderSkeleton('tracking', Math.min(deletedlimit || 100, 5))}
     </div>
         
     <h2 id="anonymous-activity">Anonymous activity</h2>
@@ -198,18 +199,19 @@ export default async function renderUserTab({ container }) {
     functionName(true, validLength);
   };
 
-  const filterEventlistener = (filterClass, filterName, functionName, minLength = 1) => {
+  const filterEventlistener = (filterClass, filterName, functionName, minLength = 1, noValueFunction = () => {}) => { // eslint-disable-line max-len
     const filterInput = document.querySelector(filterClass);
+    let debounceTimer;
+    function debounce(callback, delay) {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(callback, delay);
+    }
     filterInput.oninput = (event) => {
       event.preventDefault();
-      let debounceTimer;
-      // eslint-disable-next-line func-names
-      (() => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          onFilterInput(filterInput.value, filterName, functionName, minLength);
-        }, 300);
-      })();
+      debounce(() => {
+        if (!filterInput.value) noValueFunction();
+        onFilterInput(filterInput.value, filterName, functionName, minLength);
+      }, 300);
     };
   };
 
@@ -272,7 +274,7 @@ export default async function renderUserTab({ container }) {
       createDialog(contentWrapper);
 
       // eslint-disable-next-line no-new
-      new Clusterize({
+      new Clusterize({ // NOSONAR
         rows: activitiesDialogTable.tbody.children,
         scrollId: 'scrollArea-recent-activity',
         contentId: 'contentArea-recent-activity',
@@ -311,8 +313,6 @@ export default async function renderUserTab({ container }) {
       return;
     }
     lastLength = userFilterLength;
-    const page = readQueryParams().page || 1;
-    const limit = readQueryParams().limit || 100;
 
     const reqUsers = await fetch(`${SCRIPT_API}/tracking?mail=${filterByMail}&page=${page}&limit=${limit}`, {
       headers: {
@@ -355,7 +355,7 @@ export default async function renderUserTab({ container }) {
       paginatorEventlistener(usersContainer, 'page', renderUsers, Math.min(limit, 5));
 
       // eslint-disable-next-line no-new
-      new Clusterize({
+      new Clusterize({ // NOSONAR
         rows: usersTable.tbody.children,
         scrollId: 'scrollArea-user-activity',
         contentId: 'contentArea-user-activity',
@@ -374,10 +374,8 @@ export default async function renderUserTab({ container }) {
   const deletedUsersContainer = container.querySelector('.users .deleted-users');
   const renderDeletedUsers = async () => {
     filterByDeletedMail = readQueryParams().deleteduser || '';
-    const page = readQueryParams().deletedpage || 1;
-    const limit = readQueryParams().deletedlimit || 100;
 
-    const reqDeletedUsers = await fetch(`${SCRIPT_API}/tracking/deletedUsers?user=${filterByDeletedMail}&page=${page}&limit=${limit}`, {
+    const reqDeletedUsers = await fetch(`${SCRIPT_API}/tracking/deletedUsers?user=${filterByDeletedMail}&page=${deletedpage}&limit=${deletedlimit}`, {
       headers: {
         authorization: `bearer ${token}`,
       },
@@ -396,13 +394,13 @@ export default async function renderUserTab({ container }) {
         rows: Object.keys(deletedUsers)
           .sort((uA, uB) => new Date(deletedUsers[uB].deleted_at) - new Date(deletedUsers[uA].deleted_at)) // eslint-disable-line max-len
           .map((u) => {
-            const user = deletedUsers[u];
-            const createdAt = new Date(user.created_at);
-            const deletedAt = new Date(user.deleted_at);
-            const lastLogin = new Date(user.last_login);
+            const deletedUser = deletedUsers[u];
+            const createdAt = new Date(deletedUser.created_at);
+            const deletedAt = new Date(deletedUser.deleted_at);
+            const lastLogin = new Date(deletedUser.last_login);
 
             return {
-              ...user,
+              ...deletedUser,
               created_at: {
                 title: createdAt.toLocaleString(),
                 value: dateToRelativeString(createdAt),
@@ -416,7 +414,7 @@ export default async function renderUserTab({ container }) {
                 value: dateToRelativeString(lastLogin),
               },
               buttons: {
-                html: `<button data-user="${user.email}" class="button action secondary">Show activity</button>`,
+                html: `<button data-user="${deletedUser.email}" class="button action secondary">Show activity</button>`,
               },
             };
           }),
@@ -433,7 +431,7 @@ export default async function renderUserTab({ container }) {
       paginatorEventlistener(deletedUsersContainer, 'deletedpage', renderDeletedUsers, Math.min(limit, 5));
 
       // eslint-disable-next-line no-new
-      new Clusterize({
+      new Clusterize({ // NOSONAR
         rows: deletedUsersTable.tbody.children,
         scrollId: 'scrollArea-deleted-users',
         contentId: 'contentArea-deleted-users',
@@ -450,8 +448,20 @@ export default async function renderUserTab({ container }) {
 
   let anonymousUserResponse = null;
   let anonymousUserData = null;
+  const {
+    anonymousEvent, anonymousLocation, anonymousReferrer, anonymousBrowser, anonymousDevice,
+  } = readQueryParams();
+  const anonymousFilter = {
+    event: anonymousEvent || 'all',
+    location: anonymousLocation || 'all',
+    referrer: anonymousReferrer || 'all',
+    browser: anonymousBrowser || 'all',
+    device: anonymousDevice || 'all',
+  };
+
   // MARK: renderAnonymous
   const anonymousContainer = container.querySelector('.users .anonymous-users');
+  let anonymousTable = null;
   const renderAnonymous = async () => {
     filterByIp = readQueryParams().ip || '';
 
@@ -475,19 +485,110 @@ export default async function renderUserTab({ container }) {
 
     const ips = Object.keys(anonymousUserData);
     const timestamps = {};
-    ips.forEach((ip) => {
-      Object.keys(anonymousUserData[ip]).forEach((timestamp) => {
-        if (!filterByIp || ip.includes(filterByIp.replaceAll('.', '(DOT)'))) {
-          timestamps[timestamp] = anonymousUserData[ip][timestamp];
+    ips.forEach((innerIp) => {
+      Object.keys(anonymousUserData[innerIp]).forEach((timestamp) => {
+        if (!filterByIp || innerIp.includes(filterByIp.replaceAll('.', '(DOT)'))) {
+          timestamps[timestamp] = anonymousUserData[innerIp][timestamp];
         }
       });
     });
+    const filteredTimestamps = {};
 
-    const anonymousTable = createTable({
+    // get all event names
+    const events = ['all'];
+    Object.values(timestamps).forEach((timestamp) => {
+      if (!events.includes(timestamp.event)) {
+        events.push(timestamp.event);
+      }
+    });
+
+    // get all locations
+    const locations = ['all'];
+    Object.values(timestamps).forEach((timestamp) => {
+      if (timestamp.city) {
+        const location = [timestamp.city, timestamp.country].filter(Boolean).join(', ');
+        if (!locations.includes(location)) {
+          locations.push(location);
+        }
+      }
+    });
+
+    // get all referrers
+    const referrers = ['all'];
+    Object.values(timestamps).forEach((timestamp) => {
+      if (timestamp.referrer && !referrers.includes(timestamp.referrer)) {
+        referrers.push(timestamp.referrer);
+      }
+    });
+
+    // get all browser names
+    const browsers = ['all'];
+
+    Object.values(timestamps).forEach((timestamp) => {
+      if (timestamp.userAgent && timestamp.userAgent.browser && timestamp.userAgent.browser.name) {
+        const browserName = timestamp.userAgent.browser.name;
+        const language = parseAcceptLanguage(timestamp.language) || 'unknown';
+
+        const browserEntry = `${browserName} (${language})`;
+        if (!browsers.includes(browserEntry)) {
+          browsers.push(browserEntry);
+        }
+      } else if (timestamp.browser) {
+        const browserName = parseBrowser(timestamp.browser);
+        const language = parseAcceptLanguage(timestamp.language) || 'unknown';
+
+        const browserEntry = `${browserName} (${language})`;
+        if (!browsers.includes(browserEntry)) {
+          browsers.push(browserEntry);
+        }
+      }
+    });
+
+    // get all devices
+    const devices = ['all'];
+    Object.values(timestamps).forEach((timestamp) => {
+      if (timestamp.userAgent && timestamp.userAgent.os && timestamp.userAgent.os.name) {
+        const deviceName = timestamp.userAgent.os.name;
+        if (!devices.includes(deviceName)) {
+          devices.push(deviceName);
+        }
+      } else if (timestamp.device) {
+        const deviceName = timestamp.device.replaceAll('"', '');
+        if (!devices.includes(deviceName)) {
+          devices.push(deviceName);
+        }
+      }
+    });
+
+    Object.keys(timestamps).forEach((timestamp) => {
+      const timestampItem = timestamps[timestamp];
+      const { ip: timestampIp } = timestampItem;
+
+      /* eslint-disable */
+      const matchesIpFilter = !filterByIp || timestampIp.includes(filterByIp);
+      const matchesEventFilter = anonymousFilter.event === 'all' || anonymousFilter.event === timestampItem.event;
+      const matchesLocationFilter = anonymousFilter.location === 'all' || [timestampItem.city, timestampItem.country].filter(Boolean).join(', ') === anonymousFilter.location;
+      const matchesReferrerFilter = anonymousFilter.referrer === 'all' || anonymousFilter.referrer === timestampItem.referrer;
+      const matchesBrowserFilter = anonymousFilter.browser === 'all'
+          || (timestampItem.userAgent && timestampItem.userAgent.browser && timestampItem.userAgent.browser.name
+           && anonymousFilter.browser === `${timestampItem.userAgent.browser.name} (${parseAcceptLanguage(timestampItem.language) || 'unknown'})`)
+          || (timestampItem.browser && anonymousFilter.browser === `${parseBrowser(timestampItem.browser)} (${parseAcceptLanguage(timestampItem.language) || 'unknown'})`);
+      const matchesDeviceFilter = anonymousFilter.device === 'all'
+          || (timestampItem.userAgent && timestampItem.userAgent.os && timestampItem.userAgent.os.name
+           && anonymousFilter.device === timestampItem.userAgent.os.name)
+          || (timestampItem.device && anonymousFilter.device === timestampItem.device.replaceAll('"', ''));
+
+      if (matchesIpFilter && matchesEventFilter && matchesLocationFilter && matchesReferrerFilter && matchesBrowserFilter && matchesDeviceFilter) {
+        filteredTimestamps[timestamp] = timestampItem;
+      }
+      /* eslint-enable */
+    });
+
+    anonymousTable = createTable({
       tableId: 'anonymous',
       tableClass: 'anonymous',
       headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
-      rows: Object.keys(timestamps)
+      rows: Object.keys(filteredTimestamps)
         .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
         .map((timestamp) => {
           const timestampItem = timestamps[timestamp];
@@ -532,18 +633,151 @@ export default async function renderUserTab({ container }) {
         }),
     });
 
-    anonymousContainer.innerHTML = '';
+    const generateCombobox = (inputId, comboBoxId, options, name) => {
+      const comboContainer = document.createElement('div');
+      comboContainer.classList.add('combobox');
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = inputId;
+      input.autocomplete = 'off';
+      const currentValue = anonymousFilter[name.toLowerCase()];
+      input.placeholder = (typeof options === 'object' && !Array.isArray(options) && options[currentValue])
+          || (Array.isArray(options) && options.includes(currentValue) && currentValue)
+          || 'Select...';
+      input.classList.add('button', 'action', 'secondary');
+
+      const comboBox = document.createElement('div');
+      comboBox.id = comboBoxId;
+      comboBox.classList.add('combobox-content');
+
+      if (Array.isArray(options)) {
+        options.forEach((option) => {
+          const item = document.createElement('div');
+          item.textContent = option;
+          item.dataset.value = option;
+          comboBox.appendChild(item);
+
+          if (option === currentValue) {
+            item.classList.add('selected');
+          }
+        });
+      } else if (typeof options === 'object') {
+        for (const key in options) {
+          // eslint-disable-next-line no-prototype-builtins
+          if (options.hasOwnProperty(key)) {
+            const item = document.createElement('div');
+            item.textContent = options[key];
+            item.dataset.value = key;
+            comboBox.appendChild(item);
+
+            if (key === currentValue) {
+              item.classList.add('selected');
+            }
+          }
+        }
+      }
+
+      comboContainer.appendChild(input);
+      comboContainer.appendChild(comboBox);
+
+      input.addEventListener('focus', () => {
+        document.querySelectorAll('.combobox-content').forEach((box) => { // NOSONAR
+          if (box !== comboBoxId) {
+            box.classList.remove('combobox-show');
+          }
+        });
+        const triggerRect = input.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - triggerRect.bottom;
+        // get the height of the client
+        const { clientHeight } = document.documentElement;
+
+        // Check if the space below is less than 400px to place the dropdown on top or bottom
+        if (spaceBelow < Math.min(400, clientHeight / 2)) {
+          comboBox.style.bottom = `${triggerRect.height}px`;
+          comboBox.style.top = 'auto';
+        } else {
+          comboBox.style.top = 'auto';
+          comboBox.style.bottom = 'auto';
+        }
+
+        comboBox.classList.add('combobox-show');
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('.combobox')) {
+          document.querySelectorAll('.combobox-content').forEach((box) => { // NOSONAR
+            box.classList.remove('combobox-show');
+          });
+        }
+      });
+
+      input.addEventListener('input', () => {
+        const filter = input.value.toLowerCase();
+        const items = comboBox.getElementsByTagName('div');
+
+        for (const element of items) {
+          const textValue = element.textContent || element.innerText;
+          if (textValue.toLowerCase().includes(filter)) {
+            element.style.display = '';
+          } else {
+            element.style.display = 'none';
+          }
+        }
+      });
+
+      comboBox.addEventListener('click', (event) => {
+        if (event.target.tagName === 'DIV') {
+          const selectedValue = event.target.dataset.value;
+          input.value = event.target.textContent;
+          comboBox.classList.remove('combobox-show');
+          const filterName = name.toLowerCase();
+          anonymousFilter[filterName] = selectedValue;
+          if (selectedValue === 'all') {
+            anonymousUserResponse = null;
+            anonymousUserData = null;
+          }
+          anonymousContainer.innerHTML = renderSkeleton('tracking');
+          onFilterInput(selectedValue === 'all' ? '' : selectedValue, `anonymous${name}`, renderAnonymous, 0);
+        }
+      });
+
+      return comboContainer;
+    };
+
+    const anonymousGridContent = ['ip', 'event', 'date', 'url', 'location', 'referrer', 'browser', 'device']
+      .map((id) => `<div id="anon-${id}"></div>`)
+      .join('');
+    anonymousContainer.innerHTML = `<div class="anonymous-grid">${anonymousGridContent}</div>`;
+    document.getElementById('anon-event').appendChild(generateCombobox('event-input', 'event-content', events, 'Event'));
+
+    document.getElementById('anon-location').appendChild(
+      generateCombobox('location-input', 'location-content', locations, 'Location'),
+    );
+
+    document.getElementById('anon-referrer').appendChild(
+      generateCombobox('referrer-input', 'referrer-content', referrers, 'Referrer'),
+    );
+
+    document.getElementById('anon-browser').appendChild(
+      generateCombobox('browser-input', 'browser-content', browsers, 'Browser'),
+    );
+
+    document.getElementById('anon-device').appendChild(generateCombobox('device-input', 'device-content', devices, 'Device'));
+
     anonymousContainer.append(anonymousTable.wrapper);
 
     // eslint-disable-next-line no-new
-    new Clusterize({
+    new Clusterize({ // NOSONAR
       rows: anonymousTable.tbody.children,
       rows_in_block: 80,
       scrollId: 'scrollArea-anonymous',
       contentId: 'contentArea-anonymous',
     });
+    filterEventlistener('.filter-anonymous', 'ip', renderAnonymous, 0, () => {
+      anonymousContainer.innerHTML = renderSkeleton('tracking'); anonymousUserResponse = null; anonymousUserData = null;
+    });
   };
-  filterEventlistener('.filter-anonymous', 'ip', renderAnonymous);
 
   renderUsers();
   renderDeletedUsers();
