@@ -1,44 +1,73 @@
 import {
-  getUserSettings,
+  getUserSettings, OOPS, parseFragment,
   SCRIPT_API,
-  updateUserSettings,
+  updateUserSettings, waitForAuthenticated,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 
 export default async function renderAccount({ container, nav }) {
   container.insertAdjacentHTML('afterbegin', renderSkeleton('account'));
 
+  await waitForAuthenticated();
+  const token = await window.auth0Client.getTokenSilently();
+
   const [userSettings, user] = await Promise.all([
     getUserSettings(SCRIPT_API),
     window.auth0Client.getUser(),
   ]);
 
+  fetch(`${SCRIPT_API}/account-usage`, {
+    headers: {
+      authorization: `bearer ${token}`,
+    },
+  })
+    .then((res) => res.json())
+    .then(([pageViews, sentEmails]) => {
+      const maxPageViews = 5000;
+      const maxSentEmails = 500;
+
+      const pageViewsPercentage = (pageViews * 100) / maxPageViews;
+      const sentEmailsPercentage = (sentEmails * 100) / maxSentEmails;
+
+      container.querySelector('.account-usage-skeleton').replaceWith(...parseFragment(`
+        <h2 style="margin-top: 32px">Monthly consumption</h2>
+        <div class="usage-meter">
+            <div style="width:${pageViewsPercentage}%"></div>
+            <span>${pageViews} / ${maxPageViews} Page Views</span>
+        </div>
+        <div class="usage-meter">
+            <div style="width:${sentEmailsPercentage}%"></div>
+            <span>${sentEmails} / ${maxSentEmails} Sent Emails</span>
+        </div>
+      `));
+    }).catch(() => {
+      container.querySelector('.account-usage-skeleton').replaceWith(...parseFragment(`
+          <h2 style="margin-top: 32px">Monthly consumption</h2>
+          <p>${OOPS}</p>
+        `));
+    });
+
   nav.innerHTML = `<a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>`;
 
-  container.insertAdjacentHTML(
-    'afterbegin',
-    `
-  <div class="cards">
-    <div class="box">
-        <strong>Name</strong>
-        <span title="${user.name}">${user.name}</span>
-    </div>
-    <div class="box">
-        <strong>Email</strong>
-        <span title="${user.email}">${user.email}</span>
-    </div>
-    <div class="box" id="current-plan-wrapper">
-        <strong>Plan</strong>
-        <span id="current-plan">Free</span>
-    </div>
+  container.querySelector('.account-details-skeleton').replaceWith(...parseFragment(`
+    <div class="cards">
+      <div class="box">
+          <strong>Name</strong>
+          <span title="${user.name}">${user.name}</span>
+      </div>
+      <div class="box">
+          <strong>Email</strong>
+          <span title="${user.email}">${user.email}</span>
+      </div>
+      <div class="box" id="current-plan-wrapper">
+          <strong>Active Plan</strong>
+          <span id="current-plan">Free Plan</span>
+      </div>
     </div>
     <div id="toggle-auto-tour">
-    <button id="toggle-auto-tour-button" class="button secondary action">Enable Auto Tour</button>
-  </div>
-  `,
-  );
-
-  container.querySelector('[aria-label="loading"]').remove();
+      <button id="toggle-auto-tour-button" class="button secondary action">Enable Auto Tour</button>
+    </div>
+  `));
 
   const toggleAutoTourButton = container.querySelector('#toggle-auto-tour-button');
 

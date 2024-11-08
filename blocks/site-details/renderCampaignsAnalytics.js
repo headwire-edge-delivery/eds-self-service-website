@@ -1,7 +1,7 @@
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import {
   dateToRelativeSpan,
-  EMAIL_WORKER_API, parseFragment, SCRIPT_API,
+  EMAIL_WORKER_API, parseFragment, safeText, SCRIPT_API,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { createDialog } from '../../scripts/dialogs.js';
@@ -172,14 +172,16 @@ export default async function renderCampaignsAnalytics({
         </div>
         
         <h2 id="email-details">Email details</h2>
-        <input value="${search}" type="search" placeholder="Filter" class="filter-email-details filter">
+        <input value="${safeText(search)}" type="search" placeholder="Filter" class="filter-email-details filter">
         <div class="email-details clusterize">
           ${renderSkeleton('campaign-tracking')}
         </div>
       `;
 
+  const emailFilter = container.querySelector('.filter-email-details');
+
   // eslint-disable-next-line func-names
-  document.querySelector('.filter-email-details').oninput = (function () {
+  emailFilter.oninput = (function () {
     let debounceTimer;
     // eslint-disable-next-line func-names
     return function (event) {

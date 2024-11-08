@@ -160,24 +160,32 @@ export default async function renderUserTab({ container }) {
   const userSearchMinLength = 3; // auth0 returns nothing if query is less than 3 characters
   container.innerHTML = `
     <h2 id="user-activity">User activity</h2>
-    <input value="${filterByMail}" type="search" minlength="3" placeholder="Filter by user email" class="filter-users filter">
+    <input type="search" minlength="3" placeholder="Filter by user email" class="filter-users filter">
     <p id="user-filter-info" style="display: none">Must be at least ${userSearchMinLength} Characters long</p>
     <div class="known-users clusterize">
       ${renderSkeleton('tracking', Math.min(limit || 100, 5))}
     </div>
     
     <h2 id="deleted-users">Deleted users</h2>
-    <input value="${filterByDeletedMail}" type="search" placeholder="Filter by user email" class="filter-deleted-users filter">
+    <input type="search" placeholder="Filter by user email" class="filter-deleted-users filter">
     <div class="deleted-users clusterize">
       ${renderSkeleton('tracking', Math.min(deletedlimit || 100, 5))}
     </div>
         
     <h2 id="anonymous-activity">Anonymous activity</h2>
-    <input value="${filterByIp}" type="search" placeholder="Filter by IP" class="filter-anonymous filter">
+    <input type="search" placeholder="Filter by IP" class="filter-anonymous filter">
     <div class="anonymous-users clusterize">
       ${renderSkeleton('tracking')}
     </div>
   `;
+
+  const filterUsersInput = container.querySelector('.filter-users.filter');
+  filterUsersInput.value = filterByMail;
+  const filterDeletedUsersInput = container.querySelector('.filter-deleted-users.filter');
+  filterDeletedUsersInput.value = filterByDeletedMail;
+  const filterAnonymousUsersInput = container.querySelector('.filter-anonymous.filter');
+  filterAnonymousUsersInput.value = filterByIp;
+
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
 
@@ -284,7 +292,7 @@ export default async function renderUserTab({ container }) {
   const renderUsers = async (rerender = true) => {
     filterByMail = readQueryParams().user || '';
     const userFilterInfo = container.querySelector('#user-filter-info');
-    const userFilterLength = container.querySelector('.filter-users').value.length;
+    const userFilterLength = filterUsersInput.value.length;
     let rerequest = false;
     if (filterByMail.length < userSearchMinLength) {
       filterByMail = '';
