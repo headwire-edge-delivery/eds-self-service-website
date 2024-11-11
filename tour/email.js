@@ -18,7 +18,7 @@ function campaignEmailsTour({ showAutoTour }) {
       {
         title: 'New Campaign',
         description: 'Start a new campaign for emails.',
-        element: '#new-campaign',
+        element: '#add-campaign',
       },
       {
         title: 'Emails',
