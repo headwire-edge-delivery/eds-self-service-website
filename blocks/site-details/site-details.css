@@ -20,7 +20,7 @@
   padding-bottom: 24px;
 }
 
-.site-details.block #pages-overview h2 {
+.site-details.block :is(#pages-overview, #seo-overview) h2 {
   margin-top: 0;
   padding-top: 0;
 }
@@ -146,6 +146,16 @@
   width: 120px;
 }
 
+.site-details.block .badge.small {
+  display: inline-block;
+  width: auto;
+  text-transform: inherit;
+  font-weight: inherit;
+  padding: 4px 8px;
+  margin: 4px;
+  font-size: 14px;
+}
+
 .site-details.block .badge.green {
   background-color: var(--green);
   color: var(--white);
@@ -250,6 +260,15 @@
   gap: 8px;
   flex-wrap: wrap;
   margin: 0 0 24px;
+}
+
+.site-details.block .seo-audit .og-image img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  background-color: var(--light-gray);
+  border-radius: var(--small-border-radius);
 }
 
 .site-details.block .period-selector {

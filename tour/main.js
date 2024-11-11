@@ -1,22 +1,23 @@
+import { dashboardSitesTour, dashboardAccountTour } from './dashboard.js';
 import {
-  dashboardAccountTour,
-  dashboardSitesTour,
-  homepageTour,
-  noTourAvailable,
   createTemplateTour,
   wkndTemplateTour,
   sportsTemplateTour,
   clubTemplateTour,
+} from './templates.js';
+import homepageTour from './homepage.js';
+import noTourAvailable from './noTour.js';
+import {
   siteOverviewTour,
   sitePagesTour,
   siteMonitoringTour,
-  campaignEmailsTour,
-  campaignEmailsAudienceTour,
-  campaignEmailAnalyticsTour,
-  emailTour,
-  settingsGeneralTour,
-  settingsThemeTour, adminTour,
-} from './index.js';
+} from './site.js';
+import {
+  campaignEmailsTour, campaignEmailsAudienceTour, campaignEmailAnalyticsTour, emailTour,
+} from './email.js';
+import { settingsGeneralTour, settingsThemeTour } from './settings.js';
+import adminTour from './admin.js';
+import SEOTour from './seo.js';
 import generateTour from './generateTour.js';
 import { getUserSettings } from '../scripts/scripts.js';
 
@@ -178,6 +179,9 @@ const startTour = (isAutoTour, showDisableTour = false) => {
         break;
       case switchCase('/site/', '/audience'):
         getTour(campaignEmailsAudienceTour);
+        break;
+      case switchCase('/site/', '/seo'):
+        getTour(SEOTour);
         break;
       case switchCase('/site/', '/campaign-analytics'):
         getTour(campaignEmailAnalyticsTour);

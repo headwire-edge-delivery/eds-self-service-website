@@ -12,6 +12,7 @@ import renderSettingsGeneral from './renderSettingsGeneral.js';
 import renderSiteAnalytics from './renderSiteAnalytics.js';
 import renderSiteOverview from './renderSiteOverview.js';
 import renderSitePages from './renderSitePages.js';
+import renderSiteSEO from './renderSiteSEO.js';
 
 /**
  * MARK: Decorate
@@ -68,6 +69,12 @@ export default async function decorate(block) {
         href: `${pathname}/pages`,
         iconSrc: '/icons/web.svg',
         renderTab: renderSitePages,
+      },
+      {
+        name: 'SEO',
+        href: `${pathname}/seo`,
+        iconSrc: '/icons/seo.svg',
+        renderTab: renderSiteSEO,
       },
       {
         name: 'Web analytics',
