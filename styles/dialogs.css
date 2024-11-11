@@ -272,9 +272,6 @@ dialog #additional-font-picker .font-preview * {
 dialog #additional-font-picker .font-list {
     height: 100%;
     width: 30%;
-}
-
-dialog #additional-font-picker .font-list {
     display: flex;
     flex-direction: column;
 }
@@ -295,7 +292,7 @@ dialog #additional-font-picker .font-list ul {
     overflow: auto;
     list-style: none;
     padding: 0;
-    margin: 16px 0 0 0;
+    margin: 16px 0 0;
 }
 
 dialog #additional-font-picker .font-list li {

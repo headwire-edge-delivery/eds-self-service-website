@@ -3,11 +3,6 @@ import { parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
 
 const fontWeights = ['300', '400', '700'];
 const fontsKey = 'AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps';
-const fontWeightLabels = {
-  300: 'Light',
-  400: 'Regular',
-  700: 'Bold',
-};
 
 const moreOptionValue = 'FONTS_MORE_VALUE';
 
@@ -238,7 +233,7 @@ export default async function initFontPicker({
     fontList.children[0].click();
 
     const filterFonts = () => {
-      for (let i = 0; i < fontItems.length; i++) {
+      for (let i = 0; i < fontItems.length; i += 1) {
         const currItem = fontItems[i];
         currItem.hidden = null;
 
