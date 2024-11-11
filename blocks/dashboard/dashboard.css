@@ -220,13 +220,13 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .users {
 
 /* MARK: Dark Alley */
 
-.dashboard.block .dark-alley-section {
+.dashboard.block .sites-list-dark-alley {
   display: none;
 }
 
 body:is(.is-headwire, .is-adobe, .is-test-user)
   .dashboard.block
-  .dark-alley-section {
+  .sites-list-dark-alley {
   display: block;
 }
 
