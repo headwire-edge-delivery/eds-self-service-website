@@ -312,6 +312,10 @@
     transform: rotate(0deg);
 }
 
+.theme-editor.block option[value="FONTS_MORE_VALUE"] {
+    font-family: var(--font-family);
+}
+
 @media (width < 768px) {
     .theme-editor.block {
         --content-height: calc(80vh - 48px);

@@ -164,6 +164,17 @@ export default async function initFontPicker({
 
     wrapper.innerHTML = `
       <aside class="font-list">
+        <div class="filters">
+          <input type="search" placeholder="Search fonts" class="font-filter" />
+          <select class="sort-select">
+            <option selected value="popularity">Popularity</option>
+            <option value="alpha">A - Z</option>
+            <option value="reverse-alpha">Z - A</option>
+            <option value="mod-date">Last Updated</option>
+          </select>
+          <select class="category-select">
+          </select>
+        </div>
         <ul></ul>
       </aside>
       <div class="font-preview">
@@ -175,7 +186,18 @@ export default async function initFontPicker({
 
     const fontList = wrapper.querySelector('ul');
     const preview = wrapper.querySelector('.font-preview');
+    const searchInput = wrapper.querySelector('.font-filter');
+    const categorySelect = wrapper.querySelector('.category-select');
 
+    const categoriesMap = { all: true };
+    const currentFilters = {
+      category: 'all',
+      search: searchInput.value,
+    };
+    const sortSelect = wrapper.querySelector('.sort-select');
+    const fontItems = [];
+
+    // MARK: Observer
     const itemViewObserver = new IntersectionObserver((entries, observer) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -197,6 +219,11 @@ export default async function initFontPicker({
       const li = document.createElement('li');
       li.classList.add('font-item');
       li.dataset.value = font.family;
+      li.dataset.category = font.category;
+      if (!categoriesMap[font.category]) { // add new categories
+        categoriesMap[font.category] = true;
+      }
+      li.dataset.lastModified = Date.parse(font.lastModified);
       li.innerText = font.family;
       li.dataset.index = index;
       li.style.fontFamily = `'${font.family}', sans-serif`;
@@ -206,8 +233,67 @@ export default async function initFontPicker({
         itemViewObserver.observe(li);
       }
       li.onclick = liOnclick;
+      fontItems.push(li);
     });
     fontList.children[0].click();
+
+    const filterFonts = () => {
+      for (let i = 0; i < fontItems.length; i++) {
+        const currItem = fontItems[i];
+        currItem.hidden = null;
+
+        // search check
+        if (
+          currentFilters?.search?.length
+          && !currItem.dataset.value.toLowerCase().includes(currentFilters.search.toLowerCase())
+        ) {
+          currItem.hidden = true;
+          continue;
+        }
+
+        // category check
+        if (
+          currentFilters?.category !== 'all'
+          && currItem.dataset.category !== currentFilters.category
+        ) {
+          currItem.hidden = true;
+          continue;
+        }
+      }
+    };
+
+    // MARK: filter
+    Object.keys(categoriesMap).forEach((category) => {
+      const option = document.createElement('option');
+      option.value = category;
+      option.innerText = category;
+      categorySelect.append(option);
+    });
+
+    searchInput.oninput = () => {
+      currentFilters.search = searchInput.value;
+      filterFonts();
+    };
+
+    categorySelect.onchange = () => {
+      currentFilters.category = categorySelect.value;
+      filterFonts();
+    };
+
+    // MARK: sort
+    const sortFnLookup = {
+      popularity: (a, b) => Number(a.dataset.index) - Number(b.dataset.index),
+      alpha: (a, b) => a.dataset.value.localeCompare(b.dataset.value),
+      'reverse-alpha': (a, b) => b.dataset.value.localeCompare(a.dataset.value),
+      'mod-date': (a, b) => Number(a.dataset.lastModified) - Number(b.dataset.lastModified),
+    };
+    sortSelect.onchange = () => {
+      if (!sortFnLookup[sortSelect.value]) return;
+
+      fontItems.sort(sortFnLookup[sortSelect.value]);
+      fontList.append(...fontItems);
+      filterFonts();
+    };
 
     const confirmButton = document.createElement('button');
     confirmButton.className = 'button action primary';

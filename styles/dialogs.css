@@ -274,16 +274,28 @@ dialog #additional-font-picker .font-list {
     width: 30%;
 }
 
+dialog #additional-font-picker .font-list {
+    display: flex;
+    flex-direction: column;
+}
+
+dialog #additional-font-picker .font-list .filters {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
 dialog #additional-font-picker .font-list ul {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    height: 100%;
+    height: auto;
+    flex: 1;
     width: 100%;
     overflow: auto;
     list-style: none;
-    padding: 16px 0;
-    margin: 0;
+    padding: 0;
+    margin: 16px 0 0 0;
 }
 
 dialog #additional-font-picker .font-list li {
@@ -296,8 +308,31 @@ dialog #additional-font-picker .font-list li {
     cursor: pointer;
 }
 
+dialog #additional-font-picker li,
+dialog #additional-font-picker select,
+dialog #additional-font-picker option {
+    text-transform: capitalize;
+}
+
 dialog #additional-font-picker .font-list li.is-selected,
 dialog #additional-font-picker .font-list li:hover {
     background-color: var(--blue);
     color: var(--white);
+}
+
+@media (width < 768px) {
+    dialog #additional-font-picker {
+        flex-direction: column;
+    }
+
+    dialog #additional-font-picker .font-list,
+    dialog #additional-font-picker .font-preview {
+        width: 100%;
+    }
+
+    dialog #additional-font-picker .font-list {
+        height: 50%;
+    }
+
+
 }
