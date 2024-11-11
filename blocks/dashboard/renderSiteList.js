@@ -30,14 +30,14 @@ const generateThumbnails = () => {
   });
 };
 
-async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
+async function fetchProjects(token, type = 'googleDrive', queryParams = {}) {
   const userSettings = await getUserSettings(SCRIPT_API);
-  let currentPage = parseInt(readQueryParams().page, 10) || 1;
-  let currentDaPage = parseInt(readQueryParams().dapage, 10) || 1;
-  const limit = parseInt(readQueryParams().limit, 10) || 9;
-  const daLimit = parseInt(readQueryParams().dalimit, 10) || limit;
-  const search = readQueryParams().search || '';
-  const owner = readQueryParams().owner || userSettings?.filterByOwner || 'all';
+  let currentPage = parseInt(queryParams.page, 10) || 1;
+  let currentDaPage = parseInt(queryParams.dapage, 10) || 1;
+  const limit = parseInt(queryParams.limit, 10) || 9;
+  const daLimit = parseInt(queryParams.dalimit, 10) || limit;
+  const search = queryParams.search || '';
+  const owner = queryParams.owner || userSettings?.filterByOwner || 'all';
   const isDarkAlley = type === 'darkAlley';
   const sitesList = document.querySelector(isDarkAlley ? '.sites-list-dark-alley' : '.sites-list-google-drive');
   const currentLimit = Math.max(1, parseInt(isDarkAlley ? daLimit : limit, 10));
@@ -61,9 +61,10 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
 
     const ul = sitesList.querySelector('.my-sites-overview');
 
-    projects.forEach(({ projectSlug, projectName, projectDescription }) => {
-      const listItem = document.createElement('li');
-      listItem.innerHTML = `
+    if (projects.length) {
+      projects.forEach(({ projectSlug, projectName, projectDescription }) => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
         <a>
           <div class="project-thumbnail" ></div>
           <div class="project-content">
@@ -74,26 +75,28 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
         </a>
       `;
 
-      listItem.querySelector('a').href = `/${isDarkAlley ? 'da-site' : 'site'}/${projectSlug}/overview`;
-      listItem.querySelector('.project-thumbnail').dataset.src = `https://${projectSlug}.${KESTREL_ONE}`;
-      const h2 = listItem.querySelector('h2');
-      h2.textContent = projectName;
-      h2.title = projectName;
-      const [slugP, descP] = listItem.querySelectorAll('p');
-      slugP.title = projectSlug;
-      slugP.children[0].textContent = projectSlug; // in strong
-      descP.title = projectDescription || '';
-      descP.innerText = projectDescription || '';
+        listItem.querySelector('a').href = `/${isDarkAlley ? 'da-site' : 'site'}/${projectSlug}/overview`;
+        listItem.querySelector('.project-thumbnail').dataset.src = `https://${projectSlug}.${KESTREL_ONE}`;
+        const h2 = listItem.querySelector('h2');
+        h2.textContent = projectName;
+        h2.title = projectName;
+        const [slugP, descP] = listItem.querySelectorAll('p');
+        slugP.title = projectSlug;
+        slugP.children[0].textContent = projectSlug; // in strong
+        descP.title = projectDescription || '';
+        descP.innerText = projectDescription || '';
 
-      ul.append(listItem);
-    });
+        ul.append(listItem);
+      });
+    } else {
+      ul.outerHTML = '<div class="no-projects-container"><p>No sites found</p><a href="/" id="create-new-button" title="Create new site" class="button primary action new">Let\'s create a new site</a></div>';
+    }
 
     const newSitesList = sitesList.cloneNode(true);
     // This clears the old event listeners
     sitesList.replaceWith(newSitesList);
 
     newSitesList.addEventListener('click', (event) => {
-      const { scrollY } = window;
       const button = event.target.closest('.paginator');
       if (button) {
         const newPage = Number(button.getAttribute('data-change-to'));
@@ -104,17 +107,13 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
           currentPage = newPage;
           writeQueryParams({ page: currentPage });
         }
-        newSitesList.innerHTML = renderSkeleton('sites');
+        newSitesList.innerHTML = renderSkeleton('sites', isDarkAlley ? daLimit : limit);
 
-        fetchProjects(token, type, scrollY);
+        fetchProjects(token, type, readQueryParams());
       }
     });
 
     generateThumbnails();
-
-    if (scrollTo) {
-      window.location.hash = `#${isDarkAlley ? 'da-sites' : 'sites'}`;
-    }
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error(error);
@@ -125,12 +124,14 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
 export default async function renderSites({ container, nav }) {
   const userSettings = await getUserSettings(SCRIPT_API);
   const token = await window.auth0Client.getTokenSilently();
+  const queryParams = readQueryParams();
   // List all sites (Dark Alley & Google Drive)
-  const fetchAllSites = (scrollTo = false) => {
-    container.querySelector('.sites-list-dark-alley').innerHTML = `<div class="sites">${renderSkeleton('sites')}</div>`;
-    container.querySelector('.sites-list-google-drive').innerHTML = `<div class="sites">${renderSkeleton('sites')}</div>`;
-    fetchProjects(token, 'darkAlley', scrollTo);
-    fetchProjects(token, 'googleDrive', scrollTo);
+  const fetchAllSites = () => {
+    const limit = queryParams.limit ?? 9;
+    container.querySelector('.sites-list-dark-alley').innerHTML = `<div class="sites">${renderSkeleton('sites', parseInt(queryParams.dalimit ?? limit, 10))}</div>`;
+    container.querySelector('.sites-list-google-drive').innerHTML = `<div class="sites">${renderSkeleton('sites', parseInt(limit, 10))}</div>`;
+    fetchProjects(token, 'darkAlley', queryParams);
+    fetchProjects(token, 'googleDrive', queryParams);
   };
 
   container.innerHTML = '<div class="sites"></div>';
@@ -138,9 +139,9 @@ export default async function renderSites({ container, nav }) {
 
   await waitForAuthenticated();
 
-  const search = readQueryParams().search || '';
+  const search = queryParams.search || '';
 
-  const owner = readQueryParams().owner || userSettings?.filterByOwner || 'all';
+  const owner = queryParams.owner || userSettings?.filterByOwner || 'all';
   const sites = container.querySelector('.sites');
   const filter = `<ul class="owner-selector">
           <li data-owner="all"><button class="button selector action secondary ${owner === 'all' ? 'is-selected' : ''}">Owner: Anyone</button></li>

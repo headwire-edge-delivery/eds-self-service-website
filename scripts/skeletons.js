@@ -67,7 +67,7 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'sites') {
-    const cards = [...Array(6)].map(() => '<div class="skeleton" style="width: 286px; height: 376px;"></div>').join('');
+    const cards = [...Array(children ?? 6)].map(() => '<div class="skeleton" style="width: 286px; height: 376px;"></div>').join('');
 
     return `
       <div aria-label="loading">

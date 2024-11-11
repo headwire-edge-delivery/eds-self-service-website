@@ -218,6 +218,13 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .users {
   font-size: 14px;
 }
 
+.sites-list .no-projects-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  grid-column: 1 / -1;
+}
+
 /* MARK: Dark Alley */
 
 .dashboard.block .sites-list-dark-alley {
