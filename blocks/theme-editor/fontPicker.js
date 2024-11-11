@@ -43,19 +43,6 @@ export default async function initFontPicker({
     ...defaultFonts.map((font) => ({ family: font })),
   ];
 
-  // customFonts = [
-  //   ...customFonts,
-  //   ...defaultFonts.map((font) => ({ family: font }))
-  // ].sort((a, b) => {
-  //   if (a.family < b.family) {
-  //     return -1;
-  //   }
-  //   if (a.family > b.family) {
-  //     return 1;
-  //   }
-  //   return 0;
-  // });
-
   const updateFonts = async (selectedFont, newFont) => {
     const selectedFonts = [...block.querySelectorAll('.font-picker')].map((el) => el.value);
     const selectedCustomFonts = selectedFonts.filter((font) => !defaultFonts.includes(font));
