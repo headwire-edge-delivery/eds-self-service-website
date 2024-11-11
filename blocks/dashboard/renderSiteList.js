@@ -7,6 +7,8 @@ import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
 
+const defaultLimit = 6;
+
 const generateThumbnails = () => {
   const sitesList = document.querySelector('.sites-list');
   sitesList.querySelectorAll('.project-thumbnail').forEach((thumbnail) => {
@@ -34,7 +36,7 @@ async function fetchProjects(token, type = 'googleDrive', queryParams = {}) {
   const userSettings = await getUserSettings(SCRIPT_API);
   let currentPage = parseInt(queryParams.page, 10) || 1;
   let currentDaPage = parseInt(queryParams.dapage, 10) || 1;
-  const limit = parseInt(queryParams.limit, 10) || 9;
+  const limit = parseInt(queryParams.limit, 10) || defaultLimit;
   const daLimit = parseInt(queryParams.dalimit, 10) || limit;
   const search = queryParams.search || '';
   const owner = queryParams.owner || userSettings?.filterByOwner || 'all';
@@ -127,7 +129,7 @@ export default async function renderSites({ container, nav }) {
   const queryParams = readQueryParams();
   // List all sites (Dark Alley & Google Drive)
   const fetchAllSites = () => {
-    const limit = queryParams.limit ?? 9;
+    const limit = queryParams.limit ?? defaultLimit;
     container.querySelector('.sites-list-dark-alley').innerHTML = `<div class="sites">${renderSkeleton('sites', parseInt(queryParams.dalimit ?? limit, 10))}</div>`;
     container.querySelector('.sites-list-google-drive').innerHTML = `<div class="sites">${renderSkeleton('sites', parseInt(limit, 10))}</div>`;
     fetchProjects(token, 'darkAlley', queryParams);
