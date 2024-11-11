@@ -3,7 +3,7 @@ import {
   OOPS,
   parseFragment,
   SCRIPT_API,
-  projectRepo,
+  projectRepo, safeText,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, createDialog } from '../../scripts/dialogs.js';
@@ -99,7 +99,7 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
 
     tableRow.innerHTML = `
       <td class="og-image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
-      <td><strong>${item.name}</strong></td>  
+      <td><strong>${safeText(item.name)}</strong></td>  
       <td class="og-title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
       <td class="og-description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
       <td class="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
