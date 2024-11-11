@@ -126,9 +126,10 @@ async function fetchProjects(token, type = 'googleDrive', queryParams = {}) {
 export default async function renderSites({ container, nav }) {
   const userSettings = await getUserSettings(SCRIPT_API);
   const token = await window.auth0Client.getTokenSilently();
-  const queryParams = readQueryParams();
+  let queryParams = readQueryParams();
   // List all sites (Dark Alley & Google Drive)
   const fetchAllSites = () => {
+    queryParams = readQueryParams();
     const limit = queryParams.limit ?? defaultLimit;
     container.querySelector('.sites-list-dark-alley').innerHTML = `<div class="sites">${renderSkeleton('sites', parseInt(queryParams.dalimit ?? limit, 10))}</div>`;
     container.querySelector('.sites-list-google-drive').innerHTML = `<div class="sites">${renderSkeleton('sites', parseInt(limit, 10))}</div>`;
