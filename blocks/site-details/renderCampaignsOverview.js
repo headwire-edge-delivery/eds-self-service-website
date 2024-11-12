@@ -573,4 +573,10 @@ export default async function renderCampaignsOverview({
   onHistoryPopArray.push((currentItem) => {
     campaignList.querySelector(`[href="${currentItem}"]`).click();
   });
+
+  const addCampaignLink = document.querySelector(`.tabs-aside a[href="/site/${siteSlug}/emails"].add-campaign`);
+  if (addCampaignLink) {
+    addCampaignLink.classList.remove('add-campaign');
+    addCampaignEl.click();
+  }
 }

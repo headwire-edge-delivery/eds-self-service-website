@@ -286,4 +286,23 @@ export default async function renderCampaignsAnalytics({
     container.querySelector('.campaign-list[data-type="analytics"] a').click();
     replaceHistory(`${pathname}/campaign-analytics`);
   }
+
+  if (window.location.pathname === `${pathname}/campaign-analytics` && campaignList.childElementCount === 1) {
+    container.insertAdjacentHTML('afterbegin', `
+      <div class="well">
+        <img src="/icons/illustrations/pc.svg" alt="" loading="lazy"/>
+        <div class="text">
+          <h2>Create your first campaign</h2>
+          <p>It’s never been easier to start a campaign. Create a campaign email, edit your content and send it out to your audience.</p>
+          <button class="button primary">Start now</button>
+        </div>
+      </div>
+    `);
+
+    container.querySelector('.well button').onclick = () => {
+      const link = document.querySelector(`.tabs-aside a[href="/site/${siteSlug}/emails"]`);
+      link.classList.add('add-campaign');
+      link.click();
+    };
+  }
 }
