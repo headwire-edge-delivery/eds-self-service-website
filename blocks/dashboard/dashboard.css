@@ -218,6 +218,10 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .users {
   font-size: 14px;
 }
 
+.dashboard.block .sites-list > section:has(.my-sites-overview:empty) > h2  {
+  display: none;
+}
+
 /* MARK: Dark Alley */
 
 .dashboard.block .sites-list-dark-alley {

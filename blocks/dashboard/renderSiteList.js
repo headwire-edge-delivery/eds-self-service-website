@@ -30,40 +30,48 @@ const generateThumbnails = () => {
   });
 };
 
-async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
+export default async function renderSites({ container, nav }) {
   const userSettings = await getUserSettings(SCRIPT_API);
-  let currentPage = parseInt(readQueryParams().page, 10) || 1;
-  let currentDaPage = parseInt(readQueryParams().dapage, 10) || 1;
-  const limit = parseInt(readQueryParams().limit, 10) || 9;
-  const daLimit = parseInt(readQueryParams().dalimit, 10) || limit;
-  const search = readQueryParams().search || '';
-  const owner = readQueryParams().owner || userSettings?.filterByOwner || 'all';
-  const isDarkAlley = type === 'darkAlley';
-  const sitesList = document.querySelector(isDarkAlley ? '.sites-list-dark-alley' : '.sites-list-google-drive');
-  const currentLimit = Math.max(1, parseInt(isDarkAlley ? daLimit : limit, 10));
-  const actualPage = isDarkAlley ? currentDaPage : currentPage;
-  const url = `${SCRIPT_API}/${isDarkAlley ? 'darkAlleyList' : 'list'}?search=${encodeURIComponent(search)}&limit=${currentLimit}&page=${actualPage}&owner=${owner}`;
+  const token = await window.auth0Client.getTokenSilently();
 
-  const title = isDarkAlley ? '<h2 id="da-sites">Dark Alley Sites (Experimental)</h2>' : '<h2 id="sites">Google Drive Sites</h2>';
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'content-type': 'application/json',
-        authorization: `bearer ${token}`,
-      },
-    });
-    const { projects, pagination } = await response.json();
-    sitesList.innerHTML = `
+  const fetchProjects = async (type = 'googleDrive', scrollTo = false) => {
+    let currentPage = parseInt(readQueryParams().page, 10) || 1;
+    let currentDaPage = parseInt(readQueryParams().dapage, 10) || 1;
+    const limit = parseInt(readQueryParams().limit, 10) || 9;
+    const daLimit = parseInt(readQueryParams().dalimit, 10) || limit;
+    const search = readQueryParams().search || '';
+    const owner = readQueryParams().owner || userSettings?.filterByOwner || 'all';
+    const isDarkAlley = type === 'darkAlley';
+    const sitesList = document.querySelector(isDarkAlley ? '.sites-list-dark-alley' : '.sites-list-google-drive');
+    const currentLimit = Math.max(1, parseInt(isDarkAlley ? daLimit : limit, 10));
+    const actualPage = isDarkAlley ? currentDaPage : currentPage;
+    const url = `${SCRIPT_API}/${isDarkAlley ? 'darkAlleyList' : 'list'}?search=${encodeURIComponent(search)}&limit=${currentLimit}&page=${actualPage}&owner=${owner}`;
+
+    const title = isDarkAlley ? '<h2 id="da-sites">Dark Alley Sites (Experimental)</h2>' : '<h2 id="sites">Google Drive Sites</h2>';
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'content-type': 'application/json',
+          authorization: `bearer ${token}`,
+        },
+      });
+      const { projects, pagination } = await response.json();
+      sitesList.innerHTML = `
     ${title}
     <ul class="my-sites-overview" data-totalitems=${pagination.totalItems}></ul>
     ${paginator(pagination.totalItems, currentLimit, actualPage)}
     `;
 
-    const ul = sitesList.querySelector('.my-sites-overview');
+      const ul = sitesList.querySelector('.my-sites-overview');
 
-    projects.forEach(({ projectSlug, projectName, projectDescription }) => {
-      const listItem = document.createElement('li');
-      listItem.innerHTML = `
+      if (!isDarkAlley && !projects.length) {
+        container.querySelector('.well').hidden = false;
+        nav.querySelector('#create-new-button').remove();
+      }
+
+      projects.forEach(({ projectSlug, projectName, projectDescription }) => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
         <a>
           <div class="project-thumbnail" ></div>
           <div class="project-content">
@@ -74,66 +82,73 @@ async function fetchProjects(token, type = 'googleDrive', scrollTo = false) {
         </a>
       `;
 
-      listItem.querySelector('a').href = `/${isDarkAlley ? 'da-site' : 'site'}/${projectSlug}/overview`;
-      listItem.querySelector('.project-thumbnail').dataset.src = `https://${projectSlug}.${KESTREL_ONE}`;
-      const h2 = listItem.querySelector('h2');
-      h2.textContent = projectName;
-      h2.title = projectName;
-      const [slugP, descP] = listItem.querySelectorAll('p');
-      slugP.title = projectSlug;
-      slugP.children[0].textContent = projectSlug; // in strong
-      descP.title = projectDescription || '';
-      descP.innerText = projectDescription || '';
+        listItem.querySelector('a').href = `/${isDarkAlley ? 'da-site' : 'site'}/${projectSlug}/overview`;
+        listItem.querySelector('.project-thumbnail').dataset.src = `https://${projectSlug}.${KESTREL_ONE}`;
+        const h2 = listItem.querySelector('h2');
+        h2.textContent = projectName;
+        h2.title = projectName;
+        const [slugP, descP] = listItem.querySelectorAll('p');
+        slugP.title = projectSlug;
+        slugP.children[0].textContent = projectSlug; // in strong
+        descP.title = projectDescription || '';
+        descP.innerText = projectDescription || '';
 
-      ul.append(listItem);
-    });
+        ul.append(listItem);
+      });
 
-    const newSitesList = sitesList.cloneNode(true);
-    // This clears the old event listeners
-    sitesList.replaceWith(newSitesList);
+      const newSitesList = sitesList.cloneNode(true);
+      // This clears the old event listeners
+      sitesList.replaceWith(newSitesList);
 
-    newSitesList.addEventListener('click', (event) => {
-      const { scrollY } = window;
-      const button = event.target.closest('.paginator');
-      if (button) {
-        const newPage = Number(button.getAttribute('data-change-to'));
-        if (isDarkAlley) {
-          currentDaPage = newPage;
-          writeQueryParams({ dapage: currentDaPage });
-        } else {
-          currentPage = newPage;
-          writeQueryParams({ page: currentPage });
+      newSitesList.addEventListener('click', (event) => {
+        const { scrollY } = window;
+        const button = event.target.closest('.paginator');
+        if (button) {
+          const newPage = Number(button.getAttribute('data-change-to'));
+          if (isDarkAlley) {
+            currentDaPage = newPage;
+            writeQueryParams({ dapage: currentDaPage });
+          } else {
+            currentPage = newPage;
+            writeQueryParams({ page: currentPage });
+          }
+          newSitesList.innerHTML = renderSkeleton('sites');
+
+          fetchProjects(type, scrollY);
         }
-        newSitesList.innerHTML = renderSkeleton('sites');
+      });
 
-        fetchProjects(token, type, scrollY);
+      generateThumbnails();
+
+      if (scrollTo) {
+        window.location.hash = `#${isDarkAlley ? 'da-sites' : 'sites'}`;
       }
-    });
-
-    generateThumbnails();
-
-    if (scrollTo) {
-      window.location.hash = `#${isDarkAlley ? 'da-sites' : 'sites'}`;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error);
+      sitesList.innerHTML = `${title}<p>${OOPS}</p>`;
     }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error(error);
-    sitesList.innerHTML = `${title}<p>${OOPS}</p>`;
-  }
-}
+  };
 
-export default async function renderSites({ container, nav }) {
-  const userSettings = await getUserSettings(SCRIPT_API);
-  const token = await window.auth0Client.getTokenSilently();
   // List all sites (Dark Alley & Google Drive)
   const fetchAllSites = (scrollTo = false) => {
     container.querySelector('.sites-list-dark-alley').innerHTML = `<div class="sites">${renderSkeleton('sites')}</div>`;
     container.querySelector('.sites-list-google-drive').innerHTML = `<div class="sites">${renderSkeleton('sites')}</div>`;
-    fetchProjects(token, 'darkAlley', scrollTo);
-    fetchProjects(token, 'googleDrive', scrollTo);
+    fetchProjects('darkAlley', scrollTo);
+    fetchProjects('googleDrive', scrollTo);
   };
 
-  container.innerHTML = '<div class="sites"></div>';
+  container.innerHTML = `
+    <div class="well" hidden>
+        <img src="/icons/illustrations/pc.svg" alt="" loading="lazy"/>
+        <div class="text">
+          <h2>Create your first website</h2>
+          <p>It’s never been easier to create a website. Pick a template, edit your content and publish to the Web.</p>
+          <a id="create-new-button" href="/" class="button primary">Start now</a>
+        </div>
+    </div>
+    <div class="sites"></div>
+  `;
   nav.innerHTML = '<a href="/" id="create-new-button" title="Create new site" class="button primary action new">Create new site</a>';
 
   await waitForAuthenticated();
