@@ -67,6 +67,7 @@ export default function createBaseBlockHtml(projectSlug) {
           <label>
               <span>Font family</span>
               <select class="font-picker" data-var="heading-font-family"></select>
+              <button class="button secondary action more-fonts">More fonts</button>
           </label>
           <label>
               <span>Font weight</span>
@@ -76,6 +77,7 @@ export default function createBaseBlockHtml(projectSlug) {
           <label>
               <span>Font family</span>
               <select class="font-picker" data-var="body-font-family"></select>
+              <button class="button secondary action more-fonts">More fonts</button>
           </label>
           
           <h2>Colors</h2>

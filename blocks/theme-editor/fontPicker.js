@@ -1,10 +1,7 @@
-import { createDialog } from '../../scripts/dialogs.js';
 import { parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
 
 const fontWeights = ['300', '400', '700'];
 const fontsKey = 'AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps';
-
-const moreOptionValue = 'FONTS_MORE_VALUE';
 
 export default async function initFontPicker({
   varsObj,
@@ -124,59 +121,61 @@ export default async function initFontPicker({
   };
 
   const appendOption = (selectElement, { family, files, variants }) => {
+    const existingOption = selectElement.querySelector(`option[value="${family}"]`);
+    if (existingOption) {
+      return existingOption;
+    }
+
     const option = parseFragment(`<option value="${family}" style="font-family: '${family}', sans-serif;" >${family}</option>`);
     if (files) {
       // google fonts
       appendFontStyles({ family, files, variants });
     }
-    const moreOption = selectElement.querySelector(`option[value="${moreOptionValue}"]`);
-    if (moreOption) {
-      moreOption.before(option);
-    } else {
-      selectElement.append(option);
-    }
+    selectElement.append(option);
     dropdownFonts.push({ family, files, variants });
     return option;
   };
 
-  const moreFontsSelectionDialog = (selectElement) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'more-font-selection-wrapper';
-    wrapper.id = 'additional-font-picker';
-
-    wrapper.innerHTML = `
-      <aside class="font-list">
-        <div class="filters">
-          <input type="search" placeholder="Search fonts" class="font-filter" />
-          <select class="sort-select">
-            <option selected value="popularity">Popularity</option>
-            <option value="alpha">A - Z</option>
-            <option value="reverse-alpha">Z - A</option>
-            <option value="mod-date">Last Updated</option>
-          </select>
-          <select class="category-select">
-          </select>
+  const initMoreFontsPicker = (selectElement) => {
+    const moreFontsPicker = parseFragment(`
+      <div class="more-fonts-picker">
+        <div class="wrapper">
+          <div class="font-list">
+            <div class="filters">
+              <input type="search" placeholder="Search fonts" class="font-filter" />
+              <select class="sort-select">
+                <option selected value="popularity">Popularity</option>
+                <option value="alpha">A - Z</option>
+                <option value="reverse-alpha">Z - A</option>
+                <option value="mod-date">Last Updated</option>
+              </select>
+              <select class="category-select">
+              </select>
+            </div>
+            <ul></ul>
+          </div>
+          <div class="button-container">
+              <button class="button action secondary close-button">Close</button>
+          </div>
         </div>
-        <ul></ul>
-      </aside>
-      <div class="font-preview">
-        <h1 class="heading1">Main Heading</h1>
-        <h2 class="heading2">Sub Heading</h2>
-        <p class="paragraph">Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente enim exercitationem alias delectus, voluptates accusantium voluptas itaque accusamus illo saepe? Nesciunt quod itaque maxime! Deserunt temporibus quia vel autem consectetur nulla aspernatur facilis ratione repellendus odio commodi rerum, sed voluptatem, doloremque officia molestiae recusandae iste consequatur ipsam. Corporis, nostrum minima!</p>
       </div>
-    `;
+    `);
 
-    const fontList = wrapper.querySelector('ul');
-    const preview = wrapper.querySelector('.font-preview');
-    const searchInput = wrapper.querySelector('.font-filter');
-    const categorySelect = wrapper.querySelector('.category-select');
+    const fontList = moreFontsPicker.querySelector('ul');
+    const searchInput = moreFontsPicker.querySelector('.font-filter');
+    const categorySelect = moreFontsPicker.querySelector('.category-select');
+    const closeButton = moreFontsPicker.querySelector('.close-button');
+
+    closeButton.onclick = () => {
+      moreFontsPicker.nextElementSibling.hidden = false;
+    };
 
     const categoriesMap = { all: true };
     const currentFilters = {
       category: 'all',
       search: searchInput.value,
     };
-    const sortSelect = wrapper.querySelector('.sort-select');
+    const sortSelect = moreFontsPicker.querySelector('.sort-select');
     const fontItems = [];
 
     // MARK: Observer
@@ -194,12 +193,18 @@ export default async function initFontPicker({
       fontList.querySelectorAll('.is-selected').forEach((item) => item.classList.remove('is-selected'));
       event.target.classList.add('is-selected');
       fontList.dataset.selectedIndex = event.target.dataset.index;
-      preview.style.fontFamily = event.target.style.fontFamily;
+
+      appendOption(selectElement, validFonts[fontList.dataset.selectedIndex]); // add selected font
+      selectElement.value = validFonts[fontList.dataset.selectedIndex].family;
+      selectElement.onchange();
     };
 
     validFonts.forEach((font, index) => {
       const li = document.createElement('li');
       li.classList.add('font-item');
+      if (selectElement.value === font.family) {
+        li.classList.add('is-selected');
+      }
       li.dataset.value = font.family;
       li.dataset.category = font.category;
       if (!categoriesMap[font.category]) { // add new categories
@@ -217,7 +222,6 @@ export default async function initFontPicker({
       li.onclick = liOnclick;
       fontItems.push(li);
     });
-    fontList.children[0].click();
 
     const filterFonts = () => {
       for (let i = 0; i < fontItems.length; i += 1) {
@@ -277,18 +281,7 @@ export default async function initFontPicker({
       filterFonts();
     };
 
-    const confirmButton = document.createElement('button');
-    confirmButton.className = 'button action primary';
-    confirmButton.innerText = 'Confirm';
-
-    const dialog = createDialog(wrapper, [confirmButton], { fullscreen: true });
-
-    confirmButton.onclick = () => {
-      appendOption(selectElement, validFonts[fontList.dataset.selectedIndex]); // add selected font
-      selectElement.value = validFonts[fontList.dataset.selectedIndex].family;
-      selectElement.onchange();
-      dialog.close();
-    };
+    selectElement.after(moreFontsPicker);
   };
 
   block.querySelectorAll('.font-picker').forEach((el) => {
@@ -298,11 +291,6 @@ export default async function initFontPicker({
     });
 
     el.onchange = () => {
-      if (el.value === 'FONTS_MORE_VALUE') {
-        moreFontsSelectionDialog(el);
-        el.value = selectedFont.value;
-        return;
-      }
       selectedFont = findCSSVar(varsObj.cssVars, el.dataset.var, true);
       updateFonts(selectedFont, el.value);
       warning.hidden = false;
@@ -320,9 +308,11 @@ export default async function initFontPicker({
     el.value = selectedFontOption.value;
     el.style.fontFamily = selectedFontOption.style.fontFamily;
 
-    const moreOption = document.createElement('option');
-    moreOption.value = 'FONTS_MORE_VALUE';
-    moreOption.innerText = 'More Fonts...';
-    el.append(moreOption);
+    el.nextElementSibling.onclick = (event) => {
+      event.target.hidden = true;
+      if (!el.nextElementSibling.classList.contains('more-fonts-picker')) {
+        initMoreFontsPicker(el);
+      }
+    };
   });
 }
