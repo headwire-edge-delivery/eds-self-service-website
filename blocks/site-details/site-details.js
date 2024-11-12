@@ -8,6 +8,7 @@ import {
 import renderCampaignsAnalytics from './renderCampaignsAnalytics.js';
 import renderCampaignsAudience from './renderCampaignsAudience.js';
 import renderCampaignsOverview from './renderCampaignsOverview.js';
+import renderCheckList from './renderCheckList.js';
 import renderSettingsGeneral from './renderSettingsGeneral.js';
 import renderSiteAnalytics from './renderSiteAnalytics.js';
 import renderSiteOverview from './renderSiteOverview.js';
@@ -49,6 +50,7 @@ export default async function decorate(block) {
 
   createTabs({
     block,
+    defaultTab: 0,
     breadcrumbs: [{ name: 'Dashboard', href: '/dashboard/sites' }, { name: siteDetails.project.projectName, href: pathname }],
     renderOptions: {
       projectDetails: siteDetails.project, token, user, siteSlug, pathname, authHeaders, authHeadersWithBody,
@@ -63,6 +65,12 @@ export default async function decorate(block) {
         href: `${pathname}/overview`,
         iconSrc: '/icons/template.svg',
         renderTab: renderSiteOverview,
+      },
+      {
+        name: 'Checklist',
+        href: `${pathname}/checklist`,
+        iconSrc: '/icons/checklist.svg',
+        renderTab: renderCheckList,
       },
       {
         name: 'Pages',

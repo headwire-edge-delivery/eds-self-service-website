@@ -257,6 +257,7 @@ export function createTabs({
   breadcrumbs,
   tabs,
   renderOptions,
+  defaultTab = 0,
 }) {
   const blockContent = block.cloneNode(true);
   block.innerHTML = `
@@ -295,7 +296,7 @@ export function createTabs({
 
   const functionalTabs = tabs.filter((tab) => tab && !tab?.section && !tab?.isLink);
   const tabToSelect = functionalTabs.find(({ href }) => window
-    .location.pathname.startsWith(href)) || functionalTabs[0];
+    .location.pathname.startsWith(href)) || functionalTabs[defaultTab];
 
   let previousSection = '';
 
