@@ -1,3 +1,4 @@
+import { readQueryParams, removeQueryParams } from '../libs/queryParams/queryParams.js';
 import {
   loadHeader,
   loadFooter,
@@ -30,6 +31,51 @@ if (window.location.hostname === 'localhost') {
       event.target.setAttribute('href', event.target.getAttribute('href').replace('/redirect?url=', ''));
     }
   });
+}
+
+export async function completeChecklistItem(projectSlug, itemName) {
+  const checklistDataResponse = await fetch(`${SCRIPT_API}/checklist/${projectSlug}/${itemName}`, { method: 'POST' }).catch(() => null);
+  if (checklistDataResponse?.ok) {
+    document.querySelectorAll(`[data-checklist-property="${itemName}"]`).forEach((el) => { el.dataset.completed = true; });
+  }
+}
+
+export async function highlightElement() {
+  const highlightSelector = decodeURIComponent(readQueryParams().highlight);
+  if (highlightSelector) {
+    removeQueryParams(['highlight']);
+    const getElement = () => document.querySelector(highlightSelector);
+    let found = getElement();
+    if (!found) {
+      // retry find interval
+      await new Promise((resolve) => {
+        let count = 20;
+        const findInterval = setInterval(() => {
+          found = getElement();
+          if (found || count < 0) {
+            clearInterval(findInterval);
+            resolve(found);
+            return;
+          }
+          count -= 1;
+        }, 200);
+      });
+    }
+    if (found) {
+      // highlight with tour
+      window.expedition.js.tour({
+        steps: [
+          {
+            title: 'Test',
+            description: 'Highlight',
+            element: found,
+          },
+        ],
+      }).start();
+    } else {
+      console.warn('element to highlight was not found within max attempts');
+    }
+  }
 }
 
 // extra four, for separators
@@ -283,12 +329,12 @@ export function createTabs({
   const onHistoryPopArray = [];
   function pushHistory(path) {
     historyArray.push(path);
-    window.history.pushState({}, '', path);
+    window.history.pushState({}, '', path + window.location.search);
   }
   function replaceHistory(path) {
     historyArray.pop();
     historyArray.push(path);
-    window.history.replaceState({}, '', path);
+    window.history.replaceState({}, '', path + window.location.search);
   }
   const navItems = block.querySelector('.tabs-nav-items');
   const asideItems = block.querySelector('.tabs-aside ul');

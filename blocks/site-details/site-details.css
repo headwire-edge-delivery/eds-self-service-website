@@ -349,3 +349,71 @@ dialog .clicked-links li {
 .site-details.block.dark-alley .button.sidekick {
   display: none;
 }
+
+/* MARK: Checklist */
+.site-details.block .checklist .checklist-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.site-details.block .checklist .checklist-item {
+  display: flex;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid var(--gray);
+  border-radius: var(--border-radius);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-details.block .checklist .checklist-item[data-completed="true"] {
+  background-color: var(--green);
+}
+
+.site-details.block .checklist-button-container {
+  display: flex;
+  gap: 8px;
+}
+
+.site-details.block .checklist .checklist-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  padding: 2px;
+  margin: 0;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.site-details.block .checklist .checklist-button img {
+  width: 100%;
+  height: 100%;
+}
+
+.site-details.block .checklist .checklist-manual-checkbox {
+  border: 2px solid var(--gray);
+  background-color: var(--light-gray);
+  border-radius: var(--small-border-radius);
+}
+
+.site-details.block .checklist .checklist-manual-checkbox img {
+  opacity: 0;
+  width: 70%;
+  height: 70%;
+
+}
+.site-details.block .checklist .checklist-item[data-completed="true"] .checklist-manual-checkbox img {
+  opacity: 1;
+}
+
+.site-details.block .checklist .open-button img {
+  transform: rotate(-90deg);
+}
+

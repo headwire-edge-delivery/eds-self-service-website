@@ -398,6 +398,10 @@ input[type="color"] {
   color: transparent;
 }
 
+.button.loading * {
+  visibility: hidden;
+}
+
 .button.loading::after {
   content: "";
   position: absolute;
