@@ -78,6 +78,11 @@
   -webkit-box-orient: vertical;
 }
 
+.dashboard.block .sites .well {
+  margin-top: 32px;
+  margin-bottom: 0;
+}
+
 .dashboard.block :is(.sites, .users) > p:only-child {
   display: grid;
   place-items: center;
@@ -216,10 +221,6 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .users {
   top: 0;
   font-weight: 300;
   font-size: 14px;
-}
-
-.dashboard.block .sites-list > section:has(.my-sites-overview:empty) > h2  {
-  display: none;
 }
 
 /* MARK: Dark Alley */
