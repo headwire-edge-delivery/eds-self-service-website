@@ -75,7 +75,7 @@ function dashboardAccountTour({ showAutoTour }) {
       {
         title: 'Account Details',
         description: 'Here you can see your account details.',
-        element: '.account-details',
+        element: '.cards',
         destroyOnClicked: false,
       },
       {
@@ -85,10 +85,20 @@ function dashboardAccountTour({ showAutoTour }) {
         destroyOnClicked: false,
       },
       {
+        title: 'Monthly consumption of Site Page Views',
+        description: 'Keep track of your monthly Page Views for all projects',
+        element: '#pv-usage',
+      },
+      {
+        title: 'Monthly consumption of Sent Emails',
+        description: 'Keep track of your monthly Sent Emails for all projects',
+        element: '#se-usage',
+      },
+      {
         title: 'Upgrade your Plan',
         description: 'If you want to upgrade your free plan, please Contact us.',
         element: '.plans.block',
-        skip: currentPlan !== 'Free',
+        skip: currentPlan !== 'Free Plan',
         destroyOnClicked: false,
       },
       {

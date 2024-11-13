@@ -31,11 +31,11 @@ export default async function renderAccount({ container, nav }) {
 
       container.querySelector('.account-usage-skeleton').replaceWith(...parseFragment(`
         <h2 style="margin-top: 32px">Monthly consumption</h2>
-        <div class="usage-meter">
+        <div id="pv-usage" class="usage-meter">
             <div style="width:${pageViewsPercentage}%"></div>
             <span>${pageViews} / ${maxPageViews} Page Views</span>
         </div>
-        <div class="usage-meter">
+        <div id="se-usage" class="usage-meter">
             <div style="width:${sentEmailsPercentage}%"></div>
             <span>${sentEmails} / ${maxSentEmails} Sent Emails</span>
         </div>
