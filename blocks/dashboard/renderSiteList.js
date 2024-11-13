@@ -99,7 +99,7 @@ export default async function renderSites({ container, nav }) {
           ul.append(listItem);
         });
       } else {
-        ul.innerHTML = '<p>No Projects found</p>';
+        ul.textContent = 'No Projects found';
       }
 
       const newSitesList = sitesList.cloneNode(true);
@@ -153,11 +153,13 @@ export default async function renderSites({ container, nav }) {
       if (!filter.value && totalItems.googleDrive === 0 && totalItems.darkAlley === 0) {
         well.hidden = false;
         createButton.hidden = true;
+        createButton.removeAttribute('id');
         sites.hidden = true;
         filter.disabled = true;
       } else {
         well.hidden = true;
         createButton.hidden = false;
+        createButton.id = 'create-new-button';
         sites.hidden = false;
         filter.disabled = false;
       }
@@ -170,12 +172,12 @@ export default async function renderSites({ container, nav }) {
   container.innerHTML = `
   <div class="filter-container"></div>
   <div class="well" hidden>
-  <img src="/icons/illustrations/pc.svg" alt="" loading="lazy"/>
-  <div class="text">
-  <h2>Create your first website</h2>
-  <p>It’s never been easier to create a website. Pick a template, edit your content and publish to the Web.</p>
-  <a id="create-new-button" href="/" class="button primary">Start now</a>
-  </div>
+    <img src="/icons/illustrations/pc.svg" alt="" loading="lazy"/>
+    <div class="text">
+      <h2>Create your first website</h2>
+      <p>It’s never been easier to create a website. Pick a template, edit your content and publish to the Web.</p>
+      <a id="create-new-button" href="/" class="button primary">Start now</a>
+    </div>
   </div>
   <div class="sites"></div>
   `;
