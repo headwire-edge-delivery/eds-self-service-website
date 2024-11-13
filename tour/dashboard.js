@@ -86,12 +86,12 @@ function dashboardAccountTour({ showAutoTour }) {
       },
       {
         title: 'Monthly consumption of Site Page Views',
-        description: 'Keep track of your monthly Page Views for all projects',
+        description: 'Keep track of your monthly Page Views for all projects.',
         element: '#pv-usage',
       },
       {
         title: 'Monthly consumption of Sent Emails',
-        description: 'Keep track of your monthly Sent Emails for all projects',
+        description: 'Keep track of your monthly Sent Emails for all projects.',
         element: '#se-usage',
       },
       {
