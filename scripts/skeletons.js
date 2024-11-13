@@ -35,7 +35,8 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'tracking') {
-    const rows = [...Array(children ?? 5)].map(() => `
+    const count = Math.max(1, children ?? 5);
+    const rows = [...Array(count)].map(() => `
       <tr>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
@@ -67,7 +68,8 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'sites') {
-    const cards = [...Array(6)].map(() => '<div class="skeleton" style="width: 286px; height: 376px;"></div>').join('');
+    const count = Math.max(1, children ?? 6);
+    const cards = [...Array(count)].map(() => '<div class="skeleton" style="width: 286px; height: 376px;"></div>').join('');
 
     return `
       <div aria-label="loading">

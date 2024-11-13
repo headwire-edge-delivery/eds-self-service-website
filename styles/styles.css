@@ -718,6 +718,10 @@ table tr.loading {
   padding: 12px 20px 12px 40px;
 }
 
+.filter[disabled] {
+  cursor: not-allowed;
+}
+
 .well {
   background-color: var(--light-gray);
   padding: 32px;
