@@ -113,130 +113,137 @@ function getTour(siteTour) {
 }
 
 const startTour = (isAutoTour, showDisableTour = false) => {
-  if (isAutoTour) {
-    onAuthenticated(async () => {
-      const data = await getUserSettings();
-      showAutoTour = data?.showAutoTour;
-      userData = data;
-      if (showAutoTour) {
-        if (checkAllLoaded()) {
-          startTour(false, true);
-        } else {
-          observeBlocks(() => {
+  setTimeout(() => {
+  // Tour is already running
+    if (document.getElementById('expedition-popover-content')) {
+      return;
+    }
+
+    if (isAutoTour) {
+      onAuthenticated(async () => {
+        const data = await getUserSettings();
+        showAutoTour = data?.showAutoTour;
+        userData = data;
+        if (showAutoTour) {
+          if (checkAllLoaded()) {
             startTour(false, true);
-          });
+          } else {
+            observeBlocks(() => {
+              startTour(false, true);
+            });
+          }
         }
-      }
-    });
-  } else {
-    window.scrollTo(0, 0);
-    onAuthenticated(async () => {
-      const data = await getUserSettings();
-      userData = data;
-    });
-
-    if (showDisableTour) {
-      showAutoTour = true;
+      });
     } else {
-      showAutoTour = false;
-    }
+      window.scrollTo(0, 0);
+      onAuthenticated(async () => {
+        const data = await getUserSettings();
+        userData = data;
+      });
 
-    const { pathname } = window.location;
-    const switchCase = (startPath, endPath = undefined) => {
-      if (endPath === undefined) {
-        return pathname.startsWith(startPath);
+      if (showDisableTour) {
+        showAutoTour = true;
+      } else {
+        showAutoTour = false;
       }
-      return pathname.startsWith(startPath) && pathname.endsWith(endPath);
-    };
 
-    switch (true) {
-      case switchCase('/site/', '/overview'):
-        getTour(siteOverviewTour);
-        break;
-      case switchCase('/da-site/', '/overview'):
-        getTour(siteOverviewTour);
-        break;
-      case switchCase('/site/', '/pages'):
-        getTour(sitePagesTour);
-        break;
-      case switchCase('/da-site/', '/pages'):
-        getTour(sitePagesTour);
-        break;
-      case switchCase('/site/', '/web-analytics'):
-        getTour(siteMonitoringTour);
-        break;
-      case switchCase('/da-site/', '/web-analytics'):
-        getTour(siteMonitoringTour);
-        break;
-      case switchCase('/site/', '/emails'):
-        getTour(campaignEmailsTour);
-        break;
-      case switchCase('/da-site/', '/emails'):
-        getTour(campaignEmailsTour);
-        break;
-      case switchCase('/da-site/', '/audience'):
-        getTour(campaignEmailsAudienceTour);
-        break;
-      case switchCase('/site/', '/audience'):
-        getTour(campaignEmailsAudienceTour);
-        break;
-      case switchCase('/site/', '/seo'):
-        getTour(SEOTour);
-        break;
-      case switchCase('/site/', '/campaign-analytics'):
-        getTour(campaignEmailAnalyticsTour);
-        break;
-      case switchCase('/da-site/', '/campaign-analytics'):
-        getTour(campaignEmailAnalyticsTour);
-        break;
-      case switchCase('/site/', '/settings'):
-        getTour(settingsGeneralTour);
-        break;
-      case switchCase('/da-site/', '/settings'):
-        getTour(settingsGeneralTour);
-        break;
-      case switchCase('/theme/'):
-        getTour(settingsThemeTour);
-        break;
-      case switchCase('/email/'):
-        getTour(emailTour);
-        break;
-      case switchCase('/dashboard/sites'):
-        getTour(dashboardSitesTour);
-        break;
-      case switchCase('/dashboard/account'):
-        getTour(dashboardAccountTour);
-        break;
-      case switchCase('/dashboard/admin'):
-        getTour(adminTour);
-        break;
-      case switchCase('/templates/', '/create'):
-        getTour(createTemplateTour);
-        break;
-      case switchCase('/templates/', '/create/progress'):
-        if (!showAutoTour) {
-          getTour(noTourAvailable);
+      const { pathname } = window.location;
+      const switchCase = (startPath, endPath = undefined) => {
+        if (endPath === undefined) {
+          return pathname.startsWith(startPath);
         }
-        break;
-      case switchCase('/templates/wknd-template'):
-        getTour(wkndTemplateTour);
-        break;
-      case switchCase('/templates/sports-template'):
-        getTour(sportsTemplateTour);
-        break;
-      case switchCase('/templates/club-template'):
-        getTour(clubTemplateTour);
-        break;
-      case pathname === '/' || switchCase('/templates/'):
-        getTour(homepageTour);
-        break;
-      default:
-        if (!showAutoTour) {
-          getTour(noTourAvailable);
-        }
-        break;
+        return pathname.startsWith(startPath) && pathname.endsWith(endPath);
+      };
+
+      switch (true) {
+        case switchCase('/site/', '/overview'):
+          getTour(siteOverviewTour);
+          break;
+        case switchCase('/da-site/', '/overview'):
+          getTour(siteOverviewTour);
+          break;
+        case switchCase('/site/', '/pages'):
+          getTour(sitePagesTour);
+          break;
+        case switchCase('/da-site/', '/pages'):
+          getTour(sitePagesTour);
+          break;
+        case switchCase('/site/', '/web-analytics'):
+          getTour(siteMonitoringTour);
+          break;
+        case switchCase('/da-site/', '/web-analytics'):
+          getTour(siteMonitoringTour);
+          break;
+        case switchCase('/site/', '/emails'):
+          getTour(campaignEmailsTour);
+          break;
+        case switchCase('/da-site/', '/emails'):
+          getTour(campaignEmailsTour);
+          break;
+        case switchCase('/da-site/', '/audience'):
+          getTour(campaignEmailsAudienceTour);
+          break;
+        case switchCase('/site/', '/audience'):
+          getTour(campaignEmailsAudienceTour);
+          break;
+        case switchCase('/site/', '/seo'):
+          getTour(SEOTour);
+          break;
+        case switchCase('/site/', '/campaign-analytics'):
+          getTour(campaignEmailAnalyticsTour);
+          break;
+        case switchCase('/da-site/', '/campaign-analytics'):
+          getTour(campaignEmailAnalyticsTour);
+          break;
+        case switchCase('/site/', '/settings'):
+          getTour(settingsGeneralTour);
+          break;
+        case switchCase('/da-site/', '/settings'):
+          getTour(settingsGeneralTour);
+          break;
+        case switchCase('/theme/'):
+          getTour(settingsThemeTour);
+          break;
+        case switchCase('/email/'):
+          getTour(emailTour);
+          break;
+        case switchCase('/dashboard/sites'):
+          getTour(dashboardSitesTour);
+          break;
+        case switchCase('/dashboard/account'):
+          getTour(dashboardAccountTour);
+          break;
+        case switchCase('/dashboard/admin'):
+          getTour(adminTour);
+          break;
+        case switchCase('/templates/', '/create'):
+          getTour(createTemplateTour);
+          break;
+        case switchCase('/templates/', '/create/progress'):
+          if (!showAutoTour) {
+            getTour(noTourAvailable);
+          }
+          break;
+        case switchCase('/templates/wknd-template'):
+          getTour(wkndTemplateTour);
+          break;
+        case switchCase('/templates/sports-template'):
+          getTour(sportsTemplateTour);
+          break;
+        case switchCase('/templates/club-template'):
+          getTour(clubTemplateTour);
+          break;
+        case pathname === '/' || switchCase('/templates/'):
+          getTour(homepageTour);
+          break;
+        default:
+          if (!showAutoTour) {
+            getTour(noTourAvailable);
+          }
+          break;
+      }
     }
-  }
+  }, 100);
 };
 
 export default startTour;
