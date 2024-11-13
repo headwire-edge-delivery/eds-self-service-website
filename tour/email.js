@@ -84,7 +84,7 @@ function campaignEmailAnalyticsTour({ showAutoTour }) {
       {
         title: 'Campaigns filter',
         description: 'A list of all campaigns. Click on a campaign to filter your email analytics.',
-        element: '.analytics-panel .campaign-list',
+        element: '.campaign-analytics .campaign-list',
       },
       {
         title: 'Email Metrics',
@@ -119,7 +119,7 @@ function campaignEmailAnalyticsTour({ showAutoTour }) {
       {
         title: 'Email Details',
         description: 'A detailed view of your Email Metrics for every single Email.',
-        element: '#email-details',
+        element: '.email-details',
       },
     ],
   };
