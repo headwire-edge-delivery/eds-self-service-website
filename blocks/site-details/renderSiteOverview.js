@@ -5,8 +5,16 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
+import renderCheckList from './renderCheckList.js';
 
-export default async function renderSiteOverview({ container, nav, renderOptions }) {
+export default async function renderSiteOverview({
+  container,
+  nav,
+  renderOptions,
+  pushHistory,
+  replaceHistory,
+  onHistoryPopArray,
+}) {
   // TODO: if projectdetails are not required on most tabs, only request it here
   const { projectDetails, user, token } = renderOptions;
 
@@ -70,15 +78,28 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     <div class="project-thumbnail" data-src="https://${projectDetails.projectSlug}.${KESTREL_ONE}"></div>
   </div>
 
+  <div class="checklist-container">
+  </div>
+
   <div class="danger-zone">
     <strong>Danger zone</strong>
     <p>Delete this project. Once you delete a project, there is no going back. Please be certain.</p>
     <button id="delete-site-button" title="Delete your Project" class="button delete action destructive">Delete</button>
   </div>`;
 
+  const checklistContainer = container.querySelector('.checklist-container');
   const descriptionSpan = container.querySelector('.project-description.card .project-description.span');
 
   getThumbnail(container.querySelector('.project-thumbnail'));
+
+  await renderCheckList({
+    container: checklistContainer,
+    nav,
+    renderOptions: { ...renderOptions, pathname: `${renderOptions.pathname}/overview` },
+    pushHistory,
+    replaceHistory,
+    onHistoryPopArray,
+  });
 
   // MARK: update description
   container.querySelector('.update-description.action').onclick = async () => {

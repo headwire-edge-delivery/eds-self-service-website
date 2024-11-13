@@ -33,7 +33,8 @@ if (window.location.hostname === 'localhost') {
   });
 }
 
-export async function completeChecklistItem(projectSlug, itemName) {
+export async function completeChecklistItem(projectSlug, itemName, projectDetails = null) {
+  if (projectDetails?.checklistData?.[itemName]) return; // don't send request if already completed
   const checklistDataResponse = await fetch(`${SCRIPT_API}/checklist/${projectSlug}/${itemName}`, { method: 'POST' }).catch(() => null);
   if (checklistDataResponse?.ok) {
     document.querySelectorAll(`[data-checklist-property="${itemName}"]`).forEach((el) => { el.dataset.completed = true; });
@@ -49,7 +50,7 @@ export async function highlightElement() {
     if (!found) {
       // retry find interval
       await new Promise((resolve) => {
-        let count = 20;
+        let count = 100;
         const findInterval = setInterval(() => {
           found = getElement();
           if (found || count < 0) {
@@ -63,15 +64,20 @@ export async function highlightElement() {
     }
     if (found) {
       // highlight with tour
-      window.expedition.js.tour({
+      const tourHighlight = window.expedition.js.tour({
+        destroyOnClicked: true,
         steps: [
           {
             title: 'Test',
             description: 'Highlight',
             element: found,
+            popover: { popoverClass: 'highlight-popover-hidden' },
+            destroyOnClicked: true,
           },
         ],
-      }).start();
+      });
+
+      tourHighlight.start();
     } else {
       console.warn('element to highlight was not found within max attempts');
     }
@@ -515,6 +521,7 @@ function loadDelayed() {
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
+  if (readQueryParams().highlight) highlightElement();
   loadDelayed();
 }
 

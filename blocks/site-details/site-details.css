@@ -351,6 +351,18 @@ dialog .clicked-links li {
 }
 
 /* MARK: Checklist */
+.site-details.block .checklist .checklist-section {
+  display: none;
+}
+
+.site-details.block .checklist .checklist-section.is-selected {
+  display: block;
+}
+
+.site-details.block .checklist .button-container.section-tabs {
+  justify-content: flex-start;
+}
+
 .site-details.block .checklist .checklist-list {
   list-style: none;
   padding: 0;

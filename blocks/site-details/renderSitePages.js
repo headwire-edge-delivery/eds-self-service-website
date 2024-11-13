@@ -44,8 +44,8 @@ export function renderTable({
         <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>          
         <td>
           <div id="email-open-edit" class="button-container">
-            <a class="button action secondary" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
-            <a class="button action secondary" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
+            <a class="button action secondary edit" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
+            <a class="button action secondary open" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
             ${isDeletable ? `<button class="button action secondary delete-email" data-id="${item.id}">Delete</button>` : ''}
           </div>
         </td>
@@ -88,9 +88,9 @@ export function renderTable({
       <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>
       <td class="status"><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
       <td class="button-container">
-          <a class="button action secondary" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
-          <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
-          <a class="button action secondary" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>
+          <a class="button action secondary edit" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+          <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
+          <a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>
       </td>
     `;
 
@@ -225,7 +225,7 @@ function addPageDialogSetup({
       buttons.push(draftsLink);
 
       const editLink = parseFragment(`
-        <a class="button primary action" target="_blank" href="${editHref}">Edit ${safeText(body.pageName)}</a>
+        <a class="button primary action edit" target="_blank" href="${editHref}">Edit ${safeText(body.pageName)}</a>
       `);
       buttons.push(editLink);
 

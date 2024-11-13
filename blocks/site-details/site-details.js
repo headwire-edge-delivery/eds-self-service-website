@@ -66,12 +66,12 @@ export default async function decorate(block) {
         iconSrc: '/icons/template.svg',
         renderTab: renderSiteOverview,
       },
-      {
-        name: 'Checklist',
-        href: `${pathname}/checklist`,
-        iconSrc: '/icons/checklist.svg',
-        renderTab: renderCheckList,
-      },
+      // {
+      //   name: 'Checklist',
+      //   href: `${pathname}/checklist`,
+      //   iconSrc: '/icons/checklist.svg',
+      //   renderTab: renderCheckList,
+      // },
       {
         name: 'Pages',
         href: `${pathname}/pages`,
