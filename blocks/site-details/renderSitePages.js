@@ -7,6 +7,7 @@ import {
   SCRIPT_API,
   projectRepo,
   safeText,
+  completeChecklistItem,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
@@ -120,6 +121,7 @@ export function renderTable({
     const cols = table.querySelectorAll('th').length;
     tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;
   }
+  return table;
 }
 
 // MARK: add page dialog
@@ -178,8 +180,6 @@ function addPageDialogSetup({
   }).catch((err) => console.error(err));
 
   dropdown.onchange = () => {
-    // eslint-disable-next-line no-console
-    console.log('\x1b[34m ~ TEST:');
     previewIframe.src = `${templateUrl}${dropdown.value}`;
   };
 
@@ -205,6 +205,7 @@ function addPageDialogSetup({
 
     }).catch(() => null);
     if (addPageRequest?.ok) {
+      completeChecklistItem(projectDetails.projectSlug, 'pageAdded', projectDetails);
       const responseData = await addPageRequest.json().catch(() => ({}));
 
       const buttons = [];
@@ -327,7 +328,16 @@ export default async function renderSitePages({ container, nav, renderOptions })
     }
   }
   renderTable({ table: container.querySelector('.pages'), tableData: pages, projectDetails });
-  renderTable({ table: container.querySelector('.navs'), tableData: navs, projectDetails });
+  const navsTable = renderTable({ table: container.querySelector('.navs'), tableData: navs, projectDetails });
   renderTable({ table: container.querySelector('.footers'), tableData: footers, projectDetails });
   renderTable({ table: container.querySelector('.drafts'), tableData: drafts, projectDetails });
+
+  // checklist
+  const navEditClickHandler = (event) => {
+    if (event.target.matches('.button.edit')) {
+      completeChecklistItem(projectDetails.projectSlug, 'navEdited', projectDetails);
+      navsTable.removeEventListener('click', navEditClickHandler);
+    }
+  };
+  navsTable.addEventListener('click', navEditClickHandler);
 }

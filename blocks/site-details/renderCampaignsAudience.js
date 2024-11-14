@@ -1,4 +1,5 @@
 import {
+  completeChecklistItem,
   dateToRelativeSpan,
   OOPS,
   parseFragment, safeText, SCRIPT_API,
@@ -27,7 +28,7 @@ function renderContact(contact) {
 }
 
 export default async function renderCampaignsAudience({ container, nav, renderOptions }) {
-  const { token, siteSlug } = renderOptions;
+  const { token, siteSlug, siteDetails } = renderOptions;
   container.innerHTML = renderSkeleton('audience');
 
   const addContact = parseFragment(`
@@ -81,6 +82,7 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
       }).catch(() => null);
 
       if (response?.ok) {
+        completeChecklistItem(siteSlug, 'contactAdded', siteDetails);
         dialog.renderDialog('<h3 class="centered-info">Contact added successfully</h3>');
 
         const tableBody = container.querySelector('table tbody');

@@ -84,6 +84,24 @@ export async function highlightElement() {
   }
 }
 
+export function maybeStringify(obj) {
+  if (!obj) return '';
+  try {
+    return JSON.stringify(obj);
+  } catch {
+    return '';
+  }
+}
+
+export function maybeParse(str) {
+  if (!str) return {};
+  try {
+    return JSON.parse(str);
+  } catch {
+    return {};
+  }
+}
+
 // extra four, for separators
 export const slugMaxLength = 63
   - defaultBranch.length
@@ -434,6 +452,7 @@ export function createTabs({
         container: tabContent,
         renderOptions,
         pushHistory,
+        historyArray,
         replaceHistory,
         onHistoryPopArray,
       });

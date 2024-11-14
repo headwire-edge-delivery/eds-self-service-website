@@ -11,9 +11,7 @@ export default async function renderSiteOverview({
   container,
   nav,
   renderOptions,
-  pushHistory,
-  replaceHistory,
-  onHistoryPopArray,
+  historyArray,
 }) {
   // TODO: if projectdetails are not required on most tabs, only request it here
   const { projectDetails, user, token } = renderOptions;
@@ -96,9 +94,7 @@ export default async function renderSiteOverview({
     container: checklistContainer,
     nav,
     renderOptions,
-    pushHistory,
-    replaceHistory,
-    onHistoryPopArray,
+    historyArray,
   });
 
   // MARK: update description

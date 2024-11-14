@@ -1,9 +1,10 @@
-import renderSkeleton from '../../scripts/skeletons.js';
 import {
-  SCRIPT_API, OOPS,
+  SCRIPT_API,
   parseFragment,
   completeChecklistItem,
   highlightElement,
+  maybeStringify,
+  maybeParse,
 } from '../../scripts/scripts.js';
 import { readQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import { toClassName } from '../../scripts/aem.js';
@@ -12,7 +13,12 @@ import { toClassName } from '../../scripts/aem.js';
 function openButtonOnclick(event) {
   const path = event?.currentTarget?.dataset?.path;
   const encodedHighlightSelector = event?.currentTarget?.dataset?.highlightSelector;
-  if (encodedHighlightSelector) writeQueryParams({ highlight: encodedHighlightSelector }, true);
+  if (encodedHighlightSelector) writeQueryParams({ highlight: encodedHighlightSelector });
+
+  const decodedAdditionalQueries = maybeParse(
+    decodeURIComponent(event?.currentTarget?.dataset?.additionalQueries),
+  );
+  if (decodedAdditionalQueries) writeQueryParams(decodedAdditionalQueries);
 
   if (!path) {
     highlightElement(); // assumed to be on same tab (overview)
@@ -26,25 +32,20 @@ function openButtonOnclick(event) {
     return;
   }
 
+  const highlightSearch = encodedHighlightSelector ? `?highlight=${encodedHighlightSelector}` : '';
+
   if (event?.currentTarget?.dataset?.newTab === 'true') {
-    window.open(`${path}?highlight=${encodedHighlightSelector}`, '_blank');
+    window.open(`${path}${highlightSearch}`, '_blank');
     return;
   }
 
-  window.location.href = `${path}?highlight=${encodedHighlightSelector}`;
+  window.location.href = `${path}${highlightSearch}`;
 }
 
 // MARK: renderCheckList
 export default async function renderCheckList({
-  container, nav, renderOptions, onHistoryPopArray,
+  container, renderOptions, historyArray,
 }) {
-  console.log('container:', container);
-  console.log('renderOptions:', renderOptions);
-  // container.innerHTML = `
-  //   <div class="checklist">
-  //     ${renderSkeleton('checklist')}
-  //   </div>
-  // `;
   container.innerHTML = `
     <div class="checklist">
       <h2 class="checklist-title">Checklist</h2>
@@ -123,16 +124,28 @@ export default async function renderCheckList({
       section: 'Campaigns',
       sectionItems: [
         {
+          content: 'Add a contact',
+          path: `${renderOptions.pathname}/audience`,
+          highlight: '#add-contact',
+          property: 'contactAdded',
+        },
+        {
           content: 'Create a new campaign',
           path: `${renderOptions.pathname}/emails`,
           highlight: '#new-campaign',
           property: 'createdCampaign',
         },
+        {
+          content: 'Create an email',
+          path: `${renderOptions.pathname}/emails`,
+          additionalQueries: { campaignIndex: 0 },
+          highlight: '#add-email',
+          property: 'createdCampaignEmail',
+        },
       ],
     },
   ];
   let defaultSectionIndex = 0;
-
 
   // MARK: render items
   const renderChecklistItems = (checklistData = baseChecklistData) => {
@@ -181,12 +194,13 @@ export default async function renderCheckList({
       // render section items
       const checklistItems = section.sectionItems.map((item) => {
         if (!item.path) item.path = '';
-        const encodedHighlightSelector = encodeURIComponent(item.highlight);
+        const encodedHighlightSelector = encodeURIComponent(item.highlight || '') || '';
+        const encodedAdditionalQueries = encodeURIComponent(maybeStringify(item.additionalQueries || ''));
         const checklistItem = parseFragment(`
           <li class="checklist-item" data-checklist-property="${item.property}" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
             <span class="checklist-item-title">${item.content}</span>
             <div class="checklist-button-container">
-              <button data-path="${item.path}" data-new-tab="${item.newTab || false}" data-highlight-selector="${encodedHighlightSelector}" class="button checklist-button open-button" aria-label="Open">
+              <button data-path="${item.path}" data-new-tab="${item.newTab || false}" data-highlight-selector="${encodedHighlightSelector}" data-additional-queries="${encodedAdditionalQueries}" class="button checklist-button open-button" aria-label="Open">
                 <img src="/icons/chevron-down.svg" alt="Open" />
               </button>
             </div>
@@ -235,22 +249,22 @@ export default async function renderCheckList({
     renderChecklistItems(fetchedChecklistData);
   };
 
-  // list reloads
-  let cooldown = false;
 
-  window.addEventListener('focus', () => {
-    if (cooldown) return;
-    cooldown = true;
-    setTimeout(() => {
-      cooldown = false;
-    }, 3000);
+  // list reloads
+  if (historyArray.length > 1) {
+    reloadChecklist();
+  }
+
+  document.addEventListener('visibilitychange', (event) => {
+    if (document.hidden) return;
     reloadChecklist();
   });
 
-  setInterval(() => {
-    if (cooldown) return;
-    reloadChecklist();
-  }, 30000);
+  // currently disabled until we have abortcontroller / clearinstervals
+  // setInterval(() => {
+  //   if (cooldown) return;
+  //   reloadChecklist();
+  // }, 30000);
 
   // TODO: checklist triggers
 }

@@ -1,4 +1,5 @@
 import {
+  completeChecklistItem,
   daProjectRepo,
   dateToRelativeSpan,
   dateToRelativeString,
@@ -7,6 +8,7 @@ import {
 import renderSkeleton from '../../scripts/skeletons.js';
 import { renderTable } from './renderSitePages.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
+import { readQueryParams, removeQueryParams } from '../../libs/queryParams/queryParams.js';
 
 export default async function renderCampaignsOverview({
   container, nav, renderOptions, pushHistory, replaceHistory, onHistoryPopArray,
@@ -30,9 +32,9 @@ export default async function renderCampaignsOverview({
   const emailDocuments = indexData.data.filter(({ path }) => path.startsWith('/emails/'));
 
   nav.innerHTML = `
-    <button id="delete-campaign" title="Delete the Campaign" class="button secondary delete-campaign action" hidden>Delete</button>
-    <button id="add-email" title="Add Email" class="button secondary add-email action" hidden>Add Email</button>
-    <a target="_blank" href="#" id="open-campaign" title="Open Campaign" class="button secondary open-campaign action" hidden>Open</a>
+    <button id="delete-campaign" title="Delete the Campaign" class="button secondary delete-campaign action" >Delete</button>
+    <button id="add-email" title="Add Email" class="button secondary add-email action" >Add Email</button>
+    <a target="_blank" href="#" id="open-campaign" title="Open Campaign" class="button secondary open-campaign action" >Open</a>
     <button id="new-campaign" title="Start a new Campaign" class="button primary add-campaign action">New Campaign</button>
   `;
 
@@ -40,8 +42,8 @@ export default async function renderCampaignsOverview({
 
   container.innerHTML = `
       <ul class="campaign-list" data-type="emails">
-        <li><a class="button selector action secondary ${window.location.pathname.startsWith(`${pathname}/emails/`) ? '' : 'is-selected'}" href="${pathname}/emails">All emails</a></li>
-        ${allCampaignSlugs.map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button selector action secondary ${window.location.pathname === `${pathname}/emails/${campaignSlug}` ? 'is-selected' : ''}" href="${pathname}/emails/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`).join('')}</a>
+        <li><a class="button selector action secondary" href="${pathname}/emails">All emails</a></li>
+        ${allCampaignSlugs.map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button selector action secondary" href="${pathname}/emails/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`).join('')}</a>
       </ul>
       <div class="campaign-container"></div>
     `;
@@ -90,7 +92,7 @@ export default async function renderCampaignsOverview({
 
   const campaignContainer = container.querySelector('.campaign-container');
   campaignContainer.innerHTML = `
-      <div class="campaign" ${window.location.pathname.startsWith(`${pathname}/emails/`) ? 'hidden' : ''}>
+      <div class="campaign" hidden>
         <table class="emails"></table>
       </div>
     `;
@@ -104,7 +106,7 @@ export default async function renderCampaignsOverview({
     const campaignEmails = emailDocuments.filter(({ path }) => path.startsWith(`/emails/${campaignSlug}/`));
 
     const campaignDetails = parseFragment(`
-      <div data-campaign="${campaignSlug}" class="campaign campaign-${campaignSlug}" ${window.location.pathname === `${pathname}/emails/${campaignSlug}` ? '' : 'hidden'}>
+      <div data-campaign="${campaignSlug}" class="campaign campaign-${campaignSlug}" hidden>
         <div class="cards">
           <div class="box">
               <strong>Campaign</strong>
@@ -137,10 +139,24 @@ export default async function renderCampaignsOverview({
     });
   });
 
-  if (!container.querySelector('.campaign-list .is-selected')) {
-    container.querySelector('.campaign-list[data-type="emails"] a').click();
-    replaceHistory(`${pathname}/emails`);
+  let campaignToShow = window.location.pathname.split(`${pathname}/emails/`)[1] || null;
+  const params = readQueryParams();
+  if (params.campaignIndex) {
+    campaignToShow = allCampaignSlugs?.[Number(params.campaignIndex)] || null;
+    removeQueryParams(['campaignIndex']);
   }
+  let buttonToPress = null;
+  if (campaignToShow) {
+    buttonToPress = container.querySelector(`.campaign-list a[href="${pathname}/emails/${campaignToShow}"]`);
+  }
+  if (!buttonToPress) {
+    buttonToPress = container.querySelector('.campaign-list a');
+  }
+  // TODO: for some reason requestAnimationFrame is required because some things stay hidden.
+  // fully rewrite the logic for showing stuff so it's readable and easier to update
+  requestAnimationFrame(() => {
+    buttonToPress.click();
+  });
 
   campaignContainer.onclick = async (event) => {
     if (event.target.matches('.update-campaign-description')) {
@@ -259,6 +275,7 @@ export default async function renderCampaignsOverview({
         dialog.setLoading(false);
         await alertDialog(OOPS);
       } else {
+        completeChecklistItem(siteSlug, 'createdCampaign', projectDetails);
         const newCampaign = await req.json();
 
         container.querySelectorAll('.campaign-list').forEach((el) => {
@@ -373,6 +390,7 @@ export default async function renderCampaignsOverview({
         dialog.setLoading(false);
         await alertDialog(OOPS);
       } else {
+        completeChecklistItem(siteSlug, 'createdCampaignEmail', projectDetails);
         dialog.setLoading(false);
         dialog.close();
         const { pageSlug, daNewPageSlug } = await req.json();

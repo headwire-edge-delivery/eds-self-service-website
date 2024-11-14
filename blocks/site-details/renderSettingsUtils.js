@@ -1,4 +1,6 @@
-import { OOPS, parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
+import {
+  completeChecklistItem, OOPS, parseFragment, SCRIPT_API, 
+} from '../../scripts/scripts.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 
 const protectedBlocks = {
@@ -136,6 +138,8 @@ export function addIconDialogSetup({
     }).catch(() => null);
 
     if (addRequest?.ok) {
+      if (nameOverride === 'logo.svg') completeChecklistItem(siteSlug, 'logoAdded');
+      if (isFavicon) completeChecklistItem(siteSlug, 'faviconAdded');
       dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
       if (replaceIconItem) {
         const iconImage = replaceIconItem.tagName === 'IMG' ? replaceIconItem : replaceIconItem.querySelector('img');

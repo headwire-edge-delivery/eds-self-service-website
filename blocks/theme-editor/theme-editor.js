@@ -4,6 +4,7 @@ import {
   OOPS,
   KESTREL_ONE,
   colorInput,
+  completeChecklistItem,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
@@ -1208,6 +1209,8 @@ export default async function decorate(block) {
           ? OOPS
           : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.',
       );
+
+      completeChecklistItem(id, 'themeUpdated');
 
       editor.setOption('readOnly', false);
 
