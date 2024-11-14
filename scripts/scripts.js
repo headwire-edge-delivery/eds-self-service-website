@@ -335,12 +335,16 @@ export function createTabs({
   const onHistoryPopArray = [];
   function pushHistory(path) {
     historyArray.push(path);
-    window.history.pushState({}, '', path + window.location.search);
+    const url = new URL(path, window.location);
+    url.search = window.location.search;
+    window.history.pushState({}, '', url);
   }
   function replaceHistory(path) {
     historyArray.pop();
     historyArray.push(path);
-    window.history.replaceState({}, '', path + window.location.search);
+    const url = new URL(path, window.location);
+    url.search = window.location.search;
+    window.history.replaceState({}, '', url);
   }
   const navItems = block.querySelector('.tabs-nav-items');
   const asideItems = block.querySelector('.tabs-aside ul');

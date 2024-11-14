@@ -351,6 +351,24 @@ dialog .clicked-links li {
 }
 
 /* MARK: Checklist */
+.site-details.block .checklist .checklist-title {
+  display: flex;
+  align-items: center;
+}
+.site-details.block .checklist .checklist-title::after {
+  content: "";
+  display: block;
+  background: url("/icons/loading.svg") no-repeat center;
+  filter: invert(1);
+  opacity: 0;
+  width: 26px;
+  height: 26px;
+}
+
+.site-details.block .checklist .checklist-title.reloading-checklist::after {
+  opacity: 1;
+}
+
 .site-details.block .checklist .checklist-section {
   display: none;
 }
@@ -383,7 +401,7 @@ dialog .clicked-links li {
 }
 
 .site-details.block .checklist .checklist-item[data-completed="true"] {
-  background-color: var(--green);
+  background-color: var(--light-green);
 }
 
 .site-details.block .checklist-button-container {
@@ -419,8 +437,13 @@ dialog .clicked-links li {
   opacity: 0;
   width: 70%;
   height: 70%;
-
 }
+
+.site-details.block .checklist .checklist-item[data-completed="true"] .checklist-manual-checkbox {
+  border: 2px solid transparent;
+  background-color: transparent;
+}
+
 .site-details.block .checklist .checklist-item[data-completed="true"] .checklist-manual-checkbox img {
   opacity: 1;
 }

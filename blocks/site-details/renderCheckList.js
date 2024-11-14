@@ -5,7 +5,7 @@ import {
   completeChecklistItem,
   highlightElement,
 } from '../../scripts/scripts.js';
-import { writeQueryParams } from '../../libs/queryParams/queryParams.js';
+import { readQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import { toClassName } from '../../scripts/aem.js';
 
 // eslint-disable-next-line consistent-return
@@ -18,7 +18,6 @@ function openButtonOnclick(event) {
     highlightElement(); // assumed to be on same tab (overview)
     return;
   }
-
 
   const linkForPath = document.querySelector(`[href="${path}"`);
   if (linkForPath) {
@@ -35,9 +34,11 @@ function openButtonOnclick(event) {
   window.location.href = `${path}?highlight=${encodedHighlightSelector}`;
 }
 
+// MARK: renderCheckList
 export default async function renderCheckList({
-  container, nav, renderOptions, pushHistory, replaceHistory, onHistoryPopArray,
+  container, nav, renderOptions, onHistoryPopArray,
 }) {
+  console.log('container:', container);
   console.log('renderOptions:', renderOptions);
   // container.innerHTML = `
   //   <div class="checklist">
@@ -46,16 +47,18 @@ export default async function renderCheckList({
   // `;
   container.innerHTML = `
     <div class="checklist">
-      <h2>Checklist</h2>
+      <h2 class="checklist-title">Checklist</h2>
 
       <div class="button-container section-tabs"></div>
 
       <div class="sections">
     </div>
   `;
+  const checklistTitle = container.querySelector('.checklist-title');
   // const checklistUl = container.querySelector('.checklist-list');
   // const progressBar = container.querySelector('.progress-bar');
   const sectionTabsContainer = container.querySelector('.button-container.section-tabs');
+  const checklistSectionsContainer = container.querySelector('.sections');
 
   const setSelectedSection = (event) => {
     const sectionName = event?.currentTarget?.dataset?.sectionName;
@@ -66,12 +69,11 @@ export default async function renderCheckList({
       el.classList.toggle('is-selected', el.dataset.sectionName === sectionName);
     });
     if (event.isTrusted) {
-      pushHistory(`${renderOptions.pathname}/${sectionName}`);
+      writeQueryParams({ ...readQueryParams(), checklistSection: sectionName }, true);
     }
   };
 
-
-  const checklistData = renderOptions?.projectDetails?.checklistData || {};
+  const baseChecklistData = renderOptions?.projectDetails?.checklistData || {};
 
   const checklistConfig = [
     {
@@ -131,90 +133,124 @@ export default async function renderCheckList({
   ];
   let defaultSectionIndex = 0;
 
-  const sections = checklistConfig.map((section, index) => {
-    if (window.location.pathname === `${renderOptions.pathname}/${toClassName(section.section)}`) defaultSectionIndex = index;
-    const sectionDiv = parseFragment(`
-      <div data-section-index="${index}" data-section-name="${toClassName(section.section)}" class="checklist-section">
-        <div class="progress-wrapper">
-          <div class="progress-bar">
-            <div class="progress-bar-fill"></div>
-          </div>
-          <div class="progress-fraction">
-            <span class="current">0</span> / <span class="total">0</span>
-          </div>
-        </div>
 
-        <ul class="checklist-list"></ul>
-      </div>`);
-    const checklistUl = sectionDiv.querySelector('.checklist-list');
+  // MARK: render items
+  const renderChecklistItems = (checklistData = baseChecklistData) => {
+    // reset
+    sectionTabsContainer.innerHTML = '';
+    checklistSectionsContainer.innerHTML = '';
 
-    // section tab button
-    const sectionTabButton = parseFragment(`<button class="button secondary selector action" data-section-index="${index}" data-section-name="${toClassName(section.section)}" data-selected="false">${section.section}</button>`);
-    sectionTabButton.onclick = setSelectedSection;
-    sectionTabsContainer.append(sectionTabButton);
-
-    const checklistItems = section.sectionItems.map((item) => {
-      if (!item.path) item.path = '';
-      const encodedHighlightSelector = encodeURIComponent(item.highlight);
-      const checklistItem = parseFragment(`
-        <li class="checklist-item" data-checklist-property="${item.property}" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
-          <span class="checklist-item-title">${item.content}</span>
-          <div class="checklist-button-container">
-            <button data-path="${item.path}" data-new-tab="${item.newTab || false}" data-highlight-selector="${encodedHighlightSelector}" class="button checklist-button open-button" aria-label="Open">
-              <img src="/icons/chevron-down.svg" alt="Open" />
-            </button>
-          </div>
-        </li>
-      `);
-      checklistItem.dataset.completed = Boolean(checklistData[item.property]);
-
-      const openButton = checklistItem.querySelector('.open-button');
-      openButton.onclick = openButtonOnclick;
-
-      if (item.allowManualCheck) {
-        const manuelCheckButton = parseFragment('<button class="button checklist-button checklist-manual-checkbox" aria-label="Check" ><img src="/icons/check-mark.svg" alt="Checkmark" /></button>');
-        manuelCheckButton.onclick = async () => {
-          if (checklistItem.dataset.completed === 'true') return;
-          manuelCheckButton.classList.add('loading');
-          await completeChecklistItem(slug, item.property);
-          manuelCheckButton.classList.remove('loading');
-        };
-        openButton.before(manuelCheckButton);
+    // section setup
+    const sections = checklistConfig.map((section, index) => {
+      if (readQueryParams().checklistSection === toClassName(section.section)) {
+        defaultSectionIndex = index;
       }
 
-      return checklistItem;
+      const sectionDiv = parseFragment(`
+        <div data-section-index="${index}" data-section-name="${toClassName(section.section)}" class="checklist-section">
+          <div class="progress-wrapper">
+            <div class="progress-bar">
+              <div class="progress-bar-fill"></div>
+              <div class="progress-bar-fraction">
+                <span><span class="current">0</span> / <span class="total">0</span> Completed<span>
+              </div>
+            </div>
+          </div>
+  
+          <ul class="checklist-list"></ul>
+        </div>`);
+      const checklistUl = sectionDiv.querySelector('.checklist-list');
+      const progressBarFill = sectionDiv.querySelector('.progress-bar-fill');
+
+      const progressTotal = section.sectionItems.length;
+      const progressCurrent = section.sectionItems.reduce(
+        (current, item) => (checklistData[item.property] ? current + 1 : current),
+        0,
+      );
+
+      // render progress
+      sectionDiv.querySelector('.progress-wrapper .total').textContent = progressTotal;
+      sectionDiv.querySelector('.progress-wrapper .current').textContent = progressCurrent;
+      progressBarFill.style.width = `${(progressCurrent / progressTotal) * 100}%`;
+
+      // section tab button
+      const sectionTabButton = parseFragment(`<button class="button secondary selector action" data-section-index="${index}" data-section-name="${toClassName(section.section)}" data-selected="false">${section.section}</button>`);
+      sectionTabButton.onclick = setSelectedSection;
+      sectionTabsContainer.append(sectionTabButton);
+
+      // render section items
+      const checklistItems = section.sectionItems.map((item) => {
+        if (!item.path) item.path = '';
+        const encodedHighlightSelector = encodeURIComponent(item.highlight);
+        const checklistItem = parseFragment(`
+          <li class="checklist-item" data-checklist-property="${item.property}" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
+            <span class="checklist-item-title">${item.content}</span>
+            <div class="checklist-button-container">
+              <button data-path="${item.path}" data-new-tab="${item.newTab || false}" data-highlight-selector="${encodedHighlightSelector}" class="button checklist-button open-button" aria-label="Open">
+                <img src="/icons/chevron-down.svg" alt="Open" />
+              </button>
+            </div>
+          </li>
+        `);
+        checklistItem.dataset.completed = Boolean(checklistData[item.property]);
+
+        const openButton = checklistItem.querySelector('.open-button');
+        openButton.onclick = openButtonOnclick;
+
+        if (item.allowManualCheck) {
+          const manuelCheckButton = parseFragment('<button class="button checklist-button checklist-manual-checkbox" aria-label="Check" ><img src="/icons/check-mark.svg" alt="Checkmark" /></button>');
+          manuelCheckButton.onclick = async () => {
+            if (checklistItem.dataset.completed === 'true') return;
+            manuelCheckButton.classList.add('loading');
+            await completeChecklistItem(renderOptions.siteSlug, item.property);
+            manuelCheckButton.classList.remove('loading');
+          };
+          openButton.before(manuelCheckButton);
+        }
+
+        return checklistItem;
+      });
+
+      checklistUl.append(...checklistItems);
+      return sectionDiv;
     });
 
-    checklistUl.append(...checklistItems);
-    return sectionDiv;
-  });
+    checklistSectionsContainer.append(...sections);
 
-  container.querySelector('.sections').append(...sections);
+    sectionTabsContainer.children[defaultSectionIndex].click();
+  };
 
-  sectionTabsContainer.children[defaultSectionIndex].click();
+  // MARK: triggers
+  renderChecklistItems();
 
-  onHistoryPopArray.push(() => {
-    const checklistTabToFind = window.location.pathname.replace(`${renderOptions.pathname}/`, '');
-    if (!checklistTabToFind) {
-      sectionTabsContainer.children[0].click();
-      return;
-    }
+  const reloadChecklist = async () => {
+    checklistTitle.classList.add('reloading-checklist');
+    const fetchedChecklistData = await fetch(`${SCRIPT_API}/checklist/${renderOptions.siteSlug}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .catch(() => null);
 
-    const checklistTab = sectionTabsContainer.querySelector(`.section-tabs .button[data-section-name="${checklistTabToFind}"]`);
-    if (!checklistTab) {
-      sectionTabsContainer.children[0].click();
-      return;
-    }
+    checklistTitle.classList.remove('reloading-checklist');
+    if (!fetchedChecklistData) return;
 
-    checklistTab.click();
-  });
+    renderChecklistItems(fetchedChecklistData);
+  };
 
+  // list reloads
+  let cooldown = false;
 
-  // TODO: refresh list on window focus and maybe on interval
   window.addEventListener('focus', () => {
-    console.log('\x1b[34m ~ WINDOW FOCUS:');
+    if (cooldown) return;
+    cooldown = true;
+    setTimeout(() => {
+      cooldown = false;
+    }, 3000);
+    reloadChecklist();
   });
+
+  setInterval(() => {
+    if (cooldown) return;
+    reloadChecklist();
+  }, 30000);
 
   // TODO: checklist triggers
-
 }

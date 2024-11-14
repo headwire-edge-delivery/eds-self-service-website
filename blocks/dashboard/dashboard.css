@@ -190,34 +190,6 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .users {
   }
 }
 
-.dashboard.block .usage-meter {
-  border-radius: var(--border-radius);
-  background: var(--light-gray);
-  overflow: hidden;
-  margin-top: 24px;
-  position: relative;
-  height: 32px;
-}
-
-.dashboard.block .usage-meter div {
-  background: var(--light-blue);
-  height: 100%;
-}
-
-.dashboard.block .usage-meter span {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  text-align: center;
-  justify-content: center;
-  top: 0;
-  font-weight: 300;
-  font-size: 14px;
-}
-
 /* MARK: Dark Alley */
 
 .dashboard.block .sites-list-dark-alley {

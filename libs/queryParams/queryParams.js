@@ -9,7 +9,6 @@ const readQueryParams = () => {
 };
 
 const writeQueryParams = (params, overwrite = false) => {
-  console.log("params:", params)
   const queryParams = overwrite
     ? new URLSearchParams()
     : new URLSearchParams(window.location.search);

@@ -95,7 +95,7 @@ export default async function renderSiteOverview({
   await renderCheckList({
     container: checklistContainer,
     nav,
-    renderOptions: { ...renderOptions, pathname: `${renderOptions.pathname}/overview` },
+    renderOptions,
     pushHistory,
     replaceHistory,
     onHistoryPopArray,
