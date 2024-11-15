@@ -312,6 +312,10 @@
     transform: rotate(0deg);
 }
 
+.theme-editor.block option[value="FONTS_MORE_VALUE"] {
+    font-family: var(--font-family);
+}
+
 @media (width < 768px) {
     .theme-editor.block {
         --content-height: calc(80vh - 48px);
@@ -321,4 +325,88 @@
     .theme-editor.block .preview .skeleton {
         width: 375px;
     }
+}
+
+.theme-editor.block .font-picker:has(~ .more-fonts[hidden]) {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.theme-editor.block .more-fonts {
+    margin-top: 8px;
+}
+
+.theme-editor.block .more-fonts-picker {
+    display: none;
+    padding-inline: 16px;
+    border: 1px solid var(--gray);
+    border-top: 0;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.theme-editor.block .more-fonts-picker:has(+ .more-fonts[hidden]) {
+    display: block;
+}
+
+.theme-editor.block .more-fonts-picker .wrapper {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 16px;
+}
+
+.theme-editor.block .more-fonts-picker .font-filter {
+    margin: 0;
+}
+
+.theme-editor.block .more-fonts-picker .font-list {
+    height: 400px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.theme-editor.block .more-fonts-picker .font-list .filters {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-block: 16px;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.theme-editor.block .more-fonts-picker .font-list ul {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: auto;
+    flex: 1;
+    width: 100%;
+    overflow: auto;
+    list-style: none;
+    padding: 16px 0;
+    margin: 0;
+}
+
+.theme-editor.block .more-fonts-picker .font-list li {
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    background-color: var(--light-gray);
+    transition-property: background, color;
+    transition-duration: var(--animation-duration);
+    cursor: pointer;
+}
+
+.theme-editor.block .more-fonts-picker li,
+.theme-editor.block .more-fonts-picker select,
+.theme-editor.block .more-fonts-picker option {
+    text-transform: capitalize;
+}
+
+.theme-editor.block .more-fonts-picker .font-list li.is-selected,
+.theme-editor.block .more-fonts-picker .font-list li:hover {
+    background-color: var(--light-blue);
+    color: var(--white);
 }

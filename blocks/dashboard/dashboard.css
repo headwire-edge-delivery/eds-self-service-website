@@ -78,6 +78,11 @@
   -webkit-box-orient: vertical;
 }
 
+.dashboard.block .sites .well {
+  margin-top: 32px;
+  margin-bottom: 0;
+}
+
 .dashboard.block :is(.sites, .users) > p:only-child {
   display: grid;
   place-items: center;

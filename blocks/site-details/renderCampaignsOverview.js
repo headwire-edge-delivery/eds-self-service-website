@@ -35,18 +35,31 @@ export default async function renderCampaignsOverview({
     <button id="delete-campaign" title="Delete the Campaign" class="button secondary delete-campaign action" >Delete</button>
     <button id="add-email" title="Add Email" class="button secondary add-email action" >Add Email</button>
     <a target="_blank" href="#" id="open-campaign" title="Open Campaign" class="button secondary open-campaign action" >Open</a>
-    <button id="new-campaign" title="Start a new Campaign" class="button primary add-campaign action">New Campaign</button>
+    <button id="add-campaign" title="Start a new Campaign" class="button primary add-campaign action">New Campaign</button>
   `;
 
+  const addCampaignEl = nav.querySelector('#add-campaign');
+  const addEmailEl = nav.querySelector('#add-email');
   const allCampaignSlugs = Object.keys(campaignsData);
 
   container.innerHTML = `
+      <div class="well" hidden>
+        <img src="/icons/illustrations/pc.svg" alt="" loading="lazy"/>
+        <div class="text">
+          <h2>Create your first campaign</h2>
+          <p>It’s never been easier to start a campaign. Create a campaign email, edit your content and send it out to your audience.</p>
+          <button id="add-campaign" class="button primary">Start now</button>
+        </div>
+      </div>
+
       <ul class="campaign-list" data-type="emails">
         <li><a class="button selector action secondary" href="${pathname}/emails">All emails</a></li>
         ${allCampaignSlugs.map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button selector action secondary" href="${pathname}/emails/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`).join('')}</a>
       </ul>
       <div class="campaign-container"></div>
     `;
+
+  const well = container.querySelector('.well');
 
   const setCampaignLink = (action, campaign) => {
     if (projectDetails.darkAlleyProject) {
@@ -158,6 +171,139 @@ export default async function renderCampaignsOverview({
     buttonToPress.click();
   });
 
+  const toggleWell = () => {
+    if (campaignList.childElementCount === 1) {
+      addCampaignEl.hidden = true;
+      addCampaignEl.removeAttribute('id');
+      well.hidden = false;
+    } else {
+      addCampaignEl.hidden = false;
+      addCampaignEl.id = 'add-campaign';
+      well.hidden = true;
+    }
+  };
+
+  const addCampaign = async () => {
+    const submit = parseFragment('<button form="create-campaign-form" type="submit" class="button primary action">Create Campaign</button>');
+    const content = parseFragment(`
+        <div>
+          <h3>Create a new campaign</h3>
+          
+          <form id="create-campaign-form">
+            <p>
+                Start your email marketing campaign with individual email messages with specific purposes including the following: downloading a PDF, sign up for a newsletter, or make a purchase.
+            </p>
+            <label>
+                <span>Name *</span>
+                <input required name="name" type="text" placeholder="Newsletters"/>
+            </label>
+            <label>
+                <span>Description</span>
+                <textarea name="description" placeholder="All monthly newsletters for subscribers"></textarea>
+            </label>
+          </form>
+        </div>
+      `);
+
+    const dialog = createDialog(content, [submit]);
+    const existingCampaigns = [...campaignList.querySelectorAll('li[data-campaign]')].map((el) => el.dataset.campaign);
+    const form = content.querySelector('#create-campaign-form');
+    const nameInput = form.querySelector('input[name="name"]');
+    nameInput.oninput = (event = { target: nameInput }) => {
+      event.target.value = sanitizeName(event?.target?.value || '');
+      const value = slugify(event?.target?.value || '');
+      if (!value) {
+        submit.disabled = true;
+        event.target.setCustomValidity('Please enter a name');
+        return;
+      }
+
+      if (existingCampaigns.includes(value)) {
+        event.target.setCustomValidity('Campaign already exists');
+        return;
+      }
+      submit.disabled = false;
+      event.target.setCustomValidity('');
+    };
+    nameInput.oninput();
+
+    form.onsubmit = async (e) => {
+      window.zaraz?.track('click create campaign');
+
+      e.preventDefault();
+
+      dialog.setLoading(true, 'Creating Campaign...');
+
+      const req = await fetch(`${SCRIPT_API}/campaigns/${siteSlug}`, {
+        headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+        method: 'POST',
+        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+      }).catch(() => null);
+
+      if (!req?.ok) {
+        dialog.setLoading(false);
+        await alertDialog(OOPS);
+      } else {
+        const newCampaign = await req.json();
+
+        container.querySelectorAll('.campaign-list').forEach((el) => {
+          el.insertAdjacentHTML('beforeend', `
+              <li data-campaign="${newCampaign.slug}"><a class="button selector action secondary" href="${pathname}/${el.dataset.type}/${newCampaign.slug}">${newCampaign.name}</li></a>
+            `);
+        });
+
+        campaignContainer.insertAdjacentHTML('beforeend', `
+            <div class="campaign campaign-${newCampaign.slug}" hidden>
+              <div class="cards">
+                <div class="box">
+                    <strong>Campaign</strong>
+                    <span class="campaign-name">${safeText(newCampaign.name)} (${newCampaign.slug})</span>
+                </div>
+                <div class="box">
+                    <strong>Campaign description</strong>
+                    <span class="description">${safeText(newCampaign.description)}</span>
+                    <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
+                </div>
+                <div class="box">
+                    <strong>Created</strong>
+                    ${dateToRelativeSpan(newCampaign.created).outerHTML}
+                </div>
+                <div class="box">
+                    <strong>Last update</strong>
+                    ${dateToRelativeSpan(newCampaign.lastUpdated).outerHTML}
+                </div>
+              </div>
+              
+              <h2>${safeText(newCampaign.name)} emails</h2>
+              <table class="emails"></table>
+            </div>
+          `);
+
+        const newCampaignEmails = emailDocuments.filter(({ path }) => path.startsWith(`/emails/${newCampaign.slug}/`));
+        renderTable({
+          table: campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`), tableData: newCampaignEmails, type: 'emails', projectDetails, token,
+        });
+
+        const link = campaignList.querySelector('li:last-child a');
+        link.click();
+        pushHistory(link.getAttribute('href'));
+
+        dialog.setLoading(false);
+        dialog.close();
+
+        toggleWell();
+
+        addEmailEl.click();
+      }
+    };
+  };
+
+  well.querySelector('#add-campaign').onclick = addCampaign;
+
+  if (window.location.pathname === `/site/${siteSlug}/emails`) {
+    toggleWell();
+  }
+
   campaignContainer.onclick = async (event) => {
     if (event.target.matches('.update-campaign-description')) {
       window?.zaraz?.track('click update campaign description');
@@ -214,6 +360,7 @@ export default async function renderCampaignsOverview({
     }
   };
 
+  addCampaignEl.onclick = addCampaign;
   nav.querySelector('.add-campaign').onclick = async () => {
     const submit = parseFragment('<button form="create-campaign-form" type="submit" class="button primary action">Create Campaign</button>');
     const content = parseFragment(`
@@ -326,8 +473,7 @@ export default async function renderCampaignsOverview({
     };
   };
 
-  const addEmail = nav.querySelector('.add-email');
-  addEmail.onclick = async () => {
+  addEmailEl.onclick = async () => {
     const campaignSlug = campaignList.querySelector('li a.is-selected').parentElement.dataset.campaign;
     const submit = parseFragment('<button form="add-email-form" type="submit" class="button primary action">Add Email</button>');
     const content = parseFragment(`
@@ -425,6 +571,8 @@ export default async function renderCampaignsOverview({
           container.querySelector('.campaign-list[data-type="emails"] a').click();
 
           replaceHistory(`${pathname}/emails`);
+
+          toggleWell();
         } else {
           await alertDialog(OOPS);
         }
@@ -443,4 +591,10 @@ export default async function renderCampaignsOverview({
   onHistoryPopArray.push((currentItem) => {
     campaignList.querySelector(`[href="${currentItem}"]`).click();
   });
+
+  const addCampaignLink = document.querySelector(`.tabs-aside a[href="/site/${siteSlug}/emails"].add-campaign`);
+  if (addCampaignLink) {
+    addCampaignLink.classList.remove('add-campaign');
+    addCampaignEl.click();
+  }
 }

@@ -3,12 +3,13 @@ import {
   onAuthenticated,
   OOPS,
   KESTREL_ONE,
-  colorInput,
   completeChecklistItem,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
 import { alertDialog, confirmDialog } from '../../scripts/dialogs.js';
+import createBaseBlockHtml from './baseBlockHtml.js';
+import initFontPicker from './fontPicker.js';
 
 let timer;
 const debounce = (fn) => {
@@ -67,7 +68,7 @@ const isMobile = window.matchMedia('(width < 768px)');
 export default async function decorate(block) {
   onAuthenticated(async () => {
     const split = window.location.pathname.split('/');
-    const id = split[2];
+    const projectSlug = split[2];
     const token = await window.auth0Client.getTokenSilently();
     const headers = { authorization: `bearer ${token}` };
 
@@ -79,8 +80,8 @@ export default async function decorate(block) {
               Dashboard
             </a>
             <span>&rsaquo;</span>
-            <a href="/site/${id}">
-              ${id}
+            <a href="/site/${projectSlug}">
+              ${projectSlug}
             </a>
           </div>
         </div>
@@ -91,7 +92,7 @@ export default async function decorate(block) {
       </div>`;
 
     // Load site theme
-    const cssVarsData = await fetch(`https://preview--${id}.${KESTREL_ONE}/styles/vars.css`)
+    const cssVarsData = await fetch(`https://preview--${projectSlug}.${KESTREL_ONE}/styles/vars.css`)
       .then((res) => {
         if (res.ok) {
           return res.text();
@@ -108,429 +109,15 @@ export default async function decorate(block) {
       return;
     }
 
-    block.innerHTML = `
-          <div class="nav">
-            <div class="breadcrumbs">
-              <a href="/dashboard/sites">
-                Dashboard
-              </a>
-              <span>&rsaquo;</span>
-              <a href="/site/${id}">
-                ${id}
-              </a>
-              <span>&rsaquo;</span>
-              <a href="${window.location.href}" aria-current="page">
-                <h1>Theme Editor</h1>
-              </a>
-            </div>
-            
-            <div class="actions">
-              <div class="warning" hidden>
-                <span class="icon icon-info">
-                  <img alt src="/icons/info.svg" loading="lazy">  
-                </span>
-                <span>You have unsaved changes</span>
-                <button type="button" aria-label="close">&#x2715;</button>
-              </div>
-              <div class="button-container">
-                <div class="viewers" id="viewers" role="radiogroup">
-                    <button aria-checked="false" title="Mobile" aria-label="mobile" data-width="375px" class="button secondary action">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M280-40q-33 0-56.5-23.5T200-120v-720q0-33 23.5-56.5T280-920h400q33 0 56.5 23.5T760-840v720q0 33-23.5 56.5T680-40H280Zm0-120v40h400v-40H280Zm0-80h400v-480H280v480Zm0-560h400v-40H280v40Zm0 0v-40 40Zm0 640v40-40Z"/></svg>
-                    </button>
-                    <button aria-checked="false" title="Tablet" aria-label="tablet" data-width="810px" class="button secondary action">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M120-160q-33 0-56.5-23.5T40-240v-480q0-33 23.5-56.5T120-800h720q33 0 56.5 23.5T920-720v480q0 33-23.5 56.5T840-160H120Zm40-560h-40v480h40v-480Zm80 480h480v-480H240v480Zm560-480v480h40v-480h-40Zm0 0h40-40Zm-640 0h-40 40Z"/></svg>
-                    </button>
-                    <button aria-checked="false" title="Laptop" aria-label="laptop" data-width="1280px" class="button secondary action">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M40-120v-80h880v80H40Zm120-120q-33 0-56.5-23.5T80-320v-440q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v440q0 33-23.5 56.5T800-240H160Zm0-80h640v-440H160v440Zm0 0v-440 440Z"/></svg>
-                    </button>
-                    <button aria-checked="false" title="Desktop" aria-label="desktop" data-width="1440px" class="button secondary action">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3c4043"><path d="M320-120v-80h80v-80H160q-33 0-56.5-23.5T80-360v-400q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v400q0 33-23.5 56.5T800-280H560v80h80v80H320ZM160-360h640v-400H160v400Zm0 0v-400 400Z"/></svg>
-                    </button>
-                </div>
-                <select id="publish-theme-selector" title="Select the previewed page" class="button action secondary publish-theme-selector"></select>
-                <button id="save-button" title="Save your changes" class="button action primary is-disabled publish-theme">Save</button>
-              </div>
-            </div>
-          </div>
-        
-          <div class="content">
-              <div class="preview">
-                <div class="preview-container">
-                  <iframe src="https://preview--${id}.${KESTREL_ONE}?ispreview=true" class="iframe is-loading"></iframe>
-                  ${renderSkeleton('theme-editor-preview')}
-                </div>
-              </div>
-              <div class="ghost-aside"></div>
-              <aside class="aside settings is-open">
-                <button class="toggle-aside" aria-checked="true" title="Toggle Theme Settings">
-                  <span class="icon"><img src="/icons/chevron-down.svg" alt="chevron-down"></span>
-                </button>
-
-                <div class="aside-content">
-                  <h2>Typography</h2>
-                  
-                  <h3>Heading</h3>
-                  <label>
-                      <span>Font family</span>
-                      <select class="font-picker" data-var="heading-font-family"></select>
-                  </label>
-                  <label>
-                      <span>Font weight</span>
-                      <select class="weight-picker" data-var="heading-font-weight"></select>
-                  </label>
-                  <h3>Body</h3>
-                  <label>
-                      <span>Font family</span>
-                      <select class="font-picker" data-var="body-font-family"></select>
-                  </label>
-                  
-                  <h2>Colors</h2>
-                  
-                  <h3>Presets</h3>
-                  <label>
-                    <span>Color preset</span>
-                    <select class="presets-picker">
-                        <option class="custom" hidden>Custom</option>
-                    </select>
-                  </label>
-                  
-                  <h3>Base</h3>
-                  <label>
-                    <span>Light</span>
-                    <div title="Open the color picker" class="color-picker base">
-                        <span></span>
-                        ${colorInput('color-light')}
-                    </div>
-                  </label>
-                  <label>
-                    <span>Dark</span>
-                    <div title="Open the color picker" class="color-picker base">
-                        <span></span>
-                        ${colorInput('color-dark')}
-                    </div>
-                  </label>
-                  <label>
-                    <span>Lightest</span>
-                    <div title="Open the color picker" class="color-picker base">
-                        <span></span>
-                        ${colorInput('color-lightest')}
-                    </div>
-                  </label>
-                  <label>
-                    <span>Darkest</span>
-                    <div title="Open the color picker" class="color-picker base">
-                        <span></span>
-                        ${colorInput('color-darkest')}
-                    </div>
-                  </label>
-                  <label>
-                    <span>Brand primary</span>
-                    <div title="Open the color picker" class="color-picker base">
-                        <span></span>
-                        ${colorInput('color-brand-primary')}
-                    </div>
-                  </label>
-                  <label>
-                    <span>Brand secondary</span>
-                    <div title="Open the color picker" class="color-picker base">
-                        <span></span>
-                        ${colorInput('color-brand-secondary')}
-                    </div>
-                  </label>
-                  <label>
-                    <span>Brand tertiary</span>
-                    <div title="Open the color picker" class="color-picker base">
-                        <span></span>
-                        ${colorInput('color-brand-tertiary')}
-                    </div>
-                  </label>
-                  
-                  <h3>Elements</h3>
-                  <label>
-                      <span>Background color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('background-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  
-                  <label>
-                      <span>Header background color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('header-background-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  
-                  <label>
-                      <span>Heading text color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('heading-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  
-                  <label>
-                      <span>Body text color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('text-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  
-                  <label>
-                      <span>Links text color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('link-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Links text color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('link-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  
-                  <h2>Buttons</h2>
-                  
-                  <h3>Default</h3>
-                  
-                  <label>
-                      <span>Text color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-text-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Background color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-background-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Border color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-border-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Text color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-text-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Background color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-background-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Border color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-border-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  
-                  <h3>Primary</h3>
-                  
-                  <label>
-                      <span>Text color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-primary-text-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Background color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-primary-background-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Border color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-primary-border-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Text color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-primary-text-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Background color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-primary-background-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Border color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-primary-border-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  
-                  <h3>Secondary</h3>
-                  
-                  <label>
-                      <span>Text color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-secondary-text-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Background color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-secondary-background-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Border color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-secondary-border-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Text color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-secondary-text-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Background color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-secondary-background-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Border color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('button-secondary-border-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-
-                  <h2>Input Fields</h2>
-
-                  <label>
-                      <span>Input text color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('input-text-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Input background color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('input-background-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                  <label>
-                      <span>Input border color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('input-border-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-
-                  <h2>Footer</h2>
-                  
-                  <label>
-                      <span>Footer background color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('footer-background-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-
-                  <label>
-                      <span>Footer text color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('footer-text-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-
-                  <label>
-                      <span>Footer Links text color</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('footer-link-color', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-
-                  <label>
-                      <span>Footer Links text color on hover</span>
-                      <div title="Open the color picker" class="color-picker elements">
-                        <select></select>
-                        ${colorInput('footer-link-color-hover', true)}
-                      </div>
-                      <span class="contrast-issues"></span>
-                  </label>
-                
-                  <!--<h2>Styles (Developer)</h2>-->
-                  <!--<button class="button secondary action enable-styles">Edit styles (developer mode)</button>-->
-                  <textarea class="vars"></textarea>
-                </div>
-              </aside>
-            </div>
-          </div>
-        </div>`;
+    block.innerHTML = createBaseBlockHtml(projectSlug);
 
     // Get CSS vars
-    let cssVars = getCSSVars(cssVarsData);
-    let fonts = '';
+    const varsObj = {
+      cssVars: getCSSVars(cssVarsData),
+      cssFonts: '',
+    };
+    // let cssVars = getCSSVars(cssVarsData);
+    // const fontCss = '';
 
     // Presets
     let presets;
@@ -638,7 +225,7 @@ export default async function decorate(block) {
     anchorAside();
 
     // eslint-disable-next-line max-len
-    const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => cssVars.includes(cssVar)));
+    const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => varsObj.cssVars.includes(cssVar)));
 
     const updatePreset = () => {
       selectedPreset = findSelectedPreset();
@@ -653,7 +240,7 @@ export default async function decorate(block) {
     };
 
     // Init theme presets
-    fetch(`https://preview--${id}.${KESTREL_ONE}/themes.json`)
+    fetch(`https://preview--${projectSlug}.${KESTREL_ONE}/themes.json`)
       .then((res) => res.json())
       .then((res) => {
         presets = res;
@@ -690,7 +277,7 @@ export default async function decorate(block) {
       });
 
     // TODO: remove when we move to dark alley
-    fetch(`${SCRIPT_API}/darkAlleyList/${id}`, {
+    fetch(`${SCRIPT_API}/darkAlleyList/${projectSlug}`, {
       headers: {
         authorization: `bearer ${token}`,
       },
@@ -799,13 +386,13 @@ export default async function decorate(block) {
     const editor = window.CodeMirror.fromTextArea(vars);
     const editorOnChange = () => {
       const editorValue = editor.getValue();
-      cssVars = getCSSVars(editorValue);
+      varsObj.cssVars = getCSSVars(editorValue);
 
       block.querySelector('.publish-theme').classList.remove('is-disabled');
       previewFrame.contentWindow.postMessage(
         {
           type: 'update:styles',
-          styles: fonts,
+          styles: varsObj.cssFonts,
           file: 'fonts',
         },
         '*',
@@ -830,7 +417,7 @@ export default async function decorate(block) {
     // debounce causes weird issues, where editor reverts to value of first change
     editor.on('change', editorOnChange);
 
-    // Init font-weight picker
+    // MARK: Init font-weight picker
     const fontWeights = ['300', '400', '700'];
     const fontWeightLabels = {
       300: 'Light',
@@ -838,7 +425,7 @@ export default async function decorate(block) {
       700: 'Bold',
     };
     block.querySelectorAll('.weight-picker').forEach((el) => {
-      let selectedFontWeight = findCSSVar(cssVars, el.dataset.var);
+      let selectedFontWeight = findCSSVar(varsObj.cssVars, el.dataset.var);
       el.innerHTML = `${fontWeights
         .map(
           (weight) => `<option ${
@@ -857,153 +444,29 @@ export default async function decorate(block) {
             ),
         );
 
-        cssVars = getCSSVars(editor.getValue());
-        selectedFontWeight = findCSSVar(cssVars, el.dataset.var);
+        varsObj.cssVars = getCSSVars(editor.getValue());
+        selectedFontWeight = findCSSVar(varsObj.cssVars, el.dataset.var);
 
         warning.hidden = false;
       };
     });
 
-    // Init font-pickers
-    const fontsKey = 'AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps';
-    fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${fontsKey}&capability=WOFF2`)
-      .then((req) => {
-        if (req.ok) {
-          return req.json();
-        }
-        return false;
-      })
-      .then(({ items }) => {
-        let customFonts = items.filter(
-          ({ subsets, variants }) => subsets.includes('latin')
-                && fontWeights.every((weight) => variants.includes(weight === '400' ? 'regular' : weight)),
-        );
+    // MARK: Init font-pickers
+    initFontPicker({
+      varsObj,
+      editor,
+      block,
+      warning,
+      getCSSVars,
+      findCSSVar,
+    });
 
-        const defaultFonts = [
-          'Arial',
-          'Verdana',
-          'Tahoma',
-          'Trebuchet MS',
-          'Times New Roman',
-          'Georgia',
-          'Garamond',
-          'Courier New',
-        ];
-
-        customFonts = [...customFonts, ...defaultFonts.map((font) => ({ family: font }))].sort(
-          (a, b) => {
-            if (a.family < b.family) {
-              return -1;
-            }
-            if (a.family > b.family) {
-              return 1;
-            }
-            return 0;
-          },
-        );
-
-        const updateFonts = async (selectedFont, newFont) => {
-          const selectedFonts = [...block.querySelectorAll('.font-picker')].map(
-            (el) => el.value,
-          );
-          const selectedCustomFonts = selectedFonts.filter(
-            (font) => !defaultFonts.includes(font),
-          );
-
-          if (selectedCustomFonts.length) {
-            const searchParams = new URLSearchParams();
-            searchParams.set('display', 'swap');
-
-            const fallbackFonts = [];
-            selectedCustomFonts.forEach((customFont) => {
-              const { files } = customFonts.find(({ family }) => customFont === family);
-
-              searchParams.append('family', `${customFont}:wght@300;400;700`);
-
-              fontWeights.forEach((weight) => {
-                fallbackFonts.push(
-                  fetch(`${SCRIPT_API}/font-fallback`, {
-                    method: 'POST',
-                    headers: {
-                      'content-type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      name: customFont,
-                      url: files[weight === '400' ? 'regular' : weight],
-                      weight,
-                    }),
-                  }).then((res) => res.text()),
-                );
-              });
-            });
-
-            const req = await fetch(
-              `https://fonts.googleapis.com/css2?${searchParams.toString()}`,
-            );
-            if (req.ok) {
-              // Update fonts
-              fonts = await req.text();
-
-              // Update editor
-              editor.setValue(
-                editor
-                  .getValue()
-                  .replace(
-                    `--${selectedFont.name}:${selectedFont.fullValue}`,
-                    `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`,
-                  ),
-              );
-
-              cssVars = getCSSVars(editor.getValue());
-            }
-
-            Promise.allSettled(fallbackFonts).then((res) => {
-              let newValue = editor.getValue();
-
-              // Remove fallback fonts
-              const indexOf = newValue.indexOf('@font-face');
-              if (indexOf !== -1) {
-                newValue = newValue.substr(0, newValue.indexOf('@font-face'));
-              }
-
-              // Add new fallback fonts
-              newValue += `${res
-                .filter(({ status }) => status === 'fulfilled')
-                .map(({ value }) => value)
-                .join('\n')}`;
-
-              // Update editor
-              editor.setValue(newValue);
-
-              cssVars = getCSSVars(editor.getValue());
-            });
-          }
-        };
-
-        block.querySelectorAll('.font-picker').forEach((el) => {
-          let selectedFont = findCSSVar(cssVars, el.dataset.var, true);
-          el.innerHTML = `${customFonts
-            .map(
-              ({ family }) => `<option ${
-                family === selectedFont?.value ? 'selected' : ''
-              } value="${family}">${family}</option>`,
-            )
-            .join('')}`;
-
-          el.onchange = () => {
-            selectedFont = findCSSVar(cssVars, el.dataset.var, true);
-            updateFonts(selectedFont, el.value);
-            warning.hidden = false;
-          };
-        });
-      });
-
-    // Init color-pickers
+    // MARK: Init color-pickers
     const regExpVars = /\(([^)]+)\)/;
     block.querySelectorAll('.color-picker').forEach((el) => {
       const input = el.querySelector('input');
       const select = el.querySelector('select');
-      let selectedColor = findCSSVar(cssVars, input.dataset.var);
+      let selectedColor = findCSSVar(varsObj.cssVars, input.dataset.var);
 
       if (el.classList.contains('base')) {
         input.value = selectedColor.value;
@@ -1014,7 +477,7 @@ export default async function decorate(block) {
 
         input.oninput = () => {
           const newValue = input.value.toUpperCase();
-          selectedColor = findCSSVar(cssVars, input.dataset.var);
+          selectedColor = findCSSVar(varsObj.cssVars, input.dataset.var);
           el.querySelector('span').textContent = newValue;
 
           // Update editor
@@ -1053,11 +516,11 @@ export default async function decorate(block) {
           )
           .join()}`;
 
-        input.value = findCSSVar(cssVars, varValue).value?.toUpperCase();
+        input.value = findCSSVar(varsObj.cssVars, varValue).value?.toUpperCase();
 
         select.onchange = () => {
           const newValue = select.value;
-          selectedColor = findCSSVar(cssVars, input.dataset.var);
+          selectedColor = findCSSVar(varsObj.cssVars, input.dataset.var);
           const base = block.querySelector(`.base input[data-var="${newValue}"]`);
           input.value = base.value;
 
@@ -1081,7 +544,7 @@ export default async function decorate(block) {
             '*',
           );
 
-          cssVars = getCSSVars(editor.getValue());
+          varsObj.cssVars = getCSSVars(editor.getValue());
 
           warning.hidden = false;
 
@@ -1093,7 +556,7 @@ export default async function decorate(block) {
     const publishThemeSelector = block.querySelector('.publish-theme-selector');
 
     // Load index to list pages
-    fetch(`${SCRIPT_API}/index/${id}`)
+    fetch(`${SCRIPT_API}/index/${projectSlug}`)
       .then((res) => {
         if (res.ok) {
           return res.json();
@@ -1130,14 +593,14 @@ export default async function decorate(block) {
 
       if (new URL(previewFrame.src).pathname !== publishThemeSelector.value) {
         previewFrame.classList.add('is-loading');
-        previewFrame.src = `https://preview--${id}.${KESTREL_ONE}${publishThemeSelector.value}`;
+        previewFrame.src = `https://preview--${projectSlug}.${KESTREL_ONE}${publishThemeSelector.value}`;
         previewFrame.addEventListener(
           'load',
           () => {
             previewFrame.contentWindow.postMessage(
               {
                 type: 'update:styles',
-                styles: fonts,
+                styles: varsObj.cssFonts,
                 file: 'fonts',
               },
               '*',
@@ -1161,6 +624,7 @@ export default async function decorate(block) {
       }
     };
 
+    // MARK: save button
     block.querySelector('.publish-theme').onclick = async () => {
       window?.zaraz?.track('click site theme submit');
 
@@ -1176,8 +640,8 @@ export default async function decorate(block) {
 
       editor.setOption('readOnly', true);
       let failed = false;
-      if (fonts) {
-        let res = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {
+      if (varsObj.cssFonts) {
+        let res = await fetch(`${SCRIPT_API}/cssVariables/${projectSlug}`, {
           method: 'POST',
           headers: { ...headers, 'content-type': 'application/json' },
           body: JSON.stringify({ css: btoa(editor.getValue()) }),
@@ -1186,16 +650,16 @@ export default async function decorate(block) {
         if (!res.ok) {
           failed = true;
         } else {
-          res = await fetch(`${SCRIPT_API}/cssFonts/${id}`, {
+          res = await fetch(`${SCRIPT_API}/cssFonts/${projectSlug}`, {
             method: 'POST',
             headers: { ...headers, 'content-type': 'application/json' },
-            body: JSON.stringify({ css: btoa(fonts) }),
+            body: JSON.stringify({ css: btoa(varsObj.cssFonts) }),
           });
 
           failed = !res.ok;
         }
       } else {
-        const res = await fetch(`${SCRIPT_API}/cssVariables/${id}`, {
+        const res = await fetch(`${SCRIPT_API}/cssVariables/${projectSlug}`, {
           method: 'POST',
           headers: { ...headers, 'content-type': 'application/json' },
           body: JSON.stringify({ css: btoa(editor.getValue()) }),

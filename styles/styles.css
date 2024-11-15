@@ -757,3 +757,33 @@ table tr.loading {
 .highlight-popover-hidden {
   display: none !important;
 }
+
+.filter[disabled] {
+  cursor: not-allowed;
+}
+
+.well {
+  background-color: var(--light-gray);
+  padding: 32px;
+  display: flex;
+  gap: 32px;
+  border-radius: var(--border-radius);
+  align-items: center;
+  margin-bottom: 64px;
+}
+
+.well h2 {
+  padding: 0 !important;
+}
+
+.well p {
+  font-weight: 300;
+}
+
+.well img {
+  width: 40%;
+}
+
+.well .text {
+  width: 60%;
+}

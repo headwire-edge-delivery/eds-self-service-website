@@ -31,11 +31,24 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
   const { token, siteSlug, siteDetails } = renderOptions;
   container.innerHTML = renderSkeleton('audience');
 
-  const addContact = parseFragment(`
+  const addContactEl = parseFragment(`
     <button class="button primary action" id="add-contact">Add Contact</button>
   `);
 
-  addContact.onclick = async () => {
+  const toggleWell = () => {
+    const well = container.querySelector('.well');
+    if (container.querySelector('table tr[data-id]')) {
+      well.hidden = true;
+      addContactEl.hidden = false;
+      addContactEl.id = 'add-contact';
+    } else {
+      well.hidden = false;
+      addContactEl.hidden = true;
+      addContactEl.removeAttribute('id');
+    }
+  };
+
+  const addContact = async () => {
     window?.zaraz?.track('click add contact');
 
     const submit = parseFragment('<button form="add-contact-form" type="submit" class="button primary action">Submit</button>');
@@ -93,6 +106,8 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
 
         const { id } = await response.json();
         tableBody.insertAdjacentHTML('afterbegin', renderContact({ id, createdAt: 'Just now', ...body }));
+
+        toggleWell();
       } else {
         await alertDialog(OOPS);
       }
@@ -101,7 +116,8 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
     };
   };
 
-  nav.append(addContact);
+  addContactEl.onclick = addContact;
+  nav.append(addContactEl);
 
   const audienceData = await fetch(`${SCRIPT_API}/audience/${siteSlug}`, {
     headers: {
@@ -110,6 +126,15 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
   }).then((res) => res.json()).catch(() => null);
 
   container.innerHTML = `
+    <div class="well" hidden>
+      <img src="/icons/illustrations/pc.svg" alt="" loading="lazy"/>
+      <div class="text">
+        <h2>Add contacts to your audience</h2>
+        <p>Add your first contact before sending out emails.</p>
+        <button id="add-contact" class="button primary">Start now</button>
+      </div>
+    </div>
+      
     <table>
       <thead>
         <tr>
@@ -126,6 +151,10 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
       </tbody>
     </table>
   `;
+
+  container.querySelector('#add-contact').onclick = addContact;
+
+  toggleWell();
 
   const table = container.querySelector('table');
   table.addEventListener('click', async (event) => {
@@ -216,6 +245,8 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
           if (!table.tBodies[0].rows.length) {
             table.tBodies[0].innerHTML = '<tr><td colspan="6" class="empty">Not enough data</td></tr>';
           }
+
+          toggleWell();
         } else {
           await alertDialog(OOPS);
         }
