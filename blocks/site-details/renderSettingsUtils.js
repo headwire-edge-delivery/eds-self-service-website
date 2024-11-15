@@ -89,7 +89,7 @@ export function addIconDialogSetup({
   input.onchange = (event) => {
     [file] = event.target.files;
     if (file) {
-      if (!validateFileType(fileAccept, file.name)) {
+      if (!validateFileType(fileAccept, file.name.toLowerCase())) {
         preview.innerHTML = 'Please select a valid file!';
         return;
       }

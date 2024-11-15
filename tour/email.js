@@ -63,6 +63,12 @@ function campaignEmailsAudienceTour({ showAutoTour }) {
         element: '#add-contact',
         side: 'left',
       },
+      {
+        title: 'Bulk import',
+        description: 'Import multiple contacts at once from a CSV file to create your audience.',
+        element: '#bulk-import',
+        side: 'left',
+      },
     ],
   };
 
