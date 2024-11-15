@@ -67,16 +67,9 @@ function siteOverviewTour({ showAutoTour }) {
         element: '#site-template',
       },
       {
-        title: 'Danger Zone',
-        description: 'Be careful here! This is the Danger Zone. <br /> You can delete your site here.',
-        element: '.danger-zone',
-        side: 'top',
-      },
-      {
-        title: 'Want to Delete your Site?',
-        description: 'If you want to delete your site, click here. <br /> It will take you to the delete site dialog.',
-        element: '#delete-site-button',
-        side: 'left',
+        title: 'Checklist',
+        description: 'Don\' know how to start? Follow the checklist!',
+        element: '#checklist',
       },
     ],
   };

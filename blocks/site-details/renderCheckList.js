@@ -47,7 +47,7 @@ export default async function renderCheckList({
   container, renderOptions, historyArray,
 }) {
   container.innerHTML = `
-    <div class="checklist">
+    <div id="checklist" class="checklist">
       <h2 class="checklist-title">Checklist</h2>
 
       <div class="button-container section-tabs"></div>

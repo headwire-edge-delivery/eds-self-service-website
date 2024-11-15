@@ -674,7 +674,7 @@ export default async function decorate(block) {
           : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.',
       );
 
-      completeChecklistItem(id, 'themeUpdated');
+      completeChecklistItem(projectSlug, 'themeUpdated');
 
       editor.setOption('readOnly', false);
 
