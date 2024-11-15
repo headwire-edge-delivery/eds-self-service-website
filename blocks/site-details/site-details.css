@@ -355,6 +355,7 @@ dialog .clicked-links li {
   display: flex;
   align-items: center;
 }
+
 .site-details.block .checklist .checklist-title::after {
   content: "";
   display: block;
@@ -393,7 +394,7 @@ dialog .clicked-links li {
 .site-details.block .checklist .checklist-item {
   display: flex;
   gap: 8px;
-  padding: 24px;
+  padding: 12px 24px;
   border: 1px solid var(--gray);
   border-radius: var(--border-radius);
   align-items: center;

@@ -164,7 +164,7 @@ export default async function renderCheckList({
           <div class="progress-wrapper">
             <div class="progress-bar">
               <div class="progress-bar-fill"></div>
-              <div class="progress-bar-fraction">
+              <div class="progress-bar-text">
                 <span><span class="current">0</span> / <span class="total">0</span> Completed<span>
               </div>
             </div>
@@ -249,13 +249,12 @@ export default async function renderCheckList({
     renderChecklistItems(fetchedChecklistData);
   };
 
-
   // list reloads
   if (historyArray.length > 1) {
     reloadChecklist();
   }
 
-  document.addEventListener('visibilitychange', (event) => {
+  document.addEventListener('visibilitychange', () => {
     if (document.hidden) return;
     reloadChecklist();
   });

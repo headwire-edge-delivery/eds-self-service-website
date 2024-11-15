@@ -33,13 +33,13 @@ export default async function renderAccount({ container, nav }) {
         <h2 style="margin-top: 32px">Monthly consumption</h2>
         <div class="progress-bar">
             <div class="progress-bar-fill" style="width:${pageViewsPercentage}%"></div>
-            <div class="progress-bar-fraction">
+            <div class="progress-bar-text">
               <span>${pageViews} / ${maxPageViews} Page Views</span>
             </div>
         </div>
         <div class="progress-bar">
             <div class="progress-bar-fill" style="width:${sentEmailsPercentage}%"></div>
-            <div class="progress-bar-fraction">
+            <div class="progress-bar-text">
               <span>${sentEmails} / ${maxSentEmails} Sent Emails</span>
             </div>
         </div>

@@ -1,5 +1,5 @@
 import {
-  completeChecklistItem, OOPS, parseFragment, SCRIPT_API, 
+  completeChecklistItem, OOPS, parseFragment, SCRIPT_API,
 } from '../../scripts/scripts.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 

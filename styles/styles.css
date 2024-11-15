@@ -8,8 +8,7 @@
   --orange: rgb(218 123 64);
   --red: rgb(200 0 0);
   --green: rgb(50 200 100);
-  /* --light-green: hsl(140, 60%, 49%); */
-  --light-green: rgb(78, 218, 125);
+  --light-green: rgb(78 218 125);
   --gray: #bbb;
   --light-gray: #eee;
   --white: #fff;
@@ -553,14 +552,14 @@ table tr.loading {
   height: 100%;
 }
 
-.progress-bar .progress-bar-fraction {
+.progress-bar .progress-bar-text {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   text-align: center;
   justify-content: center;
-  font-weight: 300;
+  font-weight: 500;
   font-size: 14px;
   z-index: 2;
 }
