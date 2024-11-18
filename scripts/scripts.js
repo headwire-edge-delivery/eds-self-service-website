@@ -166,6 +166,16 @@ export function dateToRelativeSpan(date, className, lang = [], format = {
   return span;
 }
 
+export function validateEmail(value) {
+  const input = document.createElement('input');
+
+  input.type = 'email';
+  input.required = true;
+  input.value = value;
+
+  return input.checkValidity();
+}
+
 export function onAuthenticated(cb) {
   if (document.body.classList.contains('is-authenticated')) {
     cb();

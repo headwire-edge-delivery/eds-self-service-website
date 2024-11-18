@@ -794,3 +794,39 @@ table tr.loading {
 .well .text {
   width: 60%;
 }
+
+.well .button-container {
+  justify-content: flex-start;
+}
+
+.badge {
+  border-radius: var(--small-border-radius);
+  background: var(--light-gray);
+  padding-block: 8px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 12px;
+  white-space: nowrap;
+  text-align: center;
+  width: 120px;
+}
+
+.badge.small {
+  display: inline-block;
+  width: auto;
+  text-transform: inherit;
+  font-weight: inherit;
+  padding: 4px 8px;
+  margin: 4px;
+  font-size: 14px;
+}
+
+.badge.green {
+  background-color: var(--green);
+  color: var(--white);
+}
+
+.badge.orange {
+  background-color: var(--orange);
+  color: var(--white);
+}
