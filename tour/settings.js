@@ -105,6 +105,18 @@ function settingsGeneralTour({ showAutoTour }) {
         side: 'left',
         align: 'end',
       },
+      {
+        title: 'Danger Zone',
+        description: 'Be careful here! This is the Danger Zone. <br /> You can delete your site here.',
+        element: '.danger-zone',
+        side: 'top',
+      },
+      {
+        title: 'Want to Delete your Site?',
+        description: 'If you want to delete your site, click here. <br /> It will take you to the delete site dialog.',
+        element: '#delete-site-button',
+        side: 'left',
+      },
     ],
   };
 
@@ -115,8 +127,7 @@ function settingsThemeTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        const deleteSettingsPath = document.querySelectorAll('.breadcrumbs > a')?.[1]?.getAttribute('href');
-        window.location.href = `${deleteSettingsPath}/danger-zone`;
+        window.location.href = '/dashboard';
       }
     },
     steps: [
@@ -166,30 +177,4 @@ function settingsThemeTour({ showAutoTour }) {
   return tourData;
 }
 
-function settingsDeleteTour({ showAutoTour }) {
-  const tourData = {
-    onFinished: () => {
-      if (showAutoTour) {
-        window.location.href = '/dashboard';
-      }
-    },
-    steps: [
-      {
-        title: 'Danger Zone',
-        description: 'Be careful here! This is the Danger Zone. <br /> You can delete your site here.',
-        element: '.danger-zone',
-        side: 'top',
-      },
-      {
-        title: 'Want to Delete your Site?',
-        description: 'If you want to delete your site, click here. <br /> It will take you to the delete site dialog.',
-        element: '#delete-site-button',
-        side: 'left',
-      },
-    ],
-  };
-
-  return tourData;
-}
-
-export { settingsGeneralTour, settingsThemeTour, settingsDeleteTour };
+export { settingsGeneralTour, settingsThemeTour };

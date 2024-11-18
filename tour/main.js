@@ -15,7 +15,7 @@ import {
 import {
   campaignEmailsTour, campaignEmailsAudienceTour, campaignEmailAnalyticsTour, emailTour,
 } from './email.js';
-import { settingsGeneralTour, settingsThemeTour, settingsDeleteTour } from './settings.js';
+import { settingsGeneralTour, settingsThemeTour } from './settings.js';
 import adminTour from './admin.js';
 import SEOTour from './seo.js';
 import generateTour from './generateTour.js';
@@ -200,12 +200,6 @@ const startTour = (isAutoTour, showDisableTour = false) => {
           break;
         case switchCase('/da-site/', '/settings'):
           getTour(settingsGeneralTour);
-          break;
-        case switchCase('/site/', '/danger-zone'):
-          getTour(settingsDeleteTour);
-          break;
-        case switchCase('/da-site/', '/danger-zone'):
-          getTour(settingsDeleteTour);
           break;
         case switchCase('/theme/'):
           getTour(settingsThemeTour);
