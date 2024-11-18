@@ -398,7 +398,11 @@ dialog .clicked-links li {
   border: 1px solid var(--light-gray);
   border-radius: var(--border-radius);
   align-items: center;
-  justify-content: space-between;
+}
+
+.site-details.block .checklist .checklist-item[inert] {
+  opacity: 0.7;
+  background-color: var(--light-gray);
 }
 
 .site-details.block .checklist .checklist-item[data-completed="true"] {
@@ -408,6 +412,7 @@ dialog .clicked-links li {
 .site-details.block .checklist-button-container {
   display: flex;
   gap: 8px;
+  margin-left: auto;
 }
 
 .site-details.block .checklist .checklist-button {

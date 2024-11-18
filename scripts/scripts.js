@@ -42,9 +42,11 @@ export async function completeChecklistItem(projectSlug, itemName, projectDetail
 }
 
 export async function highlightElement() {
-  const highlightSelector = decodeURIComponent(readQueryParams().highlight);
+  const params = readQueryParams();
+  const highlightSelector = decodeURIComponent(params.highlight);
+  const tooltip = decodeURIComponent(params.tooltip);
+  removeQueryParams(['highlight', 'tooltip']);
   if (highlightSelector) {
-    removeQueryParams(['highlight']);
     const getElement = () => document.querySelector(highlightSelector);
     let found = getElement();
     if (!found) {
@@ -64,14 +66,20 @@ export async function highlightElement() {
     }
     if (found) {
       // highlight with tour
+      const description = document.createElement('p');
+      description.innerText = tooltip; // doing this to prevent XSS exploits
       const tourHighlight = window.expedition.js.tour({
         destroyOnClicked: true,
         steps: [
           {
-            title: 'Test',
-            description: 'Highlight',
             element: found,
-            popover: { popoverClass: 'highlight-popover-hidden' },
+            popover: {
+              popoverClass: !tooltip ? 'highlight-popover-hidden' : '',
+              title: '',
+              // Do not directly input the description queryparam text below! XSS
+              description: description.innerHTML,
+              showButtons: [],
+            },
             destroyOnClicked: true,
           },
         ],
@@ -79,6 +87,7 @@ export async function highlightElement() {
 
       tourHighlight.start();
     } else {
+      // eslint-disable-next-line no-console
       console.warn('element to highlight was not found within max attempts');
     }
   }

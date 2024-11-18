@@ -8,7 +8,6 @@ import {
 import renderCampaignsAnalytics from './renderCampaignsAnalytics.js';
 import renderCampaignsAudience from './renderCampaignsAudience.js';
 import renderCampaignsOverview from './renderCampaignsOverview.js';
-import renderDangerZone from './renderDangerZone.js';
 import renderSettingsGeneral from './renderSettingsGeneral.js';
 import renderSiteAnalytics from './renderSiteAnalytics.js';
 import renderSiteOverview from './renderSiteOverview.js';
@@ -122,12 +121,6 @@ export default async function decorate(block) {
         iconSrc: '/icons/palette.svg',
         isLink: true,
         target: '_blank',
-      },
-      {
-        name: 'Delete',
-        href: `${pathname}/danger-zone`,
-        iconSrc: '/icons/delete.svg',
-        renderTab: renderDangerZone,
       },
     ],
   });

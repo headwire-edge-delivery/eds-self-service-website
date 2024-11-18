@@ -184,6 +184,13 @@ a:hover {
   text-decoration: underline;
 }
 
+code {
+  background-color: var(--light-gray);
+  padding: 2px 4px;
+  border-radius: var(--small-border-radius);
+  border: 1px solid var(--gray);
+}
+
 .button-container, .expedition-popover-navigation-btns {
   display: flex;
   gap: 16px;

@@ -11,12 +11,14 @@ import { toClassName } from '../../scripts/aem.js';
 
 // eslint-disable-next-line consistent-return
 function openButtonOnclick(event) {
-  const path = event?.currentTarget?.dataset?.path;
-  const encodedHighlightSelector = event?.currentTarget?.dataset?.highlightSelector;
+  const path = event?.currentTarget?.dataset?.path || '';
+  const encodedHighlightSelector = event?.currentTarget?.dataset?.highlightSelector || '';
   if (encodedHighlightSelector) writeQueryParams({ highlight: encodedHighlightSelector });
+  const encodedTooltip = event?.currentTarget?.dataset?.tooltip || '';
+  if (encodedTooltip) writeQueryParams({ tooltip: encodedTooltip });
 
   const decodedAdditionalQueries = maybeParse(
-    decodeURIComponent(event?.currentTarget?.dataset?.additionalQueries),
+    decodeURIComponent(event?.currentTarget?.dataset?.additionalQueries || ''),
   );
   if (decodedAdditionalQueries) writeQueryParams(decodedAdditionalQueries);
 
@@ -32,14 +34,14 @@ function openButtonOnclick(event) {
     return;
   }
 
-  const highlightSearch = encodedHighlightSelector ? `?highlight=${encodedHighlightSelector}` : '';
+  const params = new URLSearchParams(window.location.search);
 
   if (event?.currentTarget?.dataset?.newTab === 'true') {
-    window.open(`${path}${highlightSearch}`, '_blank');
+    window.open(`${path}${params.toString()}`, '_blank');
     return;
   }
 
-  window.location.href = `${path}${highlightSearch}`;
+  window.location.href = `${path}${params.toString()}`;
 }
 
 // MARK: renderCheckList
@@ -98,6 +100,7 @@ export default async function renderCheckList({
           path: `${renderOptions.pathname}/pages`,
           highlight: 'table.navs .button.edit',
           property: 'navEdited',
+          tooltip: 'Add an additional link to to the list of links in your nav document.\nMake sure you link the published page URL (i.e. https://mysite.kestrelone.com/blog) to the page you want to link to. The link to the drive document will not work.',
         },
         {
           content: 'Add your logo',
@@ -192,21 +195,35 @@ export default async function renderCheckList({
       sectionTabsContainer.append(sectionTabButton);
 
       // render section items
-      const checklistItems = section.sectionItems.map((item) => {
+      let prevItemWasCompleted = true;
+      const checklistItems = section.sectionItems.map((item, itemIndex) => {
         if (!item.path) item.path = '';
         const encodedHighlightSelector = encodeURIComponent(item.highlight || '') || '';
+        const encodedTooltip = encodeURIComponent(item.tooltip || '');
         const encodedAdditionalQueries = encodeURIComponent(maybeStringify(item.additionalQueries || ''));
         const checklistItem = parseFragment(`
-          <li class="checklist-item" data-checklist-property="${item.property}" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
+          <li class="checklist-item" data-index="${itemIndex}" data-checklist-property="${item.property}" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
             <span class="checklist-item-title">${item.content}</span>
             <div class="checklist-button-container">
-              <button data-path="${item.path}" data-new-tab="${item.newTab || false}" data-highlight-selector="${encodedHighlightSelector}" data-additional-queries="${encodedAdditionalQueries}" class="button checklist-button open-button" aria-label="Open">
+              <button
+                data-path="${item.path}"
+                data-new-tab="${item.newTab || false}"
+                data-highlight-selector="${encodedHighlightSelector}"
+                data-additional-queries="${encodedAdditionalQueries}"
+                data-tooltip="${encodedTooltip}"
+                class="button checklist-button open-button"
+                aria-label="Open"
+              >
                 <img src="/icons/chevron-down.svg" alt="Open" />
               </button>
             </div>
           </li>
         `);
-        checklistItem.dataset.completed = Boolean(checklistData[item.property]);
+        const itemIsCompleted = Boolean(checklistData[item.property]);
+        checklistItem.dataset.completed = itemIsCompleted;
+        // only latest item should not be deletable
+        if (!prevItemWasCompleted) checklistItem.setAttribute('inert', true);
+        if (!itemIsCompleted) prevItemWasCompleted = false;
 
         const openButton = checklistItem.querySelector('.open-button');
         openButton.onclick = openButtonOnclick;
@@ -217,6 +234,7 @@ export default async function renderCheckList({
             if (checklistItem.dataset.completed === 'true') return;
             manuelCheckButton.classList.add('loading');
             await completeChecklistItem(renderOptions.siteSlug, item.property);
+            checklistItem.nextElementSibling.removeAttribute('inert');
             manuelCheckButton.classList.remove('loading');
           };
           openButton.before(manuelCheckButton);
