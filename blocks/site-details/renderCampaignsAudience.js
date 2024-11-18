@@ -1,7 +1,7 @@
 import {
   dateToRelativeSpan,
   OOPS,
-  parseFragment, safeText, SCRIPT_API,
+  parseFragment, safeText, SCRIPT_API, validateEmail,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
@@ -34,17 +34,68 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
     <button class="button primary action" id="add-contact">Add Contact</button>
   `);
 
+  const bulkImportEl = parseFragment(`
+    <button class="button secondary action" id="bulk-import">Bulk Import</button>
+  `);
+
   const toggleWell = () => {
     const well = container.querySelector('.well');
     if (container.querySelector('table tr[data-id]')) {
       well.hidden = true;
       addContactEl.hidden = false;
       addContactEl.id = 'add-contact';
+      bulkImportEl.hidden = false;
+      bulkImportEl.id = 'bulk-import';
     } else {
       well.hidden = false;
       addContactEl.hidden = true;
       addContactEl.removeAttribute('id');
+      bulkImportEl.hidden = true;
+      bulkImportEl.removeAttribute('id');
     }
+  };
+
+  const renderAudience = async (data) => {
+    let audienceData = data;
+    if (!audienceData) {
+      audienceData = await fetch(`${SCRIPT_API}/audience/${siteSlug}`, {
+        headers: {
+          authorization: `bearer ${token}`,
+        },
+      }).then((res) => res.json()).catch(() => null);
+    }
+
+    container.innerHTML = `
+      <div class="well" hidden>
+        <img src="/icons/illustrations/pc.svg" alt="" loading="lazy"/>
+        <div class="text">
+          <h2>Add contacts to your audience</h2>
+          <p>Add your first contact before sending out emails.</p>
+          <div class="button-container">
+              <button id="add-contact" class="button primary">Start now</button>
+              <button id="bulk-import" class="button secondary">Bulk Import</button>
+          </div>
+        </div>
+      </div>
+        
+      <table>
+        <thead>
+          <tr>
+              <th>Email</th>
+              <th>First name</th>
+              <th>Last name</th>
+              <th>Created at</th>
+              <th>Status</th>
+              <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${audienceData?.length ? audienceData.map((contact) => renderContact(contact)).join('') : '<tr><td colspan="6" class="empty">Not enough data</td></tr>'}
+        </tbody>
+      </table>
+    `;
+
+    toggleWell();
   };
 
   const addContact = async () => {
@@ -114,49 +165,151 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
     };
   };
 
+  const bulkImport = () => {
+    window?.zaraz?.track('click bulk import');
+
+    const submit = parseFragment('<button disabled form="bulk-import-form" type="submit" class="button primary action">Submit</button>');
+    const content = parseFragment(`
+      <div>
+        <h3>Bulk Import</h3>
+
+        <form id="bulk-import-form">
+          <p>Accepted CSV columns: <code>email, first name, last name, unsubscribed|subscribed</code></p>
+          <p>The column <code>email</code> is required.</p>
+          <label>
+              <span>CSV file</span>
+              <input type="file" accept=".csv" required/>
+          </label>
+          <div class="file-preview"></div>
+        </form>
+      </div>
+    `);
+
+    const dialog = createDialog(content, [submit]);
+
+    const form = document.getElementById('bulk-import-form');
+
+    const input = form.querySelector('input[type="file"]');
+    const preview = form.querySelector('.file-preview');
+
+    let formattedData;
+
+    form.querySelector('input').onchange = () => {
+      const [file] = input.files;
+      if (file) {
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+          preview.innerHTML = 'Please select a valid file!';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const response = await fetch(event.target.result);
+            const data = await response.text();
+            formattedData = data.split('\n').map((line) => {
+              const [email, firstName, lastName, unsubscribed] = line.split(',').map((col) => (col ? col.trim() : ''));
+
+              return {
+                email,
+                firstName,
+                lastName,
+                unsubscribed,
+              };
+            }).filter(({ email }) => validateEmail(email));
+
+            if (!formattedData?.length) {
+              submit.disabled = true;
+              preview.innerHTML = `
+                <table>
+                  <thead>
+                    <th>Email</th>
+                    <th>First name</th>
+                    <th>Last name</th>
+                    <th>Status</th>
+                  </thead>
+                  <tbody>
+                      <tr><td class="empty" colspan="4">No valid contacts found.</td></tr>
+                  </tbody>
+                </table>
+              `;
+            } else {
+              submit.disabled = false;
+              preview.innerHTML = `
+              <table>
+                <thead>
+                  <th>Email</th>
+                  <th>First name</th>
+                  <th>Last name</th>
+                  <th>Status</th>
+                </thead>
+                <tbody>
+                    ${formattedData.map((contact) => `
+                      <tr>
+                        <td>${contact.email}</td>
+                        <td>${contact.firstName}</td>
+                        <td>${contact.lastName}</td>
+                        <td>${contact.unsubscribed !== 'subscribed' ? '<div class="badge orange">Unsubscribed</div>' : '<div class="badge green">Subscribed</div>'}</td>
+                      </tr>
+                    `).join('')}
+                </tbody>
+              </table>
+            `;
+            }
+          } catch (e) {
+            submit.disabled = true;
+            preview.innerHTML = 'File can\'t be read. Please try another file.';
+          }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        submit.disabled = true;
+        preview.innerHTML = 'Please select a file';
+      }
+    };
+
+    form.onsubmit = async (event) => {
+      window.zaraz?.track('click bulk import form');
+
+      event.preventDefault();
+
+      dialog.setLoading(true, 'Starting bulk import...');
+      const response = await fetch(`${SCRIPT_API}/audience/${siteSlug}/bulkImport`, {
+        headers: { authorization: `bearer ${token}`, 'content-type': 'application/json' },
+        method: 'POST',
+        body: JSON.stringify(formattedData),
+      }).catch(() => null);
+
+      if (response?.ok) {
+        const { contacts, count } = await response.json();
+        if (count === 0) {
+          dialog.renderDialog('<h3 class="centered-info">No contacts were added/updated.</h3>');
+        } else {
+          dialog.renderDialog(`<h3 class="centered-info">${count} contact(s) were added/updated.</h3>`);
+
+          await renderAudience(contacts);
+        }
+      } else {
+        await alertDialog(OOPS);
+      }
+
+      dialog.setLoading(false);
+    };
+  };
+
+  bulkImportEl.onclick = bulkImport;
   addContactEl.onclick = addContact;
+
+  nav.append(bulkImportEl);
   nav.append(addContactEl);
 
-  const audienceData = await fetch(`${SCRIPT_API}/audience/${siteSlug}`, {
-    headers: {
-      authorization: `bearer ${token}`,
-    },
-  }).then((res) => res.json()).catch(() => null);
+  await renderAudience();
 
-  container.innerHTML = `
-    <div class="well" hidden>
-      <img src="/icons/illustrations/pc.svg" alt="" loading="lazy"/>
-      <div class="text">
-        <h2>Add contacts to your audience</h2>
-        <p>Add your first contact before sending out emails.</p>
-        <button id="add-contact" class="button primary">Start now</button>
-      </div>
-    </div>
-      
-    <table>
-      <thead>
-        <tr>
-            <th>Email</th>
-            <th>First name</th>
-            <th>Last name</th>
-            <th>Created at</th>
-            <th>Status</th>
-            <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        ${audienceData?.length ? audienceData.map((contact) => renderContact(contact)).join('') : '<tr><td colspan="6" class="empty">Not enough data</td></tr>'}
-      </tbody>
-    </table>
-  `;
-
-  container.querySelector('#add-contact').onclick = addContact;
-
-  toggleWell();
-
-  const table = container.querySelector('table');
-  table.addEventListener('click', async (event) => {
-    if (event.target.matches('.update-contact')) {
+  container.addEventListener('click', async (event) => {
+    if (event.target.id === 'add-contact') {
+      addContact();
+    } else if (event.target.id === 'bulk-import') {
+      bulkImport();
+    } else if (event.target.matches('table tbody tr[data-id] .update-contact')) {
       window?.zaraz?.track('click update contact');
 
       const tr = event.target.closest('tr[data-id]');
@@ -222,7 +375,7 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
 
         dialog.setLoading(false);
       };
-    } else if (event.target.matches('.delete-contact')) {
+    } else if (event.target.matches('table tbody tr[data-id] .delete-contact')) {
       if (await confirmDialog('Are you sure ?')) {
         window?.zaraz?.track('click contact delete');
 
@@ -240,8 +393,9 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
         if (deleteReq?.ok) {
           tr.remove();
 
-          if (!table.tBodies[0].rows.length) {
-            table.tBodies[0].innerHTML = '<tr><td colspan="6" class="empty">Not enough data</td></tr>';
+          const tableBody = container.querySelector('table tbody');
+          if (!tableBody.rows.length) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="empty">Not enough data</td></tr>';
           }
 
           toggleWell();
