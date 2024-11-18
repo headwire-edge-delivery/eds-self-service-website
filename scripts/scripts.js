@@ -35,7 +35,10 @@ if (window.location.hostname === 'localhost') {
 
 export async function completeChecklistItem(projectSlug, itemName, projectDetails = null) {
   if (projectDetails?.checklistData?.[itemName]) return; // don't send request if already completed
-  const checklistDataResponse = await fetch(`${SCRIPT_API}/checklist/${projectSlug}/${itemName}`, { method: 'POST' }).catch(() => null);
+  const checklistDataResponse = await fetch(`${SCRIPT_API}/checklist/${projectSlug}/${itemName}`, {
+    method: 'POST',
+    headers: { authorization: `bearer ${window.auth0Client.getTokenSilently()}` },
+  }).catch(() => null);
   if (checklistDataResponse?.ok) {
     document.querySelectorAll(`[data-checklist-property="${itemName}"]`).forEach((el) => { el.dataset.completed = true; });
   }
