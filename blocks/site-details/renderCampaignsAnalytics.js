@@ -300,7 +300,7 @@ export default async function renderCampaignsAnalytics({
     `);
 
     container.querySelector('.well button').onclick = () => {
-      const link = document.querySelector(`.tabs-aside a[href="/site/${siteSlug}/emails"]`);
+      const link = document.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"]`);
       link.classList.add('add-campaign');
       link.click();
     };
