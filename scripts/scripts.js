@@ -284,13 +284,24 @@ export const getPlaceholder = async (str) => {
   return str ? placeholderObj[str] : placeholderObj;
 };
 
+// slugify removes dots, allows trailing dashes
 export function slugify(str) {
   return str
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/([^\w]+|\s+)/g, '-')
     .replace(/--+/g, '-')
-    // .replace(/(^-+|-+$)/g, "")
+    .toLowerCase();
+}
+
+// slugify allows dots, trims dashes
+export function slugifyFilename(str) {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/([^\w.]+|\s+)/g, '-')
+    .replace(/--+/g, '-')
+    .replace(/(^-+|-+$|(?<=\.)-+|-+(?=\.))/g, '')
     .toLowerCase();
 }
 

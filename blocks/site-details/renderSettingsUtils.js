@@ -1,5 +1,6 @@
 import {
   completeChecklistItem, OOPS, parseFragment, SCRIPT_API,
+  slugifyFilename,
 } from '../../scripts/scripts.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 
@@ -156,6 +157,17 @@ export function addIconDialogSetup({
   return dialog;
 }
 
+function blockIconDialogPreview({ base64, iconUrl }) {
+  if (!base64 && !iconUrl) return '';
+  let src = '';
+  if (base64) {
+    src = base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64;
+  } else if (iconUrl) {
+    src = iconUrl;
+  }
+  return `<div class="preview"><img class="icon-display" src="${src}" alt="icon display" /></div>`;
+}
+
 // MARK: block/icon dialog
 export function blockIconDialogSetup({
   name,
@@ -163,7 +175,8 @@ export function blockIconDialogSetup({
   projectDetails,
   authHeaders,
   isIcon = false,
-  iconBase64,
+  base64,
+  iconUrl,
   showBlockScreenshots,
   siteSlug,
 }) {
@@ -175,7 +188,7 @@ export function blockIconDialogSetup({
         <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>    
         <form id="${formId}">
           <p>${deleteWarning || ''}</p>
-          ${iconBase64 ? `<div class="preview"><img class="icon-display" src="${iconBase64}" alt="icon display" /></div>` : ''}
+          ${blockIconDialogPreview({ base64, iconUrl })}
           <div class="block-preview"></div>
         </form>
     </div>
@@ -421,16 +434,22 @@ export function renderIconsList(
   container.querySelector('.add-icon').onclick = () => addIconDialogSetup({ siteSlug, authHeaders, itemList: iconsList });
 
   iconsList.innerHTML = '';
-  iconsList.addItem = ({ name, base64 }) => {
+  iconsList.addItem = ({ name, path, base64 }) => {
+    // eslint-disable-next-line
+    name = slugifyFilename(name); // normally fixed by github upon upload, we do it here to make sure path matches
     const li = document.createElement('li');
     li.dataset.iconName = name;
     const iconName = document.createElement('span');
     iconName.innerText = name;
     li.append(iconName);
 
-    if (base64) {
+    if (path || base64) {
       const iconImage = document.createElement('img');
-      iconImage.src = base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64;
+      if (base64) {
+        iconImage.src = base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64;
+      } else {
+        iconImage.src = `${projectDetails.customLiveUrl}/${path}`;
+      }
       iconImage.classList.add('icon-preview');
       li.prepend(iconImage);
     }
@@ -459,7 +478,8 @@ export function renderIconsList(
       siteSlug,
       authHeaders,
       isIcon: true,
-      iconBase64: base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64,
+      base64: base64 || undefined,
+      iconUrl: path ? `${projectDetails.customLiveUrl}/${path}` : undefined,
     });
     iconsList.append(li);
 
