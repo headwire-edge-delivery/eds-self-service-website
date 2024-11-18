@@ -100,7 +100,7 @@ export default async function renderCheckList({
           property: 'navEdited',
         },
         {
-          content: 'Add your logo!',
+          content: 'Add your logo',
           path: `${renderOptions.pathname}/settings`,
           highlight: '#icons-list [data-icon-name="logo.svg"] .icon-settings',
           property: 'logoAdded',

@@ -559,7 +559,7 @@ table tr.loading {
   align-items: center;
   text-align: center;
   justify-content: center;
-  font-weight: 500;
+  font-weight: bold;
   font-size: 14px;
   z-index: 2;
 }
