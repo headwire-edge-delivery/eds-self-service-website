@@ -299,10 +299,10 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
   bulkImportEl.onclick = bulkImport;
   addContactEl.onclick = addContact;
 
+  await renderAudience();
+
   nav.append(bulkImportEl);
   nav.append(addContactEl);
-
-  await renderAudience();
 
   container.addEventListener('click', async (event) => {
     if (event.target.id === 'add-contact') {
