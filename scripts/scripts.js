@@ -43,8 +43,8 @@ export async function completeChecklistItem(projectSlug, itemName, projectDetail
 
 export async function highlightElement() {
   const params = readQueryParams();
-  const highlightSelector = decodeURIComponent(params.highlight);
-  const tooltip = decodeURIComponent(params.tooltip);
+  const highlightSelector = decodeURIComponent(params.highlight || '');
+  const tooltip = decodeURIComponent(params.tooltip || '');
   removeQueryParams(['highlight', 'tooltip']);
   if (highlightSelector) {
     const getElement = () => document.querySelector(highlightSelector);

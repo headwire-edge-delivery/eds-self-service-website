@@ -135,7 +135,7 @@ export default async function renderCheckList({
         {
           content: 'Create a new campaign',
           path: `${renderOptions.pathname}/emails`,
-          highlight: '#new-campaign',
+          highlight: '#add-campaign',
           property: 'createdCampaign',
         },
         {
