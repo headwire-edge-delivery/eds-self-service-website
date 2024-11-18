@@ -49,6 +49,7 @@ export default async function decorate(block) {
 
   createTabs({
     block,
+    defaultTab: 0,
     breadcrumbs: [{ name: 'Dashboard', href: '/dashboard/sites' }, { name: siteDetails.project.projectName, href: pathname }],
     renderOptions: {
       projectDetails: siteDetails.project, token, user, siteSlug, pathname, authHeaders, authHeadersWithBody,

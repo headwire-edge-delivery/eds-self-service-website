@@ -7,6 +7,7 @@ import {
   SCRIPT_API,
   projectRepo,
   safeText,
+  completeChecklistItem,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
@@ -44,8 +45,8 @@ export function renderTable({
         <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>          
         <td>
           <div id="email-open-edit" class="button-container">
-            <a class="button action secondary" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
-            <a class="button action secondary" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
+            <a class="button action secondary edit" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
+            <a class="button action secondary open" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
             ${isDeletable ? `<button class="button action secondary delete-email" data-id="${item.id}">Delete</button>` : ''}
           </div>
         </td>
@@ -88,9 +89,9 @@ export function renderTable({
       <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>
       <td class="status"><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
       <td class="button-container">
-          <a class="button action secondary" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
-          <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
-          <a class="button action secondary" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>
+          <a class="button action secondary edit" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+          <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
+          <a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>
       </td>
     `;
 
@@ -120,6 +121,7 @@ export function renderTable({
     const cols = table.querySelectorAll('th').length;
     tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;
   }
+  return table;
 }
 
 // MARK: add page dialog
@@ -178,8 +180,6 @@ function addPageDialogSetup({
   }).catch((err) => console.error(err));
 
   dropdown.onchange = () => {
-    // eslint-disable-next-line no-console
-    console.log('\x1b[34m ~ TEST:');
     previewIframe.src = `${templateUrl}${dropdown.value}`;
   };
 
@@ -205,6 +205,7 @@ function addPageDialogSetup({
 
     }).catch(() => null);
     if (addPageRequest?.ok) {
+      completeChecklistItem(projectDetails.projectSlug, 'pageAdded', projectDetails);
       const responseData = await addPageRequest.json().catch(() => ({}));
 
       const buttons = [];
@@ -225,7 +226,7 @@ function addPageDialogSetup({
       buttons.push(draftsLink);
 
       const editLink = parseFragment(`
-        <a class="button primary action" target="_blank" href="${editHref}">Edit ${safeText(body.pageName)}</a>
+        <a class="button primary action edit" target="_blank" href="${editHref}">Edit ${safeText(body.pageName)}</a>
       `);
       buttons.push(editLink);
 
@@ -245,9 +246,9 @@ function addPageDialogSetup({
             <td>Just now</td>
             <td class="status"><div class="badge orange">Previewed</div></td>
             <td class="button-container">
-                <a class="button action secondary" href="${editHref}" target="_blank">Edit</a>
-                <a class="button action secondary" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Preview</a>
-                <a class="button action secondary" href="/redirect?url=${projectDetails.customLiveUrl}/drafts/${responseData.pageSlug}" target="_blank">Live</a>
+                <a class="button action secondary edit" href="${editHref}" target="_blank">Edit</a>
+                <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Preview</a>
+                <a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}/drafts/${responseData.pageSlug}" target="_blank">Live</a>
             </td>
         </tr>
       `);
@@ -327,7 +328,16 @@ export default async function renderSitePages({ container, nav, renderOptions })
     }
   }
   renderTable({ table: container.querySelector('.pages'), tableData: pages, projectDetails });
-  renderTable({ table: container.querySelector('.navs'), tableData: navs, projectDetails });
+  const navsTable = renderTable({ table: container.querySelector('.navs'), tableData: navs, projectDetails });
   renderTable({ table: container.querySelector('.footers'), tableData: footers, projectDetails });
   renderTable({ table: container.querySelector('.drafts'), tableData: drafts, projectDetails });
+
+  // checklist
+  const navEditClickHandler = (event) => {
+    if (event.target.matches('.button.edit')) {
+      completeChecklistItem(projectDetails.projectSlug, 'navEdited', projectDetails);
+      navsTable.removeEventListener('click', navEditClickHandler);
+    }
+  };
+  navsTable.addEventListener('click', navEditClickHandler);
 }

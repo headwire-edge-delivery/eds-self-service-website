@@ -1,3 +1,4 @@
+import { readQueryParams, removeQueryParams } from '../libs/queryParams/queryParams.js';
 import {
   loadHeader,
   loadFooter,
@@ -30,6 +31,87 @@ if (window.location.hostname === 'localhost') {
       event.target.setAttribute('href', event.target.getAttribute('href').replace('/redirect?url=', ''));
     }
   });
+}
+
+export async function completeChecklistItem(projectSlug, itemName, projectDetails = null) {
+  if (projectDetails?.checklistData?.[itemName]) return; // don't send request if already completed
+  const checklistDataResponse = await fetch(`${SCRIPT_API}/checklist/${projectSlug}/${itemName}`, {
+    method: 'POST',
+    headers: { authorization: `bearer ${window.auth0Client.getTokenSilently()}` },
+  }).catch(() => null);
+  if (checklistDataResponse?.ok) {
+    document.querySelectorAll(`[data-checklist-property="${itemName}"]`).forEach((el) => { el.dataset.completed = true; });
+  }
+}
+
+export async function highlightElement() {
+  const params = readQueryParams();
+  const highlightSelector = decodeURIComponent(params.highlight || '');
+  const tooltip = decodeURIComponent(params.tooltip || '');
+  removeQueryParams(['highlight', 'tooltip']);
+  if (highlightSelector) {
+    const getElement = () => document.querySelector(highlightSelector);
+    let found = getElement();
+    if (!found) {
+      // retry find interval
+      await new Promise((resolve) => {
+        let count = 100;
+        const findInterval = setInterval(() => {
+          found = getElement();
+          if (found || count < 0) {
+            clearInterval(findInterval);
+            resolve(found);
+            return;
+          }
+          count -= 1;
+        }, 200);
+      });
+    }
+    if (found) {
+      // highlight with tour
+      const description = document.createElement('p');
+      description.innerText = tooltip; // doing this to prevent XSS exploits
+      const tourHighlight = window.expedition.js.tour({
+        destroyOnClicked: true,
+        steps: [
+          {
+            element: found,
+            popover: {
+              popoverClass: !tooltip ? 'highlight-popover-hidden' : '',
+              title: '',
+              // Do not directly input the description queryparam text below! XSS
+              description: description.innerHTML,
+              showButtons: [],
+            },
+            destroyOnClicked: true,
+          },
+        ],
+      });
+
+      tourHighlight.start();
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('element to highlight was not found within max attempts');
+    }
+  }
+}
+
+export function maybeStringify(obj) {
+  if (!obj) return '';
+  try {
+    return JSON.stringify(obj);
+  } catch {
+    return '';
+  }
+}
+
+export function maybeParse(str) {
+  if (!str) return {};
+  try {
+    return JSON.parse(str);
+  } catch {
+    return {};
+  }
 }
 
 // extra four, for separators
@@ -267,6 +349,7 @@ export function createTabs({
   breadcrumbs,
   tabs,
   renderOptions,
+  defaultTab = 0,
 }) {
   const blockContent = block.cloneNode(true);
   block.innerHTML = `
@@ -292,12 +375,16 @@ export function createTabs({
   const onHistoryPopArray = [];
   function pushHistory(path) {
     historyArray.push(path);
-    window.history.pushState({}, '', path);
+    const url = new URL(path, window.location);
+    url.search = window.location.search;
+    window.history.pushState({}, '', url);
   }
   function replaceHistory(path) {
     historyArray.pop();
     historyArray.push(path);
-    window.history.replaceState({}, '', path);
+    const url = new URL(path, window.location);
+    url.search = window.location.search;
+    window.history.replaceState({}, '', url);
   }
   const navItems = block.querySelector('.tabs-nav-items');
   const asideItems = block.querySelector('.tabs-aside ul');
@@ -305,7 +392,7 @@ export function createTabs({
 
   const functionalTabs = tabs.filter((tab) => tab && !tab?.section && !tab?.isLink);
   const tabToSelect = functionalTabs.find(({ href }) => window
-    .location.pathname.startsWith(href)) || functionalTabs[0];
+    .location.pathname.startsWith(href)) || functionalTabs[defaultTab];
 
   let previousSection = '';
 
@@ -387,6 +474,7 @@ export function createTabs({
         container: tabContent,
         renderOptions,
         pushHistory,
+        historyArray,
         replaceHistory,
         onHistoryPopArray,
       });
@@ -478,6 +566,7 @@ function loadDelayed() {
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
+  if (readQueryParams().highlight) highlightElement();
   loadDelayed();
 }
 

@@ -8,6 +8,7 @@
   --orange: rgb(218 123 64);
   --red: rgb(200 0 0);
   --green: rgb(50 200 100);
+  --light-green: rgb(78 218 125);
   --gray: #bbb;
   --light-gray: #eee;
   --white: #fff;
@@ -181,6 +182,13 @@ a {
 
 a:hover {
   text-decoration: underline;
+}
+
+code {
+  background-color: var(--light-gray);
+  padding: 2px 4px;
+  border-radius: var(--small-border-radius);
+  border: 1px solid var(--gray);
 }
 
 .button-container, .expedition-popover-navigation-btns {
@@ -398,6 +406,10 @@ input[type="color"] {
   color: transparent;
 }
 
+.button.loading * {
+  visibility: hidden;
+}
+
 .button.loading::after {
   content: "";
   position: absolute;
@@ -526,6 +538,37 @@ table tr.loading {
 .breadcrumbs a {
   color: var(--black);
   font-weight: bold;
+}
+
+/* MARK: progress bar */
+.progress-bar {
+  border-radius: var(--border-radius);
+  background: var(--light-gray);
+  overflow: hidden;
+  margin: 24px 0;
+  position: relative;
+  height: 32px;
+}
+
+.progress-bar .progress-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  background: var(--light-blue);
+  height: 100%;
+}
+
+.progress-bar .progress-bar-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  z-index: 2;
 }
 
 /* MARK: create tabs */
@@ -716,6 +759,10 @@ table tr.loading {
   background-size: 20px;
   background-repeat: no-repeat;
   padding: 12px 20px 12px 40px;
+}
+
+.highlight-popover-hidden {
+  display: none !important;
 }
 
 .filter[disabled] {

@@ -3,6 +3,7 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import {
+  renderDangerZone,
   addIconDialogSetup, manageGoogleCalendarLink, renderBlocksList, renderIconsList,
   renderPrevUpdatesSection,
   renderUpdatesSection,
@@ -79,6 +80,8 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
       <div class="update-info"></div>
       <div class="prev-update-info"></div>
     </div>
+
+    <div id="danger-zone"></div>
   `;
   if (projectDetails.calendarId) {
     manageGoogleCalendarLink(projectDetails.calendarId, nav);
@@ -275,4 +278,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     rerenderUpdatesSection: renderUpdatesSection,
     updateInfoDiv,
   });
+
+  // MARK: delete project
+  renderDangerZone({ container: container.querySelector('#danger-zone'), renderOptions });
 }

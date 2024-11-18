@@ -4,9 +4,15 @@ import {
   safeText,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
-import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
+import { alertDialog, createDialog } from '../../scripts/dialogs.js';
+import renderCheckList from './renderCheckList.js';
 
-export default async function renderSiteOverview({ container, nav, renderOptions }) {
+export default async function renderSiteOverview({
+  container,
+  nav,
+  renderOptions,
+  historyArray,
+}) {
   // TODO: if projectdetails are not required on most tabs, only request it here
   const { projectDetails, user, token } = renderOptions;
 
@@ -70,15 +76,21 @@ export default async function renderSiteOverview({ container, nav, renderOptions
     <div class="project-thumbnail" data-src="https://${projectDetails.projectSlug}.${KESTREL_ONE}"></div>
   </div>
 
-  <div class="danger-zone">
-    <strong>Danger zone</strong>
-    <p>Delete this project. Once you delete a project, there is no going back. Please be certain.</p>
-    <button id="delete-site-button" title="Delete your Project" class="button delete action destructive">Delete</button>
-  </div>`;
+  <div class="checklist-container">
+  </div>
+  `;
 
+  const checklistContainer = container.querySelector('.checklist-container');
   const descriptionSpan = container.querySelector('.project-description.card .project-description.span');
 
   getThumbnail(container.querySelector('.project-thumbnail'));
+
+  await renderCheckList({
+    container: checklistContainer,
+    nav,
+    renderOptions,
+    historyArray,
+  });
 
   // MARK: update description
   container.querySelector('.update-description.action').onclick = async () => {
@@ -125,29 +137,5 @@ export default async function renderSiteOverview({ container, nav, renderOptions
 
       dialog.setLoading(false);
     };
-  };
-
-  // MARK: delete site
-  container.querySelector('.delete').onclick = async () => {
-    window?.zaraz?.track('click site delete');
-    const block = container.closest('.site-details.block');
-
-    block.classList.add('is-deleting');
-    if (await confirmDialog('Are you sure you want to delete your site? (This can\'t be undone)')) {
-      window?.zaraz?.track('click site delete submit');
-
-      const reqDelete = await fetch(`${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'da-' : ''}delete/${projectDetails.projectSlug}`, {
-        method: 'DELETE',
-        headers: { authorization: `bearer ${token}` },
-      }).catch(() => null);
-      if (reqDelete?.ok) {
-        window.location.href = '/dashboard/sites';
-      } else {
-        await alertDialog(OOPS);
-        block.classList.remove('is-deleting');
-      }
-    } else {
-      block.classList.remove('is-deleting');
-    }
   };
 }
