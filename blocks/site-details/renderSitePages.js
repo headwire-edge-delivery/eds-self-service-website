@@ -268,7 +268,7 @@ export default async function renderSitePages({ container, nav, renderOptions })
 
   // add page button
   const addPageButton = document.createElement('button');
-  addPageButton.classList.add('button', 'primary', 'action', 'add-page');
+  addPageButton.classList.add('button', 'secondary', 'action', 'add-page');
   addPageButton.id = 'add-page-button';
   addPageButton.title = 'Add a new Page';
   addPageButton.textContent = 'Add Page';

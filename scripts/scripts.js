@@ -37,7 +37,7 @@ export async function completeChecklistItem(projectSlug, itemName, projectDetail
   if (projectDetails?.checklistData?.[itemName]) return; // don't send request if already completed
   const checklistDataResponse = await fetch(`${SCRIPT_API}/checklist/${projectSlug}/${itemName}`, {
     method: 'POST',
-    headers: { authorization: `bearer ${window.auth0Client.getTokenSilently()}` },
+    headers: { authorization: `bearer ${await window.auth0Client.getTokenSilently()}` },
   }).catch(() => null);
   if (checklistDataResponse?.ok) {
     document.querySelectorAll(`[data-checklist-property="${itemName}"]`).forEach((el) => { el.dataset.completed = true; });
@@ -368,6 +368,8 @@ export function createTabs({
       <div class="tabs-nav nav">
         ${createTabsNavBreadcrumbs(breadcrumbs)}
         <div class="tabs-nav-items"></div>
+        <div class="tabs-default-nav-items">
+        </div>
       </div>
 
       <div class="tabs-content">
@@ -381,6 +383,13 @@ export function createTabs({
       </div>
     </div>
   `;
+
+  const defaultNavItems = block.querySelector('.tabs-default-nav-items');
+  if (renderOptions?.projectDetails?.customLiveUrl) {
+    const openLink = parseFragment(`<a id="open-button" class="button action primary" href="/redirect?url=${renderOptions.projectDetails.customLiveUrl}" target="_blank">Open</a>`);
+    openLink.onclick = () => window?.zaraz?.track('click site open');
+    defaultNavItems.append(openLink);
+  }
 
   const historyArray = [];
   const onHistoryPopArray = [];
@@ -433,6 +442,11 @@ export function createTabs({
       continue;
     }
 
+    const tabNavContent = document.createElement('div');
+    tabNavContent.classList.add('tab-nav-content', tabSlug);
+    if (previousSection) tabNavContent.classList.add(`${previousSection}-section`);
+    navItems.append(tabNavContent);
+
     const tabContent = document.createElement('div');
     tabContent.classList.add('tab-content', tabSlug);
     if (previousSection) tabContent.classList.add(`${previousSection}-section`);
@@ -449,8 +463,7 @@ export function createTabs({
       asideItemLink.classList.add('is-selected');
 
       // empty old content
-      navItems.replaceChildren();
-      [...details.children]?.forEach((child) => {
+      [...details.children, ...navItems.children]?.forEach((child) => {
         child.classList.remove('is-selected');
         [...child.children]?.forEach((grandChild) => {
           if (grandChild?.dataset?.noUnload === 'true') {
@@ -461,6 +474,7 @@ export function createTabs({
       });
 
       tabContent.classList.add('is-selected');
+      tabNavContent.classList.add('is-selected');
 
       if (historyState === 'replace') {
         // window.history.replaceState({}, '', tab.href);
@@ -481,7 +495,7 @@ export function createTabs({
       onHistoryPopArray.length = 0;
       // keep renderTab at the end. So tab behavior still works if there is an error in renderTab
       tab.renderTab({
-        nav: navItems,
+        nav: tabNavContent,
         container: tabContent,
         renderOptions,
         pushHistory,

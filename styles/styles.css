@@ -574,16 +574,14 @@ table tr.loading {
 /* MARK: create tabs */
 .tabs-wrapper .tabs-nav {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   padding-block: 32px;
-  gap: 16px;
+  gap: 8px;
 }
 
-.tabs-wrapper .tabs-nav-items {
-  display: flex;
-  gap: 8px;
+.tabs-wrapper .tabs-nav > *:first-child {
+  margin-right: auto;
 }
 
 .tabs-wrapper .tabs-content-container {
@@ -667,9 +665,20 @@ table tr.loading {
   margin-top: 8px;
 }
 
-.tabs-wrapper .details > :not(.is-selected),
-.tabs-wrapper .actions > :not(.is-selected) {
+.tabs-wrapper .tabs-nav-items > .tab-nav-content,
+.tabs-wrapper .details > *,
+.tabs-wrapper .actions > * {
   display: none;
+}
+
+.tabs-wrapper .details > *.is-selected,
+.tabs-wrapper .actions > *.is-selected {
+  display: block;
+}
+
+.tabs-wrapper .tabs-nav-items > .tab-nav-content.is-selected {
+  display: flex;
+  gap: 8px;
 }
 
 @media (width < 768px) {
@@ -685,12 +694,13 @@ table tr.loading {
       max-width: 100% !important;
   }
 
-  .site-details.block .tabs-nav-items {
+  .site-details.block .tabs-nav-items > * {
       flex-direction: column;
       align-items: flex-start;
   }
 }
 
+/* MARK: cards */
 .cards {
   display: flex;
   flex-wrap: wrap;
