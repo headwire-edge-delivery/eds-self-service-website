@@ -494,19 +494,19 @@ table tr.loading {
   align-items: center;
   width: 58px;
   height: 58px;
-  border: 1px solid var(--white);
+  border: none;
   border-radius: 50%;
-  background-color: var(--orange);
-  color: white;
+  background-color: var(--light-gray);
   text-align: center;
   text-decoration: none;
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 0 5px var(--box-shadow-color);
+  transition: background-color var(--animation-duration);
 }
 
 .help-btn:hover {
-  transform: scale(1.1);
+  background-color: var(--gray);
 }
 
 /* MARK: breadcrumbs */

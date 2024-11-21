@@ -1,5 +1,5 @@
 import {
-  OOPS, parseFragment, safeText, SCRIPT_API,
+  parseFragment, safeText, SCRIPT_API,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import {
@@ -8,7 +8,8 @@ import {
   renderPrevUpdatesSection,
   renderUpdatesSection,
 } from './renderSettingsUtils.js';
-import { alertDialog, confirmDialog } from '../../scripts/dialogs.js';
+import { confirmDialog } from '../../scripts/dialogs.js';
+import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 // MARK: render
 export default async function renderSettingsGeneral({ container, nav, renderOptions }) {
@@ -117,8 +118,9 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
         }).catch(() => null);
         if (revokeResponse?.ok) {
           authorsList.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
+          showToast(`Author "${authorEmail}" removed.`);
         } else {
-          await alertDialog(OOPS);
+          showErrorToast();
         }
         authorsList.classList.remove('is-disabled');
       }
@@ -146,8 +148,9 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
           revoke.disabled = true;
           changeOwnerButton.disabled = true;
           listItem.classList.add('is-owner');
+          showToast('Owner updated.');
         } else {
-          await alertDialog(OOPS);
+          showErrorToast();
         }
         authorsList.classList.remove('is-disabled');
       }
@@ -168,14 +171,14 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
 
     const email = event.target.email.value;
     if (authorsList.querySelector(`[data-author-email="${safeText(email)}"]`)) {
-      alertDialog('Author already exists');
+      showToast('Author already exists', 'warning');
       return;
     }
 
     addAuthorForm.classList.add('is-disabled');
     const isValid = /^(?!@).*@.*(?<!@)$/.test(email);
     if (!isValid) {
-      await alertDialog('Please enter a valid email.');
+      showToast('Please enter a valid email.', 'warning');
       addAuthorForm.classList.remove('is-disabled');
       return;
     }
@@ -186,8 +189,9 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     if (response?.ok) {
       addAuthorListItem({ email });
       event.target.email.value = '';
+      showToast('Author added.');
     } else {
-      await alertDialog(OOPS);
+      showErrorToast();
     }
     addAuthorForm.classList.remove('is-disabled');
   };
@@ -242,10 +246,10 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
       body: JSON.stringify({ contactEmail: contactEmailFormInput.value }),
     }).catch(() => null);
     if (response?.ok) {
-      await alertDialog('Contact email updated!');
       projectDetails.contactEmail = contactEmailFormInput.value;
+      showToast('Contact email updated.');
     } else {
-      await alertDialog(OOPS);
+      showErrorToast();
     }
 
     contactEmailForm.classList.remove('is-disabled');

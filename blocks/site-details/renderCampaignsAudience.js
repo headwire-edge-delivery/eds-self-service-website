@@ -6,6 +6,7 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
+import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 function renderContact(contact) {
   const firstName = safeText(contact.firstName) ?? '';
@@ -146,8 +147,11 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
       }).catch(() => null);
 
       if (response?.ok) {
+        const { id } = await response.json();
+        dialog.close();
+
         completeChecklistItem(siteSlug, 'contactAdded', siteDetails);
-        dialog.renderDialog('<h3 class="centered-info">Contact added successfully</h3>');
+        showToast('Contact added.');
 
         const tableBody = container.querySelector('table tbody');
         const empty = tableBody.querySelector('tr:has(.empty)');
@@ -155,15 +159,13 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
           empty.remove();
         }
 
-        const { id } = await response.json();
         tableBody.insertAdjacentHTML('afterbegin', renderContact({ id, createdAt: 'Just now', ...body }));
 
         toggleWell();
       } else {
+        dialog.setLoading(false);
         await alertDialog(OOPS);
       }
-
-      dialog.setLoading(false);
     };
   };
 
@@ -284,17 +286,18 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
       if (response?.ok) {
         const { contacts, count } = await response.json();
         if (count === 0) {
-          dialog.renderDialog('<h3 class="centered-info">No contacts were added/updated.</h3>');
+          dialog.setLoading(false);
+          await alertDialog('No contacts were added/updated.');
         } else {
-          dialog.renderDialog(`<h3 class="centered-info">${count} contact(s) were added/updated.</h3>`);
+          dialog.close();
+          showToast(`${count} contact(s) were added/updated.`);
 
           await renderAudience(contacts);
         }
       } else {
+        dialog.setLoading(false);
         await alertDialog(OOPS);
       }
-
-      dialog.setLoading(false);
     };
   };
 
@@ -367,15 +370,16 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
         }).catch(() => null);
 
         if (response?.ok) {
-          dialog.renderDialog('<h3 class="centered-info">Contact updated successfully</h3>');
+          dialog.close();
+          showToast('Contact updated.');
+
           tr.querySelector('[data-name="firstName"]').textContent = body.firstName;
           tr.querySelector('[data-name="lastName"]').textContent = body.lastName;
           tr.querySelector('[data-name="unsubscribed"]').innerHTML = `<div class="badge ${body.unsubscribed ? 'orange' : 'green'}">${body.unsubscribed ? 'Unsubscribed' : 'Subscribed'}</div>`;
         } else {
+          dialog.setLoading(false);
           await alertDialog(OOPS);
         }
-
-        dialog.setLoading(false);
       };
     } else if (event.target.matches('table tbody tr[data-id] .delete-contact')) {
       if (await confirmDialog('Are you sure ?')) {
@@ -393,6 +397,7 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
         }).catch(() => null);
 
         if (deleteReq?.ok) {
+          showToast(`Contact "${tr.dataset.email}" removed.`);
           tr.remove();
 
           const tableBody = container.querySelector('table tbody');
@@ -402,7 +407,7 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
 
           toggleWell();
         } else {
-          await alertDialog(OOPS);
+          showErrorToast();
         }
 
         tr.classList.remove('loading');

@@ -8,7 +8,8 @@ import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
 import { toClassName } from '../../scripts/aem.js';
-import { alertDialog, createDialog } from '../../scripts/dialogs.js';
+import { createDialog } from '../../scripts/dialogs.js';
+import { showErrorToast } from '../../scripts/toast.js';
 
 const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
 function parseAcceptLanguage(str) {
@@ -280,7 +281,7 @@ export default async function renderUserTab({ container }) {
         contentId: 'contentArea-recent-activity',
       });
     } else {
-      alertDialog(OOPS);
+      showErrorToast();
     }
 
     button.classList.remove('loading');

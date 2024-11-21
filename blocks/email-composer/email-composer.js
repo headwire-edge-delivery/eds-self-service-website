@@ -4,7 +4,8 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS, toCamelCase } from '../../scripts/aem.js';
-import { alertDialog, confirmDialog } from '../../scripts/dialogs.js';
+import { confirmDialog } from '../../scripts/dialogs.js';
+import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 let timer;
 const debounce = (fn) => {
@@ -277,7 +278,13 @@ export default async function decorate(block) {
             css: btoa(editor.getValue()),
           }),
         });
-        await alertDialog(req.ok ? 'Styles successfully updated! Updates can take up to 1 minute to be reflected for all users.' : OOPS);
+
+        if (req.ok) {
+          showToast('Styles updated! Updates can take up to 1 minute to be reflected for all users.');
+        } else {
+          showErrorToast();
+        }
+
         saveStyles.classList.remove('loading');
 
         hideWarning();
@@ -532,8 +539,9 @@ export default async function decorate(block) {
 
               if (req.ok) {
                 tr.remove();
+                showToast('Recipient removed.');
               } else {
-                await alertDialog(OOPS);
+                showErrorToast();
               }
 
               tr.classList.remove('loading');
@@ -593,8 +601,9 @@ export default async function decorate(block) {
               recipients.querySelectorAll('input[name]').forEach((input) => {
                 input.value = '';
               });
+              showToast('Recipient added.');
             } else {
-              await alertDialog(OOPS);
+              showErrorToast();
             }
 
             add.classList.remove('loading');
@@ -631,9 +640,9 @@ export default async function decorate(block) {
               });
 
               if (req.ok) {
-                await alertDialog('Email delivered successfully');
+                showToast('Email delivered.');
               } else {
-                await alertDialog(OOPS);
+                showErrorToast();
               }
 
               block.classList.remove('is-sending');
