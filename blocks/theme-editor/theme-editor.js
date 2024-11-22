@@ -7,9 +7,10 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
-import { alertDialog, confirmDialog } from '../../scripts/dialogs.js';
+import { confirmDialog } from '../../scripts/dialogs.js';
 import createBaseBlockHtml from './baseBlockHtml.js';
 import initFontPicker from './fontPicker.js';
+import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 let timer;
 const debounce = (fn) => {
@@ -668,11 +669,11 @@ export default async function decorate(block) {
         failed = !res.ok;
       }
 
-      await alertDialog(
-        failed
-          ? OOPS
-          : 'Theme successfully updated! Please note theme updates can take up to 1 minute to propagate to all site pages.',
-      );
+      if (failed) {
+        showErrorToast();
+      } else {
+        showToast('Theme updated! Please note theme updates can take up to 1 minute to propagate to all site pages.');
+      }
 
       completeChecklistItem(projectSlug, 'themeUpdated');
 

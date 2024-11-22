@@ -3,6 +3,7 @@ import {
   slugifyFilename,
 } from '../../scripts/scripts.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
+import { showToast } from '../../scripts/toast.js';
 
 const protectedBlocks = {
   header: true,
@@ -141,18 +142,19 @@ export function addIconDialogSetup({
     if (addRequest?.ok) {
       if (nameOverride === 'logo.svg') completeChecklistItem(siteSlug, 'logoAdded');
       if (isFavicon) completeChecklistItem(siteSlug, 'faviconAdded');
-      dialog.renderDialog('<h3 class="centered-info">Icon added!</h3>');
+      dialog.close();
       if (replaceIconItem) {
         const iconImage = replaceIconItem.tagName === 'IMG' ? replaceIconItem : replaceIconItem.querySelector('img');
         iconImage.src = fileAsBase64;
+        showToast('Icon updated.');
       } else {
         itemList?.addItem({ name: file.name, base64: fileAsBase64 });
+        showToast('Icon added.');
       }
     } else {
+      dialog.setLoading(false);
       await alertDialog('Something went wrong! Make sure this icon doesn\'t already exist.');
     }
-
-    dialog.setLoading(false);
   };
   return dialog;
 }
@@ -256,7 +258,9 @@ export function blockIconDialogSetup({
       headers: authHeaders,
     }).catch(() => null);
     if (delResponse?.ok) {
-      dialog.renderDialog(`<h3 class="centered-info" >${name} deleted</h3>`);
+      dialog.close();
+      showToast(`${isIcon ? 'Icon' : 'Block'} "${name}" deleted.`);
+
       submit.remove();
       document
         .querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`)
@@ -265,11 +269,10 @@ export function blockIconDialogSetup({
         manageGoogleCalendarLink(null, document.querySelector('.block .tabs-nav-items'), true);
       }
     } else {
+      submit.disabled = false;
+      dialog.setLoading(false);
       await alertDialog(OOPS);
     }
-
-    submit.disabled = false;
-    dialog.setLoading(false);
   };
 }
 
@@ -359,22 +362,25 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
 
       if (addRequest?.ok) {
         const addRequestData = await addRequest.json().catch(() => ({}));
-        const buttons = [];
+        dialog.setLoading(false);
+
+        const message = `Block "${select.value}" added.`;
         if (addRequestData.calendarId) {
           const calendarLink = parseFragment(`
             <a class="button action primary" target="_blank" href="/redirect?url=https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}">Google Calendar</a>
           `);
-          buttons.push(calendarLink);
+
           manageGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.tabs-nav-items'));
+          dialog.renderDialog(`<h3 class="centered-info" >${message}</h3>`, [calendarLink]);
+        } else {
+          dialog.close();
+          showToast(message);
         }
 
-        dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`, buttons);
         itemList.addItem({ name: select.value });
       } else {
         await alertDialog(OOPS);
       }
-
-      dialog.setLoading(false);
     };
   });
 }
@@ -556,13 +562,15 @@ export async function renderUpdatesSection(
 
         const updateResponse = await fetch(`${endpoint}update/${projectDetails.projectSlug}`, { headers: authHeaders }).catch(() => null);
         if (updateResponse?.ok) {
-          projectUpdateDialog.renderDialog('<h3 class="centered-info">Project updated successfully!</h3>');
+          projectUpdateDialog.close();
+          showToast('Project updated.');
+
           // replace update button
           div.innerHTML = '<h3>Your project is up-to-date!</h3>';
         } else {
-          projectUpdateDialog.renderDialog(OOPS);
+          projectUpdateDialog.setLoading(false);
+          await alertDialog(OOPS);
         }
-        projectUpdateDialog.setLoading(false);
       };
 
       cancelButton.onclick = () => {
@@ -650,15 +658,15 @@ export async function renderPrevUpdatesSection(div, {
           }).catch(() => null);
 
           if (revertUpdateResponse?.ok) {
-            revertUpdateDialog.renderDialog('<h3 class="centered-info">Project reverted successfully!</h3>');
+            revertUpdateDialog.close();
+            showToast('Project reverted.');
             // rerender update section.
             // Should say an update is available as one has just been reverted
             rerenderUpdatesSection(updateInfoDiv, { projectDetails, authHeaders });
           } else {
-            revertUpdateDialog.renderDialog(OOPS);
+            revertUpdateDialog.setLoading(false);
+            await alertDialog(OOPS);
           }
-
-          revertUpdateDialog.setLoading(false);
         }
       };
     } else if (updateList.length === 0) {

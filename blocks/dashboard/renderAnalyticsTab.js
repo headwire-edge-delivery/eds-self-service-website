@@ -1,9 +1,9 @@
 import {
-  OOPS, SCRIPT_API, waitForAuthenticated,
+  SCRIPT_API, waitForAuthenticated,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import renderAnalytics from '../../scripts/analytics.js';
-import { alertDialog } from '../../scripts/dialogs.js';
+import { showErrorToast } from '../../scripts/toast.js';
 
 export default async function renderAnalyticsTab({ container, nav }) {
   container.innerHTML = `
@@ -23,7 +23,7 @@ export default async function renderAnalyticsTab({ container, nav }) {
       }
       return [await req.json()];
     } catch (e) {
-      alertDialog(OOPS);
+      showErrorToast();
     }
 
     return false;

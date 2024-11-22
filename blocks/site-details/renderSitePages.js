@@ -11,6 +11,7 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
+import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 export function renderTable({
   table, tableData, type, projectDetails, token,
@@ -72,8 +73,9 @@ export function renderTable({
               emails.forEach((el) => {
                 el.remove();
               });
+              showToast('Email deleted.');
             } else {
-              await alertDialog(OOPS);
+              showErrorToast();
             }
             deleteEmail.classList.remove('loading');
           }

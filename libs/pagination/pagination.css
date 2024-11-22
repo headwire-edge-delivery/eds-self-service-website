@@ -14,21 +14,19 @@
   min-width: 38px;
   font-size: 13px;
   border-radius: 100%;
-  background-color: var(--gray);
+  background-color: var(--light-gray);
   color: var(--black);
-  border: 1px solid #fff;
   line-height: 38px;
   padding: 0;
   font-weight: 700;
   cursor: pointer;
+  border: none;
+  transition: all var(--animation-duration);
 }
 
 .paginator:not(.active, .ellipsis):hover,
 .paginator:not(.active, .ellipsis):focus {
-  transform: scale(1.1);
-  background-color: var(--black);
-  color: var(--white);
-  border-color: var(--white);
+  background-color: var(--gray);
 }
 
 .paginator.active {

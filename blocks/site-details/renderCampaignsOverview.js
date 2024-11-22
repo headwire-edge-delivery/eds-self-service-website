@@ -9,6 +9,7 @@ import renderSkeleton from '../../scripts/skeletons.js';
 import { renderTable } from './renderSitePages.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 import { readQueryParams, removeQueryParams } from '../../libs/queryParams/queryParams.js';
+import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 export default async function renderCampaignsOverview({
   container, nav, renderOptions, pushHistory, replaceHistory, onHistoryPopArray,
@@ -245,6 +246,7 @@ export default async function renderCampaignsOverview({
         await alertDialog(OOPS);
       } else {
         const newCampaign = await req.json();
+        completeChecklistItem(siteSlug, 'createdCampaign', projectDetails);
 
         container.querySelectorAll('.campaign-list').forEach((el) => {
           el.insertAdjacentHTML('beforeend', `
@@ -344,7 +346,8 @@ export default async function renderCampaignsOverview({
 
         if (reqUpdate?.ok) {
           const update = await reqUpdate.json();
-          dialog.renderDialog('<h3 class="centered-info" >Description Updated</h3>');
+          dialog.close();
+          showToast('Description updated.');
 
           description.textContent = update.description;
           const updateDate = new Date(update.lastUpdated);
@@ -352,126 +355,14 @@ export default async function renderCampaignsOverview({
           lastUpdatedSpan.title = new Date(update.lastUpdated).toLocaleString();
           lastUpdatedSpan.textContent = dateToRelativeString(updateDate);
         } else {
+          dialog.setLoading(false);
           await alertDialog(OOPS);
         }
-
-        dialog.setLoading(false);
       };
     }
   };
 
   addCampaignEl.onclick = addCampaign;
-  nav.querySelector('.add-campaign').onclick = async () => {
-    const submit = parseFragment('<button form="create-campaign-form" type="submit" class="button primary action">Create Campaign</button>');
-    const content = parseFragment(`
-        <div>
-          <h3>Create a new campaign</h3>
-          
-          <form id="create-campaign-form">
-            <p>
-                Start your email marketing campaign with individual email messages with specific purposes including the following: downloading a PDF, sign up for a newsletter, or make a purchase.
-            </p>
-            <label>
-                <span>Name *</span>
-                <input required name="name" type="text" placeholder="Newsletters"/>
-            </label>
-            <label>
-                <span>Description</span>
-                <textarea name="description" placeholder="All monthly newsletters for subscribers"></textarea>
-            </label>
-          </form>
-        </div>
-      `);
-
-    const dialog = createDialog(content, [submit]);
-    const existingCampaigns = [...campaignList.querySelectorAll('li[data-campaign]')].map((el) => el.dataset.campaign);
-    const form = content.querySelector('#create-campaign-form');
-    const nameInput = form.querySelector('input[name="name"]');
-    nameInput.oninput = (event = { target: nameInput }) => {
-      event.target.value = sanitizeName(event?.target?.value || '');
-      const value = slugify(event?.target?.value || '');
-      if (!value) {
-        submit.disabled = true;
-        event.target.setCustomValidity('Please enter a name');
-        return;
-      }
-
-      if (existingCampaigns.includes(value)) {
-        event.target.setCustomValidity('Campaign already exists');
-        return;
-      }
-      submit.disabled = false;
-      event.target.setCustomValidity('');
-    };
-    nameInput.oninput();
-
-    form.onsubmit = async (e) => {
-      window.zaraz?.track('click create campaign');
-
-      e.preventDefault();
-
-      dialog.setLoading(true, 'Creating Campaign...');
-
-      const req = await fetch(`${SCRIPT_API}/campaigns/${siteSlug}`, {
-        headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-        method: 'POST',
-        body: JSON.stringify(Object.fromEntries(new FormData(form))),
-      }).catch(() => null);
-
-      if (!req?.ok) {
-        dialog.setLoading(false);
-        await alertDialog(OOPS);
-      } else {
-        completeChecklistItem(siteSlug, 'createdCampaign', projectDetails);
-        const newCampaign = await req.json();
-
-        container.querySelectorAll('.campaign-list').forEach((el) => {
-          el.insertAdjacentHTML('beforeend', `
-              <li data-campaign="${newCampaign.slug}"><a class="button selector action secondary" href="${pathname}/${el.dataset.type}/${newCampaign.slug}">${newCampaign.name}</li></a>
-            `);
-        });
-
-        campaignContainer.insertAdjacentHTML('beforeend', `
-            <div class="campaign campaign-${newCampaign.slug}" hidden>
-              <div class="cards">
-                <div class="box">
-                    <strong>Campaign</strong>
-                    <span class="campaign-name">${safeText(newCampaign.name)} (${newCampaign.slug})</span>
-                </div>
-                <div class="box">
-                    <strong>Campaign description</strong>
-                    <span class="description">${safeText(newCampaign.description)}</span>
-                    <button title="Edit the Campaign Description" class="button secondary update-campaign-description action">Update</button>
-                </div>
-                <div class="box">
-                    <strong>Created</strong>
-                    ${dateToRelativeSpan(newCampaign.created).outerHTML}
-                </div>
-                <div class="box">
-                    <strong>Last update</strong>
-                    ${dateToRelativeSpan(newCampaign.lastUpdated).outerHTML}
-                </div>
-              </div>
-              
-              <h2>${safeText(newCampaign.name)} emails</h2>
-              <table class="emails"></table>
-            </div>
-          `);
-
-        const newCampaignEmails = emailDocuments.filter(({ path }) => path.startsWith(`/emails/${newCampaign.slug}/`));
-        renderTable({
-          table: campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`), tableData: newCampaignEmails, type: 'emails', projectDetails, token,
-        });
-
-        const link = campaignList.querySelector('li:last-child a');
-        link.click();
-        pushHistory(link.getAttribute('href'));
-
-        dialog.setLoading(false);
-        dialog.close();
-      }
-    };
-  };
 
   addEmailEl.onclick = async () => {
     const campaignSlug = campaignList.querySelector('li a.is-selected').parentElement.dataset.campaign;
@@ -536,10 +427,9 @@ export default async function renderCampaignsOverview({
         dialog.setLoading(false);
         await alertDialog(OOPS);
       } else {
-        completeChecklistItem(siteSlug, 'createdCampaignEmail', projectDetails);
-        dialog.setLoading(false);
-        dialog.close();
         const { pageSlug, daNewPageSlug } = await req.json();
+        completeChecklistItem(siteSlug, 'createdCampaignEmail', projectDetails);
+
         window.location.href = `/email/${siteSlug}/emails/${campaignSlug}/${pageSlug || daNewPageSlug}`;
       }
     };
@@ -574,7 +464,7 @@ export default async function renderCampaignsOverview({
 
           toggleWell();
         } else {
-          await alertDialog(OOPS);
+          showErrorToast();
         }
         event.target.classList.remove('loading');
       }

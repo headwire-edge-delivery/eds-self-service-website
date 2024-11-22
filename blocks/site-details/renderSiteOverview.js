@@ -6,6 +6,7 @@ import {
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, createDialog } from '../../scripts/dialogs.js';
 import renderCheckList from './renderCheckList.js';
+import { showToast } from '../../scripts/toast.js';
 
 export default async function renderSiteOverview({
   container,
@@ -128,14 +129,14 @@ export default async function renderSiteOverview({
       }).catch(() => null);
 
       if (response?.ok) {
-        dialog.renderDialog('<h3 class="centered-info">Description successfully updated</h3>');
+        dialog.close();
+        showToast('Description updated.');
         projectDetails.projectDescription = body.projectDescription;
         if (descriptionSpan) descriptionSpan.textContent = body.projectDescription;
       } else {
+        dialog.setLoading(false);
         await alertDialog(OOPS);
       }
-
-      dialog.setLoading(false);
     };
   };
 }
