@@ -81,6 +81,11 @@
   }
 }
 
+.site-details.block .box .logo {
+  height: 32px;
+  margin-bottom: 16px;
+}
+
 .site-details.block .project-container .project-thumbnail img {
   object-fit: cover;
 }

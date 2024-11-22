@@ -52,6 +52,7 @@ export default async function renderSiteOverview({
   <div class="project-container">
     <div class="cards">
       <div id="site-id" class="box">
+        <img class="logo" src="${projectDetails.customPreviewUrl}/icons/logo.svg" alt="logo" loading="lazy" onerror="this.remove()">
         <strong>Site id</strong>
         <span title="${projectDetails.projectSlug}">${projectDetails.projectSlug}</span>
       </div>
