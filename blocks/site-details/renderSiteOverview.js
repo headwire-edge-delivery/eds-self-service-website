@@ -23,7 +23,6 @@ export default async function renderSiteOverview({
     ${!projectDetails.darkAlleyProject ? `<a href="/redirect?url=${projectDetails.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>` : ''}
     <a href="/redirect?url=${projectDetails.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
     <a href="/redirect?url=${projectDetails.driveUrl}${!projectDetails.darkAlleyProject ? `?authuser=${user.email}` : ''}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
-    <a href="/redirect?url=${projectDetails.customLiveUrl}" id="open-button" title="Open your Website" class="button primary action open" target="_blank">Open</a>
   `;
 
   if (!projectDetails.darkAlleyProject) {
@@ -34,10 +33,6 @@ export default async function renderSiteOverview({
 
   nav.querySelector('#edit-button').onclick = () => {
     window?.zaraz?.track('click site edit');
-  };
-
-  nav.querySelector('#open-button').onclick = () => {
-    window?.zaraz?.track('click site open');
   };
 
   nav.querySelector('#guides-button').onclick = () => {

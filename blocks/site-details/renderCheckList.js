@@ -259,7 +259,7 @@ export default async function renderCheckList({
     checklistTitle.classList.add('reloading-checklist');
     const fetchedChecklistData = await fetch(`${SCRIPT_API}/checklist/${renderOptions.siteSlug}`, {
       method: 'GET',
-      headers: { authorization: `bearer ${window.auth0Client.getTokenSilently()}` },
+      headers: { authorization: `bearer ${await window.auth0Client.getTokenSilently()}` },
     }).then((res) => (res.ok ? res.json() : null))
       .catch(() => null);
 
