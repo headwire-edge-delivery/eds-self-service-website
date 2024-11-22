@@ -454,7 +454,7 @@ export function renderIconsList(
       if (base64) {
         iconImage.src = base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64;
       } else {
-        iconImage.src = `${projectDetails.customLiveUrl}/${path}`;
+        iconImage.src = `${projectDetails.customPreviewUrl}/${path}`;
       }
       iconImage.classList.add('icon-preview');
       li.prepend(iconImage);
@@ -485,7 +485,7 @@ export function renderIconsList(
       authHeaders,
       isIcon: true,
       base64: base64 || undefined,
-      iconUrl: path ? `${projectDetails.customLiveUrl}/${path}` : undefined,
+      iconUrl: path ? `${projectDetails.customPreviewUrl}/${path}` : undefined,
     });
     iconsList.append(li);
 
