@@ -362,22 +362,25 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
 
       if (addRequest?.ok) {
         const addRequestData = await addRequest.json().catch(() => ({}));
-        const buttons = [];
+        dialog.setLoading(false);
+
+        const message = `Block "${select.value}" added.`;
         if (addRequestData.calendarId) {
           const calendarLink = parseFragment(`
             <a class="button action primary" target="_blank" href="/redirect?url=https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}">Google Calendar</a>
           `);
-          buttons.push(calendarLink);
+
           manageGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.tabs-nav-items'));
+          dialog.renderDialog(`<h3 class="centered-info" >${message}</h3>`, [calendarLink]);
+        } else {
+          dialog.close();
+          showToast(message);
         }
 
-        dialog.renderDialog(`<h3 class="centered-info" >${select.value} block added</h3>`, buttons);
         itemList.addItem({ name: select.value });
       } else {
         await alertDialog(OOPS);
       }
-
-      dialog.setLoading(false);
     };
   });
 }
