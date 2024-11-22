@@ -496,7 +496,8 @@ table tr.loading {
   height: 58px;
   border: none;
   border-radius: 50%;
-  background-color: var(--light-gray);
+  background-color: var(--orange);
+  color: var(--white);
   text-align: center;
   text-decoration: none;
   font-weight: 600;
