@@ -16,6 +16,7 @@ export default async function decorate(block) {
   nav.querySelector('a[href="#back"]').id = 'back-button';
   nav.querySelector('a[href="#select-template"]').classList.add('primary');
   nav.querySelector('a[href="#select-template"]').id = 'select-template-button';
+  nav.querySelector('a[href="#signout"]').innerHTML = '<img src="/icons/logout.svg" loading="lazy" alt="Sign out" class="icon" />';
 
   block.innerHTML = '';
   block.append(nav);
@@ -30,7 +31,7 @@ export default async function decorate(block) {
   }
 
   block.addEventListener('click', async (event) => {
-    const identifier = event.target.getAttribute('href');
+    const identifier = event.target.closest('a')?.getAttribute('href');
     if (identifier === '#signin') {
       window?.zaraz?.track('click login header');
       event.preventDefault();
