@@ -78,17 +78,21 @@ export default async function renderAccount({ container, nav }) {
   if (userSettings?.showAutoTour) {
     toggleAutoTourButton.textContent = 'Disable Auto Tour';
   }
-  toggleAutoTourButton.setAttribute('data-loaded', 'true');
 
   toggleAutoTourButton.onclick = async () => {
-    toggleAutoTourButton.setAttribute('data-loaded', 'false');
     toggleAutoTourButton.classList.add('loading');
-    const success = await updateUserSettings({ showAutoTour: !userSettings.showAutoTour });
+    const showAutoTour = !userSettings.showAutoTour;
+    const success = await updateUserSettings({ showAutoTour });
     if (success) {
-      userSettings.showAutoTour = !userSettings.showAutoTour;
+      userSettings.showAutoTour = showAutoTour;
       toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
+      document.dispatchEvent(new CustomEvent('user:autotour', { detail: { showAutoTour } }));
     }
     toggleAutoTourButton.classList.remove('loading');
-    toggleAutoTourButton.setAttribute('data-loaded', 'true');
   };
+
+  document.addEventListener('user:autotour', ({ detail }) => {
+    userSettings.showAutoTour = detail.showAutoTour;
+    toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
+  });
 }
