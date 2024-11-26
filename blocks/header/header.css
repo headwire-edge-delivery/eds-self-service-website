@@ -53,6 +53,11 @@
 
 .header.block #help-btn {
     border: none;
+    display: none;
+}
+
+.page-loaded .header.block #help-btn {
+    display: flex;
 }
 
 .header.block a[href="/"] picture {

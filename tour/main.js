@@ -39,6 +39,10 @@ document.addEventListener('user:autotour', ({ detail }) => {
 const isAnonymous = () => document.body.classList.contains('is-anonymous');
 
 const render = async () => {
+  if (button.parentElement) {
+    return;
+  }
+
   if (isAnonymous()) {
     document.querySelector('header a[href="#signin"]').before(button);
   } else {
@@ -174,28 +178,7 @@ button.onclick = () => {
   startTour(false);
 };
 
-if (document.body.classList.contains('page-loaded')) {
+document.addEventListener('page:loaded', async () => {
   await render();
   startTour(true, true);
-} else {
-  document.addEventListener('page:loaded', async () => {
-    await render();
-    startTour(true, true);
-  });
-}
-
-// Checks if the Url changes and starts the AutoTour
-const originalPushState = window.history.pushState;
-const originalReplaceState = window.history.replaceState;
-
-// eslint-disable-next-line func-names
-window.history.pushState = function (...args) {
-  startTour(true, true);
-  return originalPushState.apply(this, args);
-};
-
-// eslint-disable-next-line func-names
-window.history.replaceState = function (...args) {
-  startTour(true, true);
-  return originalReplaceState.apply(this, args);
-};
+});
