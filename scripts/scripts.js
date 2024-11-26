@@ -596,12 +596,18 @@ function loadDelayed() {
 function onPageLoaded() {
   document.body.classList.remove('page-loaded');
 
+  // Force page-loaded after 5secs
+  setTimeout(() => {
+    document.body.classList.add('page-loaded');
+    document.dispatchEvent(new CustomEvent('page:loaded'));
+  }, 4000);
+
   // Wait for DOM updates and fetches to trigger before starting the observer
   setTimeout(() => {
     const statusObserver = new MutationObserver(() => {
       const ready = [...document.body.querySelectorAll('[data-section-status]')].every((element) => element.dataset.sectionStatus === 'loaded')
         && [...document.body.querySelectorAll('[data-block-status]')].every((element) => element.dataset.blockStatus === 'loaded')
-        && document.body.querySelectorAll('[aria-label="loading"]').length === 0
+        && document.body.querySelectorAll('[aria-label="loading"], .skeletons').length === 0
         && document.body.querySelector('header:empty') === null
         && document.body.querySelector('footer:empty') === null
         && (document.body.classList.contains('is-authenticated') || document.body.classList.contains('is-anonymous'));
@@ -619,7 +625,7 @@ function onPageLoaded() {
       childList: true,
       attributeFilter: ['data-section-status', 'data-block-status', 'aria-label', 'class'],
     });
-  }, 100);
+  }, 1000);
 }
 
 async function loadPage() {
