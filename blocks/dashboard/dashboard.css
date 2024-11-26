@@ -239,6 +239,7 @@ body:is(.is-headwire, .is-adobe, .is-test-user)
 .combobox {
   position: relative;
   display: inline-block;
+  margin-inline: 4px;
 }
 
 .combobox input {

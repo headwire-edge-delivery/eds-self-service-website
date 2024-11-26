@@ -14,7 +14,7 @@ import { showErrorToast } from '../../scripts/toast.js';
 const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
 function parseAcceptLanguage(str) {
   if (!str || str === '*') return null;
-  return langNames.of(str.split(',')[0]);
+  return langNames.of(str.split(',')[0].split(';')[0]);
 }
 
 // header: sec-ch-ua
