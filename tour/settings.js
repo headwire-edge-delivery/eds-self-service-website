@@ -1,5 +1,5 @@
 function settingsGeneralTour({ showAutoTour }) {
-  const updateInfo = document.querySelector('.update-info');
+  const updateInfo = document.querySelector('.update-info')?.textContent;
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
@@ -80,7 +80,7 @@ function settingsGeneralTour({ showAutoTour }) {
         element: '.update-info',
         side: 'left',
         align: 'end',
-        skip: updateInfo?.textContent !== 'No updates available',
+        skip: updateInfo !== 'No updates available',
       },
       {
         title: 'Could not get update information',
@@ -88,7 +88,7 @@ function settingsGeneralTour({ showAutoTour }) {
         element: '.update-info',
         side: 'left',
         align: 'end',
-        skip: updateInfo?.textContent !== 'Could not get update information',
+        skip: updateInfo !== 'Could not get update information',
       },
       {
         title: 'A new version is available!',
@@ -96,7 +96,7 @@ function settingsGeneralTour({ showAutoTour }) {
         element: '.update-info',
         side: 'left',
         align: 'end',
-        skip: updateInfo?.textContent?.search('A new version is available!') < 1,
+        skip: updateInfo?.search('A new version is available!') < 1,
       },
       {
         title: 'Revert to a previous version',

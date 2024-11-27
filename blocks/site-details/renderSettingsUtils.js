@@ -583,6 +583,8 @@ export async function renderUpdatesSection(
   } else {
     div.innerHTML += '<h3>No updates available</h3>';
   }
+
+  div.removeAttribute('aria-label');
 }
 
 // MARK: revert updates
