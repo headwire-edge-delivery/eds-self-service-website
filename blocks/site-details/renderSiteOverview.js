@@ -19,11 +19,23 @@ export default async function renderSiteOverview({
 
   container.innerHTML = renderSkeleton('site-overview');
 
+  const aemSidekickIds = ['ccfggkjabjahcjoljmgmklhpaccedipo', 'olciodlegapfmemadcjicljalmfmlehb', 'ahahnfffoakmmahloojpkmlkjjffnial'];
+  function checkExtension(id) {
+    return fetch(`chrome-extension://${id}/lib/polyfills.min.js`)
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  const checkPromises = aemSidekickIds.map((id) => checkExtension(id));
+
+  const sidekickInstalled = await Promise.allSettled(checkPromises).then((results) => results.some((result) => result.status === 'fulfilled' && result.value === true));
+  /* eslint-disable */
   nav.innerHTML = `
-    ${!projectDetails.darkAlleyProject ? `<a href="/redirect?url=${projectDetails.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">Install sidekick</a>` : ''}
+    ${!projectDetails.darkAlleyProject ? `<a href="/redirect?url=${projectDetails.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">${sidekickInstalled ? 'Open sidekick' : 'Install sidekick'}</a>` : ''}
     <a href="/redirect?url=${projectDetails.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
     <a href="/redirect?url=${projectDetails.driveUrl}${!projectDetails.darkAlleyProject ? `?authuser=${user.email}` : ''}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
   `;
+  /* eslint-enable */
 
   if (!projectDetails.darkAlleyProject) {
     nav.querySelector('#install-sidekick-button').onclick = () => {
