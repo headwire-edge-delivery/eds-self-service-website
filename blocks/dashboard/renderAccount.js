@@ -51,33 +51,12 @@ export default async function renderAccount({ container, nav }) {
         `));
     });
 
-  nav.innerHTML = `<a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>`;
+  nav.innerHTML = `
+    <button id="toggle-auto-tour-button" class="button secondary action">Enable Auto Tour</button>
+    <a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">${userSettings?.showAutoTour ? 'Disable Auto Tour' : 'Edit account'}</a>
+  `;
 
-  container.querySelector('.account-details-skeleton').replaceWith(...parseFragment(`
-    <div class="cards">
-      <div class="box">
-          <strong>Name</strong>
-          <span title="${user.name}">${user.name}</span>
-      </div>
-      <div class="box">
-          <strong>Email</strong>
-          <span title="${user.email}">${user.email}</span>
-      </div>
-      <div class="box" id="current-plan-wrapper">
-          <strong>Active Plan</strong>
-          <span id="current-plan">Free Plan</span>
-      </div>
-    </div>
-    <div id="toggle-auto-tour">
-      <button id="toggle-auto-tour-button" class="button secondary action">Enable Auto Tour</button>
-    </div>
-  `));
-
-  const toggleAutoTourButton = container.querySelector('#toggle-auto-tour-button');
-
-  if (userSettings?.showAutoTour) {
-    toggleAutoTourButton.textContent = 'Disable Auto Tour';
-  }
+  const toggleAutoTourButton = document.getElementById('toggle-auto-tour-button');
 
   toggleAutoTourButton.onclick = async () => {
     toggleAutoTourButton.classList.add('loading');
@@ -95,4 +74,21 @@ export default async function renderAccount({ container, nav }) {
     userSettings.showAutoTour = detail.showAutoTour;
     toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
   });
+
+  container.querySelector('.account-details-skeleton').replaceWith(parseFragment(`
+    <div class="cards">
+      <div class="box">
+          <strong>Name</strong>
+          <span title="${user.name}">${user.name}</span>
+      </div>
+      <div class="box">
+          <strong>Email</strong>
+          <span title="${user.email}">${user.email}</span>
+      </div>
+      <div class="box" id="current-plan-wrapper">
+          <strong>Active Plan</strong>
+          <span id="current-plan">Free Plan</span>
+      </div>
+    </div>
+  `));
 }

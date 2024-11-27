@@ -25,7 +25,6 @@ export default function renderSkeleton(type, children = undefined) {
         <div style="margin-bottom: 32px; height: 80px; display: flex;flex-wrap: wrap;gap: 32px;align-items: stretch;justify-content: center;">
             ${[...Array(3)].map(() => '<div class="skeleton" style="width: 300px;"></div>').join('')}
         </div>
-        <div class="skeleton" style="margin-top:32px; width: 150px; height: 34px"></div>
       </div>
       <div aria-label="loading" class="account-usage-skeleton">
         <div class="skeleton" style="margin-top: 32px;height: 24px; width: 200px;"></div>
