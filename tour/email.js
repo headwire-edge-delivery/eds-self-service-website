@@ -16,15 +16,16 @@ function campaignEmailsTour({ showAutoTour }) {
         element: '.emails .campaign-list',
       },
       {
-        title: 'New Campaign',
-        description: 'Start a new campaign for emails.',
-        element: '#add-campaign',
-      },
-      {
         title: 'Emails',
         description: 'A list of all emails.',
         destroyOnClicked: false,
-        element: '.emails',
+        element: 'table.emails',
+        side: 'left',
+      },
+      {
+        title: 'New Campaign',
+        description: 'Start a new campaign for emails.',
+        element: '#add-campaign',
       },
       {
         title: 'Edit or Open your Email',
@@ -32,7 +33,7 @@ function campaignEmailsTour({ showAutoTour }) {
         element: '#email-open-edit',
         destroyOnClicked: false,
         side: 'left',
-        skip: document.querySelector('.emails > tbody > tr').textContent.includes('Not enough data'),
+        skip: document.querySelector('table.emails > tbody > tr').textContent.includes('Not enough data'),
       },
     ],
   };
