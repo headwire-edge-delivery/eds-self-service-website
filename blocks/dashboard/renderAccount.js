@@ -52,8 +52,8 @@ export default async function renderAccount({ container, nav }) {
     });
 
   nav.innerHTML = `
-    <button id="toggle-auto-tour-button" class="button secondary action">Enable Auto Tour</button>
-    <a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">${userSettings?.showAutoTour ? 'Disable Auto Tour' : 'Edit account'}</a>
+    <button id="toggle-auto-tour-button" class="button secondary action">${userSettings?.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour'}</button>
+    <a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>
   `;
 
   const toggleAutoTourButton = document.getElementById('toggle-auto-tour-button');
