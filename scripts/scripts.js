@@ -593,39 +593,39 @@ function loadDelayed() {
   // load anything that can be postponed to the latest here
 }
 
+let timer;
+const debounce = (fn) => {
+  if (timer) {
+    clearTimeout(timer);
+    timer = undefined;
+  }
+  timer = setTimeout(() => fn(), 500);
+};
+
+const isPageReady = () => [...document.body.querySelectorAll('[data-section-status]')].every((element) => element.dataset.sectionStatus === 'loaded')
+  && [...document.body.querySelectorAll('[data-block-status]')].every((element) => element.dataset.blockStatus === 'loaded')
+  && document.body.querySelectorAll('[aria-label="loading"], .skeletons').length === 0
+  && document.body.querySelector('header:empty') === null
+  && document.body.querySelector('footer:empty') === null
+  && (document.body.classList.contains('is-authenticated') || document.body.classList.contains('is-anonymous'));
+
+const setPageLoaded = () => {
+  document.body.classList.remove('page-loading');
+  document.body.classList.add('page-loaded');
+  document.dispatchEvent(new CustomEvent('page:loaded'));
+};
+
 function onPageLoaded() {
   document.body.classList.remove('page-loaded');
+  document.body.classList.add('page-loading');
 
-  // Force page-loaded after 5secs
-  setTimeout(() => {
-    document.body.classList.add('page-loaded');
-    document.dispatchEvent(new CustomEvent('page:loaded'));
-  }, 4000);
-
-  // Wait for DOM updates and fetches to trigger before starting the observer
-  setTimeout(() => {
-    const statusObserver = new MutationObserver(() => {
-      const ready = [...document.body.querySelectorAll('[data-section-status]')].every((element) => element.dataset.sectionStatus === 'loaded')
-        && [...document.body.querySelectorAll('[data-block-status]')].every((element) => element.dataset.blockStatus === 'loaded')
-        && document.body.querySelectorAll('[aria-label="loading"], .skeletons').length === 0
-        && document.body.querySelector('header:empty') === null
-        && document.body.querySelector('footer:empty') === null
-        && (document.body.classList.contains('is-authenticated') || document.body.classList.contains('is-anonymous'));
-
-      if (ready) {
-        document.body.classList.add('page-loaded');
-        document.dispatchEvent(new CustomEvent('page:loaded'));
-        statusObserver.disconnect();
-      }
-    });
-
-    statusObserver.observe(document.body, {
-      subtree: true,
-      attributes: true,
-      childList: true,
-      attributeFilter: ['data-section-status', 'data-block-status', 'aria-label', 'class'],
-    });
-  }, 1000);
+  debounce(() => {
+    if (isPageReady()) {
+      setPageLoaded();
+    } else {
+      onPageLoaded();
+    }
+  });
 }
 
 async function loadPage() {
