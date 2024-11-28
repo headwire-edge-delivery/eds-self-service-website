@@ -514,6 +514,11 @@ export function createTabs({
 
   // back handling
   window.addEventListener('popstate', () => {
+    const tour = document.getElementById('expedition-popover-content');
+    if (tour) {
+      tour.querySelector('.expedition-popover-close-btn').click();
+    }
+
     historyArray.pop();
     const navigateToPath = historyArray.at(-1) || window.location.pathname;
 
@@ -588,11 +593,62 @@ function loadDelayed() {
   // load anything that can be postponed to the latest here
 }
 
+let timer;
+const debounce = (fn) => {
+  if (timer) {
+    clearTimeout(timer);
+    timer = undefined;
+  }
+  timer = setTimeout(() => fn(), 500);
+};
+
+const isPageReady = () => [...document.body.querySelectorAll('[data-section-status]')].every((element) => element.dataset.sectionStatus === 'loaded')
+  && [...document.body.querySelectorAll('[data-block-status]')].every((element) => element.dataset.blockStatus === 'loaded')
+  && document.body.querySelectorAll('[aria-label="loading"], .skeletons').length === 0
+  && document.body.querySelector('header:empty') === null
+  && document.body.querySelector('footer:empty') === null
+  && (document.body.classList.contains('is-authenticated') || document.body.classList.contains('is-anonymous'));
+
+const setPageLoaded = () => {
+  document.body.classList.remove('page-loading');
+  document.body.classList.add('page-loaded');
+  document.dispatchEvent(new CustomEvent('page:loaded'));
+};
+
+function onPageLoaded() {
+  document.body.classList.remove('page-loaded');
+  document.body.classList.add('page-loading');
+
+  debounce(() => {
+    if (isPageReady()) {
+      setPageLoaded();
+    } else {
+      onPageLoaded();
+    }
+  });
+}
+
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
   if (readQueryParams().highlight) highlightElement();
   loadDelayed();
+  onPageLoaded();
 }
+
+const originalPushState = window.history.pushState;
+const originalReplaceState = window.history.replaceState;
+
+// eslint-disable-next-line func-names
+window.history.pushState = function (...args) {
+  onPageLoaded();
+  return originalPushState.apply(this, args);
+};
+
+// eslint-disable-next-line func-names
+window.history.replaceState = function (...args) {
+  onPageLoaded();
+  return originalReplaceState.apply(this, args);
+};
 
 loadPage();

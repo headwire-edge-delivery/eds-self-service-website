@@ -51,9 +51,31 @@ export default async function renderAccount({ container, nav }) {
         `));
     });
 
-  nav.innerHTML = `<a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>`;
+  nav.innerHTML = `
+    <button id="toggle-auto-tour-button" class="button secondary action">${userSettings?.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour'}</button>
+    <a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>
+  `;
 
-  container.querySelector('.account-details-skeleton').replaceWith(...parseFragment(`
+  const toggleAutoTourButton = document.getElementById('toggle-auto-tour-button');
+
+  toggleAutoTourButton.onclick = async () => {
+    toggleAutoTourButton.classList.add('loading');
+    const showAutoTour = !userSettings.showAutoTour;
+    const success = await updateUserSettings({ showAutoTour });
+    if (success) {
+      userSettings.showAutoTour = showAutoTour;
+      toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
+      document.dispatchEvent(new CustomEvent('user:autotour', { detail: { showAutoTour } }));
+    }
+    toggleAutoTourButton.classList.remove('loading');
+  };
+
+  document.addEventListener('user:autotour', ({ detail }) => {
+    userSettings.showAutoTour = detail.showAutoTour;
+    toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
+  });
+
+  container.querySelector('.account-details-skeleton').replaceWith(parseFragment(`
     <div class="cards">
       <div class="box">
           <strong>Name</strong>
@@ -68,27 +90,5 @@ export default async function renderAccount({ container, nav }) {
           <span id="current-plan">Free Plan</span>
       </div>
     </div>
-    <div id="toggle-auto-tour">
-      <button id="toggle-auto-tour-button" class="button secondary action">Enable Auto Tour</button>
-    </div>
   `));
-
-  const toggleAutoTourButton = container.querySelector('#toggle-auto-tour-button');
-
-  if (userSettings?.showAutoTour) {
-    toggleAutoTourButton.textContent = 'Disable Auto Tour';
-  }
-  toggleAutoTourButton.setAttribute('data-loaded', 'true');
-
-  toggleAutoTourButton.onclick = async () => {
-    toggleAutoTourButton.setAttribute('data-loaded', 'false');
-    toggleAutoTourButton.classList.add('loading');
-    const success = await updateUserSettings({ showAutoTour: !userSettings.showAutoTour });
-    if (success) {
-      userSettings.showAutoTour = !userSettings.showAutoTour;
-      toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
-    }
-    toggleAutoTourButton.classList.remove('loading');
-    toggleAutoTourButton.setAttribute('data-loaded', 'true');
-  };
 }

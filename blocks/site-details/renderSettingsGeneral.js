@@ -78,7 +78,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     
     <div id="updates">
       <h2>Updates</h2>
-      <div class="update-info"></div>
+      <div class="update-info" aria-label="loading"></div>
       <div class="prev-update-info"></div>
     </div>
 

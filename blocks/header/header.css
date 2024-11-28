@@ -13,10 +13,6 @@
     gap: 16px;
 }
 
-.header.block .section {
-    min-width: 100px;
-}
-
 .header.block .section:first-child {
     flex: 1;
 }
@@ -32,6 +28,10 @@
 
 .header.block p {
     margin: 0;
+}
+
+.header.block .button-container {
+    gap: 4px;
 }
 
 .header.block p:not(.button-container) {
@@ -51,8 +51,17 @@
     position: relative;
 }
 
+.header.block #help-btn {
+    border: none;
+    display: none;
+}
+
+.page-loaded .header.block #help-btn {
+    display: flex;
+}
+
 .header.block a[href="/"] picture {
-    position: relative; 
+    position: relative;
 }
 
 .header.block a[href="/"] picture::before {
@@ -65,7 +74,7 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    z-index: -1; 
+    z-index: -1;
 }
 
 
@@ -107,10 +116,6 @@
 @media (width < 768px) {
     .header.block a[href="/"] span {
         display: none;
-    }
-
-    .header.block .section {
-        min-width: auto;
     }
 
     .header.block a[href="/dashboard/sites"],

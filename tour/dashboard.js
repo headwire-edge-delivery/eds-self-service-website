@@ -73,15 +73,16 @@ function dashboardAccountTour({ showAutoTour }) {
         destroyOnClicked: false,
       },
       {
-        title: 'Account Details',
-        description: 'Here you can see your account details.',
-        element: '.cards',
-        destroyOnClicked: false,
-      },
-      {
         title: 'Disable or Enable the Auto Tour?',
         description: showAutoTour ? 'You can enable or disable the Auto Tour here.' : 'If you enable the Auto Tour, it will guide you through the Website. <br /> It will display the Tour automatically on every Page.',
         element: '#toggle-auto-tour-button',
+        side: 'right',
+        destroyOnClicked: false,
+      },
+      {
+        title: 'Account Details',
+        description: 'Here you can see your account details.',
+        element: '.cards',
         destroyOnClicked: false,
       },
       {

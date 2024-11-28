@@ -56,7 +56,7 @@ export default function generateTour(tour, showAutoTour, tourData) {
             },
           },
           {
-            element: '.help-btn',
+            element: '#help-btn',
             popover: {
               title: 'Need help?',
               description: 'You can always click the help button to start the tour for the current Page.',
@@ -75,7 +75,9 @@ export default function generateTour(tour, showAutoTour, tourData) {
 
           disableTourButton.addEventListener('click', () => {
             tourObj.destroy();
-            updateUserSettings({ showAutoTour: false });
+            const detail = { showAutoTour: false };
+            updateUserSettings(detail);
+            document.dispatchEvent(new CustomEvent('user:autotour', { detail }));
           });
         },
       });
