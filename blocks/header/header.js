@@ -54,10 +54,10 @@ export default async function decorate(block) {
     const dashboard = document.querySelector('header a[href="/dashboard/sites"]');
     if (dashboard) {
       dashboard.id = 'dashboard-button';
-      dashboard.title = 'Dashboard';
+      dashboard.title = 'Sites';
       dashboard.innerHTML = `
-          <img alt="Dashboard" src="/icons/dashboard.svg" loading="lazy">
-          <span>Dashboard</span>
+          <img alt="Dashboard - Sites" src="/icons/dashboard.svg" loading="lazy">
+          <span>Sites</span>
       `;
     }
   });
