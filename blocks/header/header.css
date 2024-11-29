@@ -10,7 +10,6 @@
     height: 100%;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
 }
 
 .header.block .section:first-child {
@@ -31,7 +30,7 @@
 }
 
 .header.block .button-container {
-    gap: 4px;
+    gap: 0;
 }
 
 .header.block p:not(.button-container) {
@@ -49,10 +48,10 @@
     color: var(--white);
     font-weight: 300;
     position: relative;
+    transition: all var(--animation-duration);
 }
 
 .header.block #help-btn {
-    border: none;
     display: none;
 }
 
@@ -79,23 +78,24 @@
 
 
 .header.block a[href="/"]:hover {
-    color: var(--gray);
+    opacity: .8;
 }
 
 .header.block :is(a[href="#select-template"], a[href="#back"]) {
     display: none;
 }
 
-.header.block a[href="/dashboard/sites"] {
+.header.block :is(a[href="/dashboard/sites"], a[href="#signout"], a[href="/dashboard/sites"], a[href="/dashboard/account"], #help-btn) {
     border: none;
 }
 
-.header.block a[href="/dashboard/sites"]:hover {
+.header.block :is(a[href="/dashboard/sites"], a[href="#signout"], a[href="/dashboard/sites"], a[href="/dashboard/account"], #help-btn):hover {
     background: transparent;
-    color: var(--gray);
+    color: var(--white);
+    opacity: .8;
 }
 
-.header.block a[href="/dashboard/sites"] img {
+.header.block a[href="/dashboard/account"] img {
     border-radius: 50%;
     height: 32px;
     width: 32px;
@@ -114,11 +114,10 @@
 }
 
 @media (width < 768px) {
-    .header.block a[href="/"] span {
+    .header.block :is(a[href="/"], a[href="/dashboard/sites"]) span {
         display: none;
     }
 
-    .header.block a[href="/dashboard/sites"],
     .header.block a[href="#select-template"] {
         font-size: 0;
     }
@@ -128,7 +127,7 @@
     }
 }
 
-.is-template-previewing .header.block a:is([href="/"], [href="/dashboard/sites"], [href="#signout"], [href="#signin"]) {
+.is-template-previewing .header.block a:is([href="/"], [href="/dashboard/sites"], [href="#signout"], [href="#signin"], [href="/dashboard/account"]) {
     display: none;
 }
 

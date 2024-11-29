@@ -46,13 +46,19 @@ export default async function decorate(block) {
   });
 
   onAuthenticated(async () => {
+    const { picture } = await window.auth0Client.getUser();
+    nav.querySelector('a[href="#signout"]').insertAdjacentHTML('beforebegin', `
+      <a class="button" title="Account" href="/dashboard/account"><img alt="Avatar" referrerpolicy="no-referrer" src="${picture}" loading="lazy"></a>
+    `);
+
     const dashboard = document.querySelector('header a[href="/dashboard/sites"]');
     if (dashboard) {
       dashboard.id = 'dashboard-button';
-      const { picture } = await window.auth0Client.getUser();
-      dashboard.insertAdjacentHTML('afterbegin', `
-          <img alt="Avatar" referrerpolicy="no-referrer" src="${picture}">
-      `);
+      dashboard.title = 'Dashboard';
+      dashboard.innerHTML = `
+          <img alt="Dashboard" src="/icons/dashboard.svg" loading="lazy">
+          <span>Dashboard</span>
+      `;
     }
   });
 

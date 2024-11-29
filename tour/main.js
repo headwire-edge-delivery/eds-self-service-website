@@ -27,6 +27,7 @@ const button = document.createElement('button');
 button.id = 'help-btn';
 button.innerHTML = '<img src="/icons/help.svg" loading="lazy" alt="help" class="icon" />';
 button.classList.add('button');
+button.title = 'Help';
 
 let showAutoTour = false;
 let userData = {};
