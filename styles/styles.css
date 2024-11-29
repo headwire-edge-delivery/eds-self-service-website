@@ -372,6 +372,14 @@ input[type="color"] {
   background-color: var(--light-gray);
 }
 
+.button.action.primary {
+  border-color: var(--black);
+}
+
+.button.action.primary:hover {
+  border-color: var(--light-gray);
+}
+
 .button.destructive {
   background-color: var(--red);
   border-color: var(--red);
