@@ -91,7 +91,7 @@ export default async function renderCheckList({
           highlight: '#install-sidekick-button',
           property: 'sidekickInstalled',
           skip: isDarkAlleyProject,
-          completed: document.getElementById('install-sidekick-button')?.textContent === 'Open sidekick',
+          completed: document.getElementById('install-sidekick-button')?.dataset.sidekickInstalled === 'true',
         },
         {
           content: 'Add a new page',

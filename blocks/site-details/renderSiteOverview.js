@@ -29,9 +29,21 @@ export default async function renderSiteOverview({
   const checkPromises = aemSidekickIds.map((id) => checkExtension(id));
 
   const sidekickInstalled = await Promise.allSettled(checkPromises).then((results) => results.some((result) => result.status === 'fulfilled' && result.value === true));
+  const generateSidekickButton = () => {
+    if (projectDetails.darkAlleyProject) return '';
+    const button = document.createElement('a');
+    button.href = `/redirect?url=${projectDetails.sidekickSetupUrl}`;
+    button.id = 'install-sidekick-button';
+    button.title = 'Install the Chrome Plugin Sidekick';
+    button.classList.add('button', 'action', 'secondary', 'sidekick');
+    button.target = '_blank';
+    button.textContent = sidekickInstalled ? 'Open sidekick' : 'Install sidekick';
+    button.dataset.sidekickInstalled = sidekickInstalled;
+    return button.outerHTML;
+  };
   /* eslint-disable */
   nav.innerHTML = `
-    ${!projectDetails.darkAlleyProject ? `<a href="/redirect?url=${projectDetails.sidekickSetupUrl}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank">${sidekickInstalled ? 'Open sidekick' : 'Install sidekick'}</a>` : ''}
+    ${generateSidekickButton()}
     <a href="/redirect?url=${projectDetails.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
     <a href="/redirect?url=${projectDetails.driveUrl}${!projectDetails.darkAlleyProject ? `?authuser=${user.email}` : ''}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
   `;
