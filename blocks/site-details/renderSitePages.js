@@ -32,6 +32,7 @@ export function renderTable({
 
   const tableRows = tableData.map((item) => {
     const tableRow = document.createElement('tr');
+    tableRow.dataset.path = item.path;
 
     if (isEmail) {
       const split = item.path.split('/');
@@ -39,7 +40,6 @@ export function renderTable({
       const campaign = split[2];
       const email = split[3];
 
-      tableRow.dataset.path = item.path;
       tableRow.innerHTML = `
         <td>${safeText(item.name)}</td>
         <td>${item.path}</td>
@@ -90,12 +90,48 @@ export function renderTable({
       <td>${item.path}</td>
       <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>
       <td class="status"><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
-      <td class="button-container">
+      <td>
+        <div class="button-container">
           <a class="button action secondary edit" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
           <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
           ${!item.path.startsWith('/drafts/') ? `<a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>` : ''}
+          <button class="button action secondary delete-page">Delete</button>
+        </div>
       </td>
     `;
+
+    const deletePage = tableRow.querySelector('.delete-page');
+    deletePage.onclick = async () => {
+      if (await confirmDialog('Are you sure ?')) {
+        window?.zaraz?.track('click page delete');
+
+        deletePage.classList.add('loading');
+
+        const body = {
+          path: tableRow.dataset.path,
+        };
+
+        if (projectDetails.darkAlleyProject) {
+          body.extension = 'html';
+        } else {
+          body.id = item.id;
+        }
+
+        const deleteReq = await fetch(`${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daRemovePage' : 'removePage'}/${projectDetails.projectSlug}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+          body: JSON.stringify(body),
+        }).catch(() => null);
+
+        if (deleteReq?.ok) {
+          tableRow.remove();
+          showToast('Page deleted.');
+        } else {
+          showErrorToast();
+        }
+        deletePage.classList.remove('loading');
+      }
+    };
 
     fetch(`https://admin.hlx.page/status/${projectDetails.darkAlleyProject ? daProjectRepo : projectRepo}/${projectDetails.projectSlug}/main${item.path}?editUrl=auto`)
       .then((res) => res.json())
@@ -329,10 +365,18 @@ export default async function renderSitePages({ container, nav, renderOptions })
       pages.push(page);
     }
   }
-  renderTable({ table: container.querySelector('.pages'), tableData: pages, projectDetails });
-  const navsTable = renderTable({ table: container.querySelector('.navs'), tableData: navs, projectDetails });
-  renderTable({ table: container.querySelector('.footers'), tableData: footers, projectDetails });
-  renderTable({ table: container.querySelector('.drafts'), tableData: drafts, projectDetails });
+  renderTable({
+    table: container.querySelector('.pages'), tableData: pages, projectDetails, token,
+  });
+  const navsTable = renderTable({
+    table: container.querySelector('.navs'), tableData: navs, projectDetails, token,
+  });
+  renderTable({
+    table: container.querySelector('.footers'), tableData: footers, projectDetails, token,
+  });
+  renderTable({
+    table: container.querySelector('.drafts'), tableData: drafts, projectDetails, token,
+  });
 
   // checklist
   const navEditClickHandler = (event) => {
