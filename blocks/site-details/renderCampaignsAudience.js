@@ -33,7 +33,7 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
   container.innerHTML = renderSkeleton('audience');
 
   const addContactEl = parseFragment(`
-    <button class="button primary action" id="add-contact">Add Contact</button>
+    <button class="button secondary action" id="add-contact">Add Contact</button>
   `);
 
   const bulkImportEl = parseFragment(`

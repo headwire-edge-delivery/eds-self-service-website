@@ -32,6 +32,8 @@ export function renderTable({
 
   const tableRows = tableData.map((item) => {
     const tableRow = document.createElement('tr');
+    tableRow.dataset.path = item.path;
+    tableRow.dataset.id = item.id;
 
     if (isEmail) {
       const split = item.path.split('/');
@@ -39,7 +41,6 @@ export function renderTable({
       const campaign = split[2];
       const email = split[3];
 
-      tableRow.dataset.path = item.path;
       tableRow.innerHTML = `
         <td>${safeText(item.name)}</td>
         <td>${item.path}</td>
@@ -48,7 +49,7 @@ export function renderTable({
           <div id="email-open-edit" class="button-container">
             <a class="button action secondary edit" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
             <a class="button action secondary open" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
-            ${isDeletable ? `<button class="button action secondary delete-email" data-id="${item.id}">Delete</button>` : ''}
+            ${isDeletable ? '<button class="button action secondary delete-email">Delete</button>' : ''}
           </div>
         </td>
       `;
@@ -64,7 +65,7 @@ export function renderTable({
               method: 'DELETE',
               headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
               body: JSON.stringify({
-                id: deleteEmail.dataset.id,
+                id: item.id,
               }),
             }).catch(() => null);
 
@@ -93,6 +94,7 @@ export function renderTable({
       <td>
         <div class="button-container">
             <a class="button action secondary edit" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+            <button class="button action secondary delete-page">Delete</button>
         </div>
       </td>
     `;
@@ -253,14 +255,15 @@ function addPageDialogSetup({
       }
 
       tableBody.insertAdjacentHTML('afterbegin', `
-        <tr>
+        <tr data-id="${responseData.newPageId}" data-path="/drafts/${responseData.pageSlug}">
             <td>${safeText(body.pageName)}</td>
             <td>/drafts/${responseData.pageSlug}</td>
             <td>Just now</td>
             <td class="status"><div class="badge orange">Previewed</div></td>
             <td class="button-container">
-                <a class="button action secondary edit" href="${editHref}" target="_blank">Edit</a>
                 <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Preview</a>
+                <a class="button action secondary edit" href="${editHref}" target="_blank">Edit</a>
+                <button class="button action secondary delete-page">Delete</button>
             </td>
         </tr>
       `);
@@ -339,10 +342,55 @@ export default async function renderSitePages({ container, nav, renderOptions })
       pages.push(page);
     }
   }
-  renderTable({ table: container.querySelector('.pages'), tableData: pages, projectDetails });
-  const navsTable = renderTable({ table: container.querySelector('.navs'), tableData: navs, projectDetails });
-  renderTable({ table: container.querySelector('.footers'), tableData: footers, projectDetails });
-  renderTable({ table: container.querySelector('.drafts'), tableData: drafts, projectDetails });
+  renderTable({
+    table: container.querySelector('.pages'), tableData: pages, projectDetails, token,
+  });
+  const navsTable = renderTable({
+    table: container.querySelector('.navs'), tableData: navs, projectDetails, token,
+  });
+  renderTable({
+    table: container.querySelector('.footers'), tableData: footers, projectDetails, token,
+  });
+  renderTable({
+    table: container.querySelector('.drafts'), tableData: drafts, projectDetails, token,
+  });
+
+  container.onclick = async (event) => {
+    if (event.target.matches('.delete-page')) {
+      if (await confirmDialog('Are you sure ?')) {
+        window?.zaraz?.track('click page delete');
+
+        const deletePage = event.target;
+        const tableRow = deletePage.closest('tr');
+
+        deletePage.classList.add('loading');
+
+        const body = {
+          path: tableRow.dataset.path,
+        };
+
+        if (projectDetails.darkAlleyProject) {
+          body.extension = 'html';
+        } else {
+          body.id = tableRow.dataset.id;
+        }
+
+        const deleteReq = await fetch(`${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daRemovePage' : 'removePage'}/${projectDetails.projectSlug}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+          body: JSON.stringify(body),
+        }).catch(() => null);
+
+        if (deleteReq?.ok) {
+          tableRow.remove();
+          showToast('Page deleted.');
+        } else {
+          showErrorToast();
+        }
+        deletePage.classList.remove('loading');
+      }
+    }
+  };
 
   // checklist
   const navEditClickHandler = (event) => {

@@ -35,8 +35,8 @@ export default async function renderCampaignsOverview({
   nav.innerHTML = `
     <button id="delete-campaign" title="Delete the Campaign" class="button secondary delete-campaign action" >Delete</button>
     <button id="add-email" title="Add Email" class="button secondary add-email action" >Add Email</button>
-    <a target="_blank" href="#" id="open-campaign" title="Open Campaign" class="button secondary open-campaign action" >Open</a>
-    <button id="add-campaign" title="Start a new Campaign" class="button primary add-campaign action">New Campaign</button>
+    <a target="_blank" href="#" id="open-campaign" title="Edit Campaign" class="button secondary open-campaign action" >Edit</a>
+    <button id="add-campaign" title="Start a new Campaign" class="button secondary add-campaign action">New Campaign</button>
   `;
 
   const addCampaignEl = nav.querySelector('#add-campaign');
