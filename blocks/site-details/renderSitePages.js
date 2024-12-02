@@ -92,10 +92,8 @@ export function renderTable({
       <td class="status"><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
       <td>
         <div class="button-container">
-          <a class="button action secondary edit" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
-          <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>
-          ${!item.path.startsWith('/drafts/') ? `<a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>` : ''}
-          <button class="button action secondary delete-page">Delete</button>
+            <a class="button action secondary edit" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+            <button class="button action secondary delete-page">Delete</button>
         </div>
       </td>
     `;
@@ -138,6 +136,17 @@ export function renderTable({
       .then((res) => {
         const renderStatus = (status, variant = '') => {
           tableRow.querySelector('.status').innerHTML = `<div class="badge ${variant}">${status}</div>`;
+
+          const container = tableRow.querySelector('.button-container');
+          const previewButton = `<a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>`;
+          if (status === 'Published') {
+            container.insertAdjacentHTML('afterbegin', `
+              ${previewButton}
+              ${!item.path.startsWith('/drafts/') ? `<a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>` : ''}
+            `);
+          } else if (status === 'Previewed') {
+            container.insertAdjacentHTML('afterbegin', previewButton);
+          }
         };
 
         if (res?.live?.status === 200) {
@@ -286,7 +295,6 @@ function addPageDialogSetup({
             <td class="button-container">
                 <a class="button action secondary edit" href="${editHref}" target="_blank">Edit</a>
                 <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Preview</a>
-                <a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}/drafts/${responseData.pageSlug}" target="_blank">Live</a>
             </td>
         </tr>
       `);

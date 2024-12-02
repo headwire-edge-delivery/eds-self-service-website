@@ -15,7 +15,7 @@ export default function homepageTour() {
       },
       {
         title: 'You are logged in',
-        description: 'You are already logged in. Go to the dashboard to manage existing your websites.',
+        description: 'You are already logged in. Go to Sites to manage existing your websites.',
         element: '#dashboard-button',
         skip: !userIsAuthenticated,
         side: isMobile ? 'bottom' : 'right',
