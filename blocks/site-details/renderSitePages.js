@@ -293,8 +293,8 @@ function addPageDialogSetup({
             <td>Just now</td>
             <td class="status"><div class="badge orange">Previewed</div></td>
             <td class="button-container">
-                <a class="button action secondary edit" href="${editHref}" target="_blank">Edit</a>
                 <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Preview</a>
+                <a class="button action secondary edit" href="${editHref}" target="_blank">Edit</a>
             </td>
         </tr>
       `);
