@@ -33,6 +33,7 @@ export function renderTable({
   const tableRows = tableData.map((item) => {
     const tableRow = document.createElement('tr');
     tableRow.dataset.path = item.path;
+    tableRow.dataset.id = item.id;
 
     if (isEmail) {
       const split = item.path.split('/');
@@ -48,7 +49,7 @@ export function renderTable({
           <div id="email-open-edit" class="button-container">
             <a class="button action secondary edit" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
             <a class="button action secondary open" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
-            ${isDeletable ? `<button class="button action secondary delete-email" data-id="${item.id}">Delete</button>` : ''}
+            ${isDeletable ? '<button class="button action secondary delete-email">Delete</button>' : ''}
           </div>
         </td>
       `;
@@ -64,7 +65,7 @@ export function renderTable({
               method: 'DELETE',
               headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
               body: JSON.stringify({
-                id: deleteEmail.dataset.id,
+                id: item.id,
               }),
             }).catch(() => null);
 
@@ -97,39 +98,6 @@ export function renderTable({
         </div>
       </td>
     `;
-
-    const deletePage = tableRow.querySelector('.delete-page');
-    deletePage.onclick = async () => {
-      if (await confirmDialog('Are you sure ?')) {
-        window?.zaraz?.track('click page delete');
-
-        deletePage.classList.add('loading');
-
-        const body = {
-          path: tableRow.dataset.path,
-        };
-
-        if (projectDetails.darkAlleyProject) {
-          body.extension = 'html';
-        } else {
-          body.id = item.id;
-        }
-
-        const deleteReq = await fetch(`${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daRemovePage' : 'removePage'}/${projectDetails.projectSlug}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-          body: JSON.stringify(body),
-        }).catch(() => null);
-
-        if (deleteReq?.ok) {
-          tableRow.remove();
-          showToast('Page deleted.');
-        } else {
-          showErrorToast();
-        }
-        deletePage.classList.remove('loading');
-      }
-    };
 
     fetch(`https://admin.hlx.page/status/${projectDetails.darkAlleyProject ? daProjectRepo : projectRepo}/${projectDetails.projectSlug}/main${item.path}?editUrl=auto`)
       .then((res) => res.json())
@@ -287,7 +255,7 @@ function addPageDialogSetup({
       }
 
       tableBody.insertAdjacentHTML('afterbegin', `
-        <tr>
+        <tr data-id="${responseData.newPageId}" data-path="/drafts/${responseData.pageSlug}">
             <td>${safeText(body.pageName)}</td>
             <td>/drafts/${responseData.pageSlug}</td>
             <td>Just now</td>
@@ -295,6 +263,7 @@ function addPageDialogSetup({
             <td class="button-container">
                 <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Preview</a>
                 <a class="button action secondary edit" href="${editHref}" target="_blank">Edit</a>
+                <button class="button action secondary delete-page">Delete</button>
             </td>
         </tr>
       `);
@@ -385,6 +354,43 @@ export default async function renderSitePages({ container, nav, renderOptions })
   renderTable({
     table: container.querySelector('.drafts'), tableData: drafts, projectDetails, token,
   });
+
+  container.onclick = async (event) => {
+    if (event.target.matches('.delete-page')) {
+      if (await confirmDialog('Are you sure ?')) {
+        window?.zaraz?.track('click page delete');
+
+        const deletePage = event.target;
+        const tableRow = deletePage.closest('tr');
+
+        deletePage.classList.add('loading');
+
+        const body = {
+          path: tableRow.dataset.path,
+        };
+
+        if (projectDetails.darkAlleyProject) {
+          body.extension = 'html';
+        } else {
+          body.id = tableRow.dataset.id;
+        }
+
+        const deleteReq = await fetch(`${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daRemovePage' : 'removePage'}/${projectDetails.projectSlug}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+          body: JSON.stringify(body),
+        }).catch(() => null);
+
+        if (deleteReq?.ok) {
+          tableRow.remove();
+          showToast('Page deleted.');
+        } else {
+          showErrorToast();
+        }
+        deletePage.classList.remove('loading');
+      }
+    }
+  };
 
   // checklist
   const navEditClickHandler = (event) => {
