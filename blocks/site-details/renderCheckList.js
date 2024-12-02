@@ -280,21 +280,19 @@ export default async function renderCheckList({
     renderChecklistItems(fetchedChecklistData);
   };
 
-  // list reloads
+  // refetch if loaded after another tab
   if (historyArray.length > 1) {
     reloadChecklist();
   }
 
-  document.addEventListener('visibilitychange', () => {
+  const visibilityHandler = () => {
+    if (!document.body.contains(container)) {
+      // remove self if container was removed (other tab opened)
+      document.removeEventListener('visibilitychange', visibilityHandler);
+      return;
+    }
     if (document.hidden) return;
     reloadChecklist();
-  });
-
-  // currently disabled until we have abortcontroller / clearinstervals
-  // setInterval(() => {
-  //   if (cooldown) return;
-  //   reloadChecklist();
-  // }, 30000);
-
-  // TODO: checklist triggers
+  };
+  document.addEventListener('visibilitychange', visibilityHandler);
 }
