@@ -512,11 +512,10 @@ export function renderIconsList(
 // MARK: project updates
 export async function renderUpdatesSection(
   div,
-  { projectDetails, authHeaders, versionInfoData = null },
+  { projectDetails, authHeaders, versionInfo },
 ) {
   div.innerHTML = '';
   const endpoint = `${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
-  const versionInfo = versionInfoData || await fetch(`${endpoint}checkUpdates/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null);
 
   if (!versionInfo) {
     div.innerHTML = '<h3>Could not get update information.</h3>';

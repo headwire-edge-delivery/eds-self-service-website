@@ -651,4 +651,8 @@ window.history.replaceState = function (...args) {
   return originalReplaceState.apply(this, args);
 };
 
+export function toValidPropertyName(email) {
+  return email.replaceAll('@', '(AT)').replaceAll('.', '(DOT)');
+}
+
 loadPage();

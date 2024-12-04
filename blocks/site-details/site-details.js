@@ -1,10 +1,17 @@
 /* eslint-disable max-len */
 
+import { writeQueryParams } from '../../libs/queryParams/queryParams.js';
+import { createDialog } from '../../scripts/dialogs.js';
 import {
   SCRIPT_API, OOPS,
   waitForAuthenticated,
   createTabs,
+  parseFragment,
+  highlightElement,
+  safeText,
+  toValidPropertyName,
 } from '../../scripts/scripts.js';
+import { showErrorToast, showToast } from '../../scripts/toast.js';
 import renderCampaignsAnalytics from './renderCampaignsAnalytics.js';
 import renderCampaignsAudience from './renderCampaignsAudience.js';
 import renderCampaignsOverview from './renderCampaignsOverview.js';
@@ -29,9 +36,11 @@ export default async function decorate(block) {
   const authHeaders = { authorization: `Bearer ${token}` };
   const authHeadersWithBody = { authorization: `Bearer ${token}`, 'content-type': 'application/json' };
 
-  const siteDetailsReq = await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'darkAlleyList' : 'list'}/${siteSlug}`, {
-    headers: authHeaders,
-  }).catch(() => null);
+  const [siteDetailsReq, versionInfoReq] = await Promise.all([
+    await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'darkAlleyList' : 'list'}/${siteSlug}`, { headers: authHeaders }).catch(() => null),
+    await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'daUpdateProject' : 'updateProject'}/checkUpdates/${siteSlug}`, { headers: authHeaders }).catch(() => null),
+  ]);
+
   if (siteDetailsReq.status === 404) {
     block.innerHTML = `<div class="centered-message"><p>Project "${siteSlug}" not found. Create it <a href="/">here!</a></p></div>`;
     return;
@@ -41,7 +50,11 @@ export default async function decorate(block) {
     return;
   }
 
-  const siteDetails = await siteDetailsReq.json().catch(() => null);
+  const [siteDetails, versionInfo] = await Promise.all([
+    siteDetailsReq.json().catch(() => null),
+    versionInfoReq?.json().catch(() => null),
+  ]);
+
   if (!siteDetails) {
     block.innerHTML = `<div class="centered-message"><p>${OOPS}<p></div>`;
     return;
@@ -52,7 +65,7 @@ export default async function decorate(block) {
     defaultTab: 0,
     breadcrumbs: [{ name: 'Dashboard', href: '/dashboard/sites' }, { name: siteDetails.project.projectName, href: pathname }],
     renderOptions: {
-      projectDetails: siteDetails.project, token, user, siteSlug, pathname, authHeaders, authHeadersWithBody,
+      projectDetails: siteDetails.project, token, user, siteSlug, pathname, authHeaders, authHeadersWithBody, versionInfo,
     },
     tabs: [
       {
@@ -124,4 +137,47 @@ export default async function decorate(block) {
       },
     ],
   });
+
+  const emailAsPropertyName = toValidPropertyName(user.email);
+  if (!siteDetails?.project?.hideUpdatePrompts?.[emailAsPropertyName] && versionInfo?.updateAvailable) {
+    const levelParagraphMap = {
+      patch: 'Patch updates contain smaller features and bugfixes. These are safe to update without any issues.',
+      minor: 'Minor updates contain minor features and bugfixes. These are safe to update without any issues.',
+      major: 'Major updates contain large features and bugfixes. These may require you to change how you author your content & blocks. When updating a major version check that everything still looks as intended.',
+    };
+
+    const dialogContent = `
+      <h3>An update is available for your project</h3>
+      <p>A <strong>${versionInfo.updateLevel}</strong> update is available for your project. We recommend you update whenever possible to ensure everything is working as intended.</p>
+      <p>${levelParagraphMap[versionInfo.updateLevel]}</p>
+      <p>The buttons below will take you to the update settings.</p>
+    `;
+    const showMeButton = parseFragment('<button class="button action primary update-button">Show me</button>');
+    const closeButton = parseFragment('<button class="button action secondary update-button">Close</button>');
+    const dontShowAgainButton = parseFragment(`<button class="button action secondary update-button">Don't show again for ${safeText(siteDetails?.project?.projectName) || 'this project'}</button>`);
+
+    const updateDialog = createDialog(dialogContent, [showMeButton, closeButton, dontShowAgainButton]);
+
+    showMeButton.onclick = () => {
+      const settingsTabLink = block.querySelector('a[href$="/settings"]');
+      if (!settingsTabLink) return;
+      updateDialog.close();
+      if (!settingsTabLink.classList.contains('is-selected')) settingsTabLink.click();
+      writeQueryParams({ highlight: '#updates' });
+      highlightElement();
+    };
+
+    closeButton.onclick = () => updateDialog.close();
+
+    dontShowAgainButton.onclick = async () => {
+      updateDialog.close();
+      const togglePromptsResponse = await fetch(`${SCRIPT_API}/disableUpdatePrompts/${siteSlug}?forceState=true`, { method: 'POST', headers: authHeaders }).catch(() => null);
+      if (togglePromptsResponse?.ok) {
+        showToast(`You will no longer be prompted to update ${safeText(siteDetails?.project?.projectName) || 'this project'} when a new version is available.`);
+        siteDetails.project.hideUpdatePrompts[emailAsPropertyName] = true;
+      } else {
+        showErrorToast('Something went wrong. Update prompts failed to be disabled.');
+      }
+    };
+  }
 }
