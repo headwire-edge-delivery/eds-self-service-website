@@ -152,9 +152,11 @@ export default async function decorate(block) {
       <p>${levelParagraphMap[versionInfo.updateLevel]}</p>
       <p>The buttons below will take you to the update settings.</p>
     `;
-    const showMeButton = parseFragment('<button class="button action primary update-button">Show me</button>');
-    const closeButton = parseFragment('<button class="button action secondary update-button">Close</button>');
-    const dontShowAgainButton = parseFragment(`<button class="button action secondary update-button">Don't show again for ${safeText(siteDetails?.project?.projectName) || 'this project'}</button>`);
+    const showMeButton = parseFragment('<button class="button action primary show">Show me</button>');
+    // yes dialog already has a close button, but I think it's good to have one here.
+    // Without one it might make users think the only options are update or don't show again.
+    const closeButton = parseFragment('<button class="button action secondary close-alt">Close</button>');
+    const dontShowAgainButton = parseFragment(`<button class="button action secondary dont-show">Don't show again for ${safeText(siteDetails?.project?.projectName) || 'this project'}</button>`);
 
     const updateDialog = createDialog(dialogContent, [showMeButton, closeButton, dontShowAgainButton]);
 
