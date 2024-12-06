@@ -1,5 +1,6 @@
 import {
   parseFragment, safeText, SCRIPT_API,
+  toValidPropertyName,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import {
@@ -14,7 +15,7 @@ import { showErrorToast, showToast } from '../../scripts/toast.js';
 // MARK: render
 export default async function renderSettingsGeneral({ container, nav, renderOptions }) {
   const {
-    projectDetails, authHeaders, authHeadersWithBody, siteSlug,
+    projectDetails, authHeaders, authHeadersWithBody, siteSlug, versionInfo, user,
   } = renderOptions;
 
   container.innerHTML = renderSkeleton('settings');
@@ -23,12 +24,10 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     authors,
     blocksListData,
     iconsListData,
-    versionInfoData,
   ] = await Promise.all([
     fetch(`${SCRIPT_API}/authors/${siteSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
     fetch(`${SCRIPT_API}/blocks/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
     fetch(`${SCRIPT_API}/icons/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
-    fetch(`${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/checkUpdates/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
   ]);
 
   container.innerHTML = `
@@ -80,6 +79,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
       <h2>Updates</h2>
       <div class="update-info" aria-label="loading"></div>
       <div class="prev-update-info"></div>
+      <div class="update-prompt-info"></div>
     </div>
 
     <div id="danger-zone"></div>
@@ -272,9 +272,10 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   renderIconsList(container, iconsListData, { projectDetails, authHeaders, siteSlug });
 
   // MARK: Updates section
+  const updatePromptInfoDiv = container.querySelector('.update-prompt-info');
   const updateInfoDiv = container.querySelector('.update-info');
   const prevUpdateInfoDiv = container.querySelector('.prev-update-info');
-  renderUpdatesSection(updateInfoDiv, { projectDetails, authHeaders, versionInfoData });
+  renderUpdatesSection(updateInfoDiv, { projectDetails, authHeaders, versionInfo });
   renderPrevUpdatesSection(prevUpdateInfoDiv, {
     projectDetails,
     authHeaders,
@@ -282,6 +283,23 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     rerenderUpdatesSection: renderUpdatesSection,
     updateInfoDiv,
   });
+
+  const emailAsPropertyName = toValidPropertyName(user.email);
+  if (projectDetails?.hideUpdatePrompts?.[emailAsPropertyName]) {
+    updatePromptInfoDiv.insertAdjacentHTML('beforeend', '<p>Update prompts are disabled. Enable them <button id="enable-update-prompts" class="button action secondary">here</button></p>');
+    updatePromptInfoDiv.querySelector('#enable-update-prompts').onclick = async (event) => {
+      event.target.classList.add('loading');
+      const enablePromptRes = await fetch(`${SCRIPT_API}/disableUpdatePrompts/${projectDetails.projectSlug}?forceState=false`, { method: 'POST', headers: authHeaders }).catch(() => null);
+      if (enablePromptRes?.ok) {
+        projectDetails.hideUpdatePrompts[emailAsPropertyName] = false;
+        showToast('Update prompts enabled.');
+        event.target.parentElement.remove();
+      } else {
+        showErrorToast('Failed to enable update prompts. Try again later.');
+      }
+      event.target.classList.remove('loading');
+    };
+  }
 
   // MARK: delete project
   renderDangerZone({ container: container.querySelector('#danger-zone'), renderOptions });

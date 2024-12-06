@@ -512,21 +512,21 @@ export function renderIconsList(
 // MARK: project updates
 export async function renderUpdatesSection(
   div,
-  { projectDetails, authHeaders, versionInfoData = null },
+  { projectDetails, authHeaders, versionInfo },
 ) {
   div.innerHTML = '';
   const endpoint = `${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
-  const versionInfo = versionInfoData || await fetch(`${endpoint}checkUpdates/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null);
+  const versionInfoData = versionInfo || await fetch(`${endpoint}checkUpdates/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null);
 
-  if (!versionInfo) {
+  if (!versionInfoData) {
     div.innerHTML = '<h3>Could not get update information.</h3>';
     return;
   }
 
-  if (versionInfo.updateAvailable) {
+  if (versionInfoData.updateAvailable) {
     div.innerHTML = `
       <h3>A new version is available!</h3>
-      ${versionInfo.updateLevel === 'major' ? '<p><strong><span>This version is a major update. It is possible some blocks will need to be updated by authors.</span></strong></p>' : ''}
+      ${versionInfoData.updateLevel === 'major' ? '<p><strong><span>This version is a major update. It is possible some blocks will need to be updated by authors.</span></strong></p>' : ''}
     `;
 
     const updateButton = parseFragment(`
@@ -538,7 +538,7 @@ export async function renderUpdatesSection(
         <div>
           <h3>Update Project</h3>
           <p>Are you sure you want to update this project? This will take a short while.</p>
-          ${versionInfo.updateLevel === 'major' ? '<p class="warning"><strong>This is a major update! It is possible some blocks will need to be updated by authors.</strong></p>' : ''}
+          ${versionInfoData.updateLevel === 'major' ? '<p class="warning"><strong>This is a major update! It is possible some blocks will need to be updated by authors.</strong></p>' : ''}
           <p>This action can be undone, but changes to icons, blocks, and site theme made after an update, will also be reverted when undone.</p>
         </div>
       `);
