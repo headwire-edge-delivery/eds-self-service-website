@@ -286,7 +286,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
 
   const emailAsPropertyName = toValidPropertyName(user.email);
   if (projectDetails?.hideUpdatePrompts?.[emailAsPropertyName]) {
-    updatePromptInfoDiv.insertAdjacentHTML('beforeend', '<p>Update prompts are hidden. Enable them <button id="enable-update-prompts" class="button action secondary">here</button></p>');
+    updatePromptInfoDiv.insertAdjacentHTML('beforeend', '<p>Update prompts are disabled. Enable them <button id="enable-update-prompts" class="button action secondary">here</button></p>');
     updatePromptInfoDiv.querySelector('#enable-update-prompts').onclick = async (event) => {
       event.target.classList.add('loading');
       const enablePromptRes = await fetch(`${SCRIPT_API}/disableUpdatePrompts/${projectDetails.projectSlug}?forceState=false`, { method: 'POST', headers: authHeaders }).catch(() => null);
