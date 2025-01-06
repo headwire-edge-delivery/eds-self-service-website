@@ -7,7 +7,6 @@ import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
 
-const showDarkAlley = document.querySelector('body').classList.contains('is-headwire') || document.querySelector('body').classList.contains('is-adobe') || document.querySelector('body').classList.contains('is-test-user');
 const defaultLimit = 6;
 
 const generateThumbnails = () => {
@@ -131,7 +130,9 @@ export default async function renderSites({ container, nav }) {
     }
   };
 
-  const fetchAllSites = () => {
+  const fetchAllSites = async () => {
+    await waitForAuthenticated();
+    const showDarkAlley = document.querySelector('body').classList.contains('is-headwire') || document.querySelector('body').classList.contains('is-adobe') || document.querySelector('body').classList.contains('is-test-user');
     const queryParams = readQueryParams();
     const darkAlleyContainer = container.querySelector('.sites-list-dark-alley');
     const googleDriveContainer = container.querySelector('.sites-list-google-drive');
