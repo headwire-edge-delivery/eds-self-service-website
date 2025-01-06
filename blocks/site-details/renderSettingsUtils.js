@@ -382,6 +382,8 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
         await alertDialog(OOPS);
       }
     };
+  }).catch(() => {
+    dialogContent.innerHTML = '<h3 class="centered-info" >Failed to load available blocks</h3>';
   });
 }
 
@@ -415,6 +417,7 @@ export function renderBlocksList(
     const blockName = document.createElement('span');
     blockName.innerText = name;
     li.append(blockIcon, blockName);
+    blocksList.querySelector('p.no-items')?.remove();
 
     li.onclick = () => blockIconDialogSetup({
       name,
@@ -427,7 +430,11 @@ export function renderBlocksList(
     blocksList.appendChild(li);
   };
 
-  blocksListData.forEach((item) => blocksList.addItem(item));
+  if (blocksListData?.length) {
+    blocksListData.forEach((item) => blocksList.addItem(item));
+  } else {
+    blocksList.innerHTML = '<p class="no-items">No blocks found.</p>';
+  }
 }
 
 // MARK: icon list
@@ -488,6 +495,7 @@ export function renderIconsList(
       iconUrl: path ? `${projectDetails.customPreviewUrl}/${path}` : undefined,
     });
     iconsList.append(li);
+    iconsList.querySelector('p.no-items')?.remove();
 
     copyButton.onclick = () => {
       window?.zaraz?.track('click site icon copy');
@@ -506,7 +514,11 @@ export function renderIconsList(
     };
   };
 
-  iconsListData.forEach((item) => iconsList.addItem(item));
+  if (iconsListData?.length) {
+    iconsListData.forEach((item) => iconsList.addItem(item));
+  } else {
+    iconsList.innerHTML = '<p class="no-items">No icons found.</p>';
+  }
 }
 
 // MARK: project updates
