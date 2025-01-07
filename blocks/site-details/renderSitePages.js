@@ -94,7 +94,7 @@ export function renderTable({
       <td>
         <div class="button-container">
             <a class="button action secondary edit" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
-            <button class="button action secondary delete-page">Delete</button>
+            <button class="button action secondary delete-page destructive">Delete</button>
         </div>
       </td>
     `;
@@ -263,7 +263,7 @@ function addPageDialogSetup({
             <td class="button-container">
                 <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Preview</a>
                 <a class="button action secondary edit" href="${editHref}" target="_blank">Edit</a>
-                <button class="button action secondary delete-page">Delete</button>
+                <button class="button action secondary delete-page destructive">Delete</button>
             </td>
         </tr>
       `);
