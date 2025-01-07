@@ -337,6 +337,7 @@ input[type="color"] {
   background-color: var(--black);
   color: var(--white);
   border-color: var(--white);
+  outline-color: var(--light-blue);
 }
 
 .button.primary:hover {

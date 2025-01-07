@@ -49,7 +49,7 @@ export function renderTable({
           <div id="email-open-edit" class="button-container">
             <a class="button action secondary edit" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
             <a class="button action secondary open" href="/redirect?url=${EMAIL_WORKER_API}/preview/${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
-            ${isDeletable ? '<button class="button action secondary delete-email">Delete</button>' : ''}
+            ${isDeletable ? '<button class="button action secondary delete-email destructive">Delete</button>' : ''}
           </div>
         </td>
       `;

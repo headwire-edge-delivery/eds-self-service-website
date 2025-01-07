@@ -21,7 +21,7 @@ function renderContact(contact) {
         <td>
             <div class="button-container">
                 <button class="button action secondary update-contact">Update</button>
-                <button class="button action secondary delete-contact">Delete</button>
+                <button class="button action secondary delete-contact destructive">Delete</button>
             </div>
         </td>
     </tr>
