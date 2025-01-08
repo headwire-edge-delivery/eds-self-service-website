@@ -14,39 +14,48 @@ export default async function renderSiteOverview({
   renderOptions,
   historyArray,
 }) {
-  // TODO: if projectdetails are not required on most tabs, only request it here
   const { projectDetails, user, token } = renderOptions;
 
   container.innerHTML = renderSkeleton('site-overview');
 
-  const aemSidekickIds = ['ccfggkjabjahcjoljmgmklhpaccedipo', 'olciodlegapfmemadcjicljalmfmlehb', 'ahahnfffoakmmahloojpkmlkjjffnial'];
+  // MARK: Extension tests
+  const oldSidekickIds = ['ccfggkjabjahcjoljmgmklhpaccedipo', 'olciodlegapfmemadcjicljalmfmlehb', 'ahahnfffoakmmahloojpkmlkjjffnial'];
+  const newSidekickId = 'igkmdomcgoebiipaifhmpfjhbjccggml';
+  const newSidekickLink = '/redirect?url=https://chromewebstore.google.com/detail/aem-sidekick/igkmdomcgoebiipaifhmpfjhbjccggml';
   function checkExtension(id) {
     return fetch(`chrome-extension://${id}/lib/polyfills.min.js`)
       .then(() => true)
       .catch(() => false);
   }
 
-  const checkPromises = aemSidekickIds.map((id) => checkExtension(id));
+  const checkPromises = oldSidekickIds.map((id) => checkExtension(id));
+  const [oldSidekickInstalled, newSidekickInstalled] = await Promise.all([
+    await Promise.allSettled(checkPromises).then((results) => results.some((result) => result.status === 'fulfilled' && result.value === true)),
+    checkExtension(newSidekickId),
+  ]);
 
-  const sidekickInstalled = await Promise.allSettled(checkPromises).then((results) => results.some((result) => result.status === 'fulfilled' && result.value === true));
-  const generateSidekickButton = () => {
-    if (projectDetails.darkAlleyProject) return '';
-    const button = document.createElement('a');
-    button.href = `/redirect?url=${projectDetails.sidekickSetupUrl}`;
-    button.id = 'install-sidekick-button';
-    button.title = 'Install the Chrome Plugin Sidekick';
-    button.classList.add('button', 'action', 'secondary', 'sidekick');
-    button.target = '_blank';
-    button.textContent = sidekickInstalled ? 'Open sidekick' : 'Install sidekick';
-    button.dataset.sidekickInstalled = sidekickInstalled;
-    return button.outerHTML;
-  };
+  const installSidekickButton = document.createElement('a');
+  installSidekickButton.href = newSidekickLink;
+  installSidekickButton.id = 'install-sidekick-button';
+  installSidekickButton.title = 'Install the Chrome Plugin Sidekick';
+  installSidekickButton.classList.add('button', 'action', 'secondary', 'sidekick');
+  installSidekickButton.target = '_blank';
+  installSidekickButton.textContent = 'Install Sidekick';
+  installSidekickButton.dataset.sidekickInstalled = newSidekickInstalled;
+
   /* eslint-disable */
   nav.innerHTML = `
-    ${generateSidekickButton()}
     <a href="/redirect?url=${projectDetails.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
     <a href="/redirect?url=${projectDetails.driveUrl}${!projectDetails.darkAlleyProject ? `?authuser=${user.email}` : ''}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
   `;
+  nav.prepend(installSidekickButton)
+  
+  // Warn user they are using deprecated sidekick version
+  if (oldSidekickInstalled && !newSidekickInstalled) {
+    const dialogContent = parseFragment(`<div class="centered-info"><p>You have an old version of sidekick installed, which is no longer supported.</p><p>Please install the new version <a href="${newSidekickLink}" target="_blank">here.</a></p><p>We suggest you uninstall the outdated version as well.</p></div>`)
+    createDialog(dialogContent)
+  }
+
   /* eslint-enable */
 
   if (!projectDetails.darkAlleyProject) {
