@@ -100,7 +100,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
           <li class="author ${isOwner ? 'is-owner' : ''}" data-author-email="${safeText(authorEmail)}">
             <span>${safeText(authorEmail)}</span>
             <button ${isOwner ? 'disabled' : ''} class="transfer-button button action secondary">Make Owner</button>
-            <button ${isOwner ? 'disabled' : ''} class="revoke-button button action secondary">Revoke</button>
+            <button ${isOwner ? 'disabled' : ''} class="revoke-button button action secondary destructive">Revoke</button>
           </li>
         `);
 

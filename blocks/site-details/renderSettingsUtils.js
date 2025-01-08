@@ -234,7 +234,7 @@ export function blockIconDialogSetup({
 
   // MARK: delete block/icon button
   const submit = parseFragment(`
-    <button type="submit" form="${formId}" class="button action ${isIcon ? 'secondary' : 'primary'}">Delete</button>
+    <button type="submit" form="${formId}" class="button action destructive">Delete</button>
   `);
 
   buttonList.push(submit);
