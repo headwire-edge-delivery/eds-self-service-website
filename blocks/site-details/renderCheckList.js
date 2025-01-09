@@ -94,6 +94,14 @@ export default async function renderCheckList({
           completed: document.getElementById('install-sidekick-button')?.dataset.sidekickInstalled === 'true',
         },
         {
+          content: 'Add this project to your Sidekick',
+          property: 'projectAdded',
+          allowManualCheck: true,
+          skip: isDarkAlleyProject,
+          highlight: '#edit-button',
+          hintBody: '<div><video width="1600" height="800" controls autoplay loop muted><source src="/media/tutorial-videos/add-project.webm" type="video/webm" /></video></div>',
+        },
+        {
           content: 'Add a new page',
           path: `${renderOptions.pathname}/pages`,
           highlight: '#add-page-button',
@@ -249,6 +257,51 @@ export default async function renderCheckList({
             manuelCheckButton.classList.remove('loading');
           };
           openButton.before(manuelCheckButton);
+        }
+
+        if (item.hintBody) {
+          const title = checklistItem.querySelector('.checklist-item-title');
+          const hintButton = parseFragment(`<button class="hint-button"><img src="/icons/help-dark.svg" alt="hint icon" /><div hidden class="hint-container">${item.hintBody}</div></button>`);
+          const hintContainer = hintButton.querySelector('.hint-container');
+
+          const updateHintPos = () => {
+            if (hintContainer.hidden) return;
+            hintContainer.style.transform = 'translateX(-50%)'; // reset
+            const hintContainerBox = hintContainer.getBoundingClientRect();
+            const bodyBox = document.body.getBoundingClientRect();
+            const margin = 10;
+
+            // make sure it's in viewport.
+            // CSS keeps width smaller so we don't need to worry about that.
+            // really hope we can use anchor CSS property one of these days...
+            if (hintContainerBox.right + margin > bodyBox.right) {
+              hintContainer.style.transform = `translateX(calc(-50% + ${bodyBox.right - hintContainerBox.right - margin}px))`;
+            } else if (hintContainerBox.left - margin < 0) {
+              hintContainer.style.transform = `translateX(calc(-50% - ${hintContainerBox.left - margin}px))`;
+            } else {
+              hintContainer.style.transform = 'translateX(-50%)';
+            }
+          };
+
+          const closeHandler = (event) => {
+            if (hintContainer.contains(event.target)) return;
+            hintContainer.hidden = true;
+            window.removeEventListener('click', closeHandler);
+            window.removeEventListener('resize', updateHintPos);
+          };
+
+          hintButton.onclick = () => {
+            if (hintContainer.hidden) {
+              hintContainer.hidden = null;
+              requestAnimationFrame(() => {
+                updateHintPos();
+                window.addEventListener('click', closeHandler);
+                window.addEventListener('resize', updateHintPos);
+              });
+            }
+          };
+
+          title.append(hintButton);
         }
 
         return checklistItem;

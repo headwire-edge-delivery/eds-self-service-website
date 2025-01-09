@@ -431,6 +431,46 @@ dialog .clicked-links li {
   transform: rotate(-90deg);
 }
 
+.site-details.block .checklist .hint-button {
+  position: relative;
+  margin-left: 6px;
+  height: 24px;
+  cursor: pointer;
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.site-details.block .checklist .hint-buttonwrapper img {
+  vertical-align: middle;
+  height: 21px;
+}
+
+.site-details .checklist .hint-container {
+  display: flex;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translate(-50%, 0);
+  width: min(600px, 90vw);
+  padding: 10px;
+  background-color: var(--white);
+  z-index: 10;
+  border: 1px solid var(--gray);
+  border-radius: var(--small-border-radius);
+}
+
+.site-details .checklist .hint-container[hidden] {
+  display: none;
+}
+
+.site-details .checklist .hint-container video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 #bulk-import-form {
   max-width: none;
 }
