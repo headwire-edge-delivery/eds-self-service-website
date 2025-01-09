@@ -14,7 +14,7 @@ import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.
 import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 export function renderTable({
-  table, tableData, type, projectDetails, token,
+  table, tableData, type, projectDetails, token, isDrafts = false,
 }) {
   const isEmail = type === 'emails';
   table.innerHTML = `
@@ -117,7 +117,7 @@ export function renderTable({
           }
         };
 
-        if (res?.live?.status === 200) {
+        if (res?.live?.status === 200 && !isDrafts) {
           renderStatus('Published', 'green');
         } else if (res?.preview?.status === 200) {
           renderStatus('Previewed', 'orange');
@@ -352,7 +352,7 @@ export default async function renderSitePages({ container, nav, renderOptions })
     table: container.querySelector('.footers'), tableData: footers, projectDetails, token,
   });
   renderTable({
-    table: container.querySelector('.drafts'), tableData: drafts, projectDetails, token,
+    table: container.querySelector('.drafts'), tableData: drafts, projectDetails, token, isDrafts: true,
   });
 
   container.onclick = async (event) => {
