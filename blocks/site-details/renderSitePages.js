@@ -88,7 +88,7 @@ export function renderTable({
 
     tableRow.innerHTML = `
       <td>${safeText(item.name)}</td>
-      <td>${item.path}</td>
+      <td>${item.path.replace(/\/index$/, '/')}</td>
       <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>
       <td class="status"><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
       <td>
@@ -106,11 +106,11 @@ export function renderTable({
           tableRow.querySelector('.status').innerHTML = `<div class="badge ${variant}">${status}</div>`;
 
           const container = tableRow.querySelector('.button-container');
-          const previewButton = `<a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path.replace(/\/index$/, '')}" target="_blank">Preview</a>`;
+          const previewButton = `<a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path.replace(/\/index$/, '/')}" target="_blank">Preview</a>`;
           if (status === 'Published') {
             container.insertAdjacentHTML('afterbegin', `
               ${previewButton}
-              ${!item.path.startsWith('/drafts/') ? `<a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}${item.path.replace(/\/index$/, '')}" target="_blank">Live</a>` : ''}
+              ${!item.path.startsWith('/drafts/') ? `<a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}${item.path.replace(/\/index$/, '/')}" target="_blank">Live</a>` : ''}
             `);
           } else if (status === 'Previewed') {
             container.insertAdjacentHTML('afterbegin', previewButton);
