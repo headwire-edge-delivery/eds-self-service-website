@@ -15,6 +15,7 @@ div[aria-label="loading"] > table > tbody > tr > td {
     0% {
         background-position: 100% 0;
     }
+    
     100% {
         background-position: -100% 0;
     }
