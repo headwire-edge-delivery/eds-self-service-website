@@ -109,8 +109,10 @@
 
 .is-authenticated .header.block .button-container:has(a[href="#signout"]),
 .is-anonymous .header.block .button-container:has(a[href="#signin"]),
-.is-authenticated .header.block .section:has(a[href="/dashboard/sites"]) {
+.is-authenticated .header.block .section:has(a[href="/dashboard/sites"]),
+.header.block .section .default-content-wrapper {
     display: flex;
+    flex-wrap: nowrap;
 }
 
 @media (width < 768px) {

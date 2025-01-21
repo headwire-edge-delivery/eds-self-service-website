@@ -44,10 +44,9 @@
 }
 
 .email-composer.block aside {
-    max-width: 50%;
-    min-width: 50%;
     height: calc(100vh - 200px);
     overflow: auto;
+    flex: 1;
 }
 
 .email-composer.block h2 {

@@ -156,7 +156,7 @@ export default async function decorate(block) {
                 
                 <div class="button-container">
                     <button class="button secondary action preview-variables">Preview</button>
-                    <button class="button secondary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
+                    <button class="button primary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
                 </div>
 
                 <div id="email-styles">
@@ -166,7 +166,7 @@ export default async function decorate(block) {
                     <textarea name="styles" class="styles"></textarea>
                     <div class="button-container">
                         <button type="submit" class="button secondary action">Preview</button>
-                        <button type="button" class="button secondary action save-styles">Save styles</button>
+                        <button type="button" class="button primary action save-styles">Save styles</button>
                     </div>
                 </form>
                 </div>
