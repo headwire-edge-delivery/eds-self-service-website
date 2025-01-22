@@ -65,7 +65,7 @@ const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
 
       return `
         <tr data-email="${emailId}" data-campaign="${campaign}">
-          <td>${emailURL ? `<a href="/redirect?url=${EMAIL_WORKER_API}/preview/${emailURL}" target="_blank">${subject}</a>` : subject}</td>
+          <td>${emailURL ? `<a href="/redirect?url=${EMAIL_WORKER_API}/preview?contentPath${emailURL}" target="_blank">${subject}</a>` : subject}</td>
           <td>${campaignAnalyticsData[emailId][0].data.to.join(',')}</td>
           <td>${sent ? dateToRelativeSpan(sent.created_at).outerHTML : ''}</td>
           <td>${delivered ? dateToRelativeSpan(delivered.created_at).outerHTML : ''}</td>

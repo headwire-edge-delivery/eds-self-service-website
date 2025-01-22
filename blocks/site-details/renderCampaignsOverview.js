@@ -381,7 +381,7 @@ export default async function renderCampaignsOverview({
               </label>
               <input type="hidden" name="templatePath" value="/newsletter">
             </form>
-            <iframe src="${EMAIL_WORKER_API}/preview/https://main--${projectDetails.templateSlug}--headwire-self-service-templates.aem.live/newsletter"></iframe>
+            <iframe src="${EMAIL_WORKER_API}/preview?contentPath=https://main--${projectDetails.templateSlug}--headwire-self-service-templates.aem.live/newsletter"></iframe>
           </div>
         </div>
       `);

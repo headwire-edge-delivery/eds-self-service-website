@@ -75,7 +75,7 @@ export default async function decorate(block) {
         </div>
       </div>`;
 
-    const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta/${url}`);
+    const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta?contentPath=${url}`);
     if (reqEmail.ok) {
       const { meta, variables } = await reqEmail.json();
       let customVariables = {};
@@ -126,7 +126,7 @@ export default async function decorate(block) {
         
         <div class="content">
             <div class="preview">
-                <iframe class="iframe is-loading" name="preview" src="${EMAIL_WORKER_API}/preview/${url}"></iframe>
+                <iframe class="iframe is-loading" name="preview" src="${EMAIL_WORKER_API}/preview?contentPath=${url}"></iframe>
                 <div class="skeleton" style="height: 100%; width: 100%; min-height: calc(100vh - 200px);"></div>
             </div>
             <aside>
@@ -162,7 +162,7 @@ export default async function decorate(block) {
                 <div id="email-styles">
                 <h2>Styles (Developer)</h2>                
                 <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
-                <form class="form" action="${EMAIL_WORKER_API}/preview/${url}" method="POST" target="preview">
+                <form class="form" action="${EMAIL_WORKER_API}/preview?contentPath=${url}" method="POST" target="preview">
                     <textarea name="styles" class="styles"></textarea>
                     <div class="button-container">
                         <button type="submit" class="button secondary action">Preview</button>
@@ -275,7 +275,7 @@ export default async function decorate(block) {
           },
           body: JSON.stringify({
             filePath: meta.styles,
-            css: btoa(editor.getValue()),
+            css: btoa(editor.getValue() || ''),
           }),
         });
 
@@ -316,7 +316,7 @@ export default async function decorate(block) {
 
         const keys = Object.keys(customVariables);
         const oldSource = new URL(iframe.src);
-        const newSource = new URL(`${oldSource.origin}${oldSource.pathname}`);
+        const newSource = new URL(`${oldSource.origin}${oldSource.pathname}${oldSource.search}`);
         let newSubject = subjectInput.value;
         keys.forEach((key) => {
           const newValue = replaceMatches(customVariables[key]);
@@ -622,7 +622,6 @@ export default async function decorate(block) {
 
               block.classList.add('is-sending');
 
-              const previewSource = new URL(iframe.src);
               const req = await fetch(`${SCRIPT_API}/send/${id}`, {
                 headers: {
                   'content-type': 'application/json',
@@ -630,7 +629,7 @@ export default async function decorate(block) {
                 },
                 body: JSON.stringify({
                   styles: block.querySelector('.styles').value,
-                  url: previewSource.pathname.replace('/preview/', ''),
+                  emailUrl: iframe.src,
                   subject: subjectInput.value,
                   variables: customVariables,
                   to: audience.filter((contact) => selectedRecipients
