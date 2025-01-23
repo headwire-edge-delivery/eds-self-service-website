@@ -24,6 +24,9 @@
   --icon-drop-shadow: drop-shadow(0 0 1px var(--black));
   --border-radius: 15px;
   --small-border-radius: 8px;
+  --skeleton-bg-light: var(--light-gray);
+  --skeleton-bg-dark: #e2e2e2;
+  --skeleton-bg: linear-gradient(90deg, var(--skeleton-bg-light) 0%, var(--skeleton-bg-dark) 25%, var(--skeleton-bg-light) 50%) 100% 0 / 200% 100%;
 
   font-synthesis: none;
   text-rendering: optimizelegibility;

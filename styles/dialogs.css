@@ -106,8 +106,13 @@ dialog.loading::before {
     overflow: hidden;
 }
 
-dialog.loading .skeleton {
-    opacity: .5;
+dialog.loading .dialog-content {
+    background: var(--skeleton-bg);
+    animation: skeleton-bg-slide 1s ease-in-out infinite;
+}
+
+dialog.loading .dialog-content > * {
+    opacity: 0.25;
 }
 
 dialog .dialog-content .dialog-button-container {

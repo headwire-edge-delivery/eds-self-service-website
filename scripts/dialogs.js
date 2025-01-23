@@ -52,10 +52,8 @@ export const createDialog = (contentDiv, buttons, {
   dialog.setLoading = (toggleOn = true, customLoadingText = 'Loading…') => {
     if (toggleOn) {
       dialog.classList.add('loading');
-      dialogContent.classList.add('skeleton');
     } else {
       dialog.classList.remove('loading');
-      dialogContent.classList.remove('skeleton');
     }
     dialog.dataset.loadingText = customLoadingText;
   };
