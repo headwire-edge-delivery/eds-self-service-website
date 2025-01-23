@@ -18,7 +18,7 @@ const range = document.createRange();
 
 export const SCRIPT_API = window.location.hostname === 'localhost'
   ? 'http://localhost:4000' : 'https://api.kestrelone.com';
-export const EMAIL_WORKER_API = 'https://emails.kestrelone.com';
+export const EMAIL_WORKER_API = `${SCRIPT_API}/emailPreview`;
 export const OOPS = 'Oops ! Something went wrong …';
 
 export const defaultBranch = 'main';
