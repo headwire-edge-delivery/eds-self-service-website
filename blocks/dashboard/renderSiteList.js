@@ -196,7 +196,14 @@ export default async function renderSites({ container, nav }) {
         </ul>
         <input value="${safeText(search)}" type="search" placeholder="Filter sites" class="filter-sites filter">`;
   container.querySelector('.filter-container').innerHTML = filter;
-  sites.innerHTML = '<div class="sites-list"><section class="sites-list-dark-alley"></section><section class="sites-list-google-drive"></section></div>';
+  sites.innerHTML = `<div class="sites-list">
+    <section class="sites-list-dark-alley">
+      ${renderSkeleton('sites', parseInt(queryParams.limit, 10) || defaultLimit)}
+    </section>
+    <section class="sites-list-google-drive">
+      ${renderSkeleton('sites', parseInt(queryParams.dalimit, 10) || defaultLimit)}
+    </section>
+  </div>`;
   const filterSitesInput = container.querySelector('.filter-sites');
 
   const ownerSelectorContainer = container.querySelector('.owner-selector');

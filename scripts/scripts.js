@@ -188,6 +188,7 @@ export function onAuthenticated(cb) {
     });
   }
 }
+
 export async function waitForAuthenticated() {
   await new Promise((resolve) => {
     onAuthenticated(resolve);
@@ -362,6 +363,7 @@ export function createTabs({
   renderOptions,
   defaultTab = 0,
 }) {
+  document.body.dataset.tabsStatus = 'loading';
   const blockContent = block.cloneNode(true);
   block.innerHTML = `
     <div class="tabs-wrapper">
@@ -453,8 +455,9 @@ export function createTabs({
     details.append(tabContent);
 
     const asideItemLink = asideItem.querySelector('a');
-    tab.clickHandler = (event, historyState = 'push') => {
+    tab.clickHandler = async (event, historyState = 'push') => {
       event.preventDefault();
+      document.body.dataset.tabsStatus = 'loading';
 
       [...asideItems.children]?.forEach((child) => {
         // remove is-selected from all links
@@ -494,7 +497,7 @@ export function createTabs({
       // reset callbacks
       onHistoryPopArray.length = 0;
       // keep renderTab at the end. So tab behavior still works if there is an error in renderTab
-      tab.renderTab({
+      await tab.renderTab({
         nav: tabNavContent,
         container: tabContent,
         renderOptions,
@@ -503,6 +506,7 @@ export function createTabs({
         replaceHistory,
         onHistoryPopArray,
       });
+      document.body.dataset.tabsStatus = 'loaded';
     };
     asideItemLink.addEventListener('click', tab.clickHandler);
 
@@ -603,6 +607,7 @@ const debounce = (fn) => {
 };
 
 const isPageReady = () => [...document.body.querySelectorAll('[data-section-status]')].every((element) => element.dataset.sectionStatus === 'loaded')
+  && (!document.body.dataset.tabsStatus || document.body.dataset.tabsStatus === 'loaded')
   && [...document.body.querySelectorAll('[data-block-status]')].every((element) => element.dataset.blockStatus === 'loaded')
   && document.body.querySelectorAll('[aria-label="loading"], .skeletons').length === 0
   && document.body.querySelector('header:empty') === null
