@@ -48,7 +48,7 @@ export default async function decorate(block) {
   onAuthenticated(async () => {
     const { picture } = await window.auth0Client.getUser();
     nav.querySelector('a[href="#signout"]').insertAdjacentHTML('beforebegin', `
-      <a class="button" title="Account" href="/dashboard/account"><img alt="Avatar" referrerpolicy="no-referrer" src="${picture}" loading="lazy"></a>
+      <a class="button" title="Account" href="/dashboard/account"><img class="icon" alt="Avatar" referrerpolicy="no-referrer" src="${picture}" loading="lazy"></a>
     `);
 
     const dashboard = document.querySelector('header a[href="/dashboard/sites"]');
@@ -56,11 +56,14 @@ export default async function decorate(block) {
       dashboard.id = 'dashboard-button';
       dashboard.title = 'Sites';
       dashboard.innerHTML = `
-          <img alt="Dashboard - Sites" src="/icons/dashboard.svg" loading="lazy">
+          <img class="icon" alt="Dashboard - Sites" src="/icons/dashboard.svg" loading="lazy">
           <span>Sites</span>
       `;
     }
   });
+
+  // help button wrapper
+  nav.children[0].insertAdjacentHTML('afterend', '<div class="section help-button-section" data-section-status="loaded"><div class="default-content-wrapper"><p class="button-container"></p></div></div>');
 
   document.dispatchEvent(new CustomEvent('header:ready'));
 }

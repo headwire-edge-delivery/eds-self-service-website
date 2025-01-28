@@ -37,20 +37,14 @@ document.addEventListener('user:autotour', ({ detail }) => {
   showAutoTour = userData.showAutoTour;
 });
 
-const isAnonymous = () => document.body.classList.contains('is-anonymous');
-
 const render = async () => {
   if (button.parentElement) {
     return;
   }
 
-  if (isAnonymous()) {
-    document.querySelector('header a[href="#signin"]').before(button);
-  } else {
-    document.querySelector('header #dashboard-button').before(button);
-    userData = await getUserSettings();
-    showAutoTour = userData?.showAutoTour;
-  }
+  document.querySelector('header .help-button-section .button-container').append(button);
+  userData = await getUserSettings();
+  showAutoTour = userData?.showAutoTour;
 };
 
 const getTour = (siteTour) => setTimeout(() => {
@@ -65,7 +59,7 @@ const startTour = (isAutoTour, showDisableTour = false) => setTimeout(() => {
   }
 
   if (isAutoTour) {
-    if (!isAnonymous() && showAutoTour) {
+    if (!document.body.classList.contains('is-anonymous') && showAutoTour) {
       startTour(false, true);
     }
   } else {
