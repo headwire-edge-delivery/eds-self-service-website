@@ -8,6 +8,7 @@ import renderAnalyticsTab from './renderAnalyticsTab.js';
  * @param {Element} block
  */
 export default async function decorate(block) {
+  document.body.dataset.tabsStatus = 'loading';
   await waitForAuthenticated();
   const isAdmin = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-test-user');
   const pathname = '/dashboard';
