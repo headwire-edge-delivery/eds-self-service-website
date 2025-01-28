@@ -33,13 +33,18 @@ if (window.location.hostname === 'localhost') {
   });
 }
 
-export async function completeChecklistItem(projectSlug, itemName, projectDetails = null) {
+export async function completeChecklistItem(
+  projectSlug,
+  itemName,
+  projectDetails = null,
+  allowUpdateEl = true,
+) {
   if (projectDetails?.checklistData?.[itemName]) return; // don't send request if already completed
   const checklistDataResponse = await fetch(`${SCRIPT_API}/checklist/${projectSlug}/${itemName}`, {
     method: 'POST',
     headers: { authorization: `bearer ${await window.auth0Client.getTokenSilently()}` },
   }).catch(() => null);
-  if (checklistDataResponse?.ok) {
+  if (checklistDataResponse?.ok && allowUpdateEl) {
     document.querySelectorAll(`[data-checklist-property="${itemName}"]`).forEach((el) => { el.dataset.completed = true; });
   }
 }

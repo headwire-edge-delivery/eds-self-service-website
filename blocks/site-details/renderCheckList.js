@@ -58,8 +58,6 @@ export default async function renderCheckList({
     </div>
   `;
   const checklistTitle = container.querySelector('.checklist-title');
-  // const checklistUl = container.querySelector('.checklist-list');
-  // const progressBar = container.querySelector('.progress-bar');
   const sectionTabsContainer = container.querySelector('.button-container.section-tabs');
   const checklistSectionsContainer = container.querySelector('.sections');
 
@@ -75,8 +73,6 @@ export default async function renderCheckList({
       writeQueryParams({ ...readQueryParams(), checklistSection: sectionName }, true);
     }
   };
-
-  const baseChecklistData = renderOptions?.projectDetails?.checklistData || {};
 
   const isDarkAlleyProject = renderOptions?.projectDetails?.darkAlleyProject || false;
 
@@ -163,17 +159,25 @@ export default async function renderCheckList({
   let defaultSectionIndex = 0;
 
   // MARK: render items
-  const renderChecklistItems = (checklistData = baseChecklistData) => {
+  const renderChecklistItems = (
+    checklistData = renderOptions?.projectDetails?.checklistData || {},
+  ) => {
     // reset
     sectionTabsContainer.innerHTML = '';
     checklistSectionsContainer.innerHTML = '';
 
-    // section setup
+    // section setup, filter skipped & complete completed
     const sections = checklistConfig.map((section, index) => {
       section.sectionItems = section.sectionItems.filter((item) => !item.skip);
       section.sectionItems.forEach((item) => {
         if (item.completed) {
           checklistData[item.property] = true;
+          completeChecklistItem(
+            renderOptions.siteSlug,
+            item.property,
+            renderOptions?.projectDetails,
+            false,
+          );
         }
       });
 
@@ -198,15 +202,20 @@ export default async function renderCheckList({
       const progressBarFill = sectionDiv.querySelector('.progress-bar-fill');
 
       const progressTotal = section.sectionItems.length;
-      const progressCurrent = section.sectionItems.reduce(
+      let progressCurrent = section.sectionItems.reduce(
         (current, item) => (checklistData[item.property] ? current + 1 : current),
         0,
       );
 
       // render progress
-      sectionDiv.querySelector('.progress-wrapper .total').textContent = progressTotal;
-      sectionDiv.querySelector('.progress-wrapper .current').textContent = progressCurrent;
-      progressBarFill.style.width = `${(progressCurrent / progressTotal) * 100}%`;
+      const totalSpan = sectionDiv.querySelector('.progress-wrapper .total');
+      const currentSpan = sectionDiv.querySelector('.progress-wrapper .current');
+      const renderProgress = () => {
+        totalSpan.textContent = progressTotal;
+        currentSpan.textContent = progressCurrent;
+        progressBarFill.style.width = `${(progressCurrent / progressTotal) * 100}%`;
+      };
+      renderProgress();
 
       // section tab button
       const sectionTabButton = parseFragment(`<button class="button secondary selector action" data-section-index="${index}" data-section-name="${toClassName(section.section)}" data-selected="false">${section.section}</button>`);
@@ -253,6 +262,9 @@ export default async function renderCheckList({
             if (checklistItem.dataset.completed === 'true') return;
             manuelCheckButton.classList.add('loading');
             await completeChecklistItem(renderOptions.siteSlug, item.property);
+            progressCurrent += 1;
+            renderProgress();
+            checklistData[item.property] = true;
             checklistItem.nextElementSibling.removeAttribute('inert');
             manuelCheckButton.classList.remove('loading');
           };
@@ -331,6 +343,7 @@ export default async function renderCheckList({
     if (!fetchedChecklistData) return;
 
     renderChecklistItems(fetchedChecklistData);
+    renderOptions.projectDetails.checklistData = fetchedChecklistData;
   };
 
   // refetch if loaded after another tab
