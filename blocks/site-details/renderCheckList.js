@@ -69,9 +69,9 @@ export default async function renderCheckList({
     sectionElements.forEach((el) => {
       el.classList.toggle('is-selected', el.dataset.sectionName === sectionName);
     });
-    if (event.isTrusted) {
-      writeQueryParams({ ...readQueryParams(), checklistSection: sectionName }, true);
-    }
+    const currentParams = readQueryParams();
+    if (!currentParams.checklistSection && event?.currentTarget?.dataset?.sectionIndex === '0') return;
+    writeQueryParams({ ...readQueryParams(), checklistSection: sectionName }, true);
   };
 
   const isDarkAlleyProject = renderOptions?.projectDetails?.darkAlleyProject || false;
