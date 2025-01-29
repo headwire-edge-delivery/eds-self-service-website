@@ -39,7 +39,7 @@ export async function completeChecklistItem(
   projectDetails = null,
   allowUpdateEl = true,
 ) {
-  if (projectDetails?.checklistData?.[itemName]) return; // don't send request if already completed
+  if (projectDetails?.checklistData?.[itemName]) return true; // already complete
   const checklistDataResponse = await fetch(`${SCRIPT_API}/checklist/${projectSlug}/${itemName}`, {
     method: 'POST',
     headers: { authorization: `bearer ${await window.auth0Client.getTokenSilently()}` },
@@ -47,6 +47,7 @@ export async function completeChecklistItem(
   if (checklistDataResponse?.ok && allowUpdateEl) {
     document.querySelectorAll(`[data-checklist-property="${itemName}"]`).forEach((el) => { el.dataset.completed = true; });
   }
+  return checklistDataResponse?.ok || false;
 }
 
 export async function highlightElement() {

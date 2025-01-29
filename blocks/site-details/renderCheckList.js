@@ -8,6 +8,7 @@ import {
 } from '../../scripts/scripts.js';
 import { readQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import { toClassName } from '../../scripts/aem.js';
+import { showErrorToast } from '../../scripts/toast.js';
 
 // eslint-disable-next-line consistent-return
 function openButtonOnclick(event) {
@@ -261,11 +262,15 @@ export default async function renderCheckList({
           manuelCheckButton.onclick = async () => {
             if (checklistItem.dataset.completed === 'true') return;
             manuelCheckButton.classList.add('loading');
-            await completeChecklistItem(renderOptions.siteSlug, item.property);
-            progressCurrent += 1;
-            renderProgress();
-            checklistData[item.property] = true;
-            checklistItem.nextElementSibling.removeAttribute('inert');
+            const success = await completeChecklistItem(renderOptions.siteSlug, item.property);
+            if (success) {
+              progressCurrent += 1;
+              renderProgress();
+              checklistData[item.property] = true;
+              checklistItem.nextElementSibling.removeAttribute('inert');
+            } else {
+              showErrorToast();
+            }
             manuelCheckButton.classList.remove('loading');
           };
           openButton.before(manuelCheckButton);
