@@ -19,7 +19,6 @@ import renderSettingsGeneral from './renderSettingsGeneral.js';
 import renderSiteAnalytics from './renderSiteAnalytics.js';
 import renderSiteOverview from './renderSiteOverview.js';
 import renderSitePages from './renderSitePages.js';
-import renderSiteSpreadsheets from './renderSiteSpreadsheets.js';
 import renderSiteSEO from './renderSiteSEO.js';
 
 /**
@@ -84,12 +83,6 @@ export default async function decorate(block) {
         href: `${pathname}/pages`,
         iconSrc: '/icons/web.svg',
         renderTab: renderSitePages,
-      },
-      {
-        name: 'Spreadsheets',
-        href: `${pathname}/sheets`,
-        iconSrc: '/icons/web.svg',
-        renderTab: renderSiteSpreadsheets,
       },
       {
         name: 'SEO',
