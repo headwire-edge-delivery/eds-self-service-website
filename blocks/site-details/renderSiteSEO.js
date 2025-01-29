@@ -96,15 +96,18 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
 
   const tableRows = audit.map((item) => {
     const tableRow = document.createElement('tr');
+    tableRow.dataset.path = item.path;
 
     tableRow.innerHTML = `
       <td class="og-image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
-      <td><strong>${safeText(item.name)}</strong></td>  
+      <td class="doc-name"><strong>${safeText(item.name)}</strong></td>  
       <td class="og-title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
       <td class="og-description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
       <td class="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
       <td>
-          <a class="button action secondary" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+        <div class="button-container">
+          <a class="button action secondary edit" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+        </div>
       </td>
     `;
 
