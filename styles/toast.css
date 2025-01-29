@@ -38,6 +38,10 @@
     background-color: var(--green);
 }
 
+.toast.info {
+    background-color: var(--black);
+}
+
 .toast.warning {
     background-color: var(--orange);
 }
