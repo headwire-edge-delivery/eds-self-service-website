@@ -47,6 +47,10 @@ function parseBrowser(str) {
 }
 
 let { maxRows = 10000 } = readQueryParams();
+maxRows = parseInt(maxRows, 10);
+if (!Number.isInteger(maxRows)) {
+  maxRows = 10000;
+}
 maxRows = Math.max(100, maxRows);
 
 // MARK: createTable
