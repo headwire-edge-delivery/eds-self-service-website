@@ -9,7 +9,7 @@ import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs
 import paginator from '../../libs/pagination/pagination.js';
 import { toClassName } from '../../scripts/aem.js';
 import { createDialog } from '../../scripts/dialogs.js';
-import { showErrorToast } from '../../scripts/toast.js';
+import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
 function parseAcceptLanguage(str) {
@@ -46,6 +46,13 @@ function parseBrowser(str) {
   }
 }
 
+let { maxRows = 10000 } = readQueryParams();
+maxRows = parseInt(maxRows, 10);
+if (!Number.isInteger(maxRows)) {
+  maxRows = 10000;
+}
+maxRows = Math.max(100, maxRows);
+
 // MARK: createTable
 function createTable({
   tableId,
@@ -80,7 +87,9 @@ function createTable({
     headRow.append(th);
   }
 
-  for (const row of rows) {
+  const dataRows = rows.slice(0, maxRows);
+
+  for (const row of dataRows) {
     const tr = document.createElement('tr');
     for (const column of columns) {
       const td = document.createElement('td');
@@ -121,7 +130,7 @@ function createTable({
     tbody.append(tr);
   }
 
-  if (!rows.length) {
+  if (!dataRows.length) {
     tbody.innerHTML = `<tr class="clusterize-no-data"><td class="empty" colspan="${columns.length}">No Data found</td></tr>`;
   }
 
@@ -235,11 +244,14 @@ export default async function renderUserTab({ container }) {
       contentWrapper.className = 'users clusterize';
       contentWrapper.innerHTML = `<h3>${button.dataset.user} recent activity</h3>`;
 
-      const activitiesDialogTable = createTable({
+      const originalRecentActivityData = timestamps.reverse();
+      const recentActivityData = [...originalRecentActivityData];
+
+      const generateTable = () => createTable({
         tableId: 'recent-activity',
         tableClass: 'recent-activity',
         headers: ['Event', 'Date', 'URL', 'Location', 'IP', 'Referrer', 'Browser', 'Device'],
-        rows: timestamps.reverse().map((timestamp) => {
+        rows: recentActivityData.map((timestamp) => {
           const timestampItem = tracking[timestamp];
           const date = new Date(Number(timestamp));
 
@@ -271,14 +283,25 @@ export default async function renderUserTab({ container }) {
         }),
       });
 
+      const activitiesDialogTable = generateTable();
+
       contentWrapper.appendChild(activitiesDialogTable.wrapper);
       createDialog(contentWrapper);
 
-      // eslint-disable-next-line no-new
-      new Clusterize({ // NOSONAR
+      const raCluster = new Clusterize({
         rows: activitiesDialogTable.tbody.children,
+        rows_in_block: 80,
         scrollId: 'scrollArea-recent-activity',
         contentId: 'contentArea-recent-activity',
+        callbacks: {
+          scrollingProgress: (progress) => {
+            if (progress > 70 && raCluster.getRowsAmount() !== originalRecentActivityData.length) {
+              recentActivityData.splice(0, maxRows);
+              const newRows = [...generateTable().tbody.children].map((row) => row.outerHTML);
+              raCluster.append(newRows);
+            }
+          },
+        },
       });
     } else {
       showErrorToast();
@@ -325,8 +348,9 @@ export default async function renderUserTab({ container }) {
       const usersJSON = await reqUsers.json();
       const users = usersJSON.data || [];
       const { pagination } = usersJSON;
+      const usersData = users;
 
-      const usersTable = createTable({
+      const generateTable = () => createTable({
         tableId: 'user-activity',
         headers: ['Email', 'Name', 'Created at', 'Last login', 'Logins count', ''],
         columns: ['email', 'name', 'created_at', 'last_login', 'logins_count', 'buttons'],
@@ -350,16 +374,28 @@ export default async function renderUserTab({ container }) {
         }),
       });
 
+      const usersTable = generateTable();
+
       usersContainer.innerHTML = paginator(pagination.totalItems, limit, pagination.currentPage);
       usersContainer.prepend(usersTable.wrapper);
 
       paginatorEventlistener(usersContainer, 'page', renderUsers, Math.min(limit, 5));
 
-      // eslint-disable-next-line no-new
-      new Clusterize({ // NOSONAR
+      const usersCluster = new Clusterize({
         rows: usersTable.tbody.children,
+        rows_in_block: 80,
         scrollId: 'scrollArea-user-activity',
         contentId: 'contentArea-user-activity',
+        callbacks: {
+          scrollingProgress: (progress) => {
+            if (progress > 90 && usersCluster.getRowsAmount() !== users.length) {
+              usersData.splice(0, maxRows);
+              const newRows = [...generateTable().tbody.children].map((row) => row.outerHTML);
+              usersCluster.append(newRows);
+              showToast(`Loaded ${usersCluster.getRowsAmount()} rows from ${users.length} User activity records.`, 'info');
+            }
+          },
+        },
       });
 
       usersContainer.querySelectorAll('button[data-user]').forEach((button) => {
@@ -386,14 +422,19 @@ export default async function renderUserTab({ container }) {
       const deletedUsersJSON = await reqDeletedUsers.json();
       const deletedUsers = deletedUsersJSON.data || [];
       const { pagination } = deletedUsersJSON;
+      let deletedUsersTable = null;
 
-      const deletedUsersTable = createTable({
+      const originalDeletedUsersData = Object.keys(deletedUsers)
+      // eslint-disable-next-line max-len
+        .sort((uA, uB) => new Date(deletedUsers[uB].deleted_at) - new Date(deletedUsers[uA].deleted_at));
+      const deletedUsersData = [...originalDeletedUsersData];
+
+      const generateTable = () => createTable({
         tableId: 'deleted-users',
         tableClass: 'deleted-users',
         headers: ['Email', 'Name', 'Created at', 'Deleted at', 'Last login', 'Logins count', ''],
         columns: ['email', 'name', 'created_at', 'deleted_at', 'last_login', 'logins_count', 'buttons'],
-        rows: Object.keys(deletedUsers)
-          .sort((uA, uB) => new Date(deletedUsers[uB].deleted_at) - new Date(deletedUsers[uA].deleted_at)) // eslint-disable-line max-len
+        rows: deletedUsersData
           .map((u) => {
             const deletedUser = deletedUsers[u];
             const createdAt = new Date(deletedUser.created_at);
@@ -421,6 +462,8 @@ export default async function renderUserTab({ container }) {
           }),
       });
 
+      deletedUsersTable = generateTable();
+
       deletedUsersContainer.innerHTML = paginator(
         pagination.totalItems,
         limit,
@@ -431,11 +474,22 @@ export default async function renderUserTab({ container }) {
 
       paginatorEventlistener(deletedUsersContainer, 'deletedpage', renderDeletedUsers, Math.min(limit, 5));
 
-      // eslint-disable-next-line no-new
-      new Clusterize({ // NOSONAR
+      const deletedCluster = new Clusterize({
         rows: deletedUsersTable.tbody.children,
+        rows_in_block: 80,
         scrollId: 'scrollArea-deleted-users',
         contentId: 'contentArea-deleted-users',
+        callbacks: {
+          scrollingProgress: (progress) => {
+            // eslint-disable-next-line max-len
+            if (progress > 90 && deletedCluster.getRowsAmount() !== originalDeletedUsersData.length) {
+              deletedUsersData.splice(0, maxRows);
+              const newRows = [...generateTable().tbody.children].map((row) => row.outerHTML);
+              deletedCluster.append(newRows);
+              showToast(`Loaded ${deletedCluster.getRowsAmount()} rows from ${originalDeletedUsersData.length} deleted users records.`, 'info');
+            }
+          },
+        },
       });
 
       deletedUsersContainer.querySelectorAll('button[data-user]').forEach((button) => {
@@ -585,54 +639,58 @@ export default async function renderUserTab({ container }) {
       /* eslint-enable */
     });
 
-    anonymousTable = createTable({
+    const originalAnonymousData = Object.keys(filteredTimestamps)
+      .sort((A, B) => new Date(Number(B)) - new Date(Number(A)));
+    const anonymousData = [...originalAnonymousData];
+
+    const generateTable = () => createTable({
       tableId: 'anonymous',
       tableClass: 'anonymous',
       headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
-      rows: Object.keys(filteredTimestamps)
-        .sort((timestampA, timestampB) => new Date(Number(timestampB)) - new Date(Number(timestampA))) // eslint-disable-line max-len
-        .map((timestamp) => {
-          const timestampItem = timestamps[timestamp];
-          const serverEvent = ['server email request', 'server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
-          const timestampDate = new Date(Number(timestamp));
+      rows: anonymousData.map((timestamp) => {
+        const timestampItem = timestamps[timestamp];
+        const serverEvent = ['server email request', 'server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
+        const timestampDate = new Date(Number(timestamp));
 
-          return {
-            ...timestampItem,
-            event: timestampItem.event + (!serverEvent && timestampItem.isSPA ? ' SPA' : ''),
-            date: {
-              value: dateToRelativeString(timestampDate),
-              title: timestampDate.toLocaleString(),
-            },
-            url: {
-              value: timestampItem.url.replace(SCRIPT_API, ''),
-              title: timestampItem.url,
-              link: timestampItem.url,
-            },
-            location: [timestampItem.city, timestampItem.country].filter(Boolean).join(', '),
-            referrer: {
-              value: timestampItem.referrer,
-              link: timestampItem.referrer,
-            },
-            browser: !serverEvent ? {
-              value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
-              title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
-            } : {
-              title: [
-                timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
-                timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
-              ].filter(Boolean).join('\n'),
-              value: [
-                parseBrowser(timestampItem.browser),
-                parseAcceptLanguage(timestampItem.language),
-              ].filter(Boolean).join(', '),
-            },
-            device: !serverEvent ? {
-              title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
-              value: timestampItem.userAgent.os.name,
-            } : timestampItem?.device?.replaceAll('"', ''),
-          };
-        }),
+        return {
+          ...timestampItem,
+          event: timestampItem.event + (!serverEvent && timestampItem.isSPA ? ' SPA' : ''),
+          date: {
+            value: dateToRelativeString(timestampDate),
+            title: timestampDate.toLocaleString(),
+          },
+          url: {
+            value: timestampItem.url.replace(SCRIPT_API, ''),
+            title: timestampItem.url,
+            link: timestampItem.url,
+          },
+          location: [timestampItem.city, timestampItem.country].filter(Boolean).join(', '),
+          referrer: {
+            value: timestampItem.referrer,
+            link: timestampItem.referrer,
+          },
+          browser: !serverEvent ? {
+            value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
+            title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
+          } : {
+            title: [
+              timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
+              timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
+            ].filter(Boolean).join('\n'),
+            value: [
+              parseBrowser(timestampItem.browser),
+              parseAcceptLanguage(timestampItem.language),
+            ].filter(Boolean).join(', '),
+          },
+          device: !serverEvent ? {
+            title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
+            value: timestampItem.userAgent.os.name,
+          } : timestampItem?.device?.replaceAll('"', ''),
+        };
+      }),
     });
+
+    anonymousTable = generateTable();
 
     const generateCombobox = (inputId, comboBoxId, options, name) => {
       const comboContainer = document.createElement('div');
@@ -768,13 +826,23 @@ export default async function renderUserTab({ container }) {
 
     anonymousContainer.append(anonymousTable.wrapper);
 
-    // eslint-disable-next-line no-new
-    new Clusterize({ // NOSONAR
+    const anonCluster = new Clusterize({
       rows: anonymousTable.tbody.children,
       rows_in_block: 80,
       scrollId: 'scrollArea-anonymous',
       contentId: 'contentArea-anonymous',
+      callbacks: {
+        scrollingProgress: (progress) => {
+          if (progress > 90 && anonCluster.getRowsAmount() !== originalAnonymousData.length) {
+            anonymousData.splice(0, maxRows);
+            const newRows = [...generateTable().tbody.children].map((row) => row.outerHTML);
+            anonCluster.append(newRows);
+            showToast(`Loaded ${anonCluster.getRowsAmount()} rows from ${originalAnonymousData.length} anonymous activity records.`, 'info');
+          }
+        },
+      },
     });
+
     filterEventlistener('.filter-anonymous', 'ip', renderAnonymous, 0, () => {
       anonymousContainer.innerHTML = renderSkeleton('tracking'); anonymousUserResponse = null; anonymousUserData = null;
     });
