@@ -41,7 +41,7 @@ export default async function decorate(block) {
     await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'daUpdateProject' : 'updateProject'}/checkUpdates/${siteSlug}`, { headers: authHeaders }).catch(() => null),
   ]);
 
-  if (siteDetailsReq.status === 404) {
+  if (siteDetailsReq?.status === 404) {
     block.innerHTML = `<div class="centered-message"><p>Project "${siteSlug}" not found. Create it <a href="/">here!</a></p></div>`;
     return;
   }

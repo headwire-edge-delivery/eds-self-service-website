@@ -534,6 +534,7 @@ table tr.loading {
   z-index: 1;
   background: var(--light-blue);
   height: 100%;
+  transition: width 0.3s ease;
 }
 
 .progress-bar .progress-bar-text {
