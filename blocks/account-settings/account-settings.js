@@ -6,22 +6,22 @@ function generateProjectListHtml(projectsList) {
   const exclusiveHtml = !projectsList?.exclusive?.length
     ? ''
     : `
-  <p>
+  <div class="exclusive-projects">
     <span><strong>The following projects will be deleted:</strong></span>
     <ul>
       ${projectsList.exclusive.map((projectSlug) => `<li>${projectSlug}</li>`).join('')}
     </ul>
-  </p>
+  </div>
   `;
   const sharedHtml = !projectsList?.shared?.length
     ? ''
     : `
-      <p>
+      <div class="shared-projects">
         <span>The following projects will <strong>not</strong> be deleted, but you will lose access:</span>
         <ul>
           ${projectsList.shared.map((projectSlug) => `<li>${projectSlug}</li>`).join('')}
         </ul>
-      </p>
+      </div>
       `;
   return exclusiveHtml + sharedHtml;
 }
@@ -85,7 +85,7 @@ async function createDeleteDialog(event, deleteAccount = false) {
 
   let deleteAccountContent = `
     ${textLookup[lookupStr].dialog}
-    <p>All projects that exclusively belong to this account will be deleted.</p>
+    <p>All projects that exclusively belong to this account will be deleted!</p>
     <p class="headwire-only">Dark Alley projects will not be deleted. They currently do not have any permissions/ownership.</p>
     ${generateProjectListHtml(projectsList)}
   `;
