@@ -26,8 +26,8 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
   ['sitemap.xml', 'robots.txt'].forEach((file) => {
     const type = file.split('.')[0];
     nav.querySelector(`.${type}`).onclick = async () => {
-      const req = await fetch(`${projectDetails.customLiveUrl}/${file}`);
-      if (!req.ok) {
+      const req = await fetch(`${projectDetails.customLiveUrl}/${file}`).catch(() => null);
+      if (!req?.ok) {
         await alertDialog(`Oops ${file} not found !`);
       }
 
