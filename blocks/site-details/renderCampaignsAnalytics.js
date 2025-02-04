@@ -1,7 +1,7 @@
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import {
   dateToRelativeSpan,
-  EMAIL_WORKER_API, parseFragment, safeText, SCRIPT_API,
+  parseFragment, safeText, SCRIPT_API,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { createDialog } from '../../scripts/dialogs.js';
@@ -58,14 +58,17 @@ const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
       const emailURL = campaignAnalyticsData[emailId][0].data.headers.find(({ name }) => name === 'X-Email-Url')?.value;
 
       let campaign;
-      if (emailURL) {
+      try {
+        const emailPreviewUrl = new URL(new URLSearchParams(new URL(emailURL).search).get('contentUrl'));
         // eslint-disable-next-line prefer-destructuring
-        campaign = new URL(emailURL).pathname.split('/')[2];
+        campaign = emailPreviewUrl.pathname.split('/')[2];
+      } catch {
+        campaign = '';
       }
 
       return `
         <tr data-email="${emailId}" data-campaign="${campaign}">
-          <td>${emailURL ? `<a href="/redirect?url=${EMAIL_WORKER_API}/preview?contentUrl${emailURL}" target="_blank">${subject}</a>` : subject}</td>
+          <td>${emailURL ? `<a href="/redirect?url=${emailURL}" target="_blank">${subject}</a>` : subject}</td>
           <td>${campaignAnalyticsData[emailId][0].data.to.join(',')}</td>
           <td>${sent ? dateToRelativeSpan(sent.created_at).outerHTML : ''}</td>
           <td>${delivered ? dateToRelativeSpan(delivered.created_at).outerHTML : ''}</td>
@@ -270,9 +273,7 @@ export default async function renderCampaignsAnalytics({
 
       calculateCampaignStats(hasCampaign);
 
-      if (event.isTrusted) {
-        pushHistory(link.getAttribute('href'));
-      }
+      pushHistory(link.getAttribute('href'));
     }
   };
 
