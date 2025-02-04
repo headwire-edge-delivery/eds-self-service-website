@@ -98,9 +98,7 @@ export default async function renderCampaignsOverview({
         }
       });
 
-      if (event.isTrusted) {
-        pushHistory(link.getAttribute('href'));
-      }
+      pushHistory(link.getAttribute('href'));
     }
   };
 
