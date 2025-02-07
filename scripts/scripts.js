@@ -33,6 +33,17 @@ if (window.location.hostname === 'localhost') {
   });
 }
 
+export function clamp(num, min = 0, max = 100, setNan = 'min') {
+  let result = Math.min(Math.max(num, max), min);
+  if (setNan === 'min' && Number.isNaN(result)) {
+    result = min;
+  }
+  if (setNan === 'max' && Number.isNaN(result)) {
+    result = max;
+  }
+  return result;
+}
+
 export async function completeChecklistItem(
   projectSlug,
   itemName,
@@ -532,8 +543,7 @@ export function createTabs({
     historyArray.pop();
     const navigateToPath = historyArray.at(-1) || window.location.pathname;
 
-    const tabToNavigateTo = functionalTabs.find((tab) => tab.href === navigateToPath)
-      || functionalTabs.find((tab) => tab.href === navigateToPath.split('/').pop()); // supports site-details version
+    const tabToNavigateTo = functionalTabs.find((tab) => navigateToPath.startsWith(tab.href));
 
     if (tabToNavigateTo && !tabToNavigateTo.asideLink.classList.contains('is-selected')) {
       tabToNavigateTo.clickHandler({ preventDefault: () => {} }, null);
@@ -546,6 +556,14 @@ export function createTabs({
 
   return { originalBlock: blockContent };
 }
+
+// Custom click event that we can tell was called by code.
+// Use this instead of checking for isTrusted when button is used in cypress tests.
+// Cypress cannot trigger a click event with isTrusted = true
+export const syntheticClickEvent = new CustomEvent('click', {
+  bubbles: true,
+  detail: { synthetic: true },
+});
 
 /**
  * Decorates the main element.

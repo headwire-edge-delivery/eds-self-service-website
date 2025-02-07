@@ -205,18 +205,7 @@ export default async function decorate(block) {
           }
 
           templateContainer.addEventListener('click', (event) => {
-            if (event.target.closest('.dot:not(.is-selected)')) {
-              event.preventDefault();
-              const dots = event.target.parentElement;
-              const index = [...dots.children].indexOf(event.target) + 1;
-              const template = event.target.closest('.template');
-
-              template.querySelector('img.is-selected').classList.remove('is-selected');
-              template.querySelector(`img:nth-child(${index})`).classList.add('is-selected');
-
-              dots.querySelector('.is-selected').classList.remove('is-selected');
-              event.target.classList.add('is-selected');
-            } else if (event.target.closest('.template')) {
+            if (event.target.closest('.template')) {
               event.preventDefault();
               const template = event.target.closest('.template');
               window.history.pushState({}, '', template.href);

@@ -4,6 +4,7 @@ import {
   dateToRelativeSpan,
   dateToRelativeString,
   EMAIL_WORKER_API, OOPS, parseFragment, safeText, sanitizeName, SCRIPT_API, slugify,
+  syntheticClickEvent,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { renderTable } from './renderSitePages.js';
@@ -98,7 +99,9 @@ export default async function renderCampaignsOverview({
         }
       });
 
-      pushHistory(link.getAttribute('href'));
+      if (!event?.detail?.synthetic) {
+        pushHistory(link.getAttribute('href'));
+      }
     }
   };
 
@@ -167,7 +170,7 @@ export default async function renderCampaignsOverview({
   // TODO: for some reason requestAnimationFrame is required because some things stay hidden.
   // fully rewrite the logic for showing stuff so it's readable and easier to update
   requestAnimationFrame(() => {
-    buttonToPress.click();
+    buttonToPress.dispatchEvent(syntheticClickEvent);
   });
 
   const toggleWell = () => {
@@ -456,7 +459,7 @@ export default async function renderCampaignsOverview({
           }
 
           container.querySelector(`.campaign-list[data-type="emails"] li[data-campaign="${campaignSlug}"]`).remove();
-          container.querySelector('.campaign-list[data-type="emails"] a').click();
+          container.querySelector('.campaign-list[data-type="emails"] a').dispatchEvent(syntheticClickEvent);
 
           replaceHistory(`${pathname}/emails`);
 
@@ -477,12 +480,12 @@ export default async function renderCampaignsOverview({
   });
 
   onHistoryPopArray.push((currentItem) => {
-    campaignList.querySelector(`[href="${currentItem}"]`).click();
+    campaignList.querySelector(`[href="${currentItem}"]`)?.dispatchEvent(syntheticClickEvent);
   });
 
   const addCampaignLink = document.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"].add-campaign`);
   if (addCampaignLink) {
     addCampaignLink.classList.remove('add-campaign');
-    addCampaignEl.click();
+    addCampaignEl.dispatchEvent(syntheticClickEvent);
   }
 }

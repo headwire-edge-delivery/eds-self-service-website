@@ -1,7 +1,9 @@
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import {
+  clamp,
   dateToRelativeSpan,
   parseFragment, safeText, SCRIPT_API,
+  syntheticClickEvent,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { createDialog } from '../../scripts/dialogs.js';
@@ -246,11 +248,16 @@ export default async function renderCampaignsAnalytics({
       }
     });
 
-    container.querySelector('.delivered-count').textContent = deliveredCount === 0 ? '0%' : `${((deliveredCount / sentCount) * 100).toFixed(2)}%`;
-    container.querySelector('.bounced-count').textContent = bouncedCount === 0 ? '0%' : `${((bouncedCount / sentCount) * 100).toFixed(2)}%`;
-    container.querySelector('.opened-count').textContent = openedCount === 0 ? '0%' : `${((openedCount / deliveredCount) * 100).toFixed(2)}%`;
-    container.querySelector('.clicked-count').textContent = clickedCount === 0 ? '0%' : `${((clickedCount / openedCount) * 100).toFixed(2)}%`;
-    container.querySelector('.complained-count').textContent = complainedCount === 0 ? '0%' : `${((complainedCount / deliveredCount) * 100).toFixed(2)}%`;
+    const deliveredPercent = clamp(((deliveredCount / sentCount) * 100).toFixed(2));
+    const bouncedPercent = clamp(((bouncedCount / sentCount) * 100).toFixed(2));
+    const openedPercent = clamp(((openedCount / deliveredCount) * 100).toFixed(2));
+    const clickedPercent = clamp(((clickedCount / openedCount) * 100).toFixed(2));
+    const complainedPercent = clamp(((complainedCount / deliveredCount) * 100).toFixed(2));
+    container.querySelector('.delivered-count').textContent = `${deliveredPercent}%`;
+    container.querySelector('.bounced-count').textContent = `${bouncedPercent}%`;
+    container.querySelector('.opened-count').textContent = `${openedPercent}%`;
+    container.querySelector('.clicked-count').textContent = `${clickedPercent}%`;
+    container.querySelector('.complained-count').textContent = `${complainedPercent}%`;
   };
 
   const campaignList = container.querySelector('.campaign-list');
@@ -273,18 +280,20 @@ export default async function renderCampaignsAnalytics({
 
       calculateCampaignStats(hasCampaign);
 
-      pushHistory(link.getAttribute('href'));
+      if (!event?.detail?.synthetic) {
+        pushHistory(link.getAttribute('href'));
+      }
     }
   };
 
   onHistoryPopArray.push((currentItem) => {
-    campaignList.querySelector(`[href="${currentItem}"]`).click();
+    campaignList.querySelector(`[href="${currentItem}"]`).dispatchEvent(syntheticClickEvent);
   });
 
   calculateCampaignStats(window.location.pathname.startsWith(`${pathname}/campaign-analytics/`));
 
-  if (!container.querySelector('.campaign-list .selected')) {
-    container.querySelector('.campaign-list[data-type="analytics"] a').click();
+  if (!container.querySelector('.campaign-list .is-selected')) {
+    container.querySelector('.campaign-list[data-type="analytics"] a').dispatchEvent(syntheticClickEvent);
     replaceHistory(`${pathname}/campaign-analytics`);
   }
 
@@ -303,7 +312,7 @@ export default async function renderCampaignsAnalytics({
     container.querySelector('.well button').onclick = () => {
       const link = document.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"]`);
       link.classList.add('add-campaign');
-      link.click();
+      link.dispatchEvent(syntheticClickEvent);
     };
   }
 }
