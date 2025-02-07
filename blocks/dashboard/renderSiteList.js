@@ -36,7 +36,7 @@ export default async function renderSites({ container, nav }) {
   const userSettings = await getUserSettings(SCRIPT_API);
   let userSettingsOwner = userSettings?.filterByOwner || 'all';
   const token = await window.auth0Client.getTokenSilently();
-  const totalItems = { darkAlley: 0, googleDrive: 0 };
+  const totalItems = { darkAlley: 0, googleDrive: 0, fetchFailed: false };
 
   const fetchProjects = async (type = 'googleDrive') => {
     const queryParams = readQueryParams();
@@ -60,6 +60,11 @@ export default async function renderSites({ container, nav }) {
           authorization: `bearer ${token}`,
         },
       });
+      if (!response.ok) {
+        totalItems.fetchFailed = true;
+        sitesList.innerHTML = `${title}<p>${OOPS}</p>`;
+        return;
+      }
       const { projects, pagination } = await response.json();
       totalItems[type] = pagination.totalItems;
       sitesList.innerHTML = `
@@ -126,6 +131,7 @@ export default async function renderSites({ container, nav }) {
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
+      totalItems.fetchFailed = true;
       sitesList.innerHTML = `${title}<p>${OOPS}</p>`;
     }
   };
@@ -147,6 +153,7 @@ export default async function renderSites({ container, nav }) {
     const fetchGoogleDrive = fetchProjects('googleDrive');
 
     Promise.all([fetchDarkAlley, fetchGoogleDrive]).then(() => {
+      if (totalItems.fetchFailed) return;
       const well = container.querySelector('.well');
       const createButton = nav.querySelector('#create-new-button');
       const sites = container.querySelector('.sites');
