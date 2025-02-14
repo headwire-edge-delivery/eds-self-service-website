@@ -436,6 +436,7 @@ export function createTabs({
   let previousSection = '';
 
   for (const tab of tabs) {
+    if (tab.hidden) continue;
     if (tab?.section) {
       const asideItem = document.createElement('li');
       asideItem.classList.add('title');

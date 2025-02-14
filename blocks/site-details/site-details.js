@@ -90,6 +90,7 @@ export default async function decorate(block) {
         href: `${pathname}/sheets`,
         iconSrc: '/icons/web.svg',
         renderTab: renderSiteSpreadsheets,
+        hidden: darkAlleyVariation,
       },
       {
         name: 'SEO',
