@@ -358,6 +358,11 @@ input[type="color"] {
   background-color: var(--gray);
 }
 
+.button.transparent {
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
 .button:disabled,
 .button:disabled:hover {
   pointer-events: none;
