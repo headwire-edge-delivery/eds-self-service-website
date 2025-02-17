@@ -10,6 +10,7 @@ import noTourAvailable from './noTour.js';
 import {
   siteOverviewTour,
   sitePagesTour,
+  siteSheetsTour,
   siteMonitoringTour,
 } from './site.js';
 import {
@@ -91,6 +92,9 @@ const startTour = (isAutoTour, showDisableTour = false) => setTimeout(() => {
         break;
       case switchCase('/da-site/', '/pages'):
         getTour(sitePagesTour);
+        break;
+      case switchCase('/site/', '/sheets'):
+        getTour(siteSheetsTour);
         break;
       case switchCase('/site/', '/web-analytics'):
         getTour(siteMonitoringTour);

@@ -1,4 +1,4 @@
-import { OOPS, SCRIPT_API } from '../../scripts/scripts.js';
+import { OOPS, SCRIPT_API, parseFragment } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { isSame, transformEmptyRow } from '../../scripts/utils.js';
 import {
@@ -6,12 +6,14 @@ import {
   removeQueryParams,
   writeQueryParams,
 } from '../../libs/queryParams/queryParams.js';
+import { showToast, showErrorToast } from '../../scripts/toast.js';
+import { createDialog } from '../../scripts/dialogs.js';
 
 // MARK: render
 export default async function renderSiteSpreadsheets({ container, renderOptions }) {
   const { siteSlug, projectDetails } = renderOptions;
   const { customLiveUrl, customPreviewUrl } = projectDetails;
-  container.innerHTML = renderSkeleton('pages');
+  container.innerHTML = renderSkeleton('sheets');
 
   const indexData = await fetch(`${SCRIPT_API}/sheets/${siteSlug}`)
     .then((res) => res.json())
@@ -76,18 +78,22 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       previewButton.replaceWith(previewButton.cloneNode(true));
       publishButton.replaceWith(publishButton.cloneNode(true));
       const newPreviewButton = document.getElementById('preview-sheet');
+      newPreviewButton.innerHTML = 'Preview';
       const newPublishButton = document.getElementById('publish-sheet');
+      newPublishButton.innerHTML = 'Publish';
       const previewAndPublishButtons = async () => {
         const org = 'headwire-self-service';
         const site = siteSlug;
         const ref = 'main';
         const { path } = selectedSheet;
-        const publishPreviewURL = `https://admin.hlx.page/preview/${org}/${site}/${ref}${path}`;
-        const post = async (url = publishPreviewURL) => { // NOSONAR
+        const publishPreviewURL = `https://admin.hlx.page/preview/${org}/${site}/${ref}${path}.jsonasdasd`;
+        const post = async (previewOrPublish = 'Preview', url = publishPreviewURL) => { // NOSONAR
           const showButtonLoading = (bool = true) => {
-            const updateSpinner = '<div style="display: flex; align-items: center;" class="loading-spinner-wrapper">Updating <img style="height: 12px;filter: invert(1);" src="/icons/loading.svg" alt="loading animation" class="loading-spinner"></div>';
-            newPreviewButton.innerHTML = bool ? updateSpinner : 'Update Preview';
-            newPublishButton.innerHTML = bool ? updateSpinner : 'Update Live';
+            if (previewOrPublish === 'Preview') {
+              newPreviewButton.classList.toggle('loading', bool);
+            } else if (previewOrPublish === 'Publish' || previewOrPublish === 'PreviewAndPublish') {
+              newPublishButton.classList.toggle('loading', bool);
+            }
             newPreviewButton.disabled = bool;
             newPublishButton.disabled = bool;
           };
@@ -95,22 +101,33 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
           fetch(url, {
             method: 'POST',
           })
-            .then(() => {
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+              }
               showButtonLoading(false);
+              if (previewOrPublish === 'Preview' || previewOrPublish === 'PreviewAndPublish') {
+                showToast(`Preview successful updated: <a href="${customPreviewUrl}" target="_blank">See the changes on your Preview site</a>`);
+              } else if (previewOrPublish === 'Publish') {
+                showToast(`Publish successful updated: <a href="${customLiveUrl}" target="_blank">See the changes on your Live site</a>`);
+              }
             })
             .catch(() => {
               // eslint-disable-next-line no-console
               console.error('Could not update the site');
+              showErrorToast();
               showButtonLoading(false);
             });
         };
         newPreviewButton.addEventListener('click', () => { // NOSONAR
-          post();
+          post('Preview');
         });
         newPublishButton.addEventListener('click', () => { // NOSONAR
-          const url = `https://admin.hlx.page/live/${org}/${site}/${ref}${path}`;
-          post().then(() => {
-            post(url);
+          const url = `https://admin.hlx.page/live/${org}/${site}/${ref}${path}.json`;
+          post('PreviewAndPublish').then((response) => {
+            if (response.ok) {
+              post('Publish', url);
+            }
           });
         });
       };
@@ -123,11 +140,14 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         discardButton.hidden = false;
         newPublishButton.disabled = true;
         newPreviewButton.disabled = true;
+        // table.closest .tabs-aside
+        document.querySelector('aside.tabs-aside').dataset.unsavedChanges = 'true';
       } else {
         editButton.textContent = 'Back';
         discardButton.hidden = true;
         newPublishButton.disabled = false;
         newPreviewButton.disabled = false;
+        document.querySelector('aside.tabs-aside').dataset.unsavedChanges = 'false';
       }
       previewAndPublishButtons();
     };
@@ -138,10 +158,11 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       return `<tr>
           ${headers
     .map(
-      (column, colIndex) => `<td><div><input type="text" 
+      (column, colIndex) => {
+        return `<td><div><input type="text" 
                             data-row="${newRowIndex}" 
                             data-col="${colIndex}" 
-                            placeholder="${column}" /></div></td>`,
+                            placeholder="${column}" /></div></td>`},
     )
     .join('')}
           <td class="delete-row"><button class="button action secondary destructive">Remove</button></td>
@@ -175,7 +196,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         <tr>
         ${array
     .map((value, colIndex) => (sheetEditMode() // NOSONAR
-      ? `<td><div><input type="text" value="${value}" data-row="${rowIndex}" data-col="${colIndex}" /></div></td>`
+      ? `<td><div><input type="text" placeholder="${headers[colIndex]}" value="${value}" data-row="${rowIndex}" data-col="${colIndex}" /></div></td>`
       : `<td><span>${value}</span></td>`))
     .join('')}
         ${
@@ -235,6 +256,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       generateSheetTable();
     });
 
+    const sheetButtons = container.querySelector('#sheet-buttons');
+
     // Removes the existing event listeners before adding a new one
     const editButton = document.getElementById('edit-sheet');
     editButton.replaceWith(editButton.cloneNode(true));
@@ -242,10 +265,19 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     newEditButton.addEventListener('click', async () => {
       const table = document.querySelector('.sheet');
       const currentMode = table.getAttribute('data-editMode');
+      const disableInputs = (bool = true) => {
+        table.querySelectorAll('input').forEach((input) => { // NOSONAR
+          input.disabled = bool;
+          document.getElementById('sheet-select').disabled = bool;
+          discardButton.disabled = bool;
+          sheetButtons.querySelectorAll('button').forEach((button) => {
+            button.disabled = bool;
+          });
+        });
+      };
       if (newEditButton.textContent === 'Save') {
-        newEditButton.innerHTML = `<div style="display: flex; align-items: center;" class="loading-spinner-wrapper">
-        Saving <img style="height: 12px;" src="/icons/loading.svg" alt="loading animation" class="loading-spinner">
-      </div>`;
+        disableInputs();
+        newEditButton.classList.add('loading');
         await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${selectedRange}!A:Z`, {
           method: 'PUT',
           headers: {
@@ -253,7 +285,11 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
           },
           body: JSON.stringify([headers, ...sheetData]),
         })
-          .then((res) => res.json())
+          .then((res) => {
+            newEditButton.classList.remove('loading');
+            disableInputs(false);
+            return res.json();
+          })
           .catch(() => null);
         originalSheetData = structuredClone(sheetData);
       } else {
@@ -262,12 +298,11 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       generateSheetTable();
     });
 
-    const sheetButtons = container.querySelector('#sheet-buttons');
     sheetButtons.querySelectorAll('button').forEach((button) => {
       button.addEventListener('click', async (event) => {
         selectedRange = event.target.textContent;
+        container.querySelector('.sheet').innerHTML = renderSkeleton('sheetsTable');
         fetchAndRenderSheet(selectedSheet);
-        generateSheetTable();
         writeQueryParams({ sheet: selectedRange });
       });
     });
@@ -290,17 +325,20 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   <div class="spreadsheet-title"><h2>${sheetName}</h2>
     <button id="edit-sheet" class="button action primary">Edit</button>
     <button id="discard-changes" class="button action" hidden>Discard</button>
-    <a class="button action secondary" href="https://docs.google.com/spreadsheets/d/${sheetID}" target="_blank">Open</a>
-    <button id="preview-sheet" class="button action secondary">Update Preview</button>
-    <button id="publish-sheet" class="button action secondary">Update Live</button>
-    <button id="preview-publish-info-button" class="button transparent" popovertarget="preview-publish-info"><img src="/icons/help-dark.svg" alt="hint icon" /></button></div>
-    <div id="preview-publish-info" popover>
-      <p>The "Update Preview" will update the sheet for the Preview site and "Update Live" will update it for the Preview and Live site.</p>
-      <p><a href="${customPreviewUrl}" target="_blank" class="button action secondary">Open your Preview site</a>
-      <a href="${customLiveUrl}" target="_blank" class="button action secondary">Open your Live site</a></p>
-    </div>
+    <a class="button action secondary" href="https://docs.google.com/spreadsheets/d/${sheetID}" id="open-sheet" target="_blank">Open</a>
+    <button id="preview-sheet" class="button action secondary">Preview</button>
+    <button id="publish-sheet" class="button action secondary">Publish</button>
+    <button id="preview-publish-info-button" class="button transparent"><img src="/icons/help-dark.svg" alt="hint icon" /></button></div>
   <div class="spreadsheet-table-container"><table id="sheet-table" class="sheet" data-editMode="false"></table></div>
   </div>`;
+  const previewPublishInfoButton = document.getElementById('preview-publish-info-button');
+  previewPublishInfoButton.addEventListener('click', () => {
+    createDialog(parseFragment(`<div id="preview-publish-info">
+      <p>The "Preview" will update the sheet for the Preview site and "Publish" will update it for the Preview and Live site.</p>
+      <p><a href="${customPreviewUrl}" target="_blank" class="button action secondary">Open your Preview site</a>
+      <a href="${customLiveUrl}" target="_blank" class="button action secondary">Open your Live site</a></p>
+    </div>`));
+  });
 
   const sheetSelect = document.getElementById('sheet-select');
   sheetSelect.value = sheetID;
@@ -310,6 +348,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     [selectedRange] = selectedSheet.ranges;
     writeQueryParams({ path: selectedSheet.path, sheet: selectedRange });
     container.querySelector('.spreadsheet-title h2').textContent = selectedSheet.name;
+    container.querySelector('.sheet').innerHTML = renderSkeleton('sheetsTable');
+    container.querySelector('#open-sheet').href = `https://docs.google.com/spreadsheets/d/${sheetID}`;
     await fetchAndRenderSheet(selectedSheet);
   });
 
@@ -324,7 +364,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     }
   });
 
-  // prevents a reload when an unsaved change is detected, does not work for page changes
+  // prevents a reload when an unsaved change is detected
   window.addEventListener('beforeunload', (event) => {
     if (contentChanged()) {
       event.preventDefault();

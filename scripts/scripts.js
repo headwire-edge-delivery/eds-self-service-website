@@ -475,6 +475,11 @@ export function createTabs({
     const asideItemLink = asideItem.querySelector('a');
     tab.clickHandler = async (event, historyState = 'push') => {
       event.preventDefault();
+      // if there are unsaved changes, you can't change the page. You either have to save or discard the changes.
+      if (block.querySelector('aside.tabs-aside').dataset.unsavedChanges === "true") {
+        window.alert('Please save or discard the changes before navigating away.');
+        return;
+      }
       document.body.dataset.tabsStatus = 'loading';
 
       [...asideItems.children]?.forEach((child) => {
