@@ -48,7 +48,9 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         }">${range}</button>`,
       )
       .join('');
-    const sheet = await fetch(`${SCRIPT_API}/sheet/${sheetID}/${selectedRange}!A:Z`)
+    const token = await window.auth0Client.getTokenSilently();
+    const auth = { authorization: `bearer ${token}` };
+    const sheet = await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${selectedRange}!A:Z`, { headers: { ...auth, 'content-type': 'application/json' } })
       .then((res) => res.json())
       .catch(() => null);
 
@@ -244,10 +246,10 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         newEditButton.innerHTML = `<div style="display: flex; align-items: center;" class="loading-spinner-wrapper">
         Saving <img style="height: 12px;" src="/icons/loading.svg" alt="loading animation" class="loading-spinner">
       </div>`;
-        await fetch(`${SCRIPT_API}/sheet/${sheetID}/${selectedRange}!A:Z`, {
+        await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${selectedRange}!A:Z`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json',
+            ...auth, 'Content-Type': 'application/json',
           },
           body: JSON.stringify([headers, ...sheetData]),
         })
