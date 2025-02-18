@@ -524,7 +524,7 @@ table.sheet {
 table.sheet thead {
   position: sticky;
   top: 0 !important;
-  box-shadow: 0px 2px 0px 0px var(--blue);
+  box-shadow: 0 2px 0 0 var(--blue);
 }
 
 table.sheet, table.sheet td, table.sheet tr {
@@ -537,7 +537,7 @@ table.sheet tbody tr:nth-child(odd):not(:has(.skeleton)) {
 
 table.sheet td {
   padding: 0 !important;
-  margin: 0px !important;
+  margin: 0 !important;
   overflow: auto !important;
   justify-content: center;
 }
@@ -568,7 +568,7 @@ table.sheet td div {
   min-width: max-content;
   resize: horizontal;
   overflow: auto;
-  padding: 0px;
+  padding: 0;
   width: calc(100% - 6px);
   height: calc(100% - 6px);
 }

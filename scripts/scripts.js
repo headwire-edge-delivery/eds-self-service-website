@@ -12,6 +12,7 @@ import {
   loadCSS,
   fetchPlaceholders,
 } from './aem.js';
+import { confirmUnsavedChanges } from './utils.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 const range = document.createRange();
@@ -475,9 +476,20 @@ export function createTabs({
     const asideItemLink = asideItem.querySelector('a');
     tab.clickHandler = async (event, historyState = 'push') => {
       event.preventDefault();
-      // if there are unsaved changes, you can't change the page. You either have to save or discard the changes.
-      if (block.querySelector('aside.tabs-aside').dataset.unsavedChanges === "true") {
-        window.alert('Please save or discard the changes before navigating away.');
+
+      // if there are unsaved changes, you can't change the page unless you confirm
+      /* const tabsAside = block.querySelector('aside.tabs-aside');
+      if (tabsAside.dataset.unsavedChanges === 'true') {
+        // eslint-disable-next-line no-alert
+        const confirmLeave = window.confirm('Leave site?\nChanges you made may not be saved.');
+        if (confirmLeave) {
+          tabsAside.dataset.unsavedChanges = false;
+        } else {
+          return;
+        }
+      } */
+      const tabsAside = block.querySelector('aside.tabs-aside');
+      if (!confirmUnsavedChanges(tabsAside)) {
         return;
       }
       document.body.dataset.tabsStatus = 'loading';

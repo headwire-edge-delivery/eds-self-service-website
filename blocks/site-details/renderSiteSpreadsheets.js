@@ -1,6 +1,6 @@
 import { OOPS, SCRIPT_API, parseFragment } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
-import { isSame, transformEmptyRow } from '../../scripts/utils.js';
+import { isSame, transformEmptyRow, confirmUnsavedChanges } from '../../scripts/utils.js';
 import {
   readQueryParams,
   removeQueryParams,
@@ -17,6 +17,12 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
 
   const indexData = await fetch(`${SCRIPT_API}/sheets/${siteSlug}`)
     .then((res) => res.json())
+    .then((data) => {
+      if (data && data.data) {
+        data.data.sort((a, b) => a.name.localeCompare(b.name)); // Sort by name
+      }
+      return data;
+    })
     .catch(() => null);
 
   if (!indexData?.data.length) {
@@ -24,6 +30,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     return;
   }
 
+  const tabsAside = document.querySelector('aside.tabs-aside');
   const queryParams = readQueryParams();
   let selectedSheet = indexData.data.find((s) => s.path === queryParams.path);
   if (!selectedSheet) {
@@ -86,51 +93,54 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         const site = siteSlug;
         const ref = 'main';
         const { path } = selectedSheet;
-        const publishPreviewURL = `https://admin.hlx.page/preview/${org}/${site}/${ref}${path}.jsonasdasd`;
-        const post = async (previewOrPublish = 'Preview', url = publishPreviewURL) => { // NOSONAR
+        const publishPreviewURL = `https://admin.hlx.page/preview/${org}/${site}/${ref}${path}.json`;
+        // eslint-disable-next-line consistent-return
+        const post = async (previewOrPublish = 'Preview', url = publishPreviewURL) => {
           const showButtonLoading = (bool = true) => {
             if (previewOrPublish === 'Preview') {
               newPreviewButton.classList.toggle('loading', bool);
+              newPreviewButton.disabled = bool;
             } else if (previewOrPublish === 'Publish' || previewOrPublish === 'PreviewAndPublish') {
               newPublishButton.classList.toggle('loading', bool);
+              newPreviewButton.disabled = bool;
+              newPublishButton.disabled = bool;
             }
-            newPreviewButton.disabled = bool;
-            newPublishButton.disabled = bool;
           };
           showButtonLoading(true);
-          fetch(url, {
-            method: 'POST',
-          })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-              }
-              showButtonLoading(false);
-              if (previewOrPublish === 'Preview' || previewOrPublish === 'PreviewAndPublish') {
-                showToast(`Preview successful updated: <a href="${customPreviewUrl}" target="_blank">See the changes on your Preview site</a>`);
-              } else if (previewOrPublish === 'Publish') {
-                showToast(`Publish successful updated: <a href="${customLiveUrl}" target="_blank">See the changes on your Live site</a>`);
-              }
-            })
-            .catch(() => {
-              // eslint-disable-next-line no-console
-              console.error('Could not update the site');
-              showErrorToast();
-              showButtonLoading(false);
-            });
-        };
-        newPreviewButton.addEventListener('click', () => { // NOSONAR
-          post('Preview');
-        });
-        newPublishButton.addEventListener('click', () => { // NOSONAR
-          const url = `https://admin.hlx.page/live/${org}/${site}/${ref}${path}.json`;
-          post('PreviewAndPublish').then((response) => {
-            if (response.ok) {
-              post('Publish', url);
+          try {
+            const response = await fetch(url, { method: 'POST' });
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
             }
-          });
+            showButtonLoading(false);
+            if (previewOrPublish === 'Preview' || previewOrPublish === 'PreviewAndPublish') {
+              showToast(`Preview successfully updated: <a href="${customPreviewUrl}" target="_blank">See the changes on your Preview site</a>`);
+            }
+            if (previewOrPublish === 'Publish') {
+              showToast(`Publish successfully updated: <a href="${customLiveUrl}" target="_blank">See the changes on your Live site</a>`);
+            }
+            return response;
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Could not update the site', error);
+            showErrorToast();
+            showButtonLoading(false);
+          }
+        };
+
+        newPreviewButton.addEventListener('click', async () => {
+          await post('Preview');
+        });
+
+        newPublishButton.addEventListener('click', async () => {
+          const publishUrl = `https://admin.hlx.page/live/${org}/${site}/${ref}${path}.json`;
+          const previewResponse = await post('PreviewAndPublish');
+          if (previewResponse?.ok) {
+            await post('Publish', publishUrl);
+          }
         });
       };
+
       if (currentMode === 'false') {
         editButton.textContent = 'Edit';
         newPublishButton.disabled = false;
@@ -140,14 +150,13 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         discardButton.hidden = false;
         newPublishButton.disabled = true;
         newPreviewButton.disabled = true;
-        // table.closest .tabs-aside
-        document.querySelector('aside.tabs-aside').dataset.unsavedChanges = 'true';
+        tabsAside.dataset.unsavedChanges = 'true';
       } else {
         editButton.textContent = 'Back';
         discardButton.hidden = true;
         newPublishButton.disabled = false;
         newPreviewButton.disabled = false;
-        document.querySelector('aside.tabs-aside').dataset.unsavedChanges = 'false';
+        tabsAside.dataset.unsavedChanges = 'false';
       }
       previewAndPublishButtons();
     };
@@ -158,11 +167,10 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       return `<tr>
           ${headers
     .map(
-      (column, colIndex) => {
-        return `<td><div><input type="text" 
+      (column, colIndex) => `<td><div><input type="text" 
                             data-row="${newRowIndex}" 
                             data-col="${colIndex}" 
-                            placeholder="${column}" /></div></td>`},
+                            placeholder="${column}" /></div></td>`,
     )
     .join('')}
           <td class="delete-row"><button class="button action secondary destructive">Remove</button></td>
@@ -300,6 +308,9 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
 
     sheetButtons.querySelectorAll('button').forEach((button) => {
       button.addEventListener('click', async (event) => {
+        if (!confirmUnsavedChanges(tabsAside)) {
+          return;
+        }
         selectedRange = event.target.textContent;
         container.querySelector('.sheet').innerHTML = renderSkeleton('sheetsTable');
         fetchAndRenderSheet(selectedSheet);
@@ -343,6 +354,10 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   const sheetSelect = document.getElementById('sheet-select');
   sheetSelect.value = sheetID;
   sheetSelect.addEventListener('change', async (event) => {
+    if (!confirmUnsavedChanges(tabsAside)) {
+      sheetSelect.value = sheetID;
+      return;
+    }
     sheetID = event.target.value;
     [selectedSheet] = indexData.data.filter((s) => s.id === sheetID);
     [selectedRange] = selectedSheet.ranges;
