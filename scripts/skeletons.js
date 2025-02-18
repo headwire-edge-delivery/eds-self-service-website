@@ -116,6 +116,65 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
+  if (type === 'sheets') {
+    const rows = [...Array(10)].map(() => `
+      <tr>
+        <td><div class="skeleton" style="width: 100%; height: 30px;"></div></td>
+        <td><div class="skeleton" style="width: 100%; height: 30px;"></div></td>
+      </tr>
+    `).join('');
+
+    return `
+      <div aria-label="loading">
+        <div class="skeleton" style="width: 200px; height: 20px;margin-bottom: 8px;"></div>
+        <div class="skeleton" style="width: 100%; height: 37px;margin-bottom: 8px;"></div>
+        <div class="skeleton" style="width: 100px; height: 34px;margin-bottom: 8px;"></div>
+        <div style="display: flex; flex-direction: row; gap: 16px;">
+          <div class="skeleton" style="width: 120px; height: 30px;margin-bottom: 8px;"></div>
+          <div class="skeleton" style="width: 50px; height: 30px;margin-bottom: 8px;"></div>
+          <div class="skeleton" style="width: 60px; height: 30px;margin-bottom: 8px;"></div>
+          <div class="skeleton" style="width: 80px; height: 30px;margin-bottom: 8px;"></div>
+          <div class="skeleton" style="width: 75px; height: 30px;margin-bottom: 8px;"></div>
+          <div class="skeleton" style="width: 24px; height: 30px;margin-bottom: 8px;"></div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th><div class="skeleton" style="width: 100%;height: 24px;"></div></th>
+                    <th><div class="skeleton" style="width: 100%;height: 24px;"></div></th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows}
+            </tbody>
+        </table>
+      </div>
+    `;
+  }
+  if (type === 'sheetsTable') {
+    const rows = [...Array(10)].map(() => `
+      <tr>
+        <td><div class="skeleton" style="width: 95%;height:30px;"></div></td>
+        <td><div class="skeleton" style="width: 95%;height:30px;"></div></td>
+      </tr>
+    `).join('');
+
+    return `
+      <div aria-label="loading">
+        <table>
+            <thead>
+                <tr>
+                    <th style="padding: 8px 0;"><div class="skeleton" style="width: 95%;height: 24px;"></div></th>
+                    <th style="padding: 8px 0;"><div class="skeleton" style="width: 95%;height: 24px;"></div></th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows}
+            </tbody>
+        </table>
+      </div>
+    `;
+  }
   if (type === 'seo') {
     const rows = [...Array(10)].map(() => `
       <tr>

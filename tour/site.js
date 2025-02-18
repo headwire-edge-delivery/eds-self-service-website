@@ -82,7 +82,11 @@ function sitePagesTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        document.querySelector('main .site-details.block aside a[href$="/web-analytics"]')?.click();
+        if (isDarkAlley) {
+          document.querySelector('main .site-details.block aside a[href$="/web-analytics"]')?.click();
+        } else {
+          document.querySelector('main .site-details.block aside a[href$="/sheets"]')?.click();
+        }
       }
     },
     steps: [
@@ -129,6 +133,104 @@ function sitePagesTour({ showAutoTour }) {
         element: '#drafts-overview',
         destroyOnClicked: false,
         side: 'top',
+      },
+    ],
+  };
+
+  return tourData;
+}
+
+function siteSheetsTour({ showAutoTour }) {
+  const editButtonText = document.querySelector('#edit-sheet')?.textContent;
+  let editButtonDescription;
+  if (editButtonText === 'Edit') {
+    editButtonDescription = 'Click to edit the selected sheet. Once you make changes, the button will change to a Save Button. Otherwise, you can return to preview mode. <br/> If you want to know more about editing, click on the "Edit" and open the Tour again.';
+  } else if (editButtonText === 'Save') {
+    editButtonDescription = 'Click to save your changes. After saving, the button will change to "Back" to return to preview mode.';
+  } else {
+    editButtonDescription = 'Click to return to preview mode. If there are unsaved changes, the button will display "Save".';
+  }
+  const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        document.querySelector('main .site-details.block aside a[href$="/web-analytics"]')?.click();
+      }
+    },
+    steps: [
+      {
+        title: 'Spreadsheets',
+        description: 'You can directly edit your Spreadsheets here. <br /> It is a powerful tool to manage your data.',
+      },
+      {
+        title: 'Select a Spreadsheet',
+        description: 'Choose between your Spreadsheets. The selected one will be loaded and can be edited, if you wish.',
+        element: '#sheet-select',
+        side: 'left',
+      },
+      {
+        title: 'Sheets',
+        description: 'If the Spreadsheet has multiple Sheets, you can choose between them here.',
+        element: '#sheet-buttons',
+      },
+      {
+        title: 'Edit / Save / Back',
+        description: editButtonDescription,
+        element: '#edit-sheet',
+      },
+      {
+        title: 'Edit a Value',
+        description: 'Let\'s edit your Sheet. <br /> You can change the content of your Sheet here.',
+        element: 'tbody tr td div input',
+        skip: editButtonText === 'Edit',
+        destroyOnClicked: false,
+      },
+      {
+        title: 'Remove a Row',
+        description: 'If you need to remove a row, you can do it here.',
+        element: 'tbody tr td button',
+        skip: editButtonText === 'Edit',
+        destroyOnClicked: false,
+        side: 'left',
+      },
+      {
+        title: 'Add a new Row',
+        description: 'You can add a new row to your Sheet. <br/> This will add a new row with empty input fields.',
+        element: '#add-row',
+        skip: editButtonText === 'Edit',
+        destroyOnClicked: false,
+        side: 'top',
+        align: 'center',
+      },
+      {
+        title: 'Discard Changes',
+        description: 'It looks like you have made some changes. <br /> If you want to discard them, that\'s the right button for you.',
+        element: '#discard-changes',
+        skip: document.querySelector('#discard-changes').hidden === true,
+        destroyOnClicked: false,
+      },
+      {
+        title: 'Open your Spreadsheet',
+        description: 'You can open your Spreadsheet in Google Sheets.',
+        element: '#open-sheet',
+      },
+      {
+        title: 'Preview',
+        description: 'Preview is the same as in the Sidekick Browser Extension. <br /> It will update the sheet for your Preview Site. <br/> If you have unsaved changes, you will need to save or discard them first.',
+        element: '#preview-sheet',
+      },
+      {
+        title: 'Publish',
+        description: 'Publish is the same as in the Sidekick Browser Extension. <br /> It will update the sheet for your Live Site and your Preview Site. <br/> If you have unsaved changes, you will need to save or discard them first.',
+        element: '#publish-sheet',
+      },
+      {
+        title: 'Learn more about Preview and Publish',
+        description: 'A short description, what the "Preview" and "Publish" buttons do.',
+        element: '#preview-publish-info-button',
+      },
+      {
+        title: 'You\'re ready to go',
+        description: 'Now you are ready to edit your Spreadsheets.',
       },
     ],
   };
@@ -248,5 +350,6 @@ function siteMonitoringTour({ showAutoTour }) {
 export {
   siteOverviewTour,
   sitePagesTour,
+  siteSheetsTour,
   siteMonitoringTour,
 };

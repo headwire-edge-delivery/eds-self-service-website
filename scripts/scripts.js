@@ -12,6 +12,7 @@ import {
   loadCSS,
   fetchPlaceholders,
 } from './aem.js';
+import { confirmUnsavedChanges } from './utils.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 const range = document.createRange();
@@ -436,6 +437,7 @@ export function createTabs({
   let previousSection = '';
 
   for (const tab of tabs) {
+    if (tab.hidden) continue;
     if (tab?.section) {
       const asideItem = document.createElement('li');
       asideItem.classList.add('title');
@@ -474,6 +476,12 @@ export function createTabs({
     const asideItemLink = asideItem.querySelector('a');
     tab.clickHandler = async (event, historyState = 'push') => {
       event.preventDefault();
+
+      // if there are unsaved changes, you can't change the page unless you confirm
+      const tabsAside = block.querySelector('aside.tabs-aside');
+      if (!confirmUnsavedChanges(tabsAside)) {
+        return;
+      }
       document.body.dataset.tabsStatus = 'loading';
 
       [...asideItems.children]?.forEach((child) => {
@@ -683,5 +691,12 @@ window.history.replaceState = function (...args) {
 export function toValidPropertyName(email) {
   return email.replaceAll('@', '(AT)').replaceAll('.', '(DOT)');
 }
+
+// prevents a reload when an unsaved change is detected
+window.addEventListener('beforeunload', (event) => {
+  if (!confirmUnsavedChanges(document.querySelector('aside.tabs-aside'))) {
+    event.preventDefault();
+  }
+});
 
 loadPage();

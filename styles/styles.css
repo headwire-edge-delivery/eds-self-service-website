@@ -358,6 +358,11 @@ input[type="color"] {
   background-color: var(--gray);
 }
 
+.button.transparent {
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
 .button:disabled,
 .button:disabled:hover {
   pointer-events: none;
@@ -424,6 +429,10 @@ input[type="color"] {
   height: 100%;
   filter: invert(1);
   background: url("/icons/loading.svg") no-repeat center;
+}
+
+.button.primary.loading::after {
+  filter: none;
 }
 
 table {
