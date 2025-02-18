@@ -478,16 +478,6 @@ export function createTabs({
       event.preventDefault();
 
       // if there are unsaved changes, you can't change the page unless you confirm
-      /* const tabsAside = block.querySelector('aside.tabs-aside');
-      if (tabsAside.dataset.unsavedChanges === 'true') {
-        // eslint-disable-next-line no-alert
-        const confirmLeave = window.confirm('Leave site?\nChanges you made may not be saved.');
-        if (confirmLeave) {
-          tabsAside.dataset.unsavedChanges = false;
-        } else {
-          return;
-        }
-      } */
       const tabsAside = block.querySelector('aside.tabs-aside');
       if (!confirmUnsavedChanges(tabsAside)) {
         return;
@@ -701,5 +691,12 @@ window.history.replaceState = function (...args) {
 export function toValidPropertyName(email) {
   return email.replaceAll('@', '(AT)').replaceAll('.', '(DOT)');
 }
+
+// prevents a reload when an unsaved change is detected
+window.addEventListener('beforeunload', (event) => {
+  if (!confirmUnsavedChanges(document.querySelector('aside.tabs-aside'))) {
+    event.preventDefault();
+  }
+});
 
 loadPage();

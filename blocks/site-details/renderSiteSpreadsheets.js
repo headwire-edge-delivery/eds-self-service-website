@@ -325,7 +325,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   container.innerHTML = `
   <div id="spreadsheets-overview">
   <div id="spreadsheets-selector">
-  <label for="sheet-select">Choose a Sheet to edit:</label>
+  <label for="sheet-select">Choose a Spreadsheet to edit:</label>
   <select name="sheets" id="sheet-select">
   ${indexData.data.map((data) => `<option value="${data.id}">${data.name}</option>`).join('')}
   </select>
@@ -344,11 +344,12 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   </div>`;
   const previewPublishInfoButton = document.getElementById('preview-publish-info-button');
   previewPublishInfoButton.addEventListener('click', () => {
-    createDialog(parseFragment(`<div id="preview-publish-info">
-      <p>The "Preview" will update the sheet for the Preview site and "Publish" will update it for the Preview and Live site.</p>
-      <p><a href="${customPreviewUrl}" target="_blank" class="button action secondary">Open your Preview site</a>
-      <a href="${customLiveUrl}" target="_blank" class="button action secondary">Open your Live site</a></p>
-    </div>`));
+    createDialog(
+      parseFragment(`<div id="preview-publish-info">
+      <p>The "Preview" will update the sheet for the Preview site and "Publish" will update it for the Preview and Live site.</p></div>`),
+      [parseFragment(`<a href="${customPreviewUrl}" target="_blank" class="button action secondary">Open your Preview site</a>`),
+        parseFragment(`<a href="${customLiveUrl}" target="_blank" class="button action secondary">Open your Live site</a>`)],
+    );
   });
 
   const sheetSelect = document.getElementById('sheet-select');
@@ -376,13 +377,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     if (event.ctrlKey && event.key === 's') {
       event.preventDefault();
       document.getElementById('edit-sheet').click();
-    }
-  });
-
-  // prevents a reload when an unsaved change is detected
-  window.addEventListener('beforeunload', (event) => {
-    if (contentChanged()) {
-      event.preventDefault();
     }
   });
 }
