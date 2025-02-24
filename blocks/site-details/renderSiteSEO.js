@@ -50,7 +50,7 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     nav.querySelector('button.bulk-metadata').onclick = async (event) => {
       const button = event.target;
       button.classList.add('loading');
-      const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${siteSlug}/main/metadata.json?editUrl=auto`).then((res) => res.json()).catch(() => null);
+      const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${siteSlug}/${defaultBranch}/metadata.json?editUrl=auto`).then((res) => res.json()).catch(() => null);
       if (statusData?.edit?.url) {
         window.open(statusData.edit.url, '_blank');
       } else {
