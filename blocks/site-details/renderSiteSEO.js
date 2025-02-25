@@ -4,10 +4,49 @@ import {
   parseFragment,
   projectRepo, safeText,
   defaultBranch,
+  SCRIPT_API,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, createDialog } from '../../scripts/dialogs.js';
 import { showErrorToast } from '../../scripts/toast.js';
+
+const filters = [
+  /\/nav$/i,
+  /\/footer$/i,
+  /\/search$/i,
+  /\/unsubscribe$/i,
+  /^\/drafts\//i,
+  /^\/tools\//i,
+  /^\/emails\//i,
+  /^\/\.helix\//i,
+];
+
+function filterSortIndexData(indexList) {
+  const filtered = indexList.filter(({ path }) => {
+    for (let i = 0; i < filters.length; i += 1) {
+      const filter = filters[i];
+      if (filter.test(path)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const sorted = filtered.sort((a, b) => {
+    const aSplit = a.path.split('/');
+    const bSplit = b.path.split('/');
+    const aLength = aSplit.length;
+    const bLength = bSplit.length;
+    if (aLength !== bLength) {
+      return aLength - bLength;
+    }
+    return aSplit[aSplit.length - 1].localeCompare(bSplit[bSplit.length - 1]);
+  });
+
+  return sorted;
+}
+
+const noImageSrc = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 // MARK: render
 export default async function renderSiteSEO({ container, nav, renderOptions }) {
@@ -20,7 +59,6 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     <button id="open-sitemap" class="button secondary action sitemap">Open sitemap</button>
     <button id="edit-robots" class="button secondary action robots">Edit robots</button>
     ${projectDetails.darkAlleyProject ? `<a id="edit-bulk-metadata" href="/redirect?url=https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata" target="_blank" class="button secondary action">Edit Bulk Metadata</a>` : '<button id="edit-bulk-metadata" class="button secondary action bulk-metadata">Edit Bulk Metadata</button>'}
-    <button id="reindex" class="button secondary action reindex">Reindex</button>
   `);
 
   // TODO: Allow editing robots.txt for non kestrelone.com domains
@@ -60,30 +98,44 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     };
   }
 
-  // We shouldn't have to filter this data.
-  // If there are pages in here we shouldn't be showing,
-  // it's probably better to update the helix-query.yaml in the template
-  const indexData = await fetch(`${projectDetails.customLiveUrl}/query-index.json`).then((res) => res.json()).catch(() => null);
-
-  if (!indexData?.[':type']) {
+  const indexData = await fetch(`${SCRIPT_API}/index/${siteSlug}`).then((res) => res.json()).catch(() => null);
+  console.log(' indexData:', indexData);
+  if (typeof indexData?.data?.length !== 'number') {
     container.innerHTML = `<p>${OOPS}</p>`;
     return;
   }
 
-  // if single sheet display data. If multi sheet try "all" then get first sheet.
-  // ":names" is not always ordered the same, fallback sheet is potentially random...
-  // This isn't a big deal as all query-index's should have "all", otherwise it was broken by user.
-  const audit = indexData[':type'] === 'sheet' ? indexData.data : (indexData?.all?.data || indexData[indexData[':names'][0]?.data]);
-
-  if (!audit) {
+  let filteredIndex = [];
+  try {
+    filteredIndex = filterSortIndexData(indexData?.data);
+  } catch {
     container.innerHTML = '<p>Error parsing data.</p>';
+    return;
   }
+  console.log(' filteredIndex:', filteredIndex);
 
   container.innerHTML = `
   <div id="seo-overview">
     <h2>SEO Audit</h2>
+    <div class="button-container">
+      <button id="show-preview-data" data-environment="preview" class="button selector action secondary">Show Preview Data</button>
+      <button id="show-published-data" data-environment="published" class="button selector action secondary">Show Published Data</button>
+    </div>
     <table class="seo-audit"></table>
   </div>`;
+
+  const showPreviewData = container.querySelector('#show-preview-data');
+  const showPublishedData = container.querySelector('#show-published-data');
+  const switchEnvClick = (event) => {
+    showPreviewData.classList.remove('is-selected');
+    showPublishedData.classList.remove('is-selected');
+    container.dataset.showEnvironment = event.target.dataset.environment;
+    event.target.classList.add('is-selected');
+  };
+
+  showPreviewData.onclick = switchEnvClick;
+  showPublishedData.onclick = switchEnvClick;
+  showPublishedData.click();
 
   const table = container.querySelector('.seo-audit');
   table.innerHTML = `
@@ -100,60 +152,53 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     <tbody></tbody>
   `;
 
-  const tableRows = audit.map((item) => {
+  const tableRows = filteredIndex.map((item) => {
     const tableRow = document.createElement('tr');
     tableRow.dataset.path = item.path;
 
-    const ogImage = document.createElement('img');
-    if (!item.image || item.image.startsWith('/default-meta-image.png')) {
-      ogImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-    } else {
-      ogImage.src = `${projectDetails.liveUrl}${item.image}`;
-    }
-    ogImage.alt = item.imageAlt || '';
-
-    const keywordsArr = item.keywords?.split(',').filter(Boolean) || [];
-    const keywords = keywordsArr.length > 0 ? keywordsArr.map((word) => `<div class="badge small">${safeText(word.trim())}</div>`).join('') : '<div class="badge orange">Missing</div>';
-
     tableRow.innerHTML = `
-      <td class="og-image"></td>
+      <td data-meta-property="og:image" class="image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
       <td class="path"><strong>${safeText(item.path)}</strong></td>  
-      <td class="og-title">${safeText(item.title)}</td>
-      <td class="og-description">${safeText(item.description)}</td>
-      <td class="keywords">${keywords}</td>
-      <td>
+      <td data-meta-property="og:title" class="title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
+      <td data-meta-property="og:description" class="description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
+      <td data-meta-property="keywords" class="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
+      <td class="buttons">
         <div class="button-container">
-          <button class="button action secondary edit" >Edit</button>
+          <a class="button action secondary edit" target="_blank" >Edit</a>
         </div>
       </td>
     `;
 
-    tableRow.querySelector('.og-image').append(ogImage); // not inline to prevent XSS
-
     const editButton = tableRow.querySelector('.edit');
+    if (projectDetails.darkAlleyProject) {
+      editButton.href = `https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata${item.path.endsWith('/') ? `${item.path}/index` : item.path}`;
+    } else {
+      editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
+    }
 
-    editButton.onclick = async () => {
-      const pathForEdit = item.path.endsWith('/') ? `${item.path}index` : item.path;
-      if (projectDetails.darkAlleyProject) {
-        window.open(`/redirect?url=https://da.live/edit#/${daProjectRepo}/${siteSlug}${pathForEdit}`, '_blank');
-        return;
-      }
+    console.log(' projectDetails:', projectDetails);
+    Promise.all([
+      // TODO: If these track as visits, change to EDS urls.
+      // To use EDS urls however, headers config must be updated.
+      // Wait for hlx5 PR
+      fetch(`${projectDetails.customPreviewUrl}${item.path}`).then((res) => (res.ok ? res.text() : null)).catch(() => null),
+      fetch(`${projectDetails.customLiveUrl}${item.path}`).then((res) => (res.ok ? res.text() : null)).catch(() => null),
+    ]).then(([previewHtml, liveHtml]) => {
+      ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
+        const type = metaProperty.startsWith('og:') ? 'property' : 'name';
 
-      editButton.classList.add('loading');
+        const regex = new RegExp(`<meta ${type}="${metaProperty}" content="([^"]*)"`, 'i');
+        const previewMatch = previewHtml?.match(regex);
+        const liveMatch = liveHtml?.match(regex);
+        let previewContent = previewMatch?.[1] || 'N/A';
+        previewContent = metaProperty === 'og:image' ? `<img src="${previewContent}" alt="thumbnail" loading="lazy" onerror="this.src = '${noImageSrc}'"/>` : safeText(previewContent);
+        let liveContent = liveMatch?.[1] || 'N/A';
+        liveContent = metaProperty === 'og:image' ? `<img src="${liveContent}" alt="thumbnail" loading="lazy" onerror="this.src = '${noImageSrc}'"/>` : safeText(liveContent);
 
-      const driveUrl = await fetch(`https://admin.hlx.page/status/${projectRepo}/${siteSlug}/${defaultBranch}/${item.path}?editUrl=auto`)
-        .then((res) => res.json())
-        .then((d) => d.edit.url)
-        .catch(() => null);
-      editButton.classList.remove('loading');
-
-      if (!driveUrl) {
-        showErrorToast('Failed to get drive link');
-        return;
-      }
-
-      window.open(driveUrl, '_blank');
-    };
+        const cell = tableRow.querySelector(`[data-meta-property="${metaProperty}"]`);
+        cell.innerHTML = `<span class="preview">${previewContent}</span><span class="published">${liveContent}</span>`;
+      });
+    });
 
     return tableRow;
   });

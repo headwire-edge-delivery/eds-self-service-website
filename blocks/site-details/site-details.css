@@ -235,13 +235,25 @@
   margin: 0 0 24px;
 }
 
-.site-details.block .seo-audit .og-image img {
+.site-details.block .seo-audit .image img {
   display: block;
   width: 64px;
   height: 64px;
   object-fit: cover;
   background-color: var(--light-gray);
   border-radius: var(--small-border-radius);
+}
+
+.site-details.block .tab-content.seo span.preview,
+.site-details.block .tab-content.seo span.published {
+  display: none;
+}
+
+.site-details.block .tab-content.seo[data-show-environment="preview"] span.preview {
+  display: block;
+}
+.site-details.block .tab-content.seo[data-show-environment="published"] span.published {
+  display: block;
 }
 
 .site-details.block .period-selector {
