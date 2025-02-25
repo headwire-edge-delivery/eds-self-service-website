@@ -32,6 +32,14 @@ if (window.location.hostname === 'localhost') {
       event.target.setAttribute('href', event.target.getAttribute('href').replace('/redirect?url=', ''));
     }
   });
+
+  const oldOpen = window.open;
+  window.open = (...args) => {
+    if (typeof args[0] === 'string' && args[0].startsWith('/redirect?url=')) {
+      args[0] = args[0].replace('/redirect?url=', '');
+    }
+    return oldOpen(...args);
+  };
 }
 
 export function clamp(num, min = 0, max = 100, setNan = 'min') {
