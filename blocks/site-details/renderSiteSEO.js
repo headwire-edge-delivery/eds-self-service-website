@@ -8,7 +8,6 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, createDialog } from '../../scripts/dialogs.js';
-import { showErrorToast } from '../../scripts/toast.js';
 
 const filters = [
   /\/nav$/i,
@@ -46,7 +45,37 @@ function filterSortIndexData(indexList) {
   return sorted;
 }
 
+function keywordStrToBadges(str) {
+  return str.split(',').map((item) => {
+    const trimmed = item.trim();
+    const badge = document.createElement('div');
+    badge.classList.add('badge', 'small');
+    badge.textContent = trimmed;
+    return badge;
+  });
+}
+
 const noImageSrc = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+const missingBadge = '<div class="badge orange">Missing</div>';
+
+function decorateCell(metaProperty, environment, content) {
+  const envSpan = document.createElement('span');
+  envSpan.classList.add(environment);
+
+  if (metaProperty === 'og:image') {
+    const image = parseFragment(`<img alt="thumbnail" loading="lazy" onerror="this.src = '${noImageSrc}'"/>`);
+    image.src = content;
+    envSpan.append(image);
+  } else if (!content) {
+    envSpan.innerHTML = missingBadge;
+    return envSpan;
+  } else if (metaProperty === 'keywords') {
+    envSpan.append(...keywordStrToBadges(content));
+  } else {
+    envSpan.textContent = content;
+  }
+  return envSpan;
+}
 
 // MARK: render
 export default async function renderSiteSEO({ container, nav, renderOptions }) {
@@ -99,7 +128,6 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
   }
 
   const indexData = await fetch(`${SCRIPT_API}/index/${siteSlug}`).then((res) => res.json()).catch(() => null);
-  console.log(' indexData:', indexData);
   if (typeof indexData?.data?.length !== 'number') {
     container.innerHTML = `<p>${OOPS}</p>`;
     return;
@@ -112,7 +140,6 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     container.innerHTML = '<p>Error parsing data.</p>';
     return;
   }
-  console.log(' filteredIndex:', filteredIndex);
 
   container.innerHTML = `
   <div id="seo-overview">
@@ -157,11 +184,11 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     tableRow.dataset.path = item.path;
 
     tableRow.innerHTML = `
-      <td data-meta-property="og:image" class="image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
+      <td data-meta-property="og:image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
       <td class="path"><strong>${safeText(item.path)}</strong></td>  
-      <td data-meta-property="og:title" class="title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
-      <td data-meta-property="og:description" class="description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
-      <td data-meta-property="keywords" class="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
+      <td data-meta-property="og:title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
+      <td data-meta-property="og:description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
+      <td data-meta-property="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
       <td class="buttons">
         <div class="button-container">
           <a class="button action secondary edit" target="_blank" >Edit</a>
@@ -176,27 +203,31 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
       editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
     }
 
-    console.log(' projectDetails:', projectDetails);
     Promise.all([
       // TODO: If these track as visits, change to EDS urls.
       // To use EDS urls however, headers config must be updated.
       // Wait for hlx5 PR
-      fetch(`${projectDetails.customPreviewUrl}${item.path}`).then((res) => (res.ok ? res.text() : null)).catch(() => null),
-      fetch(`${projectDetails.customLiveUrl}${item.path}`).then((res) => (res.ok ? res.text() : null)).catch(() => null),
-    ]).then(([previewHtml, liveHtml]) => {
+      fetch(`${projectDetails.customPreviewUrl}${item.path}`).then(async (res) => ({ status: res.status, ok: res.ok, html: (res.ok ? await res.text() : null) })).catch(() => null),
+      fetch(`${projectDetails.customLiveUrl}${item.path}`).then(async (res) => ({ status: res.status, ok: res.ok, html: (res.ok ? await res.text() : null) })).catch(() => null),
+    ]).then(([previewReq, liveReq]) => {
+      tableRow.dataset.isPreviewed = previewReq?.ok;
+      tableRow.dataset.isPublished = liveReq?.ok;
+
       ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
         const type = metaProperty.startsWith('og:') ? 'property' : 'name';
 
         const regex = new RegExp(`<meta ${type}="${metaProperty}" content="([^"]*)"`, 'i');
-        const previewMatch = previewHtml?.match(regex);
-        const liveMatch = liveHtml?.match(regex);
-        let previewContent = previewMatch?.[1] || 'N/A';
-        previewContent = metaProperty === 'og:image' ? `<img src="${previewContent}" alt="thumbnail" loading="lazy" onerror="this.src = '${noImageSrc}'"/>` : safeText(previewContent);
-        let liveContent = liveMatch?.[1] || 'N/A';
-        liveContent = metaProperty === 'og:image' ? `<img src="${liveContent}" alt="thumbnail" loading="lazy" onerror="this.src = '${noImageSrc}'"/>` : safeText(liveContent);
+        const previewMatch = previewReq?.html?.match(regex);
+        const liveMatch = liveReq?.html?.match(regex);
+        const previewContent = previewMatch?.[1] || null;
+        const liveContent = liveMatch?.[1] || null;
+
+        const previewSpan = decorateCell(metaProperty, 'preview', previewContent);
+        const publishedSpan = decorateCell(metaProperty, 'published', liveContent);
 
         const cell = tableRow.querySelector(`[data-meta-property="${metaProperty}"]`);
-        cell.innerHTML = `<span class="preview">${previewContent}</span><span class="published">${liveContent}</span>`;
+        cell.innerHTML = '';
+        cell.append(previewSpan, publishedSpan);
       });
     });
 
