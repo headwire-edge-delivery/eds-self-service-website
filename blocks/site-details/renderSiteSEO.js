@@ -8,6 +8,7 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, createDialog } from '../../scripts/dialogs.js';
+import paginator from '../../libs/pagination/pagination.js';
 
 const filters = [
   /\/nav$/i,
@@ -179,63 +180,76 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     <tbody></tbody>
   `;
 
-  const tableRows = filteredIndex.map((item) => {
-    const tableRow = document.createElement('tr');
-    tableRow.dataset.path = item.path;
-
-    tableRow.innerHTML = `
-      <td data-meta-property="og:image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
-      <td class="path"><strong>${safeText(item.path)}</strong></td>  
-      <td data-meta-property="og:title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
-      <td data-meta-property="og:description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
-      <td data-meta-property="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
-      <td class="buttons">
-        <div class="button-container">
-          <a class="button action secondary edit" target="_blank" >Edit</a>
-        </div>
-      </td>
-    `;
-
-    const editButton = tableRow.querySelector('.edit');
-    if (projectDetails.darkAlleyProject) {
-      editButton.href = `https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata${item.path.endsWith('/') ? `${item.path}/index` : item.path}`;
+  const createTableRows = (data, startIndex, endIndex) => {
+    let dataToParse;
+    if (typeof startIndex === 'number' && typeof endIndex === 'number') {
+      dataToParse = data.slice(startIndex, endIndex);
     } else {
-      editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
+      dataToParse = data;
     }
+    const rows = dataToParse.map((item) => {
+      const tableRow = document.createElement('tr');
+      tableRow.dataset.path = item.path;
 
-    Promise.all([
-      // TODO: If these track as visits, change to EDS urls.
-      // To use EDS urls however, headers config must be updated.
-      // Wait for hlx5 PR
-      fetch(`${projectDetails.customPreviewUrl}${item.path}`).then(async (res) => ({ status: res.status, ok: res.ok, html: (res.ok ? await res.text() : null) })).catch(() => null),
-      fetch(`${projectDetails.customLiveUrl}${item.path}`).then(async (res) => ({ status: res.status, ok: res.ok, html: (res.ok ? await res.text() : null) })).catch(() => null),
-    ]).then(([previewReq, liveReq]) => {
-      tableRow.dataset.isPreviewed = previewReq?.ok;
-      tableRow.dataset.isPublished = liveReq?.ok;
+      tableRow.innerHTML = `
+        <td data-meta-property="og:image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
+        <td class="path"><strong>${safeText(item.path)}</strong></td>  
+        <td data-meta-property="og:title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
+        <td data-meta-property="og:description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
+        <td data-meta-property="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
+        <td class="buttons">
+          <div class="button-container">
+            <a class="button action secondary edit" target="_blank" >Edit</a>
+          </div>
+        </td>
+      `;
 
-      ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
-        const type = metaProperty.startsWith('og:') ? 'property' : 'name';
+      const editButton = tableRow.querySelector('.edit');
+      if (projectDetails.darkAlleyProject) {
+        editButton.href = `https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata${item.path.endsWith('/') ? `${item.path}/index` : item.path}`;
+      } else {
+        editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
+      }
 
-        const regex = new RegExp(`<meta ${type}="${metaProperty}" content="([^"]*)"`, 'i');
-        const previewMatch = previewReq?.html?.match(regex);
-        const liveMatch = liveReq?.html?.match(regex);
-        const previewContent = previewMatch?.[1] || null;
-        const liveContent = liveMatch?.[1] || null;
+      Promise.all([
+        fetch(`${projectDetails.customPreviewUrl}${item.path}`).then(async (res) => ({ status: res.status, ok: res.ok, html: (res.ok ? await res.text() : null) })).catch(() => null),
+        fetch(`${projectDetails.customLiveUrl}${item.path}`).then(async (res) => ({ status: res.status, ok: res.ok, html: (res.ok ? await res.text() : null) })).catch(() => null),
+      ]).then(([previewReq, liveReq]) => {
+        tableRow.dataset.isPreviewed = previewReq?.ok;
+        tableRow.dataset.isPublished = liveReq?.ok;
 
-        const previewSpan = decorateCell(metaProperty, 'preview', previewContent);
-        const publishedSpan = decorateCell(metaProperty, 'published', liveContent);
+        ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
+          const type = metaProperty.startsWith('og:') ? 'property' : 'name';
 
-        const cell = tableRow.querySelector(`[data-meta-property="${metaProperty}"]`);
-        cell.innerHTML = '';
-        cell.append(previewSpan, publishedSpan);
+          const regex = new RegExp(`<meta ${type}="${metaProperty}" content="([^"]*)"`, 'i');
+          const previewMatch = previewReq?.html?.match(regex);
+          const liveMatch = liveReq?.html?.match(regex);
+          const previewContent = previewMatch?.[1] || null;
+          const liveContent = liveMatch?.[1] || null;
+
+          const previewSpan = decorateCell(metaProperty, 'preview', previewContent);
+          const publishedSpan = decorateCell(metaProperty, 'published', liveContent);
+
+          const cell = tableRow.querySelector(`[data-meta-property="${metaProperty}"]`);
+          cell.innerHTML = '';
+          cell.append(previewSpan, publishedSpan);
+        });
       });
+
+      return tableRow;
     });
+    return rows;
+  };
 
-    return tableRow;
-  });
-
+  console.log(' filteredIndex.length:', filteredIndex);
   const tableBody = table.tBodies[0];
-  tableBody.append(...tableRows);
+  const limit = 3;
+  const startPage = 1;
+  table.after(paginator(filteredIndex.length, limit, startPage, ({ rangeStart, rangeEnd }) => {
+    tableBody.innerHTML = '';
+    tableBody.append(...createTableRows(filteredIndex, rangeStart, rangeEnd));
+  }));
+  tableBody.append(...createTableRows(filteredIndex, 0, limit));
   if (tableBody.matches(':empty')) {
     const cols = table.querySelectorAll('th').length;
     tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;

@@ -68,10 +68,10 @@ export default async function renderSites({ container, nav }) {
       const { projects, pagination } = await response.json();
       totalItems[type] = pagination.totalItems;
       sitesList.innerHTML = `
-    ${title}
-    <ul class="my-sites-overview" data-totalitems=${pagination.totalItems}></ul>
-    ${paginator(pagination.totalItems, currentLimit, actualPage)}
-    `;
+        ${title}
+        <ul class="my-sites-overview" data-totalitems=${pagination.totalItems}></ul>
+      `;
+      sitesList.append(paginator(pagination.totalItems, currentLimit, actualPage));
 
       const ul = sitesList.querySelector('.my-sites-overview');
 

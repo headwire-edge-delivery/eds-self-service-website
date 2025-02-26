@@ -1,3 +1,5 @@
+import { parseFragment } from "../../scripts/scripts.js";
+
 const loadCssFile = (path) => {
   const link = document.createElement('link');
   link.rel = 'stylesheet';
@@ -9,11 +11,13 @@ const loadCssFile = (path) => {
   document.head.appendChild(link);
 };
 
-const paginator = (quantity, limit, page) => {
+const paginator = (quantity, limit, page, contentRerenderFn) => {
   loadCssFile('/libs/pagination/pagination.css');
   const pages = Math.ceil(quantity / limit);
   if (pages <= 1) {
-    return '';
+    const noEl = document.createElement('div')
+    noEl.style.display = 'none'
+    return noEl;
   }
 
   let currentPage = page;
@@ -37,24 +41,53 @@ const paginator = (quantity, limit, page) => {
     currentPage = 1;
     calculate();
   }
+  
+  const paginationContainer = document.createElement('div')
+  paginationContainer.classList.add('pagination-container')
 
-  return `
-    <div class="pagination-container" data-current-page="${currentPage}">
-      ${currentPage > 1 ? `<button data-change-to="${currentPage - 1}" class="paginator prev">prev</button>` : ''}
-      ${startPage >= 1 ? `<button data-change-to="1" ${currentPage === 1 ? ' disabled' : ''} class="paginator${currentPage === 1 ? ' active' : ''}">1</button>${showFirstEllipsis ? '<span class="paginator ellipsis">...</span>' : ''}` : ''}
-      ${Array.from({ length: pages }, (_, i) => i + 2).filter((p) => pageFilter(p)).map((p) => `<button data-change-to="${p}" ${p === currentPage ? 'disabled' : ''} class="paginator${p === currentPage ? ' active' : ''}">${p}</button>`).join('')}
-      ${(() => {
-    if (showSecondEllipsis) {
-      return '<span class="paginator ellipsis">...</span>';
-    } if (endPage < pages - 1) {
-      return `<button data-change-to="${pages - 1}" class="paginator">${pages - 1}</button>`;
-    }
-    return '';
-  })()}
-      ${endPage < pages ? `<button data-change-to="${pages}" class="paginator">${pages}</button>` : ''}
-      ${currentPage !== pages ? `<button data-change-to="${currentPage + 1}" class="paginator next">next</button>` : ''}
-    </div>
-  `;
+  const renderPaginator = (pageNr) => {
+    currentPage = pageNr
+    calculate()
+    paginationContainer.dataset.currentPage = pageNr;
+
+    paginationContainer.innerHTML = `
+      <div class="pagination-container" data-current-page="${pageNr}">
+        ${pageNr > 1 ? `<button data-change-to="${pageNr - 1}" class="paginator prev">prev</button>` : ''}
+        ${startPage >= 1 ? `<button data-change-to="1" ${pageNr === 1 ? ' disabled' : ''} class="paginator${pageNr === 1 ? ' active' : ''}">1</button>${showFirstEllipsis ? '<span class="paginator ellipsis">...</span>' : ''}` : ''}
+        ${Array.from({ length: pages }, (_, i) => i + 2).filter((p) => pageFilter(p)).map((p) => `<button data-change-to="${p}" ${p === pageNr ? 'disabled' : ''} class="paginator${p === pageNr ? ' active' : ''}">${p}</button>`).join('')}
+        ${(() => {
+      if (showSecondEllipsis) {
+        return '<span class="paginator ellipsis">...</span>';
+      } if (endPage < pages - 1) {
+        return `<button data-change-to="${pages - 1}" class="paginator">${pages - 1}</button>`;
+      }
+      return '';
+    })()}
+        ${endPage < pages ? `<button data-change-to="${pages}" class="paginator">${pages}</button>` : ''}
+        ${pageNr !== pages ? `<button data-change-to="${pageNr + 1}" class="paginator next">next</button>` : ''}
+      </div>
+    `
+  }
+  renderPaginator(currentPage)
+
+  // auto handle re-rendering of paginator
+  if (typeof contentRerenderFn === 'function') {
+    paginationContainer.addEventListener('click', (event) => {
+      const closest = event.target.closest('button.paginator')
+      if (closest && closest?.dataset?.changeTo) {
+        const changeToNr = Number(closest.dataset.changeTo)
+        if (Number.isNaN(changeToNr)) return;
+        console.log(" changeToNr:", changeToNr)
+        const rangeStart = (changeToNr - 1) * limit;
+        const rangeEnd = rangeStart + limit;
+        
+        renderPaginator(changeToNr)
+        // re-render content
+        contentRerenderFn({quantity, limit, page, pages, rangeStart, rangeEnd });
+      }
+    })
+  }
+  return paginationContainer
 };
 
 export default paginator;
