@@ -1,6 +1,6 @@
-const isSame = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+export const isSame = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-const transformEmptyRow = (data, headers) => {
+export const transformEmptyRow = (data, headers) => {
   data.map((row) => {
     if (row.length < headers.length) {
       for (let i = row.length; i < headers.length; i += 1) {
@@ -12,7 +12,7 @@ const transformEmptyRow = (data, headers) => {
   return data;
 };
 
-const confirmUnsavedChanges = (element) => {
+export const confirmUnsavedChanges = (element) => {
   if (element.dataset.unsavedChanges === 'true') {
     // eslint-disable-next-line no-alert
     const confirmLeave = window.confirm('Leave site?\nChanges you made may not be saved.');
@@ -25,4 +25,23 @@ const confirmUnsavedChanges = (element) => {
   return true;
 };
 
-export { isSame, transformEmptyRow, confirmUnsavedChanges };
+const fetchCache = {};
+export async function cacheFetch(url, options) {
+  if (fetchCache[url] instanceof Promise) {
+    const result = await fetchCache[url];
+    return result;
+  }
+  if (fetchCache[url] !== undefined) {
+    return fetchCache[url];
+  }
+
+  fetchCache[url] = await fetch(url, options).then(async (res) => {
+    const output = {
+      ok: res.ok,
+      status: res.status,
+    };
+    output.dataText = res.ok ? await res.text() : null;
+    return output;
+  }).catch(() => null);
+  return fetchCache[url];
+}

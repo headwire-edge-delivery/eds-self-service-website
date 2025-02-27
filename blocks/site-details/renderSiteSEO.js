@@ -9,6 +9,8 @@ import {
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, createDialog } from '../../scripts/dialogs.js';
 import paginator from '../../libs/pagination/pagination.js';
+import { readQueryParams } from '../../libs/queryParams/queryParams.js';
+import { cacheFetch } from '../../scripts/utils.js';
 
 const filters = [
   /\/nav$/i,
@@ -59,23 +61,40 @@ function keywordStrToBadges(str) {
 const noImageSrc = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const missingBadge = '<div class="badge orange">Missing</div>';
 
-function decorateCell(metaProperty, environment, content) {
-  const envSpan = document.createElement('span');
-  envSpan.classList.add(environment);
+// function decorateCell(metaProperty, environment, content) {
+//   const envSpan = document.createElement('span');
+//   envSpan.classList.add(environment);
+
+//   if (metaProperty === 'og:image') {
+//     const image = parseFragment(`<img alt="thumbnail" loading="lazy" onerror="this.src = '${noImageSrc}'"/>`);
+//     image.src = content || noImageSrc;
+//     envSpan.append(image);
+//   } else if (!content) {
+//     envSpan.innerHTML = missingBadge;
+//     return envSpan;
+//   } else if (metaProperty === 'keywords') {
+//     envSpan.append(...keywordStrToBadges(content));
+//   } else {
+//     envSpan.textContent = content;
+//   }
+//   return envSpan;
+// }
+function decorateCell(metaProperty, content) {
+  const span = document.createElement('span');
 
   if (metaProperty === 'og:image') {
     const image = parseFragment(`<img alt="thumbnail" loading="lazy" onerror="this.src = '${noImageSrc}'"/>`);
-    image.src = content;
-    envSpan.append(image);
+    image.src = content || noImageSrc;
+    span.append(image);
   } else if (!content) {
-    envSpan.innerHTML = missingBadge;
-    return envSpan;
+    span.innerHTML = missingBadge;
+    return span;
   } else if (metaProperty === 'keywords') {
-    envSpan.append(...keywordStrToBadges(content));
+    span.append(...keywordStrToBadges(content));
   } else {
-    envSpan.textContent = content;
+    span.textContent = content;
   }
-  return envSpan;
+  return span;
 }
 
 // MARK: render
@@ -146,7 +165,7 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
   <div id="seo-overview">
     <h2>SEO Audit</h2>
     <div class="button-container">
-      <button id="show-preview-data" data-environment="preview" class="button selector action secondary">Show Preview Data</button>
+      <button id="show-preview-data" data-environment="previewed" class="button selector action secondary">Show Preview Data</button>
       <button id="show-published-data" data-environment="published" class="button selector action secondary">Show Published Data</button>
     </div>
     <table class="seo-audit"></table>
@@ -154,11 +173,16 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
 
   const showPreviewData = container.querySelector('#show-preview-data');
   const showPublishedData = container.querySelector('#show-published-data');
+
+  // MARK: switch env
   const switchEnvClick = (event) => {
     showPreviewData.classList.remove('is-selected');
     showPublishedData.classList.remove('is-selected');
     container.dataset.showEnvironment = event.target.dataset.environment;
     event.target.classList.add('is-selected');
+    container.querySelectorAll(`table.seo-audit tbody tr[data-environment="${event.target.dataset.environment}"]`).forEach((tr) => {
+      if (typeof tr.populateCells === 'function') tr.populateCells();
+    });
   };
 
   showPreviewData.onclick = switchEnvClick;
@@ -180,6 +204,7 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     <tbody></tbody>
   `;
 
+  // MARK: create rows
   const createTableRows = (data, startIndex, endIndex) => {
     let dataToParse;
     if (typeof startIndex === 'number' && typeof endIndex === 'number') {
@@ -187,69 +212,169 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     } else {
       dataToParse = data;
     }
-    const rows = dataToParse.map((item) => {
-      const tableRow = document.createElement('tr');
-      tableRow.dataset.path = item.path;
+    const rows = dataToParse.reduce((output, item) => {
+      const previewRow = document.createElement('tr');
+      previewRow.dataset.path = item.path;
+      previewRow.dataset.fetchUrl = `${projectDetails.customPreviewUrl}${item.path}`;
+      previewRow.dataset.environment = 'previewed';
+      const publishRow = document.createElement('tr');
+      publishRow.dataset.path = item.path;
+      publishRow.dataset.fetchUrl = `${projectDetails.customLiveUrl}${item.path}`;
+      publishRow.dataset.environment = 'published';
 
-      tableRow.innerHTML = `
-        <td data-meta-property="og:image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
-        <td class="path"><strong>${safeText(item.path)}</strong></td>  
-        <td data-meta-property="og:title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
-        <td data-meta-property="og:description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
-        <td data-meta-property="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
-        <td class="buttons">
-          <div class="button-container">
-            <a class="button action secondary edit" target="_blank" >Edit</a>
-          </div>
-        </td>
-      `;
+      const populateRow = (row) => {
+        row.innerHTML = `
+          <td data-meta-property="og:image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
+          <td class="path"><strong>${safeText(item.path)}</strong></td>  
+          <td data-meta-property="og:title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
+          <td data-meta-property="og:description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
+          <td data-meta-property="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
+          <td class="buttons">
+            <div class="button-container">
+              <a class="button action secondary edit" target="_blank" >Edit</a>
+            </div>
+          </td>
+        `;
 
-      const editButton = tableRow.querySelector('.edit');
-      if (projectDetails.darkAlleyProject) {
-        editButton.href = `https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata${item.path.endsWith('/') ? `${item.path}/index` : item.path}`;
-      } else {
-        editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
-      }
+        const editButton = row.querySelector('.edit');
+        if (projectDetails.darkAlleyProject) {
+          editButton.href = `https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata${item.path.endsWith('/') ? `${item.path}/index` : item.path}`;
+        } else {
+          editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
+        }
 
-      Promise.all([
-        fetch(`${projectDetails.customPreviewUrl}${item.path}`).then(async (res) => ({ status: res.status, ok: res.ok, html: (res.ok ? await res.text() : null) })).catch(() => null),
-        fetch(`${projectDetails.customLiveUrl}${item.path}`).then(async (res) => ({ status: res.status, ok: res.ok, html: (res.ok ? await res.text() : null) })).catch(() => null),
-      ]).then(([previewReq, liveReq]) => {
-        tableRow.dataset.isPreviewed = previewReq?.ok;
-        tableRow.dataset.isPublished = liveReq?.ok;
+        // const observer = new IntersectionObserver(async (entries) => {
+        //   console.log(' entries:', entries[0].isIntersecting, entries[0].target);
+        //   // debugger;
+        //   if (entries[0].isIntersecting) {
+        //     console.log(' entries[0]:', entries[0].target);
+        //     observer.disconnect();
 
-        ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
-          const type = metaProperty.startsWith('og:') ? 'property' : 'name';
+        //     const response = await cacheFetch(row.dataset.fetchUrl);
+        //     console.log(' response:', response);
+        //     ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
+        //       const type = metaProperty.startsWith('og:') ? 'property' : 'name';
 
-          const regex = new RegExp(`<meta ${type}="${metaProperty}" content="([^"]*)"`, 'i');
-          const previewMatch = previewReq?.html?.match(regex);
-          const liveMatch = liveReq?.html?.match(regex);
-          const previewContent = previewMatch?.[1] || null;
-          const liveContent = liveMatch?.[1] || null;
+        //       const regex = new RegExp(`<meta ${type}="${metaProperty}" content="([^"]*)"`, 'i');
+        //       const match = response?.dataText?.match(regex);
+        //       const content = match?.[1] || null;
 
-          const previewSpan = decorateCell(metaProperty, 'preview', previewContent);
-          const publishedSpan = decorateCell(metaProperty, 'published', liveContent);
+        //       const contentSpan = decorateCell(metaProperty, content);
 
-          const cell = tableRow.querySelector(`[data-meta-property="${metaProperty}"]`);
-          cell.innerHTML = '';
-          cell.append(previewSpan, publishedSpan);
-        });
-      });
+        //       const cell = row.querySelector(`[data-meta-property="${metaProperty}"]`);
+        //       cell.innerHTML = '';
+        //       cell.append(contentSpan);
+        //     });
+        //   }
+        // });
+        // observer.observe(row);
 
-      return tableRow;
-    });
+        // MARK: assign populate cells
+        row.populateCells = async () => {
+          if (row.dataset.environment !== container.dataset.showEnvironment) return;
+          if (row.dataset.isPopulated === 'true') return;
+          const response = await cacheFetch(row.dataset.fetchUrl);
+          console.log(' response:', response);
+          ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
+            const type = metaProperty.startsWith('og:') ? 'property' : 'name';
+
+            const regex = new RegExp(`<meta ${type}="${metaProperty}" content="([^"]*)"`, 'i');
+            const match = response?.dataText?.match(regex);
+            const content = match?.[1] || null;
+
+            const contentSpan = decorateCell(metaProperty, content);
+
+            const cell = row.querySelector(`[data-meta-property="${metaProperty}"]`);
+            cell.innerHTML = '';
+            cell.append(contentSpan);
+          });
+          row.dataset.isPopulated = 'true';
+        };
+      };
+
+      populateRow(previewRow);
+      populateRow(publishRow);
+      output.push(previewRow, publishRow);
+      return output;
+
+      // const tableRow = document.createElement('tr');
+      // tableRow.dataset.path = item.path;
+
+      // tableRow.innerHTML = `
+      // <td data-meta-property="og:image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
+      //   <td class="path"><strong>${safeText(item.path)}</strong></td>
+      //   <td data-meta-property="og:title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
+      //   <td data-meta-property="og:description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
+      //   <td data-meta-property="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
+      //   <td class="buttons">
+      //     <div class="button-container">
+      //       <a class="button action secondary edit" target="_blank" >Edit</a>
+      //     </div>
+      //   </td>
+      // `;
+
+      // const editButton = tableRow.querySelector('.edit');
+      // if (projectDetails.darkAlleyProject) {
+      //   editButton.href = `https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata${item.path.endsWith('/') ? `${item.path}/index` : item.path}`;
+      // } else {
+      //   editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
+      // }
+
+      // Promise.all([
+      //   fetch(`${projectDetails.customPreviewUrl}${item.path}`).then(async (res) => ({ status: res.status, ok: res.ok, html: (res.ok ? await res.text() : null) })).catch(() => null),
+      //   fetch(`${projectDetails.customLiveUrl}${item.path}`).then(async (res) => ({ status: res.status, ok: res.ok, html: (res.ok ? await res.text() : null) })).catch(() => null),
+      // ]).then(([previewReq, liveReq]) => {
+      //   tableRow.dataset.isPreviewed = previewReq?.ok;
+      //   tableRow.dataset.isPublished = liveReq?.ok;
+
+      //   ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
+      //     const type = metaProperty.startsWith('og:') ? 'property' : 'name';
+
+      //     const regex = new RegExp(`<meta ${type}="${metaProperty}" content="([^"]*)"`, 'i');
+      //     const previewMatch = previewReq?.html?.match(regex);
+      //     const liveMatch = liveReq?.html?.match(regex);
+      //     const previewContent = previewMatch?.[1] || null;
+      //     const liveContent = liveMatch?.[1] || null;
+
+      //     const previewSpan = decorateCell(metaProperty, 'previewed', previewContent);
+      //     const publishedSpan = decorateCell(metaProperty, 'published', liveContent);
+
+      //     const cell = tableRow.querySelector(`[data-meta-property="${metaProperty}"]`);
+      //     cell.innerHTML = '';
+      //     cell.append(previewSpan, publishedSpan);
+      //   });
+      // });
+
+      // return tableRow;
+    }, []);
     return rows;
   };
 
   console.log(' filteredIndex.length:', filteredIndex);
   const tableBody = table.tBodies[0];
-  const limit = 3;
-  const startPage = 1;
-  table.after(paginator(filteredIndex.length, limit, startPage, ({ rangeStart, rangeEnd }) => {
+
+  const params = readQueryParams();
+
+  const limit = Math.max(1, parseInt(params.seoLimit, 10) || 1);
+  const startPage = Math.max(1, parseInt(params.seoPage, 10) || 1);
+  table.after(paginator(filteredIndex.length, limit, startPage, { page: 'seoPage' }, ({ rangeStart, rangeEnd }) => {
+    // const currentEnv = container.dataset.showEnvironment;
+    // container.dataset.showEnvironment = '';
+    // debugger;
     tableBody.innerHTML = '';
-    tableBody.append(...createTableRows(filteredIndex, rangeStart, rangeEnd));
+    const rowsToDisplay = createTableRows(filteredIndex, rangeStart, rangeEnd);
+    tableBody.append(...rowsToDisplay);
+    for (let i = 0; i < rowsToDisplay.length; i += 1) {
+      if (typeof rowsToDisplay[i]?.populateCells === 'function') rowsToDisplay[i].populateCells();
+    }
+    // Observer is not triggered if element's first render is already within viewport.
+    // so we have to hide then show elements
+    // requestAnimationFrame(() => {
+    //   container.dataset.showEnvironment = currentEnv;
+    // });
+    // setTimeout(() => {
+    // }, 0);
   }));
-  tableBody.append(...createTableRows(filteredIndex, 0, limit));
   if (tableBody.matches(':empty')) {
     const cols = table.querySelectorAll('th').length;
     tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;

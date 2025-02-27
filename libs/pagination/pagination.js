@@ -1,4 +1,5 @@
 import { parseFragment } from "../../scripts/scripts.js";
+import { writeQueryParams } from "../queryParams/queryParams.js";
 
 const loadCssFile = (path) => {
   const link = document.createElement('link');
@@ -11,7 +12,7 @@ const loadCssFile = (path) => {
   document.head.appendChild(link);
 };
 
-const paginator = (quantity, limit, page, contentRerenderFn) => {
+const paginator = (quantity, limit, page, queryNames, contentRerenderFn) => {
   loadCssFile('/libs/pagination/pagination.css');
   const pages = Math.ceil(quantity / limit);
   if (pages <= 1) {
@@ -72,7 +73,7 @@ const paginator = (quantity, limit, page, contentRerenderFn) => {
 
   // auto handle re-rendering of paginator
   if (typeof contentRerenderFn === 'function') {
-    paginationContainer.addEventListener('click', (event) => {
+    const paginatorClickHandler = (event) => {
       const closest = event.target.closest('button.paginator')
       if (closest && closest?.dataset?.changeTo) {
         const changeToNr = Number(closest.dataset.changeTo)
@@ -82,10 +83,13 @@ const paginator = (quantity, limit, page, contentRerenderFn) => {
         const rangeEnd = rangeStart + limit;
         
         renderPaginator(changeToNr)
+        writeQueryParams({ [queryNames.page]: changeToNr });
         // re-render content
         contentRerenderFn({quantity, limit, page, pages, rangeStart, rangeEnd });
       }
-    })
+    }
+    paginationContainer.addEventListener('click', paginatorClickHandler)
+    paginatorClickHandler({ target: paginationContainer.querySelector('.paginator.active') });
   }
   return paginationContainer
 };
