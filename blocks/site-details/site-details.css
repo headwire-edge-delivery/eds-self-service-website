@@ -252,6 +252,7 @@
 .site-details.block .tab-content.seo[data-show-environment="previewed"] span.previewed {
   display: block;
 }
+
 .site-details.block .tab-content.seo[data-show-environment="published"] span.published {
   display: block;
 }
@@ -259,9 +260,11 @@
 .site-details.block .tab-content.seo tr[data-environment] {
   display: none;
 }
+
 .site-details.block .tab-content.seo[data-show-environment="previewed"] tr[data-environment="previewed"] {
   display: table-row;
 }
+
 .site-details.block .tab-content.seo[data-show-environment="published"] tr[data-environment="published"] {
   display: table-row;
 }

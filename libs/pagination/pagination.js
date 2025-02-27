@@ -11,6 +11,17 @@ const loadCssFile = (path) => {
   }
   document.head.appendChild(link);
 };
+/**
+ * Create paginator numbered/next/prev buttons.
+ * If contentRendererFn callback function is provided, button clicks will be handled by paginator and then callback will be called.
+ * 
+ * @param {number} quantity - The total number of items to paginate.
+ * @param {number} limit - The number of items per page.
+ * @param {number} page - The current page number.
+ * @param {Object} queryNames - An object defining the query parameter names to update with button presses.
+ * @param {Function} contentRerenderFn - A callback function to rerender content for the new page, it will receive { quantity, limit, page, pages, rangeStart, rangeEnd } as its argument.
+ * @returns {HTMLElement} - The pagination element or a hidden div if only one page is available.
+ */
 
 const paginator = (quantity, limit, page, queryNames, contentRerenderFn) => {
   loadCssFile('/libs/pagination/pagination.css');
@@ -78,14 +89,13 @@ const paginator = (quantity, limit, page, queryNames, contentRerenderFn) => {
       if (closest && closest?.dataset?.changeTo) {
         const changeToNr = Number(closest.dataset.changeTo)
         if (Number.isNaN(changeToNr)) return;
-        console.log(" changeToNr:", changeToNr)
         const rangeStart = (changeToNr - 1) * limit;
         const rangeEnd = rangeStart + limit;
         
         renderPaginator(changeToNr)
         writeQueryParams({ [queryNames.page]: changeToNr });
         // re-render content
-        contentRerenderFn({quantity, limit, page, pages, rangeStart, rangeEnd });
+        contentRerenderFn({ quantity, limit, page, pages, rangeStart, rangeEnd });
       }
     }
     paginationContainer.addEventListener('click', paginatorClickHandler)
