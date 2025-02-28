@@ -29,6 +29,7 @@ const paginator = (quantity, limit, page, queryNames, contentRerenderFn) => {
   if (pages <= 1) {
     const noEl = document.createElement('div')
     noEl.style.display = 'none'
+    if (typeof contentRerenderFn === 'function') contentRerenderFn({ quantity, limit, page: 1, pages, rangeStart: 0, rangeEnd: limit });
     return noEl;
   }
 

@@ -176,7 +176,7 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'seo') {
-    const rows = [...Array(10)].map(() => `
+    const rows = [...Array(5)].map(() => `
       <tr>
         <td><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>

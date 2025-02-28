@@ -165,7 +165,7 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     event.target.classList.add('is-selected');
     // trigger fetch of displayed cells
     container.querySelectorAll('table.seo-audit tbody tr').forEach((tr) => {
-      if (typeof tr.populateCells === 'function') tr.populateCells();
+      if (typeof tr.populate === 'function') tr.populate();
     });
   };
 
@@ -206,35 +206,35 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
       publishRow.dataset.fetchUrl = `${projectDetails.customLiveUrl}${item.path}`;
       publishRow.dataset.environment = 'published';
 
-      const populateRow = (row) => {
-        row.innerHTML = `
-          <td data-meta-property="og:image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
-          <td class="path"><strong>${safeText(item.path)}</strong></td>  
-          <td data-meta-property="og:title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
-          <td data-meta-property="og:description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
-          <td data-meta-property="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
-          <td class="buttons">
-            <div class="button-container">
-              <a class="button action secondary edit" target="_blank" >Edit</a>
-            </div>
-          </td>
-        `;
-
-        const editButton = row.querySelector('.edit');
-        if (projectDetails.darkAlleyProject) {
-          editButton.href = `https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata${item.path.endsWith('/') ? `${item.path}/index` : item.path}`;
-        } else {
-          editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
-        }
-
-        // MARK: populate cells
-        // Assign a populateCells function to each row
-        // Fetch data and replace skeleton with content
-        row.populateCells = async () => {
-          // Prevent fetching cells that are not displayed
+      const initRow = (row) => {
+        // MARK: populate row
+        // assign a populate function to each row
+        row.populate = async () => {
+          // Prevent populating rows that are not displayed
           if (row.dataset.environment !== container.dataset.showEnvironment) return;
           // Rows are only removed if you change pages, so check if populated.
           if (row.dataset.isPopulated === 'true') return;
+          row.dataset.isPopulated = 'true';
+
+          row.innerHTML = `
+            <td data-meta-property="og:image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
+            <td class="path"><strong>${safeText(item.path)}</strong></td>  
+            <td data-meta-property="og:title"><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
+            <td data-meta-property="og:description"><div class="skeleton" style="width: 200px; height: 48px;"></div></td>
+            <td data-meta-property="keywords"><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
+            <td class="buttons">
+              <div class="button-container">
+                <a class="button action secondary edit" target="_blank" >Edit</a>
+              </div>
+            </td>
+          `;
+
+          const editButton = row.querySelector('.edit');
+          if (projectDetails.darkAlleyProject) {
+            editButton.href = `https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata${item.path.endsWith('/') ? `${item.path}/index` : item.path}`;
+          } else {
+            editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
+          }
           // Cached fetch in case user comes back to this page through pagination.
           const response = await cacheFetch(row.dataset.fetchUrl);
           ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
@@ -250,12 +250,11 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
             cell.innerHTML = '';
             cell.append(contentSpan);
           });
-          row.dataset.isPopulated = 'true';
         };
       };
 
-      populateRow(previewRow);
-      populateRow(publishRow);
+      initRow(previewRow);
+      initRow(publishRow);
       output.push(previewRow, publishRow);
       return output;
     }, []);
@@ -277,7 +276,7 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     tableBody.append(...rowsToDisplay);
     // trigger fetching of displayed cells
     for (let i = 0; i < rowsToDisplay.length; i += 1) {
-      if (typeof rowsToDisplay[i]?.populateCells === 'function') rowsToDisplay[i].populateCells();
+      if (typeof rowsToDisplay[i]?.populate === 'function') rowsToDisplay[i].populate();
     }
   }));
   if (tableBody.matches(':empty')) {
