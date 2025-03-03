@@ -9,6 +9,8 @@ import {
 import { showToast, showErrorToast } from '../../scripts/toast.js';
 import { createDialog } from '../../scripts/dialogs.js';
 
+const protectedPaths = ['/query-index', 'search-index'];
+
 // MARK: render
 export default async function renderSiteSpreadsheets({ container, renderOptions }) {
   const { siteSlug, projectDetails } = renderOptions;
@@ -18,24 +20,31 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   const indexData = await fetch(`${SCRIPT_API}/sheets/${siteSlug}`)
     .then((res) => res.json())
     .then((data) => {
-      if (data && data.data) {
-        data.data.sort((a, b) => a.name.localeCompare(b.name)); // Sort by name
+      if (data?.data) {
+        // Add locked property to each item
+        data.data = data.data.map((item) => ({
+          ...item,
+          protected: protectedPaths.some((path) => item.path.includes(path)),
+        }));
+
+        // Sort after modifying the data
+        data.data.sort((a, b) => a.name.localeCompare(b.name));
       }
-      return data;
+      return data.data ?? undefined;
     })
     .catch(() => null);
 
-  if (!indexData?.data.length) {
+  if (!indexData.length) {
     container.innerHTML = `<p>${OOPS}</p>`;
     return;
   }
 
   const tabsAside = document.querySelector('aside.tabs-aside');
   const queryParams = readQueryParams();
-  let selectedSheet = indexData.data.find((s) => s.path === queryParams.path);
+  let selectedSheet = indexData.find((s) => s.path === queryParams.path);
   if (!selectedSheet) {
     removeQueryParams(['path']);
-    [selectedSheet] = indexData.data;
+    [selectedSheet] = indexData;
   }
   let sheetID = selectedSheet.id;
   let sheetName = selectedSheet.name;
@@ -44,6 +53,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   let selectedRange = selectedSheet.ranges?.includes(queryParams.sheet)
     ? queryParams.sheet
     : selectedSheet.ranges?.[0];
+  let isProtected = selectedSheet.protected;
+  let isLocked = true;
   let contentChanged = () => false;
 
   const fetchAndRenderSheet = async (selected) => {
@@ -54,12 +65,14 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       .map(
         (range) => `<button class="button action ${
           selectedRange === range ? 'active' : 'secondary'
-        }">${range}</button>`,
+        }" id="sheet-button-${range}">${range}</button>`,
       )
       .join('');
     const token = await window.auth0Client.getTokenSilently();
     const auth = { authorization: `bearer ${token}` };
-    const sheet = await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${selectedRange}!A:Z`, { headers: { ...auth, 'content-type': 'application/json' } })
+    const sheet = await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${selectedRange}!A:Z`, {
+      headers: { ...auth, 'content-type': 'application/json' },
+    })
       .then((res) => res.json())
       .catch(() => null);
 
@@ -114,10 +127,18 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
             }
             showButtonLoading(false);
             if (previewOrPublish === 'Preview' || previewOrPublish === 'PreviewAndPublish') {
-              showToast(`Preview successfully updated: <a href="${customPreviewUrl}" target="_blank">See the changes on your Preview site</a>`);
+              showToast(
+                `Preview successfully updated: <a href="${
+                  customPreviewUrl + path
+                }.json" target="_blank">See the changes on your Preview site</a>`,
+              );
             }
             if (previewOrPublish === 'Publish') {
-              showToast(`Publish successfully updated: <a href="${customLiveUrl}" target="_blank">See the changes on your Live site</a>`);
+              showToast(
+                `Publish successfully updated: <a href="${
+                  customPreviewUrl + path
+                }.json" target="_blank">See the changes on your Live site</a>`,
+              );
             }
             return response;
           } catch (error) {
@@ -141,7 +162,13 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         });
       };
 
-      if (currentMode === 'false') {
+      if (isLocked && isProtected) {
+        editButton.textContent = 'Edit';
+        editButton.disabled = true;
+        discardButton.hidden = true;
+        newPublishButton.disabled = true;
+        newPreviewButton.disabled = true;
+      } else if (currentMode === 'false') {
         editButton.textContent = 'Edit';
         newPublishButton.disabled = false;
         newPreviewButton.disabled = false;
@@ -222,17 +249,16 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       if (sheetEditMode()) {
         // Add New Row button
         const addRowContainer = document.querySelector('#add-row-container');
-        if (!addRowContainer) {
-          sheetTable.insertAdjacentHTML(
-            'afterend',
-            '<div id="add-row-container"><button id="add-row" class="button action">New Row</button></div>',
-          );
+        if (addRowContainer) addRowContainer.remove(); // Clean up the previous button
+        sheetTable.insertAdjacentHTML(
+          'afterend',
+          '<div id="add-row-container"><button id="add-row" class="button action">New Row</button></div>',
+        );
 
-          document.querySelector('#add-row').addEventListener('click', () => {
-            sheetTable.insertAdjacentHTML('beforeend', generateEmptyRow(tableData));
-            generateSheetTable(tableData);
-          });
-        }
+        document.querySelector('#add-row').addEventListener('click', () => {
+          sheetTable.insertAdjacentHTML('beforeend', generateEmptyRow(tableData));
+          generateSheetTable(tableData);
+        });
 
         // Event delegation for input changes
         sheetTable.addEventListener('input', (event) => {
@@ -274,7 +300,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       const table = document.querySelector('.sheet');
       const currentMode = table.getAttribute('data-editMode');
       const disableInputs = (bool = true) => {
-        table.querySelectorAll('input').forEach((input) => { // NOSONAR
+        table.querySelectorAll('input').forEach((input) => {
+          // NOSONAR
           input.disabled = bool;
           document.getElementById('sheet-select').disabled = bool;
           discardButton.disabled = bool;
@@ -289,7 +316,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${selectedRange}!A:Z`, {
           method: 'PUT',
           headers: {
-            ...auth, 'Content-Type': 'application/json',
+            ...auth,
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify([headers, ...sheetData]),
         })
@@ -300,8 +328,11 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
           })
           .catch(() => null);
         originalSheetData = structuredClone(sheetData);
+      } else if (currentMode === 'false') {
+        table.setAttribute('data-editMode', 'true');
       } else {
-        table.setAttribute('data-editMode', currentMode === 'false' ? 'true' : 'false');
+        table.setAttribute('data-editMode', 'false');
+        sheetData = structuredClone(originalSheetData);
       }
       generateSheetTable();
     });
@@ -318,6 +349,50 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       });
     });
 
+    const lockButton = document.getElementById('lock-button');
+    lockButton.replaceWith(lockButton.cloneNode(true));
+    const newLockButton = document.getElementById('lock-button');
+    newLockButton.addEventListener('click', () => {
+      if (!isProtected || !confirmUnsavedChanges(tabsAside)) {
+        return;
+      }
+      const handleLock = () => {
+        sheetData = structuredClone(originalSheetData);
+        isLocked = !isLocked;
+        document.getElementById('sheet-table').setAttribute('data-editMode', 'false');
+        document.getElementById('lock-svg').src = `/icons/${isLocked ? 'locked' : 'unlocked'}.svg`;
+        document.getElementById('edit-sheet').disabled = isLocked;
+        document.getElementById('preview-sheet').disabled = isLocked;
+        document.getElementById('publish-sheet').disabled = isLocked;
+        generateSheetTable();
+      };
+      if (isLocked) {
+        const lockDialog = createDialog(
+          parseFragment(`<div id="protected-sheet-info">
+          <p>You are in the process of removing the protection, which allows you to edit the spreadsheet.</p>
+          <strong>We recommend that you do not do this, as this is not usually necessary.</strong>
+          <p>Please only proceed if you know what you are doing.</p></div>`),
+          [
+            parseFragment(
+              '<button class="button action destructive" id="lock-unlock">Unlock (not recommended)</button>',
+            ),
+            parseFragment(
+              '<button class="button action primary" id="lock-discard">Discard</button>',
+            ),
+          ],
+        );
+        document.getElementById('lock-unlock').addEventListener('click', () => {
+          handleLock();
+          lockDialog.close();
+        });
+        document.getElementById('lock-discard').addEventListener('click', () => {
+          lockDialog.close();
+        });
+      } else {
+        handleLock();
+      }
+    });
+
     generateSheetTable();
   };
 
@@ -327,18 +402,30 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   <div id="spreadsheets-selector">
   <label for="sheet-select">Choose a Spreadsheet to edit:</label>
   <select name="sheets" id="sheet-select">
-  ${indexData.data.map((data) => `<option value="${data.id}">${data.name}</option>`).join('')}
+  ${indexData.map((data) => `<option value="${data.id}">${data.name}</option>`).join('')}
   </select>
   <div id="sheet-buttons">${selectedSheet.ranges
     .map((range) => `<button class="button action">${range}</button>`)
     .join('')}</div>
   </div>
-  <div class="spreadsheet-title"><h2>${sheetName}</h2>
-    <button id="edit-sheet" class="button action primary">Edit</button>
+  <div class="spreadsheet-title">
+    <div style="display: flex;">
+      <h2>${sheetName}</h2>
+      <button id="lock-button" class="button transparent" ${
+  !isProtected && 'disabled'
+}><img src="/icons/${
+  isProtected || isLocked ? 'locked' : 'unlocked'
+}.svg" alt="lock icon" id="lock-svg" /></button>
+    </div>
+    <button id="edit-sheet" class="button action primary" ${isProtected && 'disabled'}>Edit</button>
     <button id="discard-changes" class="button action" hidden>Discard</button>
     <a class="button action secondary" href="https://docs.google.com/spreadsheets/d/${sheetID}" id="open-sheet" target="_blank">Open</a>
-    <button id="preview-sheet" class="button action secondary">Preview</button>
-    <button id="publish-sheet" class="button action secondary">Publish</button>
+    <button id="preview-sheet" class="button action secondary" ${
+  isProtected && 'disabled'
+}>Preview</button>
+    <button id="publish-sheet" class="button action secondary" ${
+  isProtected && 'disabled'
+}>Publish</button>
     <button id="preview-publish-info-button" class="button transparent"><img src="/icons/help-dark.svg" alt="hint icon" /></button></div>
   <div class="spreadsheet-table-container"><table id="sheet-table" class="sheet" data-editMode="false"></table></div>
   </div>`;
@@ -347,8 +434,14 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     createDialog(
       parseFragment(`<div id="preview-publish-info">
       <p>The "Preview" will update the sheet for the Preview site and "Publish" will update it for the Preview and Live site.</p></div>`),
-      [parseFragment(`<a href="${customPreviewUrl}" target="_blank" class="button action secondary">Open your Preview site</a>`),
-        parseFragment(`<a href="${customLiveUrl}" target="_blank" class="button action secondary">Open your Live site</a>`)],
+      [
+        parseFragment(
+          `<a href="${customPreviewUrl}" target="_blank" class="button action secondary">Open your Preview site</a>`,
+        ),
+        parseFragment(
+          `<a href="${customLiveUrl}" target="_blank" class="button action secondary">Open your Live site</a>`,
+        ),
+      ],
     );
   });
 
@@ -360,12 +453,23 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       return;
     }
     sheetID = event.target.value;
-    [selectedSheet] = indexData.data.filter((s) => s.id === sheetID);
+    [selectedSheet] = indexData.filter((s) => s.id === sheetID);
     [selectedRange] = selectedSheet.ranges;
+    isProtected = selectedSheet.protected;
+    isLocked = isProtected;
+    document.getElementById('edit-sheet').disabled = isLocked;
+    const lockButton = document.getElementById('lock-button');
+    if (isProtected && lockButton) {
+      lockButton.removeAttribute('disabled');
+    } else {
+      lockButton?.setAttribute('disabled', '');
+    }
     writeQueryParams({ path: selectedSheet.path, sheet: selectedRange });
     container.querySelector('.spreadsheet-title h2').textContent = selectedSheet.name;
     container.querySelector('.sheet').innerHTML = renderSkeleton('sheetsTable');
-    container.querySelector('#open-sheet').href = `https://docs.google.com/spreadsheets/d/${sheetID}`;
+    container.querySelector(
+      '#open-sheet',
+    ).href = `https://docs.google.com/spreadsheets/d/${sheetID}`;
     await fetchAndRenderSheet(selectedSheet);
   });
 

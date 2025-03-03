@@ -173,6 +173,11 @@ function siteSheetsTour({ showAutoTour }) {
         element: '#sheet-buttons',
       },
       {
+        title: 'Lock / Unlock',
+        description: 'Most of the Spreadsheets are not protected, but "query-index" and "search-index" are. For every other Sheet, the lock has no functionality. <br /> If you want to edit a protected Sheet, you need to unlock them first. <br /> However, we strongly advise against doing this unless you fully understand the risks, as unintended changes could disrupt critical functionality. <br /> <strong>Only remove protection if you are confident in your actions!</strong>',
+        element: '#lock-button',
+      },
+      {
         title: 'Edit / Save / Back',
         description: editButtonDescription,
         element: '#edit-sheet',
