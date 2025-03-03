@@ -153,7 +153,7 @@ function siteSheetsTour({ showAutoTour }) {
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
-        document.querySelector('main .site-details.block aside a[href$="/web-analytics"]')?.click();
+        document.querySelector('main .site-details.block aside a[href$="/seo"]')?.click();
       }
     },
     steps: [

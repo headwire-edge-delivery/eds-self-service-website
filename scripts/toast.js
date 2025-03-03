@@ -52,6 +52,6 @@ export function showToast(text = 'Done.', type = 'success') {
   }, delay);
 }
 
-export function showErrorToast() {
-  showToast(OOPS, 'error');
+export function showErrorToast(content = OOPS) {
+  showToast(content, 'error');
 }

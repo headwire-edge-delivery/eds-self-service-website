@@ -1,5 +1,10 @@
-function SEOTour() {
+function SEOTour({ showAutoTour }) {
   const tourData = {
+    onFinished: () => {
+      if (showAutoTour) {
+        document.querySelector('main .site-details.block aside a[href$="/web-analytics"]')?.click();
+      }
+    },
     steps: [
       {
         title: 'SEO',
@@ -22,6 +27,36 @@ function SEOTour() {
         description: 'You can apply common metadata en masse at a single place with the Bulk Metadata sheet. Make sure to preview and publish the metadata sheet to propagate the changes to all pages.',
         element: '#edit-bulk-metadata',
         side: 'left',
+      },
+      {
+        title: 'Published/Preview state',
+        description: 'Here you can switch between viewing the preview/published state of pages. Make sure your pages are optimized before publishing them.',
+        element: '#seo-overview > .button-container',
+      },
+      {
+        title: 'Page entry',
+        description: 'This displays the most relevant information about the page for search engines.',
+        element: '.seo-audit tbody tr:not(:empty)',
+      },
+      {
+        title: 'Page title',
+        description: 'This is the page title that will be displayed in search results and the title in the browser tab.',
+        element: '.seo-audit tbody tr:not(:empty) td[data-meta-property="og:title"]',
+      },
+      {
+        title: 'Page description',
+        description: 'This is the page description that will be displayed in search engine results.',
+        element: '.seo-audit tbody tr:not(:empty) td[data-meta-property="og:description"]',
+      },
+      {
+        title: 'Page keywords',
+        description: 'These are keywords used to describe the page. They will be used to help your page rank better in search engine results.',
+        element: '.seo-audit tbody tr:not(:empty) td[data-meta-property="keywords"]',
+      },
+      {
+        title: 'Edit page',
+        description: 'This is a direct link to edit the page. You can adjust your metadata, preview or publish your page and come back to this page.',
+        element: '.seo-audit tbody .button.edit',
       },
     ],
   };

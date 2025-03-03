@@ -376,7 +376,8 @@ export default async function renderUserTab({ container }) {
 
       const usersTable = generateTable();
 
-      usersContainer.innerHTML = paginator(pagination.totalItems, limit, pagination.currentPage);
+      usersContainer.innerHTML = '';
+      usersContainer.append(paginator(pagination.totalItems, limit, pagination.currentPage));
       usersContainer.prepend(usersTable.wrapper);
 
       paginatorEventlistener(usersContainer, 'page', renderUsers, Math.min(limit, 5));
@@ -464,11 +465,12 @@ export default async function renderUserTab({ container }) {
 
       deletedUsersTable = generateTable();
 
-      deletedUsersContainer.innerHTML = paginator(
+      deletedUsersContainer.innerHTML = '';
+      deletedUsersContainer.append(paginator(
         pagination.totalItems,
         limit,
         pagination.currentPage,
-      );
+      ));
 
       deletedUsersContainer.prepend(deletedUsersTable.wrapper);
 
