@@ -423,10 +423,16 @@ export function createTabs({
   const onHistoryPopArray = [];
   function pushHistory(path) {
     historyArray.push(path);
-    const url = new URL(path, window.location);
-    url.search = window.location.search;
-    window.history.pushState({}, '', url);
+    const url = new URL(path, window.location.origin);
+    const searchParams = new URLSearchParams(window.location.search);
+    const newSearchParams = new URLSearchParams();
+    if (searchParams.has('highlight')) {
+      newSearchParams.set('highlight', searchParams.get('highlight'));
+    }
+    url.search = newSearchParams.toString();
+    window.history.pushState({}, '', url.toString());
   }
+
   function replaceHistory(path) {
     historyArray.pop();
     historyArray.push(path);

@@ -622,3 +622,9 @@ table.sheet td > * {
   text-align: center;
   gap: 16px;
 }
+
+#protected-sheet-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
