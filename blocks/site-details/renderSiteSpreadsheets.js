@@ -1,4 +1,9 @@
-import { OOPS, SCRIPT_API, parseFragment } from '../../scripts/scripts.js';
+import {
+  OOPS,
+  SCRIPT_API,
+  parseFragment,
+  safeText,
+} from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { isSame, transformEmptyRow, confirmUnsavedChanges } from '../../scripts/utils.js';
 import {
@@ -9,7 +14,7 @@ import {
 import { showToast, showErrorToast } from '../../scripts/toast.js';
 import { createDialog } from '../../scripts/dialogs.js';
 
-const protectedPaths = ['/query-index', 'search-index'];
+const protectedPaths = ['/query-index', '/search-index'];
 
 // MARK: render
 export default async function renderSiteSpreadsheets({ container, renderOptions }) {
@@ -24,7 +29,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         // Add locked property to each item
         data.data = data.data.map((item) => ({
           ...item,
-          protected: protectedPaths.some((path) => item.path.includes(path)),
+          protected: protectedPaths.some((path) => item.path === path),
         }));
 
         // Sort after modifying the data
@@ -368,10 +373,10 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       };
       if (isLocked) {
         const lockDialog = createDialog(
-          parseFragment(`<div id="protected-sheet-info">
+          `<div id="protected-sheet-info">
           <p>You are in the process of removing the protection, which allows you to edit the spreadsheet.</p>
           <strong>We recommend that you do not do this, as this is not usually necessary.</strong>
-          <p>Please only proceed if you know what you are doing.</p></div>`),
+          <p>Please only proceed if you know what you are doing.</p></div>`,
           [
             parseFragment(
               '<button class="button action destructive" id="lock-unlock">Unlock (not recommended)</button>',
@@ -410,11 +415,11 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   </div>
   <div class="spreadsheet-title">
     <div style="display: flex;">
-      <h2>${sheetName}</h2>
+      <h2>${safeText(sheetName)}</h2>
       <button id="lock-button" class="button transparent" ${
   !isProtected && 'disabled'
 }><img src="/icons/${
-  isProtected || isLocked ? 'locked' : 'unlocked'
+  isProtected && isLocked ? 'locked' : 'unlocked'
 }.svg" alt="lock icon" id="lock-svg" /></button>
     </div>
     <button id="edit-sheet" class="button action primary" ${isProtected && 'disabled'}>Edit</button>
@@ -432,8 +437,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   const previewPublishInfoButton = document.getElementById('preview-publish-info-button');
   previewPublishInfoButton.addEventListener('click', () => {
     createDialog(
-      parseFragment(`<div id="preview-publish-info">
-      <p>The "Preview" will update the sheet for the Preview site and "Publish" will update it for the Preview and Live site.</p></div>`),
+      `<div id="preview-publish-info">
+      <p>The "Preview" will update the sheet for the Preview site and "Publish" will update it for the Preview and Live site.</p></div>`,
       [
         parseFragment(
           `<a href="${customPreviewUrl}" target="_blank" class="button action secondary">Open your Preview site</a>`,
@@ -460,6 +465,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     document.getElementById('edit-sheet').disabled = isLocked;
     const lockButton = document.getElementById('lock-button');
     if (isProtected && lockButton) {
+      document.querySelector('.sheet').setAttribute('data-editMode', 'false');
+      document.getElementById('lock-svg').src = '/icons/locked.svg';
       lockButton.removeAttribute('disabled');
     } else {
       lockButton?.setAttribute('disabled', '');
