@@ -3,7 +3,6 @@ import {
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import renderAnalytics from '../../scripts/analytics.js';
-import { showErrorToast } from '../../scripts/toast.js';
 
 export default async function renderAnalyticsTab({ container, nav }) {
   container.innerHTML = `
@@ -15,19 +14,10 @@ export default async function renderAnalyticsTab({ container, nav }) {
   const token = await window.auth0Client.getTokenSilently();
 
   // Load web analytics
-  const loadWebAnalytics = async (interval) => {
-    try {
-      const req = await fetch(`${SCRIPT_API}/monitoring/admin?period=${interval}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
-      if (!req?.ok) {
-        throw new Error();
-      }
-      return [await req.json()];
-    } catch (e) {
-      showErrorToast();
-    }
-
-    return false;
-  };
+  const loadWebAnalytics = (interval) => fetch(`${SCRIPT_API}/monitoring/admin?period=${interval}`, { headers: { Authorization: `Bearer ${token}` } })
+    .then((res) => res.json())
+    .then((data) => [data])
+    .catch(() => [null]);
 
   // MARK: analytics
   loadWebAnalytics('1d').then((analytics) => {

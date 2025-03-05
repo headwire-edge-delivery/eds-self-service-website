@@ -58,8 +58,8 @@ export default async function renderAnalytics({
 }) {
   container.classList.add('analytics');
 
-  if (!analytics) {
-    container.querySelector('p').textContent = OOPS;
+  if (!analytics || !analytics?.[0]) {
+    container.textContent = OOPS;
     return;
   }
 
@@ -79,6 +79,10 @@ export default async function renderAnalytics({
   nav.append(periodSelector);
 
   const renderWebAnalytics = ([metrics, cww]) => {
+    if (!metrics) {
+      container.textContent = OOPS;
+      return;
+    }
     const totalVisits = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
     const totalPageViews = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.count ?? 0;
     const medianPageLoadTime = metrics[2]
