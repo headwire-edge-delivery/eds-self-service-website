@@ -8,13 +8,13 @@ import {
 import homepageTour from './homepage.js';
 import noTourAvailable from './noTour.js';
 import {
-  siteOverviewTour,
-  sitePagesTour,
-  siteSheetsTour,
-  siteMonitoringTour,
+  siteOverviewTour, sitePagesTour, siteSheetsTour, siteMonitoringTour,
 } from './site.js';
 import {
-  campaignEmailsTour, campaignEmailsAudienceTour, campaignEmailAnalyticsTour, emailTour,
+  campaignEmailsTour,
+  campaignEmailsAudienceTour,
+  campaignEmailAnalyticsTour,
+  emailTour,
 } from './email.js';
 import { settingsGeneralTour, settingsThemeTour } from './settings.js';
 import adminTour from './admin.js';
@@ -48,9 +48,68 @@ const render = async () => {
   showAutoTour = userData?.showAutoTour;
 };
 
+function waitForDialogToClose(callback) {
+  const initialUrl = window.location.href;
+  let isCancelled = false;
+  const { history } = window;
+  let observer;
+  let handleUrlChange;
+
+  const originalPushState = history.pushState;
+  const originalReplaceState = history.replaceState;
+
+  function cleanup() {
+    observer.disconnect();
+    history.pushState = originalPushState;
+    history.replaceState = originalReplaceState;
+    window.removeEventListener('popstate', handleUrlChange);
+  }
+
+  handleUrlChange = () => {
+    isCancelled = true;
+    cleanup();
+  };
+
+  const checkState = () => {
+    if (isCancelled) return;
+
+    const urlChanged = window.location.href !== initialUrl;
+    const dialogClosed = document.getElementsByClassName('display-dialog').length === 0;
+
+    if (urlChanged) {
+      cleanup();
+    } else if (dialogClosed) {
+      cleanup();
+      callback();
+    }
+  };
+
+  observer = new MutationObserver(checkState);
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  history.pushState = function pushState(...args) {
+    originalPushState.apply(this, args);
+    handleUrlChange();
+  };
+
+  history.replaceState = function replaceState(...args) {
+    originalReplaceState.apply(this, args);
+    handleUrlChange();
+  };
+
+  window.addEventListener('popstate', handleUrlChange);
+
+  checkState();
+}
+
 const getTour = (siteTour) => setTimeout(() => {
-  // eslint-disable-next-line max-len
-  generateTour(tour, showAutoTour, siteTour(userData)).start();
+  if (document.getElementsByClassName('display-dialog').length > 0) {
+    waitForDialogToClose(() => {
+      generateTour(tour, showAutoTour, siteTour(userData)).start();
+    });
+  } else {
+    generateTour(tour, showAutoTour, siteTour(userData)).start();
+  }
 }, 100);
 
 const startTour = (isAutoTour, showDisableTour = false) => setTimeout(() => {
