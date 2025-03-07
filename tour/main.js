@@ -48,29 +48,46 @@ const render = async () => {
   showAutoTour = userData?.showAutoTour;
 };
 
-function waitForDialogToClose(callback) {
+const waitForDialogToClose = (callback) => {
   const initialUrl = window.location.href;
   let isCancelled = false;
   const { history } = window;
   let observer;
   let handleUrlChange;
+  let escPressed = false;
+  let checkState;
 
   const originalPushState = history.pushState;
   const originalReplaceState = history.replaceState;
 
-  function cleanup() {
+  const trackEscPress = (event) => {
+    if (event.key === 'Escape') {
+      escPressed = true;
+    }
+  };
+
+  const trackEscRelease = (event) => {
+    if (event.key === 'Escape') {
+      escPressed = false;
+      checkState();
+    }
+  };
+
+  const cleanup = () => {
     observer.disconnect();
     history.pushState = originalPushState;
     history.replaceState = originalReplaceState;
     window.removeEventListener('popstate', handleUrlChange);
-  }
+    window.removeEventListener('keydown', trackEscPress);
+    window.removeEventListener('keyup', trackEscRelease);
+  };
 
   handleUrlChange = () => {
     isCancelled = true;
     cleanup();
   };
 
-  const checkState = () => {
+  checkState = () => {
     if (isCancelled) return;
 
     const urlChanged = window.location.href !== initialUrl;
@@ -79,8 +96,10 @@ function waitForDialogToClose(callback) {
     if (urlChanged) {
       cleanup();
     } else if (dialogClosed) {
-      cleanup();
-      callback();
+      if (!escPressed) {
+        cleanup();
+        callback();
+      }
     }
   };
 
@@ -98,9 +117,11 @@ function waitForDialogToClose(callback) {
   };
 
   window.addEventListener('popstate', handleUrlChange);
+  window.addEventListener('keydown', trackEscPress);
+  window.addEventListener('keyup', trackEscRelease);
 
   checkState();
-}
+};
 
 const getTour = (siteTour) => setTimeout(() => {
   if (document.getElementsByClassName('display-dialog').length > 0) {
