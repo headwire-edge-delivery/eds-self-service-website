@@ -30,7 +30,7 @@ export default function generateTour(tour, showAutoTour, tourData) {
     tourSteps.push(tourStep);
   });
 
-  return tour({
+  const wholeTour = tour({
     progressText: tourData.progressText ?? 'Step {{current}} of {{total}}',
     onNextClick: tourData.onNextClick,
     onFinished: (() => {
@@ -40,6 +40,7 @@ export default function generateTour(tour, showAutoTour, tourData) {
       }
     }),
     steps: tourSteps,
+    smoothScroll: true,
     onDestroyed: (element, step, { state }) => {
       isLastStep = state.activeIndex === tourSteps.length - 1;
       const tourObj = tour({
@@ -91,4 +92,5 @@ export default function generateTour(tour, showAutoTour, tourData) {
       }
     },
   });
+  return wholeTour;
 }
