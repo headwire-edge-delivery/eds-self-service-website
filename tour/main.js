@@ -199,6 +199,9 @@ const startTour = (isAutoTour, showDisableTour = false) => setTimeout(() => {
       case switchCase('/site/', '/seo'):
         getTour(SEOTour);
         break;
+      case switchCase('/da-site/', '/seo'):
+        getTour(SEOTour);
+        break;
       case switchCase('/site/', '/campaign-analytics'):
         getTour(campaignEmailAnalyticsTour);
         break;
