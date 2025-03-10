@@ -57,6 +57,7 @@ function SEOTour({ showAutoTour }) {
         title: 'Edit page',
         description: 'This is a direct link to edit the page. You can adjust your metadata, preview or publish your page and come back to this page.',
         element: '.seo-audit tbody .button.edit',
+        side: 'left',
       },
     ],
   };
