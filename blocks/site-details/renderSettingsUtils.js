@@ -132,7 +132,7 @@ export function addIconDialogSetup({
 
     const formData = new FormData();
     formData.append('file', file);
-    dialog.setLoading(true, 'Adding Icon...');
+    dialog.setLoading(true, nameOverride ? 'Replacing Icon...' : 'Adding Icon...');
     const addRequest = await fetch(uploadEndpoint + (nameOverride ? `?nameOverride=${nameOverride}` : ''), {
       method: 'POST',
       body: formData,
@@ -215,7 +215,7 @@ export function blockIconDialogSetup({
   // MARK: replace icon button
   if (isIcon) {
     const replaceButton = parseFragment(`
-      <button class="button action primary">Replace</button>
+      <button class="button action primary replace">Replace</button>
     `);
     buttonList.push(replaceButton);
 
@@ -226,7 +226,7 @@ export function blockIconDialogSetup({
     replaceButton.onclick = () => {
       replaceButton.closest('dialog').close();
       const addDialogForReplace = addIconDialogSetup({
-        nameOverride: name, authHeaders, siteSlug, replaceIconItem,
+        nameOverride: name, authHeaders, siteSlug, replaceIconItem, titleText: `Replace ${name}`,
       });
       addDialogForReplace.showModal();
     };

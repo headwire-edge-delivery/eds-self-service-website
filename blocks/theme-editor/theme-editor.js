@@ -594,7 +594,8 @@ export default async function decorate(block) {
 
       if (new URL(previewFrame.src).pathname !== publishThemeSelector.value) {
         previewFrame.classList.add('is-loading');
-        previewFrame.src = `https://preview--${projectSlug}.${KESTREL_ONE}${publishThemeSelector.value}`;
+        previewFrame.src = `https://preview--${projectSlug}.${KESTREL_ONE}${publishThemeSelector.value}?ispreview=true`;
+        previewFrame.style.height = null;
         previewFrame.addEventListener(
           'load',
           () => {
