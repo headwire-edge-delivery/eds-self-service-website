@@ -48,7 +48,7 @@ const render = async () => {
   showAutoTour = userData?.showAutoTour;
 };
 
-const waitForDialogToClose = (callback) => {
+const waitForNoOpenDialog = (callback) => {
   const initialUrl = window.location.href;
   let isCancelled = false;
   const { history } = window;
@@ -91,11 +91,13 @@ const waitForDialogToClose = (callback) => {
     if (isCancelled) return;
 
     const urlChanged = window.location.href !== initialUrl;
-    const dialogClosed = document.getElementsByClassName('display-dialog').length === 0;
+    const dialogs = document.getElementsByClassName('display-dialog');
+    // eslint-disable-next-line max-len
+    const noOpenDialog = dialogs.length === 0 || Array.from(dialogs).every((dialog) => !dialog.open);
 
     if (urlChanged) {
       cleanup();
-    } else if (dialogClosed) {
+    } else if (noOpenDialog) {
       if (!escPressed) {
         cleanup();
         callback();
@@ -125,7 +127,7 @@ const waitForDialogToClose = (callback) => {
 
 const getTour = (siteTour) => setTimeout(() => {
   if (document.getElementsByClassName('display-dialog').length > 0) {
-    waitForDialogToClose(() => {
+    waitForNoOpenDialog(() => {
       generateTour(tour, showAutoTour, siteTour(userData)).start();
     });
   } else {
