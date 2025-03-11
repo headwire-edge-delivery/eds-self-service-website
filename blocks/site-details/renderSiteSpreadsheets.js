@@ -97,7 +97,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     const discardButton = container.querySelector('#discard-changes');
 
     const setButtonText = () => {
-      console.log('\x1b[34m ~ setButtonText:');
       const table = container.querySelector('.sheet');
       const currentMode = table.getAttribute('data-editMode');
       const editButton = container.querySelector('#edit-sheet');
@@ -192,11 +191,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         newPreviewButton.disabled = false;
         tabsAside.dataset.unsavedChanges = 'false';
       }
-      console.log(' editButton.textContent:', editButton.textContent);
-      console.log(' discardButton.hidden:', discardButton.hidden);
-      console.log(' newPublishButton.disabled:', newPublishButton.disabled);
-      console.log(' newPreviewButton.disabled:', newPreviewButton.disabled);
-      console.log(' tabsAside.dataset.unsavedChanges:', tabsAside.dataset.unsavedChanges);
       previewAndPublishButtons();
     };
 
