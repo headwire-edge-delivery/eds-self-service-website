@@ -44,7 +44,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     return;
   }
 
-  const tabsAside = document.querySelector('aside.tabs-aside');
+  const tabsAside = container.closest('.tabs-content').querySelector('aside.tabs-aside');
   const queryParams = readQueryParams();
   let selectedSheet = indexData.find((s) => s.path === queryParams.path);
   if (!selectedSheet) {
@@ -91,20 +91,20 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     let sheetData = transformEmptyRow(sheet.data.slice(1), headers);
     let originalSheetData = structuredClone(sheetData);
     contentChanged = () => !isSame(sheetData, originalSheetData);
-    const discardButton = document.getElementById('discard-changes');
+    const discardButton = container.querySelector('#discard-changes');
 
     const setButtonText = () => {
-      const table = document.querySelector('.sheet');
+      const table = container.querySelector('.sheet');
       const currentMode = table.getAttribute('data-editMode');
-      const editButton = document.getElementById('edit-sheet');
+      const editButton = container.querySelector('#edit-sheet');
       // makes sure, that the existing event listeners are removed before adding a new one
-      const previewButton = document.getElementById('preview-sheet');
-      const publishButton = document.getElementById('publish-sheet');
+      const previewButton = container.querySelector('#preview-sheet');
+      const publishButton = container.querySelector('#publish-sheet');
       previewButton.replaceWith(previewButton.cloneNode(true));
       publishButton.replaceWith(publishButton.cloneNode(true));
-      const newPreviewButton = document.getElementById('preview-sheet');
+      const newPreviewButton = container.querySelector('#preview-sheet');
       newPreviewButton.innerHTML = 'Preview';
-      const newPublishButton = document.getElementById('publish-sheet');
+      const newPublishButton = container.querySelector('#publish-sheet');
       newPublishButton.innerHTML = 'Publish';
       const previewAndPublishButtons = async () => {
         const org = 'headwire-self-service';
@@ -253,14 +253,14 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
 
       if (sheetEditMode()) {
         // Add New Row button
-        const addRowContainer = document.querySelector('#add-row-container');
+        const addRowContainer = container.querySelector('#add-row-container');
         if (addRowContainer) addRowContainer.remove(); // Clean up the previous button
         sheetTable.insertAdjacentHTML(
           'afterend',
           '<div id="add-row-container"><button id="add-row" class="button action">New Row</button></div>',
         );
 
-        document.querySelector('#add-row').addEventListener('click', () => {
+        container.querySelector('#add-row').addEventListener('click', () => {
           sheetTable.insertAdjacentHTML('beforeend', generateEmptyRow(tableData));
           generateSheetTable(tableData);
         });
@@ -284,7 +284,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
           button.addEventListener('click', removeRow);
         });
       } else {
-        const addRowButton = document.querySelector('#add-row-container');
+        const addRowButton = container.querySelector('#add-row-container');
         if (addRowButton) addRowButton.remove();
       }
       setButtonText();
@@ -298,17 +298,17 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     const sheetButtons = container.querySelector('#sheet-buttons');
 
     // Removes the existing event listeners before adding a new one
-    const editButton = document.getElementById('edit-sheet');
+    const editButton = container.querySelector('#edit-sheet');
     editButton.replaceWith(editButton.cloneNode(true));
-    const newEditButton = document.getElementById('edit-sheet');
+    const newEditButton = container.querySelector('#edit-sheet');
     newEditButton.addEventListener('click', async () => {
-      const table = document.querySelector('.sheet');
+      const table = container.querySelector('.sheet');
       const currentMode = table.getAttribute('data-editMode');
       const disableInputs = (bool = true) => {
         table.querySelectorAll('input').forEach((input) => {
           // NOSONAR
           input.disabled = bool;
-          document.getElementById('sheet-select').disabled = bool;
+          container.querySelector('#sheet-select').disabled = bool;
           discardButton.disabled = bool;
           sheetButtons.querySelectorAll('button').forEach((button) => {
             button.disabled = bool;
@@ -354,9 +354,9 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       });
     });
 
-    const lockButton = document.getElementById('lock-button');
+    const lockButton = container.querySelector('#lock-button');
     lockButton.replaceWith(lockButton.cloneNode(true));
-    const newLockButton = document.getElementById('lock-button');
+    const newLockButton = container.querySelector('#lock-button');
     newLockButton.addEventListener('click', () => {
       if (!isProtected || !confirmUnsavedChanges(tabsAside)) {
         return;
@@ -364,35 +364,44 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       const handleLock = () => {
         sheetData = structuredClone(originalSheetData);
         isLocked = !isLocked;
-        document.getElementById('sheet-table').setAttribute('data-editMode', 'false');
-        document.getElementById('lock-svg').src = `/icons/${isLocked ? 'locked' : 'unlocked'}.svg`;
-        document.getElementById('edit-sheet').disabled = isLocked;
-        document.getElementById('preview-sheet').disabled = isLocked;
-        document.getElementById('publish-sheet').disabled = isLocked;
+        container.querySelector('#sheet-table').setAttribute('data-editMode', 'false');
+        container.querySelector('#lock-svg').src = `/icons/${isLocked ? 'locked' : 'unlocked'}.svg`;
+        container.querySelector('#edit-sheet').disabled = isLocked;
+        container.querySelector('#preview-sheet').disabled = isLocked;
+        container.querySelector('#publish-sheet').disabled = isLocked;
         generateSheetTable();
       };
+
       if (isLocked) {
+        const unlockButton = parseFragment(
+          '<button class="button action destructive" id="lock-unlock">Unlock (not recommended)</button>',
+        );
+        const cancelUnlockButton = parseFragment(
+          '<button class="button action primary" id="lock-discard">Discard</button>',
+        );
+
         const lockDialog = createDialog(
           `<div id="protected-sheet-info">
           <p>You are in the process of removing the protection, which allows you to edit the spreadsheet.</p>
           <strong>We recommend that you do not do this, as this is not usually necessary.</strong>
           <p>Please only proceed if you know what you are doing.</p></div>`,
           [
-            parseFragment(
-              '<button class="button action destructive" id="lock-unlock">Unlock (not recommended)</button>',
-            ),
-            parseFragment(
-              '<button class="button action primary" id="lock-discard">Discard</button>',
-            ),
+            unlockButton,
+            cancelUnlockButton,
           ],
+          { open: false },
         );
-        document.getElementById('lock-unlock').addEventListener('click', () => {
+
+        unlockButton.onclick = () => {
           handleLock();
           lockDialog.close();
-        });
-        document.getElementById('lock-discard').addEventListener('click', () => {
+        };
+
+        cancelUnlockButton.onclick = () => {
           lockDialog.close();
-        });
+        };
+
+        lockDialog.showModal();
       } else {
         handleLock();
       }
@@ -434,7 +443,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     <button id="preview-publish-info-button" class="button transparent"><img src="/icons/help-dark.svg" alt="hint icon" /></button></div>
   <div class="spreadsheet-table-container"><table id="sheet-table" class="sheet" data-editMode="false"></table></div>
   </div>`;
-  const previewPublishInfoButton = document.getElementById('preview-publish-info-button');
+  const previewPublishInfoButton = container.querySelector('#preview-publish-info-button');
   previewPublishInfoButton.addEventListener('click', () => {
     createDialog(
       `<div id="preview-publish-info">
@@ -450,7 +459,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     );
   });
 
-  const sheetSelect = document.getElementById('sheet-select');
+  const sheetSelect = container.querySelector('#sheet-select');
   sheetSelect.value = sheetID;
   sheetSelect.addEventListener('change', async (event) => {
     if (!confirmUnsavedChanges(tabsAside)) {
@@ -462,11 +471,11 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     [selectedRange] = selectedSheet.ranges;
     isProtected = selectedSheet.protected;
     isLocked = isProtected;
-    document.getElementById('edit-sheet').disabled = isLocked;
-    const lockButton = document.getElementById('lock-button');
+    container.querySelector('#edit-sheet').disabled = isLocked;
+    const lockButton = container.querySelector('#lock-button');
     if (isProtected && lockButton) {
-      document.querySelector('.sheet').setAttribute('data-editMode', 'false');
-      document.getElementById('lock-svg').src = '/icons/locked.svg';
+      container.querySelector('.sheet').setAttribute('data-editMode', 'false');
+      container.querySelector('#lock-svg').src = '/icons/locked.svg';
       lockButton.removeAttribute('disabled');
     } else {
       lockButton?.setAttribute('disabled', '');
@@ -487,7 +496,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   window.addEventListener('keydown', (event) => {
     if (event.ctrlKey && event.key === 's') {
       event.preventDefault();
-      document.getElementById('edit-sheet').click();
+      container.querySelector('#edit-sheet').click();
     }
   });
 }
