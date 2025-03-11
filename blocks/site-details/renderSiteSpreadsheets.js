@@ -1,7 +1,9 @@
 import {
   OOPS,
   SCRIPT_API,
+  defaultBranch,
   parseFragment,
+  projectRepo,
   safeText,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
@@ -63,6 +65,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   let contentChanged = () => false;
 
   const fetchAndRenderSheet = async (selected) => {
+    container.inert = true;
     selectedSheet = selected;
     sheetID = selectedSheet.id;
     sheetName = selectedSheet.name;
@@ -94,6 +97,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     const discardButton = container.querySelector('#discard-changes');
 
     const setButtonText = () => {
+      console.log('\x1b[34m ~ setButtonText:');
       const table = container.querySelector('.sheet');
       const currentMode = table.getAttribute('data-editMode');
       const editButton = container.querySelector('#edit-sheet');
@@ -107,11 +111,9 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       const newPublishButton = container.querySelector('#publish-sheet');
       newPublishButton.innerHTML = 'Publish';
       const previewAndPublishButtons = async () => {
-        const org = 'headwire-self-service';
         const site = siteSlug;
-        const ref = 'main';
         const { path } = selectedSheet;
-        const publishPreviewURL = `https://admin.hlx.page/preview/${org}/${site}/${ref}${path}.json`;
+        const publishPreviewURL = `https://admin.hlx.page/preview/${projectRepo}/${site}/${defaultBranch}${path}.json`;
         // eslint-disable-next-line consistent-return
         const post = async (previewOrPublish = 'Preview', url = publishPreviewURL) => {
           const showButtonLoading = (bool = true) => {
@@ -159,7 +161,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         });
 
         newPublishButton.addEventListener('click', async () => {
-          const publishUrl = `https://admin.hlx.page/live/${org}/${site}/${ref}${path}.json`;
+          const publishUrl = `https://admin.hlx.page/live/${projectRepo}/${site}/${defaultBranch}${path}.json`;
           const previewResponse = await post('PreviewAndPublish');
           if (previewResponse?.ok) {
             await post('Publish', publishUrl);
@@ -190,6 +192,11 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         newPreviewButton.disabled = false;
         tabsAside.dataset.unsavedChanges = 'false';
       }
+      console.log(' editButton.textContent:', editButton.textContent);
+      console.log(' discardButton.hidden:', discardButton.hidden);
+      console.log(' newPublishButton.disabled:', newPublishButton.disabled);
+      console.log(' newPreviewButton.disabled:', newPreviewButton.disabled);
+      console.log(' tabsAside.dataset.unsavedChanges:', tabsAside.dataset.unsavedChanges);
       previewAndPublishButtons();
     };
 
@@ -408,6 +415,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     });
 
     generateSheetTable();
+    container.inert = false;
   };
 
   // Initial render
