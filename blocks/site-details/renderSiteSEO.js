@@ -273,12 +273,19 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
   const limit = Math.max(1, parseInt(params.seoLimit, 10) || 5);
   const startPage = Math.max(1, parseInt(params.seoPage, 10) || 1);
 
-  document.addEventListener('visibilitychange', () => {
+  const thisRenderRef = container.children[0];
+  const visibilityHandler = () => {
+    if (!document.body.contains(thisRenderRef)) {
+      // remove self if container was removed (other tab opened)
+      document.removeEventListener('visibilitychange', visibilityHandler);
+      return;
+    }
     if (document.hidden) return;
     tableBody.querySelectorAll('tr').forEach((row) => {
       row.populate(true); // repopulate with forced refetch
     });
-  });
+  };
+  document.addEventListener('visibilitychange', visibilityHandler);
 
   // add pagination after table
   table.after(paginator(filteredIndex.length, limit, startPage, { page: 'seoPage' }, ({ rangeStart, rangeEnd }) => {
