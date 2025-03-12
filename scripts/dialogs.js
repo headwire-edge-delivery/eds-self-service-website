@@ -1,7 +1,21 @@
 import { loadCSS } from './aem.js';
 
 loadCSS(`${window.hlx.codeBasePath}/styles/dialogs.css`);
-
+/**
+ * Creates a dialog element with specified content and buttons.
+ *
+ * @param {HTMLElement | string} contentDiv - The content to be displayed inside the dialog.
+ * @param {HTMLElement[]} buttons - Array of button elements to be included in the dialog.
+ * Generally button onclicks should be added before createDialog is ran.
+ * If you require the dialog element for them, set options.open to false and run showModal() after.
+ * @param {Object} options - Configuration options for the dialog.
+ * @param {boolean} [options.open=true] - Whether the dialog should be opened immediately.
+ * @param {Function} [options.onCloseFn] - Callback function to be called when the dialog is closed.
+ * @param {boolean} [options.fullscreen] - Whether dialog should be displayed in fullscreen mode.
+ * @param {boolean} [options.surviveClose=false] - Whether dialog element should
+ * exist in DOM after close.
+ * @returns {HTMLDialogElement} The created dialog element.
+ */
 export const createDialog = (contentDiv, buttons, {
   open = true, onCloseFn, fullscreen, surviveClose = false,
 } = {}) => {
