@@ -209,7 +209,11 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
       const initRow = (row) => {
         // MARK: populate row
         // assign a populate function to each row
-        row.populate = async () => {
+        row.populate = async (forceRefetch = false) => {
+          if (forceRefetch) {
+            row.dataset.isPopulated = 'false';
+            row.dataset.forceRefetch = 'true';
+          }
           // Prevent populating rows that are not displayed
           if (row.dataset.environment !== container.dataset.showEnvironment) return;
           // Rows are only removed if you change pages, so check if populated.
@@ -236,7 +240,8 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
             editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
           }
           // Cached fetch in case user comes back to this page through pagination.
-          const response = await cacheFetch(row.dataset.fetchUrl);
+          const response = await cacheFetch(row.dataset.fetchUrl, undefined, 'text', row.dataset.forceRefetch === 'true');
+          row.dataset.forceRefetch = 'false';
           ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
             const type = metaProperty.startsWith('og:') ? 'property' : 'name';
 
@@ -267,6 +272,13 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
 
   const limit = Math.max(1, parseInt(params.seoLimit, 10) || 5);
   const startPage = Math.max(1, parseInt(params.seoPage, 10) || 1);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    tableBody.querySelectorAll('tr').forEach((row) => {
+      row.populate(true); // repopulate with forced refetch
+    });
+  });
 
   // add pagination after table
   table.after(paginator(filteredIndex.length, limit, startPage, { page: 'seoPage' }, ({ rangeStart, rangeEnd }) => {
