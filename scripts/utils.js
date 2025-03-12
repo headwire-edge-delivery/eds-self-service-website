@@ -34,13 +34,15 @@ const fetchCache = {};
  * @param {string} [parseMethod='text'] - The method to parse the response (e.g., 'text', 'json').
  * @returns {Promise<Object|null>} The response object with dataText or null if an error occurs.
  */
-export async function cacheFetch(url, fetchOptions, parseMethod = 'text') {
-  if (fetchCache[url] instanceof Promise) {
-    const result = await fetchCache[url];
-    return result;
-  }
-  if (fetchCache[url] !== undefined) {
-    return fetchCache[url];
+export async function cacheFetch(url, fetchOptions, parseMethod = 'text', forceRefetch = false) {
+  if (!forceRefetch) {
+    if (fetchCache[url] instanceof Promise) {
+      const result = await fetchCache[url];
+      return result;
+    }
+    if (fetchCache[url] !== undefined) {
+      return fetchCache[url];
+    }
   }
 
   fetchCache[url] = await fetch(url, fetchOptions).then(async (res) => {
