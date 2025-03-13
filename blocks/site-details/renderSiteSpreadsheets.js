@@ -31,38 +31,42 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   // TODO: fix all XSS issues
   // will likely require big refactor
 
-  // container.innerHTML = `
-  //   <div class="sheets-wrapper">
-  //     <div class="selection-controls">
-  //       <div id="spreadsheet-selector">
+  container.innerHTML = `
+    <div class="sheets-wrapper">
+      <div class="selection-controls">
+        <div id="spreadsheet-selector">
+          ${renderSkeleton('sheets:select')}
+        </div>
+        <div id="sheet-buttons">
+          ${renderSkeleton('sheets:titles')}
+        </div>
+      </div>
 
-  //       </div>
-  //       <div id="sheet-buttons">
+      <div class="spreadsheet-content-wrapper">
+        <div class="spreadsheet-header">
+          ${renderSkeleton('sheets:controls')}
+          <!--
+          <div class="spreadsheet-name-wrapper">
+            <h2 id="spreadsheet-name"></h2>
+          </div>
+          <div class="spreadsheet-controls"></div>
+          -->
+        </div>
 
-  //       </div>
-  //     </div>
-
-  //     <div class="spreadsheet-content-wrapper">
-  //       <div class="spreadsheet-header">
-  //         <div class="spreadsheet-name-wrapper">
-  //           <h2 id="spreadsheet-name"></h2>
-  //         </div>
-  //         <div class="spreadsheet-controls"></div>
-  //       </div>
-
-  //       <div class="spreadsheet-table-wrapper">
-  //         <table id="spreadsheet-table">
-
-  //         </table>
-  //       </div>
-  //     </div>
-  //   </div>
-  // `
+        <div class="spreadsheet-table-wrapper">
+          <table id="spreadsheet-table">
+            ${renderSkeleton('sheets:table-content')}
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+  const sheetsWrapper = container.children[0];
+  let currentSheet = null;
+  let currentSheetTitle = '';
 
   // const sheetsWrapper = container.querySelector('.sheets-wrapper')
   // const spreadsheet
-
-
 
   const sheetIndexData = await fetch(`${SCRIPT_API}/sheetsIndex/${siteSlug}`)
     .then((res) => res.json())
@@ -85,6 +89,59 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     container.innerHTML = `<p>${OOPS}</p>`;
     return;
   }
+  console.log(' sheetIndexData:', sheetIndexData);
+
+  // Not using innerHTML to avoid XSS
+  const selectorWrapper = container.querySelector('#spreadsheet-selector');
+  selectorWrapper.innerHTML = '<label for="sheet-select">Choose a Spreadsheet to edit:</label>';
+  const sheetSelectEl = document.createElement('select');
+  sheetSelectEl.id = 'sheet-select';
+  sheetSelectEl.name = 'sheets';
+  sheetIndexData.forEach((sheet, index) => {
+    const option = document.createElement('option');
+    option.dataset.sheetId = sheet.id;
+    option.value = index;
+    option.innerText = sheet.name;
+    option.name = sheet.name;
+    sheetSelectEl.append(option);
+  });
+  selectorWrapper.append(sheetSelectEl);
+  // TODO: search param
+  currentSheet = sheetIndexData[Number(sheetSelectEl.value)];
+
+  const sheetTitleWrapper = container.querySelector('#sheet-buttons');
+  const loadTitles = async (forSheet = currentSheet) => {
+    sheetTitleWrapper.innerHTML = '';
+    const titles = await fetch(`${SCRIPT_API}/sheetTitles/${siteSlug}/${forSheet.id}`, { headers: { authorization: `bearer ${token}` } })
+      .then((res) => res.json())
+      .catch(() => null);
+    console.log(' titles:', titles);
+    if (!titles?.length) {
+      sheetTitleWrapper.innerHTML = OOPS;
+      // TODO: empty table if not already done?
+    }
+
+    titles.forEach((title) => {
+      const button = document.createElement('button');
+      button.classList.add('button', 'action');
+      button.dataset.sheetTitle = title;
+      button.textContent = title;
+
+      button.onclick = () => {
+        for (let i = 0; i < sheetTitleWrapper.children.length; i += 1) {
+          sheetTitleWrapper.children[i].classList.remove('active');
+        }
+        button.classList.add('active');
+        currentSheetTitle = button.dataset.sheetTitle;
+        // TODO: load table data
+      };
+
+      sheetTitleWrapper.append(button);
+    });
+  };
+  await loadTitles();
+
+  return;
 
   // TODO: on selected instead
   await Promise.all(sheetIndexData.map(async (sheetIndex) => {

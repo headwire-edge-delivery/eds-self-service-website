@@ -116,14 +116,20 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === 'sheets:controls') {
+  if (type === 'sheets:select') {
     return `
       <div class="skeleton" style="width: 200px; height: 20px;margin-bottom: 8px;"></div>
       <div class="skeleton" style="width: 100%; height: 37px;margin-bottom: 8px;"></div>
-      <div class="skeleton" style="width: 100px; height: 34px;margin-bottom: 8px;"></div>
     `;
   }
   if (type === 'sheets:titles') {
+    return `
+      <div class="skeleton" style="width: 100px; height: 34px;margin-bottom: 8px;"></div>
+      <div class="skeleton" style="width: 100px; height: 34px;margin-bottom: 8px;"></div>
+      <div class="skeleton" style="width: 100px; height: 34px;margin-bottom: 8px;"></div>
+    `;
+  }
+  if (type === 'sheets:controls') {
     return `
       <div style="display: flex; flex-direction: row; gap: 16px;">
         <div class="skeleton" style="width: 120px; height: 30px;margin-bottom: 8px;"></div>
