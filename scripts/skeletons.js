@@ -116,6 +116,44 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
+  if (type === 'sheets:controls') {
+    return `
+      <div class="skeleton" style="width: 200px; height: 20px;margin-bottom: 8px;"></div>
+      <div class="skeleton" style="width: 100%; height: 37px;margin-bottom: 8px;"></div>
+      <div class="skeleton" style="width: 100px; height: 34px;margin-bottom: 8px;"></div>
+    `;
+  }
+  if (type === 'sheets:titles') {
+    return `
+      <div style="display: flex; flex-direction: row; gap: 16px;">
+        <div class="skeleton" style="width: 120px; height: 30px;margin-bottom: 8px;"></div>
+        <div class="skeleton" style="width: 50px; height: 30px;margin-bottom: 8px;"></div>
+        <div class="skeleton" style="width: 60px; height: 30px;margin-bottom: 8px;"></div>
+        <div class="skeleton" style="width: 80px; height: 30px;margin-bottom: 8px;"></div>
+        <div class="skeleton" style="width: 75px; height: 30px;margin-bottom: 8px;"></div>
+        <div class="skeleton" style="width: 24px; height: 30px;margin-bottom: 8px;"></div>
+      </div>
+    `;
+  }
+  if (type === 'sheets:table-content') {
+    const rows = [...Array(10)].map(() => `
+      <tr>
+        <td><div class="skeleton" style="width: 100%; height: 30px;"></div></td>
+        <td><div class="skeleton" style="width: 100%; height: 30px;"></div></td>
+      </tr>
+    `).join('');
+    return `
+        <thead>
+            <tr>
+                <th><div class="skeleton" style="width: 100%;height: 24px;"></div></th>
+                <th><div class="skeleton" style="width: 100%;height: 24px;"></div></th>
+            </tr>
+        </thead>
+        <tbody>
+            ${rows}
+        </tbody>
+    `;
+  }
   if (type === 'sheets') {
     const rows = [...Array(10)].map(() => `
       <tr>

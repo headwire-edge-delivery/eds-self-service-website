@@ -20,11 +20,51 @@ const protectedPaths = ['/query-index', '/search-index'];
 
 // MARK: render
 export default async function renderSiteSpreadsheets({ container, renderOptions }) {
-  const { siteSlug, projectDetails } = renderOptions;
-  const { customLiveUrl, customPreviewUrl } = projectDetails;
   container.innerHTML = renderSkeleton('sheets');
 
-  const indexData = await fetch(`${SCRIPT_API}/sheets/${siteSlug}`)
+  const { siteSlug, projectDetails } = renderOptions;
+  const { customLiveUrl, customPreviewUrl } = projectDetails;
+
+  const token = await window.auth0Client.getTokenSilently();
+
+  // TODO: load content & sheet titles dynamically as we need them, replacing skeletons
+  // TODO: fix all XSS issues
+  // will likely require big refactor
+
+  // container.innerHTML = `
+  //   <div class="sheets-wrapper">
+  //     <div class="selection-controls">
+  //       <div id="spreadsheet-selector">
+
+  //       </div>
+  //       <div id="sheet-buttons">
+
+  //       </div>
+  //     </div>
+
+  //     <div class="spreadsheet-content-wrapper">
+  //       <div class="spreadsheet-header">
+  //         <div class="spreadsheet-name-wrapper">
+  //           <h2 id="spreadsheet-name"></h2>
+  //         </div>
+  //         <div class="spreadsheet-controls"></div>
+  //       </div>
+
+  //       <div class="spreadsheet-table-wrapper">
+  //         <table id="spreadsheet-table">
+
+  //         </table>
+  //       </div>
+  //     </div>
+  //   </div>
+  // `
+
+  // const sheetsWrapper = container.querySelector('.sheets-wrapper')
+  // const spreadsheet
+
+
+
+  const sheetIndexData = await fetch(`${SCRIPT_API}/sheetsIndex/${siteSlug}`)
     .then((res) => res.json())
     .then((data) => {
       if (data?.data) {
@@ -41,17 +81,26 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     })
     .catch(() => null);
 
-  if (!indexData.length) {
+  if (!sheetIndexData.length) {
     container.innerHTML = `<p>${OOPS}</p>`;
     return;
   }
 
+  // TODO: on selected instead
+  await Promise.all(sheetIndexData.map(async (sheetIndex) => {
+    const sheetTitles = await fetch(`${SCRIPT_API}/sheetTitles/${siteSlug}/${sheetIndex.id}`, { headers: { authorization: `bearer ${token}` } })
+      .then((res) => res.json())
+      .catch(() => null);
+    sheetIndex.ranges = sheetTitles || [];
+  }));
+  console.log(' sheetIndexData:', sheetIndexData);
+
   const tabsAside = container.closest('.tabs-content').querySelector('aside.tabs-aside');
   const queryParams = readQueryParams();
-  let selectedSheet = indexData.find((s) => s.path === queryParams.path);
+  let selectedSheet = sheetIndexData.find((s) => s.path === queryParams.path);
   if (!selectedSheet) {
     removeQueryParams(['path']);
-    [selectedSheet] = indexData;
+    [selectedSheet] = sheetIndexData;
   }
   let sheetID = selectedSheet.id;
   let sheetName = selectedSheet.name;
@@ -418,7 +467,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   <div id="spreadsheets-selector">
   <label for="sheet-select">Choose a Spreadsheet to edit:</label>
   <select name="sheets" id="sheet-select">
-  ${indexData.map((data) => `<option value="${data.id}">${data.name}</option>`).join('')}
+  ${sheetIndexData.map((data) => `<option value="${data.id}">${data.name}</option>`).join('')}
   </select>
   <div id="sheet-buttons">${selectedSheet.ranges
     .map((range) => `<button class="button action">${range}</button>`)
@@ -469,7 +518,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       return;
     }
     sheetID = event.target.value;
-    [selectedSheet] = indexData.filter((s) => s.id === sheetID);
+    [selectedSheet] = sheetIndexData.filter((s) => s.id === sheetID);
     [selectedRange] = selectedSheet.ranges;
     isProtected = selectedSheet.protected;
     isLocked = isProtected;
