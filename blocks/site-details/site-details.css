@@ -244,10 +244,6 @@
   border-radius: var(--small-border-radius);
 }
 
-.site-details.block .tab-content[inert] {
-  opacity: 0.7;
-}
-
 .site-details.block .tab-content.seo span.previewed,
 .site-details.block .tab-content.seo span.published {
   display: none;
@@ -402,8 +398,7 @@ dialog .clicked-links li {
   align-items: center;
 }
 
-.site-details.block .checklist .checklist-item[inert] {
-  opacity: 0.7;
+.site-details.block .checklist .checklist-item {
   background-color: var(--light-gray);
 }
 

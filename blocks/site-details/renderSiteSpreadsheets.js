@@ -4,7 +4,6 @@ import {
   defaultBranch,
   parseFragment,
   projectRepo,
-  safeText,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { isSame, transformEmptyRow, confirmUnsavedChanges } from '../../scripts/utils.js';
@@ -26,47 +25,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   const { customLiveUrl, customPreviewUrl } = projectDetails;
 
   const token = await window.auth0Client.getTokenSilently();
-
-  // TODO: load content & sheet titles dynamically as we need them, replacing skeletons
-  // TODO: fix all XSS issues
-  // will likely require big refactor
-
-  container.innerHTML = `
-    <div class="sheets-wrapper">
-      <div class="selection-controls">
-        <div id="spreadsheet-selector">
-          ${renderSkeleton('sheets:select')}
-        </div>
-        <div id="sheet-buttons">
-          ${renderSkeleton('sheets:titles')}
-        </div>
-      </div>
-
-      <div class="spreadsheet-content-wrapper">
-        <div class="spreadsheet-header">
-          ${renderSkeleton('sheets:controls')}
-          <!--
-          <div class="spreadsheet-name-wrapper">
-            <h2 id="spreadsheet-name"></h2>
-          </div>
-          <div class="spreadsheet-controls"></div>
-          -->
-        </div>
-
-        <div class="spreadsheet-table-wrapper">
-          <table id="spreadsheet-table">
-            ${renderSkeleton('sheets:table-content')}
-          </table>
-        </div>
-      </div>
-    </div>
-  `;
-  const sheetsWrapper = container.children[0];
-  let currentSheet = null;
-  let currentSheetTitle = '';
-
-  // const sheetsWrapper = container.querySelector('.sheets-wrapper')
-  // const spreadsheet
 
   const sheetIndexData = await fetch(`${SCRIPT_API}/sheetsIndex/${siteSlug}`)
     .then((res) => res.json())
@@ -90,58 +48,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     return;
   }
   console.log(' sheetIndexData:', sheetIndexData);
-
-  // Not using innerHTML to avoid XSS
-  const selectorWrapper = container.querySelector('#spreadsheet-selector');
-  selectorWrapper.innerHTML = '<label for="sheet-select">Choose a Spreadsheet to edit:</label>';
-  const sheetSelectEl = document.createElement('select');
-  sheetSelectEl.id = 'sheet-select';
-  sheetSelectEl.name = 'sheets';
-  sheetIndexData.forEach((sheet, index) => {
-    const option = document.createElement('option');
-    option.dataset.sheetId = sheet.id;
-    option.value = index;
-    option.innerText = sheet.name;
-    option.name = sheet.name;
-    sheetSelectEl.append(option);
-  });
-  selectorWrapper.append(sheetSelectEl);
-  // TODO: search param
-  currentSheet = sheetIndexData[Number(sheetSelectEl.value)];
-
-  const sheetTitleWrapper = container.querySelector('#sheet-buttons');
-  const loadTitles = async (forSheet = currentSheet) => {
-    sheetTitleWrapper.innerHTML = '';
-    const titles = await fetch(`${SCRIPT_API}/sheetTitles/${siteSlug}/${forSheet.id}`, { headers: { authorization: `bearer ${token}` } })
-      .then((res) => res.json())
-      .catch(() => null);
-    console.log(' titles:', titles);
-    if (!titles?.length) {
-      sheetTitleWrapper.innerHTML = OOPS;
-      // TODO: empty table if not already done?
-    }
-
-    titles.forEach((title) => {
-      const button = document.createElement('button');
-      button.classList.add('button', 'action');
-      button.dataset.sheetTitle = title;
-      button.textContent = title;
-
-      button.onclick = () => {
-        for (let i = 0; i < sheetTitleWrapper.children.length; i += 1) {
-          sheetTitleWrapper.children[i].classList.remove('active');
-        }
-        button.classList.add('active');
-        currentSheetTitle = button.dataset.sheetTitle;
-        // TODO: load table data
-      };
-
-      sheetTitleWrapper.append(button);
-    });
-  };
-  await loadTitles();
-
-  return;
 
   // TODO: on selected instead
   await Promise.all(sheetIndexData.map(async (sheetIndex) => {
@@ -175,29 +81,38 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     selectedSheet = selected;
     sheetID = selectedSheet.id;
     sheetName = selectedSheet.name;
-    container.querySelector('#sheet-buttons').innerHTML = selectedSheet.ranges
-      .map(
-        (range) => `<button class="button action ${
-          selectedRange === range ? 'active' : 'secondary'
-        }" id="sheet-button-${range}">${range}</button>`,
-      )
-      .join('');
-    const token = await window.auth0Client.getTokenSilently();
+    const sheetButtonsWrapper = container.querySelector('#sheet-buttons');
+    sheetButtonsWrapper.innerHTML = '';
+    selectedSheet.ranges.forEach((range) => {
+      const button = document.createElement('button');
+      button.classList.add('button', 'action', selectedRange === range ? 'active' : 'secondary');
+      button.dataset.range = range;
+      button.innerText = range;
+      sheetButtonsWrapper.append(button);
+    });
     const auth = { authorization: `bearer ${token}` };
-    const sheet = await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${selectedRange}!A:Z`, {
+    const sheet = await fetch(`${SCRIPT_API}/sheetData/${siteSlug}/${sheetID}?range=${encodeURIComponent(selectedRange)}`, {
       headers: { ...auth, 'content-type': 'application/json' },
     })
       .then((res) => res.json())
       .catch(() => null);
 
+    console.log(' sheet:', sheet);
     if (!sheet) {
       container.innerHTML = `<p>${OOPS}</p>`;
       return;
     }
 
     const sheetTable = container.querySelector('.sheet');
-    const headers = sheet.data[0];
-    let sheetData = transformEmptyRow(sheet.data.slice(1), headers);
+    // if (!sheet.length) {
+    //   sheetTable.innerHTML = '<tbody><tr><td>No data found</td></tr></tbody>';
+    //   container.inert = false;
+    //   return;
+    // }
+
+    const headers = sheet[0] || [];
+    let sheetData = transformEmptyRow(sheet.slice(1), headers);
+    console.log(' sheetData:', sheetData);
     let originalSheetData = structuredClone(sheetData);
     contentChanged = () => !isSame(sheetData, originalSheetData);
     const discardButton = container.querySelector('#discard-changes');
@@ -212,9 +127,9 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       previewButton.replaceWith(previewButton.cloneNode(true));
       publishButton.replaceWith(publishButton.cloneNode(true));
       const newPreviewButton = container.querySelector('#preview-sheet');
-      newPreviewButton.innerHTML = 'Preview';
+      newPreviewButton.innerText = 'Preview';
       const newPublishButton = container.querySelector('#publish-sheet');
-      newPublishButton.innerHTML = 'Publish';
+      newPublishButton.innerText = 'Publish';
       const previewAndPublishButtons = async () => {
         const site = siteSlug;
         const { path } = selectedSheet;
@@ -303,22 +218,28 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     const generateEmptyRow = (tableData) => {
       const newRowIndex = tableData.length;
       tableData.push(headers.map(() => ''));
-      return `<tr>
-          ${headers
-    .map(
-      (column, colIndex) => `<td><div><input type="text" 
-                            data-row="${newRowIndex}" 
-                            data-col="${colIndex}" 
-                            placeholder="${column}" /></div></td>`,
-    )
-    .join('')}
-          <td class="delete-row"><button class="button action secondary destructive">Remove</button></td>
-        </tr>`;
+      const tr = document.createElement('tr');
+      headers.forEach((column, colIndex) => {
+        const td = document.createElement('td');
+        const wrapperDiv = document.createElement('div');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = column;
+        input.dataset.row = newRowIndex;
+        input.dataset.col = colIndex;
+        wrapperDiv.append(input);
+        td.append(wrapperDiv);
+        tr.append(td);
+      });
+      tr.append(parseFragment('<td class="delete-row"><button class="button action secondary destructive">Remove</button></td>'));
+      return tr;
     };
 
     const sheetEditMode = () => sheetTable.getAttribute('data-editMode') === 'true';
 
     const generateSheetTable = (tableData = sheetData) => {
+      const spreadsheetTitle = container.querySelector('.spreadsheet-title');
+      spreadsheetTitle.inert = false; // reset
       const removeRow = (event) => {
         const button = event.target;
         if (button.tagName === 'BUTTON' && button.textContent === 'Remove') {
@@ -329,34 +250,63 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
           }
         }
       };
-      sheetTable.innerHTML = `
-      <thead>
-      <tr>
-      ${headers.map((column) => `<th>${column}</th>`).join('')}
-      ${sheetEditMode() ? '<th></th>' : ''}
-        </tr>
-        </thead>
-      <tbody>
-      ${tableData
-    .map(
-      (array, rowIndex) => `
-        <tr>
-        ${array
-    .map((value, colIndex) => (sheetEditMode() // NOSONAR
-      ? `<td><div><input type="text" placeholder="${headers[colIndex]}" value="${value}" data-row="${rowIndex}" data-col="${colIndex}" /></div></td>`
-      : `<td><span>${value}</span></td>`))
-    .join('')}
-        ${
-  sheetEditMode()
-    ? `<td class="delete-row"><button data-row="${rowIndex}" class="button action secondary destructive">Remove</button></td>`
-    : ''
-}
-        </tr>
-        `,
-    )
-    .join('')}
-      </tbody>
-      `;
+      sheetTable.innerHTML = '';
+
+      // populating without innerHTML to avoid XSS
+      const thead = document.createElement('thead');
+      const tbody = document.createElement('tbody');
+      sheetTable.append(thead, tbody);
+
+      const headerRow = document.createElement('tr');
+      thead.append(headerRow);
+      if (tableData.length < 1) {
+        headerRow.innerHTML = '<td>No data</td>';
+        spreadsheetTitle.inert = true; // disable controls if no data
+        return;
+      }
+
+      for (const item of headers) {
+        const th = document.createElement('th');
+        th.textContent = item;
+        headerRow.append(th);
+      }
+      // extra column for the remove button
+      if (sheetEditMode()) {
+        headerRow.append(document.createElement('th'));
+      }
+
+      for (let rowIndex = 0; rowIndex < tableData.length; rowIndex += 1) {
+        const tr = document.createElement('tr');
+        const row = tableData[rowIndex];
+
+        for (let colIndex = 0; colIndex < row.length; colIndex += 1) {
+          const item = row[colIndex];
+          const td = document.createElement('td');
+
+          if (sheetEditMode()) {
+            const inputWrapper = document.createElement('div');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = headers[colIndex];
+            input.value = item;
+            input.dataset.row = rowIndex;
+            input.dataset.col = colIndex;
+            inputWrapper.append(input);
+            td.append(inputWrapper);
+          } else {
+            const span = document.createElement('span');
+            span.textContent = item;
+            td.append(span);
+          }
+
+          tr.append(td);
+        }
+        if (sheetEditMode()) {
+          const deleteTd = parseFragment(`<td class="delete-row"><button data-row="${rowIndex}" class="button action secondary destructive">Remove</button></td>`);
+          tr.append(deleteTd);
+        }
+        tbody.append(tr);
+      }
 
       if (sheetEditMode()) {
         // Add New Row button
@@ -368,7 +318,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         );
 
         container.querySelector('#add-row').addEventListener('click', () => {
-          sheetTable.insertAdjacentHTML('beforeend', generateEmptyRow(tableData));
+          sheetTable.append(generateEmptyRow(tableData));
           generateSheetTable(tableData);
         });
 
@@ -425,21 +375,22 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       if (newEditButton.textContent === 'Save') {
         disableInputs();
         newEditButton.classList.add('loading');
-        await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${selectedRange}!A:Z`, {
+        const res = await fetch(`${SCRIPT_API}/sheetData/${siteSlug}/${sheetID}?range=${encodeURIComponent(selectedRange)}`, {
           method: 'PUT',
           headers: {
             ...auth,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify([headers, ...sheetData]),
-        })
-          .then((res) => {
-            newEditButton.classList.remove('loading');
-            disableInputs(false);
-            return res.json();
-          })
-          .catch(() => null);
-        originalSheetData = structuredClone(sheetData);
+        }).catch(() => null);
+        if (!res.ok) {
+          showErrorToast('Failed to save changes. Please try again.');
+        } else {
+          originalSheetData = structuredClone(sheetData);
+          showToast('Sheet saved.');
+        }
+        newEditButton.classList.remove('loading');
+        disableInputs(false);
       } else if (currentMode === 'false') {
         table.setAttribute('data-editMode', 'true');
       } else {
@@ -454,7 +405,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         if (!confirmUnsavedChanges(tabsAside)) {
           return;
         }
-        selectedRange = event.target.textContent;
+        selectedRange = event.target.dataset.range;
         container.querySelector('.sheet').innerHTML = renderSkeleton('sheetsTable');
         fetchAndRenderSheet(selectedSheet);
         writeQueryParams({ sheet: selectedRange });
@@ -524,15 +475,12 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   <div id="spreadsheets-selector">
   <label for="sheet-select">Choose a Spreadsheet to edit:</label>
   <select name="sheets" id="sheet-select">
-  ${sheetIndexData.map((data) => `<option value="${data.id}">${data.name}</option>`).join('')}
   </select>
-  <div id="sheet-buttons">${selectedSheet.ranges
-    .map((range) => `<button class="button action">${range}</button>`)
-    .join('')}</div>
+  <div id="sheet-buttons"></div>
   </div>
   <div class="spreadsheet-title">
     <div style="display: flex;">
-      <h2>${safeText(sheetName)}</h2>
+      <h2></h2>
       <button id="lock-button" class="button transparent" ${
   !isProtected && 'disabled'
 }><img src="/icons/${
@@ -567,7 +515,28 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     );
   });
 
+  const sheetTitle = container.querySelector('.spreadsheet-title h2');
+  sheetTitle.textContent = sheetName;
+
   const sheetSelect = container.querySelector('#sheet-select');
+  // no innerHTML to prevent XSS
+  sheetIndexData.forEach((sheet) => {
+    const option = document.createElement('option');
+    option.value = sheet.id;
+    option.textContent = sheet.name;
+    sheetSelect.append(option);
+  });
+
+  const sheetButtons = container.querySelector('#sheet-buttons');
+  // no innerHTML to prevent XSS
+  selectedSheet.ranges.forEach((range) => {
+    const button = document.createElement('button');
+    button.classList.add('button', 'action');
+    button.textContent = range;
+    button.dataset.range = range;
+    sheetButtons.append(button);
+  });
+
   sheetSelect.value = sheetID;
   sheetSelect.addEventListener('change', async (event) => {
     if (!confirmUnsavedChanges(tabsAside)) {
