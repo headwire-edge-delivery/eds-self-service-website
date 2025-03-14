@@ -1,4 +1,5 @@
 import {
+  EDS_API,
   OOPS,
   SCRIPT_API,
   defaultBranch,
@@ -53,8 +54,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
           -->
         </div>
 
-        <div class="spreadsheet-table-wrapper">
-          <table id="spreadsheet-table">
+        <div class="spreadsheet-table-container">
+          <table id="spreadsheet-table" class="sheet">
             ${renderSkeleton('sheets:table-content')}
           </table>
         </div>
@@ -64,6 +65,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   const sheetsWrapper = container.children[0];
   let currentSheet = null;
   let currentSheetTitle = '';
+  const table = container.querySelector('#spreadsheet-table');
+  const spreadSheetHeader = container.querySelector('.spreadsheet-header');
 
   // const sheetsWrapper = container.querySelector('.sheets-wrapper')
   // const spreadsheet
@@ -110,7 +113,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   currentSheet = sheetIndexData[Number(sheetSelectEl.value)];
 
   const sheetTitleWrapper = container.querySelector('#sheet-buttons');
-  const loadTitles = async (forSheet = currentSheet) => {
+  const renderTitleButtons = async (forSheet = currentSheet) => {
     sheetTitleWrapper.innerHTML = '';
     const titles = await fetch(`${SCRIPT_API}/sheetTitles/${siteSlug}/${forSheet.id}`, { headers: { authorization: `bearer ${token}` } })
       .then((res) => res.json())
@@ -119,11 +122,12 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     if (!titles?.length) {
       sheetTitleWrapper.innerHTML = OOPS;
       // TODO: empty table if not already done?
+      return;
     }
 
     titles.forEach((title) => {
       const button = document.createElement('button');
-      button.classList.add('button', 'action');
+      button.classList.add('button', 'action', 'secondary');
       button.dataset.sheetTitle = title;
       button.textContent = title;
 
@@ -138,19 +142,159 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
 
       sheetTitleWrapper.append(button);
     });
+
+    const buttonForCurrentSheetTitle = sheetTitleWrapper.querySelector(`[data-sheet-title="${currentSheetTitle}"]`) || sheetTitleWrapper.children[0];
+    buttonForCurrentSheetTitle.click();
   };
-  await loadTitles();
+
+  // MARK: render table
+  const renderTable = async (forSheet = currentSheet, forSheetTitle = currentSheetTitle, existingSheetData = null) => {
+    const sheetData = existingSheetData || await fetch(`${SCRIPT_API}/sheetData/${siteSlug}/${forSheet.id}?range=${encodeURIComponent(forSheetTitle)}`, { headers: { authorization: `bearer ${token}` } })
+      .then((res) => res.json())
+      .catch(() => null);
+
+    console.log(' sheetData:', sheetData);
+    if (!sheetData) {
+      table.innerHTML = `<p>${OOPS}</p>`;
+      spreadSheetHeader.innerHTML = '';
+      return;
+    }
+
+    spreadSheetHeader.innerHTML = `
+      <div class="spreadsheet-name-wrapper">
+        <h2 id="spreadsheet-name"></h2>
+        <div class="lock-wrapper">
+          <img src="/icons/locked.svg" alt="locked" id="locked-svg">
+          <img src="/icons/unlocked.svg" alt="locked" id="unlocked-svg">
+        </div>
+      </div>
+      <div class="spreadsheet-controls">
+        <button class="button action primary" id="edit-sheet">Edit</button>
+        <button class="button action primary" id="save-changes">Save</button>
+        <button class="button action secondary" id="edit-discard"><span data-edits-made>Discard</span><span data-no-changes>Back</span></button>
+        <a class="button action secondary" src="https://docs.google.com/spreadsheets/d/${forSheet.id}/edit" target="_blank" id="open-sheet">Open</a>
+        <button class="button action secondary preview" id="preview-sheet">Preview</button>
+        <button class="button action secondary publish" id="publish-sheet">Publish</button>
+      </div>
+    `;
+
+    const spreadsheetName = spreadSheetHeader.querySelector('#spreadsheet-name');
+    spreadsheetName.textContent = forSheet.name;
+
+    // MARK: button handlers
+    const editSheetButton = spreadSheetHeader.querySelector('#edit-sheet');
+    const saveChangesButton = spreadSheetHeader.querySelector('#save-changes');
+    const editDiscardButton = spreadSheetHeader.querySelector('#edit-discard');
+    const openSheetButton = spreadSheetHeader.querySelector('#open-sheet');
+    const previewSheetButton = spreadSheetHeader.querySelector('#preview-sheet');
+    const publishSheetButton = spreadSheetHeader.querySelector('#publish-sheet');
+
+    // TODO: lock handlers
+
+    editSheetButton.onclick = () => {
+      sheetsWrapper.dataset.mode = 'edit';
+      renderTable(forSheet, forSheetTitle, sheetData);
+    };
+    saveChangesButton.onclick = () => {};
+    editDiscardButton.onclick = () => {
+      sheetsWrapper.dataset.mode = 'view';
+      renderTable(forSheet, forSheetTitle, sheetData);
+    };
+
+    previewSheetButton.onclick = async () => {
+      previewSheetButton.classList.add('loading');
+      previewSheetButton.disabled = true;
+      publishSheetButton.disabled = true;
+
+      const response = await fetch(`${EDS_API}/preview/${projectRepo}/${siteSlug}/${defaultBranch}${forSheet.path}.json`);
+      if (!response?.ok) {
+        showErrorToast('Failed to preview sheet');
+      } else {
+        showToast(`Preview successfully updated: <a href="${projectDetails.customPreviewUrl + forSheet.path}.json" target="_blank">See the changes on your Preview sheet</a>`);
+      }
+
+      previewSheetButton.classList.remove('loading');
+      previewSheetButton.disabled = false;
+      publishSheetButton.disabled = false;
+      return response?.ok;
+    };
+
+    publishSheetButton.onclick = async () => {
+      publishSheetButton.classList.add('loading');
+      const previewResult = await previewSheetButton.onclick();
+      if (previewResult) {
+        previewSheetButton.disabled = true;
+        publishSheetButton.disabled = true;
+
+        const response = await fetch(`${EDS_API}/live/${projectRepo}/${siteSlug}/${defaultBranch}${forSheet.path}.json`);
+        if (!response?.ok) {
+          showErrorToast('Failed to preview sheet');
+        } else {
+          showToast(`Publish successfully updated: <a href="${projectDetails.customPreviewUrl + forSheet.path}.json" target="_blank">See the changes on your Published sheet</a>`);
+        }
+      }
+      publishSheetButton.classList.remove('loading');
+      publishSheetButton.disabled = false;
+      previewSheetButton.disabled = false;
+    };
+
+    // MARK: generating table
+    table.innerHTML = '';
+    const thead = document.createElement('thead');
+    const tbody = document.createElement('tbody');
+    table.append(thead, tbody);
+    // no innerHTML to avoid XSS
+    for (let rowIndex = 0; rowIndex < sheetData.length; rowIndex++) {
+      const headerRow = rowIndex === 0;
+      const row = sheetData[rowIndex];
+      const tr = document.createElement('tr');
+
+      const headerRowLength = sheetData[0].length;
+      for (let columnIndex = 0; columnIndex < headerRowLength; columnIndex++) {
+        const entry = row[columnIndex];
+        if (headerRow) {
+          const th = document.createElement('th');
+          th.textContent = entry || '';
+          tr.append(th);
+          continue;
+        }
+        const td = document.createElement('td');
+
+        if (sheetsWrapper.dataset.mode === 'edit') {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = thead.children[0].children[columnIndex].textContent;
+          input.value = entry || '';
+          td.append(input);
+          tr.append(td);
+        } else {
+          td.textContent = entry || '';
+          tr.append(td);
+        }
+      }
+
+      if (headerRow) {
+        thead.append(tr);
+      } else {
+        tbody.append(tr);
+      }
+    }
+  };
+
+  await renderTitleButtons();
+  await renderTable();
 
   return;
 
-  // TODO: on selected instead
-  await Promise.all(sheetIndexData.map(async (sheetIndex) => {
-    const sheetTitles = await fetch(`${SCRIPT_API}/sheetTitles/${siteSlug}/${sheetIndex.id}`, { headers: { authorization: `bearer ${token}` } })
-      .then((res) => res.json())
-      .catch(() => null);
-    sheetIndex.ranges = sheetTitles || [];
-  }));
-  console.log(' sheetIndexData:', sheetIndexData);
+
+  // // TODO: on selected instead
+  // await Promise.all(sheetIndexData.map(async (sheetIndex) => {
+  //   const sheetTitles = await fetch(`${SCRIPT_API}/sheetTitles/${siteSlug}/${sheetIndex.id}`, { headers: { authorization: `bearer ${token}` } })
+  //     .then((res) => res.json())
+  //     .catch(() => null);
+  //   sheetIndex.ranges = sheetTitles || [];
+  // }));
+  // console.log(' sheetIndexData:', sheetIndexData);
 
   const tabsAside = container.closest('.tabs-content').querySelector('aside.tabs-aside');
   const queryParams = readQueryParams();
@@ -163,28 +307,27 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   let sheetName = selectedSheet.name;
   if (!selectedSheet.ranges?.includes(queryParams.sheet)) removeQueryParams(['sheet']);
   // eslint-disable-next-line max-len
-  let selectedRange = selectedSheet.ranges?.includes(queryParams.sheet)
-    ? queryParams.sheet
-    : selectedSheet.ranges?.[0];
+  // let selectedRange = selectedSheet.ranges?.includes(queryParams.sheet)
+  //   ? queryParams.sheet
+  //   : selectedSheet.ranges?.[0];
   let isProtected = selectedSheet.protected;
   let isLocked = true;
   let contentChanged = () => false;
 
-  const fetchAndRenderSheet = async (selected) => {
-    container.inert = true;
+  const fetchAndRenderSheet = async (selected = currentSheet, title = currentSheetTitle) => {
+    // container.inert = true;
     selectedSheet = selected;
     sheetID = selectedSheet.id;
     sheetName = selectedSheet.name;
-    container.querySelector('#sheet-buttons').innerHTML = selectedSheet.ranges
-      .map(
-        (range) => `<button class="button action ${
-          selectedRange === range ? 'active' : 'secondary'
-        }" id="sheet-button-${range}">${range}</button>`,
-      )
-      .join('');
-    const token = await window.auth0Client.getTokenSilently();
+    // container.querySelector('#sheet-buttons').innerHTML = selectedSheet.ranges
+    //   .map(
+    //     (range) => `<button class="button action ${
+    //       selectedRange === range ? 'active' : 'secondary'
+    //     }" id="sheet-button-${range}">${range}</button>`,
+    //   )
+    //   .join('');
     const auth = { authorization: `bearer ${token}` };
-    const sheet = await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${selectedRange}!A:Z`, {
+    const sheet = await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${title}`, {
       headers: { ...auth, 'content-type': 'application/json' },
     })
       .then((res) => res.json())
@@ -203,7 +346,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     const discardButton = container.querySelector('#discard-changes');
 
     const setButtonText = () => {
-      const table = container.querySelector('.sheet');
       const currentMode = table.getAttribute('data-editMode');
       const editButton = container.querySelector('#edit-sheet');
       // makes sure, that the existing event listeners are removed before adding a new one
@@ -409,7 +551,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     editButton.replaceWith(editButton.cloneNode(true));
     const newEditButton = container.querySelector('#edit-sheet');
     newEditButton.addEventListener('click', async () => {
-      const table = container.querySelector('.sheet');
       const currentMode = table.getAttribute('data-editMode');
       const disableInputs = (bool = true) => {
         table.querySelectorAll('input').forEach((input) => {
@@ -425,7 +566,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       if (newEditButton.textContent === 'Save') {
         disableInputs();
         newEditButton.classList.add('loading');
-        await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${selectedRange}!A:Z`, {
+        await fetch(`${SCRIPT_API}/sheet/${siteSlug}/${sheetID}/${title}`, {
           method: 'PUT',
           headers: {
             ...auth,

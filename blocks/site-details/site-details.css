@@ -118,27 +118,6 @@
   display: none !important;
 }
 
-.site-details.block table {
-    width: 100%;
-}
-
-.site-details.block table th,
-.site-details.block table td {
-  max-width: 100%;
-  overflow: auto;
-  word-wrap: break-word;
-}
-
-.site-details.block table th {
-    position: sticky;
-    top: 0;
-    background-color: var(--white);
-  }
-
-.site-details.block table td:first-child {
-  font-weight: 500;
-}
-
 @media (width < 768px) {
   .site-details.block .cards {
     flex-direction: column;
@@ -502,6 +481,36 @@ dialog .clicked-links li {
 
 #bulk-import-form {
   max-width: none;
+}
+
+
+
+/* MARK: sheets editor */
+
+.site-details.block table {
+  width: 100%;
+}
+
+.site-details.block table th,
+.site-details.block table td {
+max-width: 100%;
+overflow: auto;
+word-wrap: break-word;
+}
+
+.site-details.block table th {
+  position: sticky;
+  top: 0;
+  background-color: var(--white);
+}
+
+.site-details.block table td:first-child {
+font-weight: 500;
+}
+
+.site-details.block .lock-wrapper img {
+  width: 16px;
+  height: 16px;
 }
 
 #spreadsheets-selector {
