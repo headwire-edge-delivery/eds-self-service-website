@@ -47,7 +47,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     container.innerHTML = `<p>${OOPS}</p>`;
     return;
   }
-  console.log(' sheetIndexData:', sheetIndexData);
 
   // TODO: on selected instead
   await Promise.all(sheetIndexData.map(async (sheetIndex) => {
@@ -56,7 +55,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       .catch(() => null);
     sheetIndex.ranges = sheetTitles || [];
   }));
-  console.log(' sheetIndexData:', sheetIndexData);
 
   const tabsAside = container.closest('.tabs-content').querySelector('aside.tabs-aside');
   const queryParams = readQueryParams();
@@ -97,7 +95,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       .then((res) => res.json())
       .catch(() => null);
 
-    console.log(' sheet:', sheet);
     if (!sheet) {
       container.innerHTML = `<p>${OOPS}</p>`;
       return;
@@ -112,7 +109,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
 
     const headers = sheet[0] || [];
     let sheetData = transformEmptyRow(sheet.slice(1), headers);
-    console.log(' sheetData:', sheetData);
     let originalSheetData = structuredClone(sheetData);
     contentChanged = () => !isSame(sheetData, originalSheetData);
     const discardButton = container.querySelector('#discard-changes');
@@ -231,7 +227,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         td.append(wrapperDiv);
         tr.append(td);
       });
-      tr.append(parseFragment('<td class="delete-row"><button class="button action secondary destructive">Remove</button></td>'));
+      tr.insertAdjacentHTML('beforeend', '<td class="delete-row"><button class="button action secondary destructive">Remove</button></td>');
       return tr;
     };
 
@@ -302,8 +298,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
           tr.append(td);
         }
         if (sheetEditMode()) {
-          const deleteTd = parseFragment(`<td class="delete-row"><button data-row="${rowIndex}" class="button action secondary destructive">Remove</button></td>`);
-          tr.append(deleteTd);
+          tr.insertAdjacentHTML('beforeend', `<td class="delete-row"><button data-row="${rowIndex}" class="button action secondary destructive">Remove</button></td>`);
         }
         tbody.append(tr);
       }
