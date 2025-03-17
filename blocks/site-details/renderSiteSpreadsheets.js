@@ -101,11 +101,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     }
 
     const sheetTable = container.querySelector('.sheet');
-    // if (!sheet.length) {
-    //   sheetTable.innerHTML = '<tbody><tr><td>No data found</td></tr></tbody>';
-    //   container.inert = false;
-    //   return;
-    // }
 
     const headers = sheet[0] || [];
     let sheetData = transformEmptyRow(sheet.slice(1), headers);
