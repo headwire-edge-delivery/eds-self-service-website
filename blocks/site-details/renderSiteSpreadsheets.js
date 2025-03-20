@@ -168,10 +168,12 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         };
 
         newPreviewButton.addEventListener('click', async () => {
+          window.zaraz?.track('Sheets-tab preview click');
           await post('Preview');
         });
 
         newPublishButton.addEventListener('click', async () => {
+          window.zaraz?.track('Sheets-tab publish click');
           const publishUrl = `https://admin.hlx.page/live/${projectRepo}/${site}/${defaultBranch}${path}.json`;
           const previewResponse = await post('PreviewAndPublish');
           if (previewResponse?.ok) {
@@ -338,6 +340,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     };
 
     discardButton.addEventListener('click', () => {
+      window.zaraz?.track('Sheets-tab discord click');
       sheetData = structuredClone(originalSheetData);
       generateSheetTable();
     });
@@ -363,6 +366,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         });
       };
       if (newEditButton.textContent === 'Save') {
+        window.zaraz?.track('Sheets-tab save click');
         disableInputs();
         newEditButton.classList.add('loading');
         const res = await fetch(`${SCRIPT_API}/sheetData/${siteSlug}/${sheetID}?range=${encodeURIComponent(selectedRange)}`, {
@@ -382,8 +386,10 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         newEditButton.classList.remove('loading');
         disableInputs(false);
       } else if (currentMode === 'false') {
+        window.zaraz?.track('Sheets-tab edit click');
         table.setAttribute('data-editMode', 'true');
       } else {
+        window.zaraz?.track('Sheets-tab discard (back) click');
         table.setAttribute('data-editMode', 'false');
         sheetData = structuredClone(originalSheetData);
       }
@@ -392,6 +398,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
 
     sheetButtons.querySelectorAll('button').forEach((button) => {
       button.addEventListener('click', async (event) => {
+        window.zaraz?.track('Sheets-tab change sheet (range)');
         if (!confirmUnsavedChanges(tabsAside)) {
           return;
         }
@@ -443,10 +450,12 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         unlockButton.onclick = () => {
           handleLock();
           lockDialog.close();
+          window.zaraz?.track('Sheets-tab unlocking sheet unlock click');
         };
 
         cancelUnlockButton.onclick = () => {
           lockDialog.close();
+          window.zaraz?.track('Sheets-tab unlocking sheet cancel click');
         };
 
         lockDialog.showModal();
@@ -491,6 +500,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   </div>`;
   const previewPublishInfoButton = container.querySelector('#preview-publish-info-button');
   previewPublishInfoButton.addEventListener('click', () => {
+    window.zaraz?.track('Sheets-tab preview/publish info-dialog click');
     createDialog(
       `<div id="preview-publish-info">
       <p>The "Preview" will update the sheet for the Preview site and "Publish" will update it for the Preview and Live site.</p></div>`,
@@ -529,6 +539,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
 
   sheetSelect.value = sheetID;
   sheetSelect.addEventListener('change', async (event) => {
+    window.zaraz?.track('Sheets-tab selected sheet change');
     if (!confirmUnsavedChanges(tabsAside)) {
       sheetSelect.value = sheetID;
       return;
