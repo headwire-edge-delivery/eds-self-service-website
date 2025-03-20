@@ -59,6 +59,10 @@ html {
   scroll-margin-top: var(--header-height);
 }
 
+*[inert] {
+  opacity: 0.7;
+}
+
 body {
   margin: 0;
   overflow-x: hidden;

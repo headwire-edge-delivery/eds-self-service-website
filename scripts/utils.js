@@ -18,6 +18,7 @@ export const confirmUnsavedChanges = (element) => {
     const confirmLeave = window.confirm('Leave site?\nChanges you made may not be saved.');
     if (confirmLeave) {
       element.dataset.unsavedChanges = 'false';
+      window.zaraz?.track('Discarding unsave changes');
       return true;
     }
     return false;
