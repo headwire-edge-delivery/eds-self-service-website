@@ -1,0 +1,7 @@
+{
+  "printWidth": 180,
+  "singleQuote": false,
+  "quotes": ["error", "double", { "avoidEscape": true }],
+  "useTabs": false,
+  "tabWidth": 2
+}
