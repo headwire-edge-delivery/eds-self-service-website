@@ -38,7 +38,7 @@ jobs:
             https://api.github.com/repos/$TEST_REPO_OWNER/$TEST_REPO/actions/workflows/$WORKFLOW_FILE/dispatches \
             -d "{\"ref\": \"main\", \"inputs\": {\"backend-branch\": \"$BACKEND_BRANCH\", \"frontend-branch\": \"$FRONTEND_BRANCH\" }}"
             )
-          
+
           STATUS_CODE=$(cat response.json | jq -r '.status')
 
           if [ "$STATUS_CODE" -ne 204 ]; then

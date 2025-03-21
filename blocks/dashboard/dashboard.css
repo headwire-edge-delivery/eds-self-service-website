@@ -200,9 +200,7 @@ body:not(.is-headwire, .is-test-user) .dashboard.block .users {
   display: none;
 }
 
-body:is(.is-headwire, .is-adobe, .is-test-user)
-  .dashboard.block
-  .sites-list-dark-alley {
+body:is(.is-headwire, .is-adobe, .is-test-user) .dashboard.block .sites-list-dark-alley {
   display: block;
 }
 

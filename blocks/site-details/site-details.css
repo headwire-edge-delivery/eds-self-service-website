@@ -52,7 +52,7 @@
 }
 
 .site-details.block .filter {
-    margin-bottom: 16px;
+  margin-bottom: 16px;
 }
 
 .site-details.block .project-container {
@@ -119,7 +119,7 @@
 }
 
 .site-details.block table {
-    width: 100%;
+  width: 100%;
 }
 
 .site-details.block table th,
@@ -130,10 +130,10 @@
 }
 
 .site-details.block table th {
-    position: sticky;
-    top: 0;
-    background-color: var(--white);
-  }
+  position: sticky;
+  top: 0;
+  background-color: var(--white);
+}
 
 .site-details.block table td:first-child {
   font-weight: 500;
@@ -212,10 +212,7 @@
   margin-block: 32px;
 }
 
-.site-details.block
-  :is(.monitoring-panel, .analytics-panel, .audience-panel, .emails-panel)
-  .container
-  img:only-child {
+.site-details.block :is(.monitoring-panel, .analytics-panel, .audience-panel, .emails-panel) .container img:only-child {
   height: 64px;
   width: 64px;
 }
@@ -396,9 +393,6 @@ dialog .clicked-links li {
   border: 1px solid var(--light-gray);
   border-radius: var(--border-radius);
   align-items: center;
-}
-
-.site-details.block .checklist .checklist-item {
   background-color: var(--light-gray);
 }
 
@@ -500,13 +494,14 @@ dialog .clicked-links li {
 }
 
 #spreadsheets-selector {
-    display: flex;
-    gap: 8px;
-    flex-direction: column;
-    margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+  margin-bottom: 16px;
 }
 
-.spreadsheet-title, #sheet-buttons {
+.spreadsheet-title,
+#sheet-buttons {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -551,7 +546,9 @@ table.sheet thead {
   box-shadow: 0 2px 0 0 var(--blue);
 }
 
-table.sheet, table.sheet td, table.sheet tr {
+table.sheet,
+table.sheet td,
+table.sheet tr {
   border: 0 !important;
 }
 
@@ -566,12 +563,15 @@ table.sheet td {
   justify-content: center;
 }
 
-table.sheet td input, table.sheet td {
+table.sheet td input,
+table.sheet td {
   text-overflow: ellipsis;
   overflow: hidden !important;
 }
 
-table.sheet td input, table.sheet td span, table.sheet td div {
+table.sheet td input,
+table.sheet td span,
+table.sheet td div {
   width: 100%;
   height: 100%;
 }
@@ -581,7 +581,8 @@ table.sheet td span {
   font-size: medium;
 }
 
-table.sheet td, table.sheet td span {
+table.sheet td,
+table.sheet td span {
   max-width: 450px !important;
 }
 
@@ -598,7 +599,7 @@ table.sheet td div {
 }
 
 table.sheet td > * {
-  margin-top:  3px;
+  margin-top: 3px;
 }
 
 .delete-row {

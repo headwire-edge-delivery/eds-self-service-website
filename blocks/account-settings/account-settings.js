@@ -1,25 +1,25 @@
-import { SCRIPT_API } from '../../scripts/scripts.js';
-import { confirmDialog, createDialog } from '../../scripts/dialogs.js';
+import { SCRIPT_API } from "../../scripts/scripts.js";
+import { confirmDialog, createDialog } from "../../scripts/dialogs.js";
 
 // MARK: helpers
 function generateProjectListHtml(projectsList) {
   const exclusiveHtml = !projectsList?.exclusive?.length
-    ? ''
+    ? ""
     : `
   <div class="exclusive-projects">
     <span><strong>The following projects will be deleted:</strong></span>
     <ul>
-      ${projectsList.exclusive.map((projectSlug) => `<li>${projectSlug}</li>`).join('')}
+      ${projectsList.exclusive.map((projectSlug) => `<li>${projectSlug}</li>`).join("")}
     </ul>
   </div>
   `;
   const sharedHtml = !projectsList?.shared?.length
-    ? ''
+    ? ""
     : `
       <div class="shared-projects">
         <span>The following projects will <strong>not</strong> be deleted, but you will lose access:</span>
         <ul>
-          ${projectsList.shared.map((projectSlug) => `<li>${projectSlug}</li>`).join('')}
+          ${projectsList.shared.map((projectSlug) => `<li>${projectSlug}</li>`).join("")}
         </ul>
       </div>
       `;
@@ -28,39 +28,35 @@ function generateProjectListHtml(projectsList) {
 
 function afterDeleteAccount() {
   Object.keys(window.localStorage).forEach((key) => {
-    if (key.startsWith('@@auth0')) {
+    if (key.startsWith("@@auth0")) {
       window.localStorage.removeItem(key);
     }
-    if (key === 'sessionExpiration') {
+    if (key === "sessionExpiration") {
       window.localStorage.removeItem(key);
     }
   });
 
-  window.location.pathname = '/account-deleted';
+  window.location.pathname = "/account-deleted";
 }
 
 // MARK: text lookup
 const textLookup = {
   account: {
-    dialog:
-      '<h2>Delete Account?</h2><p class="warning">Are you want to delete your account and your projects? This action cannot be undone!</p>',
-    button: 'Delete My Account',
-    confirmDialog:
-      '<h2>Last Chance!</h2><p class="warning">Are you <strong>ABSOLUTELY</strong> sure you want to delete your account?</p>',
-    loading: 'Deleting Account and Projects...',
-    endpoint: '/deleteAccount',
+    dialog: '<h2>Delete Account?</h2><p class="warning">Are you want to delete your account and your projects? This action cannot be undone!</p>',
+    button: "Delete My Account",
+    confirmDialog: '<h2>Last Chance!</h2><p class="warning">Are you <strong>ABSOLUTELY</strong> sure you want to delete your account?</p>',
+    loading: "Deleting Account and Projects...",
+    endpoint: "/deleteAccount",
     success: '<div class="centered-info">Account Deleted</div>',
     error: '<div class="centered-info">Something went wrong. Please try again later. Contact support if the issue persists.</div>',
   },
   projects: {
     noProjectsDialog: '<h4 class="centered-info">You have no projects.</h4>',
-    dialog:
-    '<h2>Delete All Projects?</h2><p class="warning">Are you want to delete all of your projects? This action cannot be undone!</p>',
-    button: 'Delete All Projects',
-    confirmDialog:
-    '<p class="warning">Are you <strong>ABSOLUTELY</strong> sure you want to delete all of your projects?</p>',
-    loading: 'Deleting All Projects...',
-    endpoint: '/deleteAllProjects',
+    dialog: '<h2>Delete All Projects?</h2><p class="warning">Are you want to delete all of your projects? This action cannot be undone!</p>',
+    button: "Delete All Projects",
+    confirmDialog: '<p class="warning">Are you <strong>ABSOLUTELY</strong> sure you want to delete all of your projects?</p>',
+    loading: "Deleting All Projects...",
+    endpoint: "/deleteAllProjects",
     success: '<div class="centered-info">All Projects Deleted</div>',
     error: '<div class="centered-info">Something went wrong. Please try again later.</div>',
   },
@@ -68,11 +64,11 @@ const textLookup = {
 
 // MARK: dialog setup
 async function createDeleteDialog(event, deleteAccount = false) {
-  const lookupStr = deleteAccount ? 'account' : 'projects';
+  const lookupStr = deleteAccount ? "account" : "projects";
   const deleteAccountButton = event.target;
   const authorization = `bearer ${await window.auth0Client.getTokenSilently()}`;
 
-  deleteAccountButton.classList.add('loading');
+  deleteAccountButton.classList.add("loading");
 
   // get list of projects that will be deleted with the account
   const projectsList = await fetch(`${SCRIPT_API}/userControls/listProjectOwnership`, {
@@ -90,42 +86,40 @@ async function createDeleteDialog(event, deleteAccount = false) {
     ${generateProjectListHtml(projectsList)}
   `;
 
-  const confirmButton = document.createElement('button');
-  confirmButton.classList.add('action', 'button', 'destructive');
+  const confirmButton = document.createElement("button");
+  confirmButton.classList.add("action", "button", "destructive");
   confirmButton.textContent = textLookup[lookupStr].button;
-  if (lookupStr === 'projects' && projectsList?.exclusive?.length === 0 && projectsList?.shared?.length === 0) {
+  if (lookupStr === "projects" && projectsList?.exclusive?.length === 0 && projectsList?.shared?.length === 0) {
     confirmButton.disabled = true;
-    confirmButton.classList.add('is-disabled');
+    confirmButton.classList.add("is-disabled");
     deleteAccountContent = textLookup[lookupStr].noProjectsDialog;
   }
 
-  const cancelButton = document.createElement('button');
-  cancelButton.classList.add('action', 'button');
-  cancelButton.textContent = 'Cancel';
+  const cancelButton = document.createElement("button");
+  cancelButton.classList.add("action", "button");
+  cancelButton.textContent = "Cancel";
 
   // used after request
-  const closeButton = document.createElement('button');
-  closeButton.classList.add('action', 'button', 'secondary');
-  closeButton.textContent = 'Close';
+  const closeButton = document.createElement("button");
+  closeButton.classList.add("action", "button", "secondary");
+  closeButton.textContent = "Close";
 
   const deleteDialog = createDialog(deleteAccountContent, [cancelButton, confirmButton]);
 
-  closeButton.addEventListener('click', () => {
+  closeButton.addEventListener("click", () => {
     deleteDialog.close();
   });
 
-  confirmButton.addEventListener('click', async () => {
-    if (
-      !(await confirmDialog(textLookup[lookupStr].confirmDialog))
-    ) {
+  confirmButton.addEventListener("click", async () => {
+    if (!(await confirmDialog(textLookup[lookupStr].confirmDialog))) {
       deleteDialog.close();
       return;
     }
 
     if (deleteAccount) {
-      window?.zaraz?.track('delete account confirmed');
+      window?.zaraz?.track("delete account confirmed");
     } else {
-      window?.zaraz?.track('delete all sites confirmed');
+      window?.zaraz?.track("delete all sites confirmed");
     }
     // delete account
     deleteDialog.setLoading(true, textLookup[lookupStr].loading);
@@ -134,9 +128,9 @@ async function createDeleteDialog(event, deleteAccount = false) {
       body: JSON.stringify({
         projectsToDelete: projectsList?.exclusive,
       }),
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'content-type': 'application/json',
+        "content-type": "application/json",
         authorization,
       },
     });
@@ -146,7 +140,7 @@ async function createDeleteDialog(event, deleteAccount = false) {
       if (deleteAccount) {
         // delete session
         // route to account deleted page
-        deleteDialog.addEventListener('close', afterDeleteAccount);
+        deleteDialog.addEventListener("close", afterDeleteAccount);
         setTimeout(afterDeleteAccount, 5000);
       }
     } else {
@@ -156,11 +150,11 @@ async function createDeleteDialog(event, deleteAccount = false) {
     deleteDialog.setLoading(false);
   });
 
-  cancelButton.addEventListener('click', () => {
+  cancelButton.addEventListener("click", () => {
     deleteDialog.close();
   });
 
-  deleteAccountButton.classList.remove('loading');
+  deleteAccountButton.classList.remove("loading");
 }
 
 // MARK: decorate
@@ -176,15 +170,15 @@ export default async function decorate(block) {
     </div>
   `;
 
-  const deleteAccountButton = block.querySelector('#delete-account-button');
-  deleteAccountButton.addEventListener('click', async (event) => {
-    window?.zaraz?.track('open delete account dialog');
+  const deleteAccountButton = block.querySelector("#delete-account-button");
+  deleteAccountButton.addEventListener("click", async (event) => {
+    window?.zaraz?.track("open delete account dialog");
     createDeleteDialog(event, true);
   });
 
-  const deleteAllProjectsButton = block.querySelector('#delete-all-projects-button');
-  deleteAllProjectsButton.addEventListener('click', async (event) => {
-    window?.zaraz?.track('open delete all sites dialog');
+  const deleteAllProjectsButton = block.querySelector("#delete-all-projects-button");
+  deleteAllProjectsButton.addEventListener("click", async (event) => {
+    window?.zaraz?.track("open delete all sites dialog");
     createDeleteDialog(event, false);
   });
 }

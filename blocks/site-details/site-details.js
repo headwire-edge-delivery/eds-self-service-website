@@ -1,26 +1,18 @@
 /* eslint-disable max-len */
 
-import { writeQueryParams } from '../../libs/queryParams/queryParams.js';
-import { createDialog } from '../../scripts/dialogs.js';
-import {
-  SCRIPT_API, OOPS,
-  waitForAuthenticated,
-  createTabs,
-  parseFragment,
-  highlightElement,
-  safeText,
-  toValidPropertyName,
-} from '../../scripts/scripts.js';
-import { showErrorToast, showToast } from '../../scripts/toast.js';
-import renderCampaignsAnalytics from './renderCampaignsAnalytics.js';
-import renderCampaignsAudience from './renderCampaignsAudience.js';
-import renderCampaignsOverview from './renderCampaignsOverview.js';
-import renderSettingsGeneral from './renderSettingsGeneral.js';
-import renderSiteAnalytics from './renderSiteAnalytics.js';
-import renderSiteOverview from './renderSiteOverview.js';
-import renderSitePages from './renderSitePages.js';
-import renderSiteSpreadsheets from './renderSiteSpreadsheets.js';
-import renderSiteSEO from './renderSiteSEO.js';
+import { writeQueryParams } from "../../libs/queryParams/queryParams.js";
+import { createDialog } from "../../scripts/dialogs.js";
+import { SCRIPT_API, OOPS, waitForAuthenticated, createTabs, parseFragment, highlightElement, safeText, toValidPropertyName } from "../../scripts/scripts.js";
+import { showErrorToast, showToast } from "../../scripts/toast.js";
+import renderCampaignsAnalytics from "./renderCampaignsAnalytics.js";
+import renderCampaignsAudience from "./renderCampaignsAudience.js";
+import renderCampaignsOverview from "./renderCampaignsOverview.js";
+import renderSettingsGeneral from "./renderSettingsGeneral.js";
+import renderSiteAnalytics from "./renderSiteAnalytics.js";
+import renderSiteOverview from "./renderSiteOverview.js";
+import renderSitePages from "./renderSitePages.js";
+import renderSiteSpreadsheets from "./renderSiteSpreadsheets.js";
+import renderSiteSEO from "./renderSiteSEO.js";
 
 /**
  * MARK: Decorate
@@ -28,18 +20,20 @@ import renderSiteSEO from './renderSiteSEO.js';
  */
 export default async function decorate(block) {
   await waitForAuthenticated();
-  const [, path, siteSlug] = window.location.pathname.split('/');
-  const darkAlleyVariation = block.classList.contains('dark-alley');
+  const [, path, siteSlug] = window.location.pathname.split("/");
+  const darkAlleyVariation = block.classList.contains("dark-alley");
   const pathname = `/${path}/${siteSlug}`;
   const token = await window.auth0Client.getTokenSilently();
   const user = await window.auth0Client.getUser();
 
   const authHeaders = { authorization: `Bearer ${token}` };
-  const authHeadersWithBody = { authorization: `Bearer ${token}`, 'content-type': 'application/json' };
+  const authHeadersWithBody = { authorization: `Bearer ${token}`, "content-type": "application/json" };
 
   const [siteDetailsReq, versionInfoReq] = await Promise.all([
-    await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'darkAlleyList' : 'list'}/${siteSlug}`, { headers: authHeaders }).catch(() => null),
-    await fetch(`${SCRIPT_API}/${darkAlleyVariation ? 'daUpdateProject' : 'updateProject'}/checkUpdates/${siteSlug}`, { headers: authHeaders }).catch(() => null),
+    await fetch(`${SCRIPT_API}/${darkAlleyVariation ? "darkAlleyList" : "list"}/${siteSlug}`, { headers: authHeaders }).catch(() => null),
+    await fetch(`${SCRIPT_API}/${darkAlleyVariation ? "daUpdateProject" : "updateProject"}/checkUpdates/${siteSlug}`, { headers: authHeaders }).catch(
+      () => null,
+    ),
   ]);
 
   if (siteDetailsReq?.status === 404) {
@@ -51,10 +45,7 @@ export default async function decorate(block) {
     return;
   }
 
-  const [siteDetails, versionInfo] = await Promise.all([
-    siteDetailsReq.json().catch(() => null),
-    versionInfoReq?.json().catch(() => null),
-  ]);
+  const [siteDetails, versionInfo] = await Promise.all([siteDetailsReq.json().catch(() => null), versionInfoReq?.json().catch(() => null)]);
 
   if (!siteDetails) {
     block.innerHTML = `<div class="centered-message"><p>${OOPS}<p></div>`;
@@ -64,84 +55,94 @@ export default async function decorate(block) {
   createTabs({
     block,
     defaultTab: 0,
-    breadcrumbs: [{ name: 'Dashboard', href: '/dashboard/sites' }, { name: siteDetails.project.projectName, href: pathname }],
+    breadcrumbs: [
+      { name: "Dashboard", href: "/dashboard/sites" },
+      { name: siteDetails.project.projectName, href: pathname },
+    ],
     renderOptions: {
-      projectDetails: siteDetails.project, token, user, siteSlug, pathname, authHeaders, authHeadersWithBody, versionInfo,
+      projectDetails: siteDetails.project,
+      token,
+      user,
+      siteSlug,
+      pathname,
+      authHeaders,
+      authHeadersWithBody,
+      versionInfo,
     },
     tabs: [
       {
         section: true,
-        name: 'Site',
+        name: "Site",
       },
       {
-        name: 'Overview',
+        name: "Overview",
         href: `${pathname}/overview`,
-        iconSrc: '/icons/template.svg',
+        iconSrc: "/icons/template.svg",
         renderTab: renderSiteOverview,
       },
       {
-        name: 'Pages',
+        name: "Pages",
         href: `${pathname}/pages`,
-        iconSrc: '/icons/web.svg',
+        iconSrc: "/icons/web.svg",
         renderTab: renderSitePages,
       },
       {
-        name: 'Sheets',
+        name: "Sheets",
         href: `${pathname}/sheets`,
-        iconSrc: '/icons/sheets.svg',
+        iconSrc: "/icons/sheets.svg",
         renderTab: renderSiteSpreadsheets,
         hidden: darkAlleyVariation,
       },
       {
-        name: 'SEO',
+        name: "SEO",
         href: `${pathname}/seo`,
-        iconSrc: '/icons/seo.svg',
+        iconSrc: "/icons/seo.svg",
         renderTab: renderSiteSEO,
       },
       {
-        name: 'Web analytics',
+        name: "Web analytics",
         href: `${pathname}/web-analytics`,
-        iconSrc: '/icons/monitoring.svg',
+        iconSrc: "/icons/monitoring.svg",
         renderTab: renderSiteAnalytics,
       },
       {
         section: true,
-        name: 'Campaigns',
+        name: "Campaigns",
       },
       {
-        name: 'Emails',
+        name: "Emails",
         href: `${pathname}/emails`,
-        iconSrc: '/icons/email.svg',
+        iconSrc: "/icons/email.svg",
         renderTab: renderCampaignsOverview,
       },
       {
-        name: 'Audience',
+        name: "Audience",
         href: `${pathname}/audience`,
-        iconSrc: '/icons/audience.svg',
+        iconSrc: "/icons/audience.svg",
         renderTab: renderCampaignsAudience,
       },
       {
-        name: 'Campaign analytics',
+        name: "Campaign analytics",
         href: `${pathname}/campaign-analytics`,
-        iconSrc: '/icons/analytics.svg',
+        iconSrc: "/icons/analytics.svg",
         renderTab: renderCampaignsAnalytics,
       },
       {
         section: true,
-        name: 'Settings',
+        name: "Settings",
       },
       {
-        name: 'General',
+        name: "General",
         href: `${pathname}/settings`,
-        iconSrc: '/icons/settings.svg',
+        iconSrc: "/icons/settings.svg",
         renderTab: renderSettingsGeneral,
       },
       {
-        name: 'Theme',
+        name: "Theme",
         href: `/theme/${siteSlug}`,
-        iconSrc: '/icons/palette.svg',
+        iconSrc: "/icons/palette.svg",
         isLink: true,
-        target: '_blank',
+        target: "_blank",
       },
     ],
   });
@@ -149,9 +150,10 @@ export default async function decorate(block) {
   const emailAsPropertyName = toValidPropertyName(user.email);
   if (!siteDetails?.project?.hideUpdatePrompts?.[emailAsPropertyName] && versionInfo?.updateAvailable) {
     const levelParagraphMap = {
-      patch: 'Patch updates contain smaller features and bugfixes. These are safe to update without any issues.',
-      minor: 'Minor updates contain minor features and bugfixes. These are safe to update without any issues.',
-      major: 'Major updates contain large features and bugfixes. These may require you to change how you author your content & blocks. When updating a major version check that everything still looks as intended.',
+      patch: "Patch updates contain smaller features and bugfixes. These are safe to update without any issues.",
+      minor: "Minor updates contain minor features and bugfixes. These are safe to update without any issues.",
+      major:
+        "Major updates contain large features and bugfixes. These may require you to change how you author your content & blocks. When updating a major version check that everything still looks as intended.",
     };
 
     const dialogContent = `
@@ -164,7 +166,9 @@ export default async function decorate(block) {
     // yes dialog already has a close button, but I think it's good to have one here.
     // Without one it might make users think the only options are update or don't show again.
     const closeButton = parseFragment('<button class="button action secondary close-alt">Close</button>');
-    const dontShowAgainButton = parseFragment(`<button class="button action secondary dont-show">Disable update prompts for ${safeText(siteDetails?.project?.projectName) || 'this project'}</button>`);
+    const dontShowAgainButton = parseFragment(
+      `<button class="button action secondary dont-show">Disable update prompts for ${safeText(siteDetails?.project?.projectName) || "this project"}</button>`,
+    );
 
     const updateDialog = createDialog(dialogContent, [showMeButton, closeButton, dontShowAgainButton]);
 
@@ -172,8 +176,8 @@ export default async function decorate(block) {
       const settingsTabLink = block.querySelector('a[href$="/settings"]');
       if (!settingsTabLink) return;
       updateDialog.close();
-      if (!settingsTabLink.classList.contains('is-selected')) settingsTabLink.click();
-      writeQueryParams({ highlight: '#updates' });
+      if (!settingsTabLink.classList.contains("is-selected")) settingsTabLink.click();
+      writeQueryParams({ highlight: "#updates" });
       highlightElement();
     };
 
@@ -181,12 +185,15 @@ export default async function decorate(block) {
 
     dontShowAgainButton.onclick = async () => {
       updateDialog.close();
-      const togglePromptsResponse = await fetch(`${SCRIPT_API}/disableUpdatePrompts/${siteSlug}?forceState=true`, { method: 'POST', headers: authHeaders }).catch(() => null);
+      const togglePromptsResponse = await fetch(`${SCRIPT_API}/disableUpdatePrompts/${siteSlug}?forceState=true`, {
+        method: "POST",
+        headers: authHeaders,
+      }).catch(() => null);
       if (togglePromptsResponse?.ok) {
-        showToast(`You will no longer be prompted to update ${safeText(siteDetails?.project?.projectName) || 'this project'} when a new version is available.`);
+        showToast(`You will no longer be prompted to update ${safeText(siteDetails?.project?.projectName) || "this project"} when a new version is available.`);
         siteDetails.project.hideUpdatePrompts[emailAsPropertyName] = true;
       } else {
-        showErrorToast('Something went wrong. Update prompts failed to be disabled.');
+        showErrorToast("Something went wrong. Update prompts failed to be disabled.");
       }
     };
   }

@@ -3,27 +3,33 @@ import {
   daProjectRepo,
   dateToRelativeSpan,
   dateToRelativeString,
-  EMAIL_WORKER_API, OOPS, parseFragment, safeText, sanitizeName, SCRIPT_API, slugify,
+  EMAIL_WORKER_API,
+  OOPS,
+  parseFragment,
+  safeText,
+  sanitizeName,
+  SCRIPT_API,
+  slugify,
   syntheticClickEvent,
-} from '../../scripts/scripts.js';
-import renderSkeleton from '../../scripts/skeletons.js';
-import { renderTable } from './renderSitePages.js';
-import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
-import { readQueryParams, removeQueryParams } from '../../libs/queryParams/queryParams.js';
-import { showErrorToast, showToast } from '../../scripts/toast.js';
+} from "../../scripts/scripts.js";
+import renderSkeleton from "../../scripts/skeletons.js";
+import { renderTable } from "./renderSitePages.js";
+import { alertDialog, confirmDialog, createDialog } from "../../scripts/dialogs.js";
+import { readQueryParams, removeQueryParams } from "../../libs/queryParams/queryParams.js";
+import { showErrorToast, showToast } from "../../scripts/toast.js";
 
-export default async function renderCampaignsOverview({
-  container, nav, renderOptions, pushHistory, replaceHistory, onHistoryPopArray,
-}) {
-  const {
-    projectDetails, user, token, siteSlug, pathname,
-  } = renderOptions;
-  container.innerHTML = renderSkeleton('campaigns');
+export default async function renderCampaignsOverview({ container, nav, renderOptions, pushHistory, replaceHistory, onHistoryPopArray }) {
+  const { projectDetails, user, token, siteSlug, pathname } = renderOptions;
+  container.innerHTML = renderSkeleton("campaigns");
 
   // get required data
   const [indexData, campaignsData] = await Promise.all([
-    fetch(`${SCRIPT_API}/index/${siteSlug}`).then((res) => res.json()).catch(() => null),
-    fetch(`${SCRIPT_API}/campaigns/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.json()).catch(() => ({})),
+    fetch(`${SCRIPT_API}/index/${siteSlug}`)
+      .then((res) => res.json())
+      .catch(() => null),
+    fetch(`${SCRIPT_API}/campaigns/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .catch(() => ({})),
   ]);
 
   if (!indexData?.data) {
@@ -31,7 +37,7 @@ export default async function renderCampaignsOverview({
     return;
   }
 
-  const emailDocuments = indexData.data.filter(({ path }) => path.startsWith('/emails/'));
+  const emailDocuments = indexData.data.filter(({ path }) => path.startsWith("/emails/"));
 
   nav.innerHTML = `
     <button id="delete-campaign" title="Delete the Campaign" class="button secondary delete-campaign action destructive" >Delete</button>
@@ -40,8 +46,8 @@ export default async function renderCampaignsOverview({
     <button id="add-campaign" title="Start a new Campaign" class="button secondary add-campaign action">New Campaign</button>
   `;
 
-  const addCampaignEl = nav.querySelector('#add-campaign');
-  const addEmailEl = nav.querySelector('#add-email');
+  const addCampaignEl = nav.querySelector("#add-campaign");
+  const addEmailEl = nav.querySelector("#add-email");
   const allCampaignSlugs = Object.keys(campaignsData);
 
   container.innerHTML = `
@@ -56,12 +62,12 @@ export default async function renderCampaignsOverview({
 
       <ul class="campaign-list" data-type="emails">
         <li><a class="button selector action secondary" href="${pathname}/emails">All emails</a></li>
-        ${allCampaignSlugs.map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button selector action secondary" href="${pathname}/emails/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`).join('')}</a>
+        ${allCampaignSlugs.map((campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button selector action secondary" href="${pathname}/emails/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`).join("")}</a>
       </ul>
       <div class="campaign-container"></div>
     `;
 
-  const well = container.querySelector('.well');
+  const well = container.querySelector(".well");
 
   const setCampaignLink = (action, campaign) => {
     if (projectDetails.darkAlleyProject) {
@@ -71,41 +77,41 @@ export default async function renderCampaignsOverview({
     }
   };
 
-  const campaignList = container.querySelector('.campaign-list');
+  const campaignList = container.querySelector(".campaign-list");
   campaignList.onclick = (event) => {
-    if (event.target.matches('a')) {
+    if (event.target.matches("a")) {
       event.preventDefault();
 
       const link = event.target;
-      const selectedCampaign = campaignList.querySelector('.is-selected');
+      const selectedCampaign = campaignList.querySelector(".is-selected");
       if (selectedCampaign) {
-        selectedCampaign.classList.remove('is-selected');
+        selectedCampaign.classList.remove("is-selected");
       }
-      link.classList.add('is-selected');
+      link.classList.add("is-selected");
 
-      const newSelectedCampaign = link.closest('[data-campaign]');
+      const newSelectedCampaign = link.closest("[data-campaign]");
       const index = [...campaignList.children].indexOf(link.parentElement);
-      const hidden = container.querySelector('.campaign:not([hidden])');
+      const hidden = container.querySelector(".campaign:not([hidden])");
       if (hidden) {
-        container.querySelector('.campaign:not([hidden])').hidden = true;
+        container.querySelector(".campaign:not([hidden])").hidden = true;
       }
       container.querySelector(`.campaign:nth-child(${index + 1})`).hidden = false;
 
-      nav.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
+      nav.querySelectorAll(".delete-campaign, .add-email, .open-campaign").forEach((action) => {
         action.hidden = index === 0;
 
-        if (action.classList.contains('open-campaign') && !action.hidden) {
+        if (action.classList.contains("open-campaign") && !action.hidden) {
           setCampaignLink(action, newSelectedCampaign.dataset.campaign);
         }
       });
 
       if (!event?.detail?.synthetic) {
-        pushHistory(link.getAttribute('href'));
+        pushHistory(link.getAttribute("href"));
       }
     }
   };
 
-  const campaignContainer = container.querySelector('.campaign-container');
+  const campaignContainer = container.querySelector(".campaign-container");
   campaignContainer.innerHTML = `
       <div class="campaign" hidden>
         <table class="emails"></table>
@@ -113,7 +119,11 @@ export default async function renderCampaignsOverview({
     `;
 
   renderTable({
-    table: campaignContainer.querySelector('table.emails'), tableData: emailDocuments, type: 'emails', projectDetails, token,
+    table: campaignContainer.querySelector("table.emails"),
+    tableData: emailDocuments,
+    type: "emails",
+    projectDetails,
+    token,
   });
 
   allCampaignSlugs.forEach((campaignSlug) => {
@@ -138,7 +148,7 @@ export default async function renderCampaignsOverview({
           </div>
           <div class="box">
               <strong>Last update</strong>
-              ${dateToRelativeSpan(campaign.lastUpdated, 'last-updated').outerHTML}
+              ${dateToRelativeSpan(campaign.lastUpdated, "last-updated").outerHTML}
           </div>
         </div>
         
@@ -150,7 +160,11 @@ export default async function renderCampaignsOverview({
     campaignContainer.append(campaignDetails);
 
     renderTable({
-      table: campaignContainer.querySelector(`.campaign-${campaignSlug} table.emails`), tableData: campaignEmails, type: 'emails', projectDetails, token,
+      table: campaignContainer.querySelector(`.campaign-${campaignSlug} table.emails`),
+      tableData: campaignEmails,
+      type: "emails",
+      projectDetails,
+      token,
     });
   });
 
@@ -158,14 +172,14 @@ export default async function renderCampaignsOverview({
   const params = readQueryParams();
   if (params.campaignIndex) {
     campaignToShow = allCampaignSlugs?.[Number(params.campaignIndex)] || null;
-    removeQueryParams(['campaignIndex']);
+    removeQueryParams(["campaignIndex"]);
   }
   let buttonToPress = null;
   if (campaignToShow) {
     buttonToPress = container.querySelector(`.campaign-list a[href="${pathname}/emails/${campaignToShow}"]`);
   }
   if (!buttonToPress) {
-    buttonToPress = container.querySelector('.campaign-list a');
+    buttonToPress = container.querySelector(".campaign-list a");
   }
   // TODO: for some reason requestAnimationFrame is required because some things stay hidden.
   // fully rewrite the logic for showing stuff so it's readable and easier to update
@@ -176,11 +190,11 @@ export default async function renderCampaignsOverview({
   const toggleWell = () => {
     if (campaignList.childElementCount === 1) {
       addCampaignEl.hidden = true;
-      addCampaignEl.removeAttribute('id');
+      addCampaignEl.removeAttribute("id");
       well.hidden = false;
     } else {
       addCampaignEl.hidden = false;
-      addCampaignEl.id = 'add-campaign';
+      addCampaignEl.id = "add-campaign";
       well.hidden = true;
     }
   };
@@ -193,7 +207,8 @@ export default async function renderCampaignsOverview({
           
           <form id="create-campaign-form">
             <p>
-                Start your email marketing campaign with individual email messages with specific purposes including the following: downloading a PDF, sign up for a newsletter, or make a purchase.
+                Start your email marketing campaign with individual email messages with specific purposes including the following:
+                downloading a PDF, sign up for a newsletter, or make a purchase.
             </p>
             <label>
                 <span>Name *</span>
@@ -208,37 +223,37 @@ export default async function renderCampaignsOverview({
       `);
 
     const dialog = createDialog(content, [submit]);
-    const existingCampaigns = [...campaignList.querySelectorAll('li[data-campaign]')].map((el) => el.dataset.campaign);
-    const form = content.querySelector('#create-campaign-form');
+    const existingCampaigns = [...campaignList.querySelectorAll("li[data-campaign]")].map((el) => el.dataset.campaign);
+    const form = content.querySelector("#create-campaign-form");
     const nameInput = form.querySelector('input[name="name"]');
     nameInput.oninput = (event = { target: nameInput }) => {
-      event.target.value = sanitizeName(event?.target?.value || '');
-      const value = slugify(event?.target?.value || '');
+      event.target.value = sanitizeName(event?.target?.value || "");
+      const value = slugify(event?.target?.value || "");
       if (!value) {
         submit.disabled = true;
-        event.target.setCustomValidity('Please enter a name');
+        event.target.setCustomValidity("Please enter a name");
         return;
       }
 
       if (existingCampaigns.includes(value)) {
-        event.target.setCustomValidity('Campaign already exists');
+        event.target.setCustomValidity("Campaign already exists");
         return;
       }
       submit.disabled = false;
-      event.target.setCustomValidity('');
+      event.target.setCustomValidity("");
     };
     nameInput.oninput();
 
     form.onsubmit = async (e) => {
-      window.zaraz?.track('click create campaign');
+      window.zaraz?.track("click create campaign");
 
       e.preventDefault();
 
-      dialog.setLoading(true, 'Creating Campaign...');
+      dialog.setLoading(true, "Creating Campaign...");
 
       const req = await fetch(`${SCRIPT_API}/campaigns/${siteSlug}`, {
-        headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
+        method: "POST",
         body: JSON.stringify(Object.fromEntries(new FormData(form))),
       }).catch(() => null);
 
@@ -247,15 +262,22 @@ export default async function renderCampaignsOverview({
         await alertDialog(OOPS);
       } else {
         const newCampaign = await req.json();
-        completeChecklistItem(siteSlug, 'createdCampaign', projectDetails);
+        completeChecklistItem(siteSlug, "createdCampaign", projectDetails);
 
-        container.querySelectorAll('.campaign-list').forEach((el) => {
-          el.insertAdjacentHTML('beforeend', `
-              <li data-campaign="${newCampaign.slug}"><a class="button selector action secondary" href="${pathname}/${el.dataset.type}/${newCampaign.slug}">${newCampaign.name}</li></a>
-            `);
+        container.querySelectorAll(".campaign-list").forEach((el) => {
+          el.insertAdjacentHTML(
+            "beforeend",
+            `
+              <li data-campaign="${newCampaign.slug}"><a class="button selector action secondary" href="${pathname}/${el.dataset.type}/${
+                newCampaign.slug
+              }">${newCampaign.name}</li></a>
+            `,
+          );
         });
 
-        campaignContainer.insertAdjacentHTML('beforeend', `
+        campaignContainer.insertAdjacentHTML(
+          "beforeend",
+          `
             <div class="campaign campaign-${newCampaign.slug}" hidden>
               <div class="cards">
                 <div class="box">
@@ -280,16 +302,21 @@ export default async function renderCampaignsOverview({
               <h2>${safeText(newCampaign.name)} emails</h2>
               <table class="emails"></table>
             </div>
-          `);
+          `,
+        );
 
         const newCampaignEmails = emailDocuments.filter(({ path }) => path.startsWith(`/emails/${newCampaign.slug}/`));
         renderTable({
-          table: campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`), tableData: newCampaignEmails, type: 'emails', projectDetails, token,
+          table: campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`),
+          tableData: newCampaignEmails,
+          type: "emails",
+          projectDetails,
+          token,
         });
 
-        const link = campaignList.querySelector('li:last-child a');
+        const link = campaignList.querySelector("li:last-child a");
         link.click();
-        pushHistory(link.getAttribute('href'));
+        pushHistory(link.getAttribute("href"));
 
         dialog.setLoading(false);
         dialog.close();
@@ -301,19 +328,19 @@ export default async function renderCampaignsOverview({
     };
   };
 
-  well.querySelector('#add-campaign').onclick = addCampaign;
+  well.querySelector("#add-campaign").onclick = addCampaign;
 
   if (window.location.pathname.endsWith(`/${siteSlug}/emails`)) {
     toggleWell();
   }
 
   campaignContainer.onclick = async (event) => {
-    if (event.target.matches('.update-campaign-description')) {
-      window?.zaraz?.track('click update campaign description');
+    if (event.target.matches(".update-campaign-description")) {
+      window?.zaraz?.track("click update campaign description");
 
-      const campaign = event.target.closest('.campaign');
+      const campaign = event.target.closest(".campaign");
       const campaignSlug = campaign.dataset.campaign;
-      const description = campaign.querySelector('.description');
+      const description = campaign.querySelector(".description");
 
       const submit = parseFragment('<button form="update-campaign-form" type="submit" class="button primary action">Update Campaign</button>');
       const content = parseFragment(`
@@ -330,29 +357,29 @@ export default async function renderCampaignsOverview({
         `);
 
       const dialog = createDialog(content, [submit]);
-      const form = document.getElementById('update-campaign-form');
+      const form = document.getElementById("update-campaign-form");
 
       form.onsubmit = async (e) => {
-        window.zaraz?.track('click campaign update');
+        window.zaraz?.track("click campaign update");
 
         e.preventDefault();
 
-        dialog.setLoading(true, 'Updating description...');
+        dialog.setLoading(true, "Updating description...");
         const body = Object.fromEntries(new FormData(form));
         const reqUpdate = await fetch(`${SCRIPT_API}/campaigns/${siteSlug}/${campaignSlug}`, {
-          headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
+          method: "PATCH",
           body: JSON.stringify(body),
         }).catch(() => null);
 
         if (reqUpdate?.ok) {
           const update = await reqUpdate.json();
           dialog.close();
-          showToast('Description updated.');
+          showToast("Description updated.");
 
           description.textContent = update.description;
           const updateDate = new Date(update.lastUpdated);
-          const lastUpdatedSpan = campaign.querySelector('.last-updated');
+          const lastUpdatedSpan = campaign.querySelector(".last-updated");
           lastUpdatedSpan.title = new Date(update.lastUpdated).toLocaleString();
           lastUpdatedSpan.textContent = dateToRelativeString(updateDate);
         } else {
@@ -366,7 +393,7 @@ export default async function renderCampaignsOverview({
   addCampaignEl.onclick = addCampaign;
 
   addEmailEl.onclick = async () => {
-    const campaignSlug = campaignList.querySelector('li a.is-selected').parentElement.dataset.campaign;
+    const campaignSlug = campaignList.querySelector("li a.is-selected").parentElement.dataset.campaign;
     const submit = parseFragment('<button form="add-email-form" type="submit" class="button primary action">Add Email</button>');
     const content = parseFragment(`
         <div>
@@ -388,39 +415,39 @@ export default async function renderCampaignsOverview({
       `);
 
     const dialog = createDialog(content, [submit], { fullscreen: true });
-    const form = document.getElementById('add-email-form');
+    const form = document.getElementById("add-email-form");
     const existingEmails = [...container.querySelectorAll(`.campaign-${campaignSlug} .emails tbody tr td:first-child`)].map((el) => el.textContent);
 
     const nameInput = form.querySelector('input[name="pageName"]');
     nameInput.oninput = (event = { target: nameInput }) => {
-      event.target.value = sanitizeName(event?.target?.value || '');
-      const value = slugify(event?.target?.value || '');
+      event.target.value = sanitizeName(event?.target?.value || "");
+      const value = slugify(event?.target?.value || "");
       if (!value) {
         submit.disabled = true;
-        event.target.setCustomValidity('Please enter a name');
+        event.target.setCustomValidity("Please enter a name");
         return;
       }
 
       if (existingEmails.includes(value)) {
-        event.target.setCustomValidity('Email already exists');
+        event.target.setCustomValidity("Email already exists");
         return;
       }
       submit.disabled = false;
-      event.target.setCustomValidity('');
+      event.target.setCustomValidity("");
     };
     nameInput.oninput();
 
     form.onsubmit = async (e) => {
-      window.zaraz?.track('click add email');
+      window.zaraz?.track("click add email");
 
       e.preventDefault();
 
-      dialog.setLoading(true, 'Adding email...');
+      dialog.setLoading(true, "Adding email...");
 
       const body = Object.fromEntries(new FormData(form));
       const req = await fetch(`${SCRIPT_API}/campaigns/${siteSlug}/${campaignSlug}`, {
-        headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
+        method: "POST",
         body: JSON.stringify(body),
       }).catch(() => null);
 
@@ -429,31 +456,33 @@ export default async function renderCampaignsOverview({
         await alertDialog(OOPS);
       } else {
         const { pageSlug, daNewPageSlug } = await req.json();
-        completeChecklistItem(siteSlug, 'createdCampaignEmail', projectDetails);
+        completeChecklistItem(siteSlug, "createdCampaignEmail", projectDetails);
 
         window.location.href = `/email/${siteSlug}/emails/${campaignSlug}/${pageSlug || daNewPageSlug}`;
       }
     };
   };
 
-  nav.querySelector('.delete-campaign').onclick = async (event) => {
-    const campaignSlug = campaignList.querySelector('li a.is-selected').parentElement.dataset.campaign;
+  nav.querySelector(".delete-campaign").onclick = async (event) => {
+    const campaignSlug = campaignList.querySelector("li a.is-selected").parentElement.dataset.campaign;
     if (campaignSlug) {
-      if (await confirmDialog('Are you sure ?')) {
-        window?.zaraz?.track('click campaign delete submit');
+      if (await confirmDialog("Are you sure ?")) {
+        window?.zaraz?.track("click campaign delete submit");
 
-        event.target.classList.add('loading');
+        event.target.classList.add("loading");
         const deleteReq = await fetch(`${SCRIPT_API}/campaigns/${siteSlug}/${campaignSlug}`, {
-          method: 'DELETE',
+          method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         }).catch(() => null);
 
         if (deleteReq?.ok) {
-          const emailsToDelete = [...container.querySelectorAll(`.campaign-${campaignSlug} .emails tr[data-path]`)].map((el) => `.campaign .emails tr[data-path="${el.dataset.path}"]`);
+          const emailsToDelete = [...container.querySelectorAll(`.campaign-${campaignSlug} .emails tr[data-path]`)].map(
+            (el) => `.campaign .emails tr[data-path="${el.dataset.path}"]`,
+          );
 
           container.querySelector(`.campaign-${campaignSlug}`).remove();
           if (emailsToDelete.length) {
-            container.querySelectorAll(emailsToDelete.join(',')).forEach((el) => {
+            container.querySelectorAll(emailsToDelete.join(",")).forEach((el) => {
               el.remove();
             });
           }
@@ -467,15 +496,15 @@ export default async function renderCampaignsOverview({
         } else {
           showErrorToast();
         }
-        event.target.classList.remove('loading');
+        event.target.classList.remove("loading");
       }
     }
   };
 
-  nav.querySelectorAll('.delete-campaign, .add-email, .open-campaign').forEach((action) => {
+  nav.querySelectorAll(".delete-campaign, .add-email, .open-campaign").forEach((action) => {
     action.hidden = !window.location.pathname.startsWith(`${pathname}/emails/`);
-    if (action.classList.contains('open-campaign') && !action.hidden) {
-      setCampaignLink(action, window.location.pathname.split('/').pop());
+    if (action.classList.contains("open-campaign") && !action.hidden) {
+      setCampaignLink(action, window.location.pathname.split("/").pop());
     }
   });
 
@@ -485,7 +514,7 @@ export default async function renderCampaignsOverview({
 
   const addCampaignLink = document.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"].add-campaign`);
   if (addCampaignLink) {
-    addCampaignLink.classList.remove('add-campaign');
+    addCampaignLink.classList.remove("add-campaign");
     addCampaignEl.dispatchEvent(syntheticClickEvent);
   }
 }

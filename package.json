@@ -28,10 +28,12 @@
   },
   "lint-staged": {
     "**/*.{js,mjs,cjs}": [
-      "prettier --write",
-      "eslint ."
+      "npx prettier --write",
+      "npx eslint --fix"
     ],
-    "*.js": "eslint --cache --fix",
-    "*.css": "stylelint --fix"
+    "*.css": [
+      "npx prettier --write",
+      "npx stylelint --fix"
+    ]
   }
 }

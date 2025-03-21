@@ -1,5 +1,5 @@
 name: Refresh template list on server
-on: 
+on:
   workflow_dispatch:
   repository_dispatch:
     types:
@@ -9,8 +9,8 @@ jobs:
   refresh-template-list-on-server:
     runs-on: ubuntu-latest
     steps:
-    - run: |
-        echo "Status: ${{ github.event.client_payload.status }}"
-        echo "Path: ${{ github.event.client_payload.path }}"
-    - run: |
-        curl -X GET -f "https://api.kestrelone.com/refreshTemplates" --header "Authorization: Bearer ${{ secrets.MINOR_UPDATES_TOKEN }}"
+      - run: |
+          echo "Status: ${{ github.event.client_payload.status }}"
+          echo "Path: ${{ github.event.client_payload.path }}"
+      - run: |
+          curl -X GET -f "https://api.kestrelone.com/refreshTemplates" --header "Authorization: Bearer ${{ secrets.MINOR_UPDATES_TOKEN }}"
