@@ -57,11 +57,7 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
         varsObj.cssFonts = await req.text();
 
         // Update editor
-        editor.setValue(
-          editor
-            .getValue()
-            .replace(`--${selectedFont.name}:${selectedFont.fullValue}`, `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`),
-        );
+        editor.setValue(editor.getValue().replace(`--${selectedFont.name}:${selectedFont.fullValue}`, `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`));
 
         varsObj.cssVars = getCSSVars(editor.getValue());
       }

@@ -427,9 +427,7 @@ export default async function renderUserTab({ container }) {
       const { pagination } = deletedUsersJSON;
       let deletedUsersTable = null;
 
-      const originalDeletedUsersData = Object.keys(deletedUsers).sort(
-        (uA, uB) => new Date(deletedUsers[uB].deleted_at) - new Date(deletedUsers[uA].deleted_at),
-      );
+      const originalDeletedUsersData = Object.keys(deletedUsers).sort((uA, uB) => new Date(deletedUsers[uB].deleted_at) - new Date(deletedUsers[uA].deleted_at));
       const deletedUsersData = [...originalDeletedUsersData];
 
       const generateTable = () =>
@@ -618,8 +616,7 @@ export default async function renderUserTab({ container }) {
 
       const matchesIpFilter = !filterByIp || timestampIp.includes(filterByIp);
       const matchesEventFilter = anonymousFilter.event === "all" || anonymousFilter.event === timestampItem.event;
-      const matchesLocationFilter =
-        anonymousFilter.location === "all" || [timestampItem.city, timestampItem.country].filter(Boolean).join(", ") === anonymousFilter.location;
+      const matchesLocationFilter = anonymousFilter.location === "all" || [timestampItem.city, timestampItem.country].filter(Boolean).join(", ") === anonymousFilter.location;
       const matchesReferrerFilter = anonymousFilter.referrer === "all" || anonymousFilter.referrer === timestampItem.referrer;
       const matchesBrowserFilter =
         anonymousFilter.browser === "all" ||
@@ -627,14 +624,10 @@ export default async function renderUserTab({ container }) {
           timestampItem.userAgent.browser &&
           timestampItem.userAgent.browser.name &&
           anonymousFilter.browser === `${timestampItem.userAgent.browser.name} (${parseAcceptLanguage(timestampItem.language) || "unknown"})`) ||
-        (timestampItem.browser &&
-          anonymousFilter.browser === `${parseBrowser(timestampItem.browser)} (${parseAcceptLanguage(timestampItem.language) || "unknown"})`);
+        (timestampItem.browser && anonymousFilter.browser === `${parseBrowser(timestampItem.browser)} (${parseAcceptLanguage(timestampItem.language) || "unknown"})`);
       const matchesDeviceFilter =
         anonymousFilter.device === "all" ||
-        (timestampItem.userAgent &&
-          timestampItem.userAgent.os &&
-          timestampItem.userAgent.os.name &&
-          anonymousFilter.device === timestampItem.userAgent.os.name) ||
+        (timestampItem.userAgent && timestampItem.userAgent.os && timestampItem.userAgent.os.name && anonymousFilter.device === timestampItem.userAgent.os.name) ||
         (timestampItem.device && anonymousFilter.device === timestampItem.device.replaceAll('"', ""));
 
       if (matchesIpFilter && matchesEventFilter && matchesLocationFilter && matchesReferrerFilter && matchesBrowserFilter && matchesDeviceFilter) {
@@ -813,9 +806,7 @@ export default async function renderUserTab({ container }) {
       return comboContainer;
     };
 
-    const anonymousGridContent = ["ip", "event", "date", "url", "location", "referrer", "browser", "device"]
-      .map((id) => `<div id="anon-${id}"></div>`)
-      .join("");
+    const anonymousGridContent = ["ip", "event", "date", "url", "location", "referrer", "browser", "device"].map((id) => `<div id="anon-${id}"></div>`).join("");
     anonymousContainer.innerHTML = `<div class="anonymous-grid">${anonymousGridContent}</div>`;
     document.getElementById("anon-event").appendChild(generateCombobox("event-input", "event-content", events, "Event"));
 

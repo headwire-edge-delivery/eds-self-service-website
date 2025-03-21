@@ -84,8 +84,7 @@ export default async function renderCheckList({ container, renderOptions, histor
           allowManualCheck: true,
           skip: isDarkAlleyProject,
           highlight: "#edit-button",
-          hintBody:
-            '<div><video width="1600" height="800" controls autoplay loop muted><source src="/media/tutorial-videos/add-project.webm" type="video/webm" /></video></div>',
+          hintBody: '<div><video width="1600" height="800" controls autoplay loop muted><source src="/media/tutorial-videos/add-project.webm" type="video/webm" /></video></div>',
         },
         {
           content: "Add a new page",

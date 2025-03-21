@@ -237,12 +237,7 @@ function handler(event) {
     if (!shouldContrastWith?.length) continue;
     for (let j = 0; j < shouldContrastWith.length; j += 1) {
       const requiredThresholds = getRequiredContrastThreshold(varKey, shouldContrastWith[j]);
-      const { ratio, AA, AAA } = calculateContrast(
-        filteredCssVars[varKey].value,
-        filteredCssVars[shouldContrastWith[j]].value,
-        requiredThresholds.AA,
-        requiredThresholds.AAA,
-      );
+      const { ratio, AA, AAA } = calculateContrast(filteredCssVars[varKey].value, filteredCssVars[shouldContrastWith[j]].value, requiredThresholds.AA, requiredThresholds.AAA);
 
       if (!AA || !AAA) {
         contrastIssues.push({

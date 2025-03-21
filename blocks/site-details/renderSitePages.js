@@ -1,14 +1,4 @@
-import {
-  daProjectRepo,
-  dateToRelativeSpan,
-  EMAIL_WORKER_API,
-  OOPS,
-  parseFragment,
-  SCRIPT_API,
-  projectRepo,
-  safeText,
-  completeChecklistItem,
-} from "../../scripts/scripts.js";
+import { daProjectRepo, dateToRelativeSpan, EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API, projectRepo, safeText, completeChecklistItem } from "../../scripts/scripts.js";
 import renderSkeleton from "../../scripts/skeletons.js";
 import { alertDialog, confirmDialog, createDialog } from "../../scripts/dialogs.js";
 import { showErrorToast, showToast } from "../../scripts/toast.js";
@@ -99,9 +89,7 @@ export function renderTable({ table, tableData, type, projectDetails, token, isD
       </td>
     `;
 
-    fetch(
-      `https://admin.hlx.page/status/${projectDetails.darkAlleyProject ? daProjectRepo : projectRepo}/${projectDetails.projectSlug}/main${item.path}?editUrl=auto`,
-    )
+    fetch(`https://admin.hlx.page/status/${projectDetails.darkAlleyProject ? daProjectRepo : projectRepo}/${projectDetails.projectSlug}/main${item.path}?editUrl=auto`)
       .then((res) => res.json())
       .then((res) => {
         const renderStatus = (status, variant = "") => {

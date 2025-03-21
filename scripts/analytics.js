@@ -82,12 +82,8 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
     const totalPageViews = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.count ?? 0;
     const medianPageLoadTime = metrics[2]?.data?.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
 
-    const visitsDelta = metrics[2]?.data?.viewer.accounts[0].visitsDelta[0]
-      ? (totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits - 100
-      : 0;
-    const pageViewsDelta = metrics[2]?.data?.viewer.accounts[0].pageviewsDelta[0]
-      ? (totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count - 100
-      : 0;
+    const visitsDelta = metrics[2]?.data?.viewer.accounts[0].visitsDelta[0] ? (totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits - 100 : 0;
+    const pageViewsDelta = metrics[2]?.data?.viewer.accounts[0].pageviewsDelta[0] ? (totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count - 100 : 0;
     const performanceDelta =
       metrics[2]?.data?.viewer.accounts[0].performanceDelta[0] && metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime > 0
         ? (medianPageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime - 100
@@ -137,10 +133,7 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                       <strong>By referers</strong>
                       ${metrics[0].data.viewer.accounts[0].topReferers
                         .filter((ref) => ref.sum.visits > 1)
-                        .map(
-                          (referer) =>
-                            `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : "None (direct)"}</span><span>${referer.sum.visits}</span></p>`,
-                        )
+                        .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : "None (direct)"}</span><span>${referer.sum.visits}</span></p>`)
                         .join("")}
                   </div>
                   <div id="visits-details-paths" class="box">
@@ -172,19 +165,13 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                 <div id="page-views-details-country" class="box">
                     <strong>By country</strong>
                     ${metrics[0].data.viewer.accounts[0].countries
-                      .map(
-                        (country) =>
-                          `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`,
-                      )
+                      .map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
                       .join("")}
                 </div>
                 <div id="page-views-details-referers" class="box">
                     <strong>By referers</strong>
                     ${metrics[0].data.viewer.accounts[0].topReferers
-                      .map(
-                        (referer) =>
-                          `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : "None (direct)"}</span><span>${referer.count}</span></p>`,
-                      )
+                      .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : "None (direct)"}</span><span>${referer.count}</span></p>`)
                       .join("")}
                 </div>
                 <div id="page-views-details-paths" class="box">
@@ -214,19 +201,13 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                 <div id="pageload-details-country" class="box">
                     <strong>By country</strong>
                     ${metrics[3].data.viewer.accounts[0].countries
-                      .map(
-                        (country) =>
-                          `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`,
-                      )
+                      .map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
                       .join("")}
                 </div>
                 <div id="pageload-details-referers" class="box">
                     <strong>By referers</strong>
                     ${metrics[3].data.viewer.accounts[0].topReferers
-                      .map(
-                        (referer) =>
-                          `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : "None (direct)"}</span><span>${referer.count}</span></p>`,
-                      )
+                      .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : "None (direct)"}</span><span>${referer.count}</span></p>`)
                       .join("")}
                 </div>
                 <div id="pageload-details-paths" class="box">
@@ -361,9 +342,7 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
 
     series.forEach((d) => {
       const found = metrics[1].data.viewer.accounts[0].series.find((serie) =>
-        periodSelector.value === "30d"
-          ? d.toLocaleDateString() === new Date(serie.dimensions.ts).toLocaleDateString()
-          : d.getTime() === new Date(serie.dimensions.ts).getTime(),
+        periodSelector.value === "30d" ? d.toLocaleDateString() === new Date(serie.dimensions.ts).toLocaleDateString() : d.getTime() === new Date(serie.dimensions.ts).getTime(),
       );
 
       if (found) {

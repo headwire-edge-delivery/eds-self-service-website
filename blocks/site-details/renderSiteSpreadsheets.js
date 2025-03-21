@@ -276,10 +276,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
           tr.append(td);
         }
         if (sheetEditMode()) {
-          tr.insertAdjacentHTML(
-            "beforeend",
-            `<td class="delete-row"><button data-row="${rowIndex}" class="button action secondary destructive">Remove</button></td>`,
-          );
+          tr.insertAdjacentHTML("beforeend", `<td class="delete-row"><button data-row="${rowIndex}" class="button action secondary destructive">Remove</button></td>`);
         }
         tbody.append(tr);
       }

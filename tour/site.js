@@ -342,8 +342,7 @@ function siteMonitoringTour({ showAutoTour }) {
       },
       {
         title: "Sorted by Device Type",
-        description:
-          "Sorted according to the device type your visitors used. <br /> Are they using a Desktop, Tablet, or Mobile more? You will find the answer here.",
+        description: "Sorted according to the device type your visitors used. <br /> Are they using a Desktop, Tablet, or Mobile more? You will find the answer here.",
         element: "#pageload-details-devices",
       },
       {

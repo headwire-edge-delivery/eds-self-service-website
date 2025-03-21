@@ -331,14 +331,7 @@ export function slugifyFilename(str) {
 }
 
 export function safeText(text) {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/\n/g, "&#10;")
-    .replace(/\//g, "&#47;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return text.replace(/&/g, "&amp;").replace(/\n/g, "&#10;").replace(/\//g, "&#47;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
 const sanitizedNameRegex = /[`\\~!@#$%*+=[\]{};:'",<.>/?]/g;
@@ -408,9 +401,7 @@ export function createTabs({ block, breadcrumbs, tabs, renderOptions, defaultTab
 
   const defaultNavItems = block.querySelector(".tabs-default-nav-items");
   if (renderOptions?.projectDetails?.customLiveUrl) {
-    const openLink = parseFragment(
-      `<a id="open-button" class="button action primary" href="/redirect?url=${renderOptions.projectDetails.customLiveUrl}" target="_blank">Open</a>`,
-    );
+    const openLink = parseFragment(`<a id="open-button" class="button action primary" href="/redirect?url=${renderOptions.projectDetails.customLiveUrl}" target="_blank">Open</a>`);
     openLink.onclick = () => window?.zaraz?.track("click site open");
     defaultNavItems.append(openLink);
   }

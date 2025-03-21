@@ -31,9 +31,7 @@ export default async function decorate(block) {
 
   const [siteDetailsReq, versionInfoReq] = await Promise.all([
     await fetch(`${SCRIPT_API}/${darkAlleyVariation ? "darkAlleyList" : "list"}/${siteSlug}`, { headers: authHeaders }).catch(() => null),
-    await fetch(`${SCRIPT_API}/${darkAlleyVariation ? "daUpdateProject" : "updateProject"}/checkUpdates/${siteSlug}`, { headers: authHeaders }).catch(
-      () => null,
-    ),
+    await fetch(`${SCRIPT_API}/${darkAlleyVariation ? "daUpdateProject" : "updateProject"}/checkUpdates/${siteSlug}`, { headers: authHeaders }).catch(() => null),
   ]);
 
   if (siteDetailsReq?.status === 404) {

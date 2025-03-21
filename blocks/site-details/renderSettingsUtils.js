@@ -722,13 +722,10 @@ export async function renderDangerZone({ container, renderOptions }) {
     if (await confirmDialog("Are you sure you want to delete your site? (This can't be undone)")) {
       window?.zaraz?.track("click site delete submit");
 
-      const reqDelete = await fetch(
-        `${SCRIPT_API}/${renderOptions.projectDetails.darkAlleyProject ? "da-" : ""}delete/${renderOptions.projectDetails.projectSlug}`,
-        {
-          method: "DELETE",
-          headers: { authorization: `bearer ${renderOptions.token}` },
-        },
-      ).catch(() => null);
+      const reqDelete = await fetch(`${SCRIPT_API}/${renderOptions.projectDetails.darkAlleyProject ? "da-" : ""}delete/${renderOptions.projectDetails.projectSlug}`, {
+        method: "DELETE",
+        headers: { authorization: `bearer ${renderOptions.token}` },
+      }).catch(() => null);
       if (reqDelete?.ok) {
         window.location.href = "/dashboard/sites";
       } else {

@@ -172,8 +172,7 @@ function emailTour() {
       },
       {
         title: "Variables",
-        description:
-          'Add here all Variables you are using in your Email Template. For Example, you can use {headline} in your Template to replace it with a "headline".',
+        description: 'Add here all Variables you are using in your Email Template. For Example, you can use {headline} in your Template to replace it with a "headline".',
         element: "#email-variables",
         destroyOnClicked: false,
       },
