@@ -26,6 +26,7 @@ export default defineConfig([
       "consistent-return": "error",
       "no-empty": "error",
       "no-undef": "error",
+      "no-unexpected-multiline": "error",
     },
   },
   {
@@ -34,61 +35,17 @@ export default defineConfig([
   {
     files: ["blocks/**/*.{js,jsx,ts,tsx}"],
     rules: {
-      // TODO: not working
-      "no-restricted-globals": [
+      "no-restricted-syntax": [
         "error",
         {
-          name: "document.querySelector",
-          message: "use block.querySelector instead!",
+          "selector": "MemberExpression[object.name='document'][property.name='querySelector']",
+          message: "querySelectors should be used on the block. using it on document will result in the block breaking if multiple are used on the page. use eslint-disable-next-line no-restricted-syntax if you need to use document.querySelect"
         },
         {
-          name: "document.querySelectorAll",
-          message: "use block.querySelector instead!",
-        },
+          "selector": "MemberExpression[object.name='document'][property.name='querySelectorAll']",
+          message: "querySelectors should be used on the block. using it on document will result in the block breaking if multiple are used on the page. use eslint-disable-next-line no-restricted-syntax if you need to use document.querySelectAll"
+        }
       ],
     },
   },
-
-  // Custom rule definition
-  // {
-  //   rules: {
-  //     "no-dom-queries-in-blocks": ["error", {
-  //       create(context) {
-  //         const forbiddenMethods = [
-  //           "querySelector",
-  //           "querySelectorAll"
-  //         ];
-
-  //         return {
-  //           CallExpression(node) {
-  //             const callee = node.callee;
-
-  //             if (
-  //               callee.object?.name === "document" &&
-  //               forbiddenMethods.includes(callee.property.name)
-  //             ) {
-  //               context.report({
-  //                 node: node,
-  //                 message: `DOM queries (${callee.property.name}) are not allowed in blocks/ directory. Consider using alternative methods.`
-  //               });
-  //             }
-  //           }
-  //         };
-  //       },
-  //       meta: {
-  //         type: "problem",
-  //         docs: {
-  //           description: "Disallow DOM queries in blocks/ directory",
-  //           category: "Best Practices",
-  //           recommended: "error"
-  //         },
-  //         messages: {
-  //           noDomQueries: "DOM queries are not allowed in blocks/ directory."
-  //         },
-  //         schema: [] // No options
-  //       },
-  //       default: "error"
-  //     }]
-  //   }
-  // }
 ]);
