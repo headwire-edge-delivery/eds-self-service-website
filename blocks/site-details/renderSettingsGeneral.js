@@ -203,13 +203,13 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   addAuthorForm.oninput = () => {
     if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addAuthorForm.querySelector("input").value)) {
       addAuthorForm.querySelector("#add-author-button").classList.remove("is-disabled");
-      document.querySelector("#new-author-warning").hidden = true;
+      container.querySelector("#new-author-warning").hidden = true;
     } else {
       addAuthorForm.querySelector("#add-author-button").classList.add("is-disabled");
-      document.querySelector("#new-author-warning").hidden = false;
+      container.querySelector("#new-author-warning").hidden = false;
     }
     if (addAuthorForm.querySelector("input").value === "") {
-      document.querySelector("#new-author-warning").hidden = true;
+      container.querySelector("#new-author-warning").hidden = true;
     }
   };
 
@@ -227,10 +227,10 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   contactEmailFormInput.oninput = () => {
     if (contactEmailFormInput.value === contactEmail || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contactEmailFormInput.value)) {
       contactEmailButton.classList.remove("is-disabled");
-      document.querySelector("#contact-email-warning").hidden = true;
+      container.querySelector("#contact-email-warning").hidden = true;
     } else {
       contactEmailButton.classList.add("is-disabled");
-      document.querySelector("#contact-email-warning").hidden = false;
+      container.querySelector("#contact-email-warning").hidden = false;
     }
   };
 
@@ -272,8 +272,8 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     });
 
   // MARK: blocks & icons
-  renderBlocksList(container, blocksListData, { projectDetails, authHeaders, siteSlug });
-  renderIconsList(container, iconsListData, { projectDetails, authHeaders, siteSlug });
+  renderBlocksList({ container, nav, blocksListData, projectDetails, authHeaders, siteSlug });
+  renderIconsList({ container, nav, iconsListData, projectDetails, authHeaders, siteSlug });
 
   // MARK: Updates section
   const updatePromptInfoDiv = container.querySelector(".update-prompt-info");

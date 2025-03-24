@@ -269,8 +269,8 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
             "beforeend",
             `
               <li data-campaign="${newCampaign.slug}"><a class="button selector action secondary" href="${pathname}/${el.dataset.type}/${
-                newCampaign.slug
-              }">${newCampaign.name}</li></a>
+  newCampaign.slug
+}">${newCampaign.name}</li></a>
             `,
           );
         });
@@ -512,7 +512,8 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
     campaignList.querySelector(`[href="${currentItem}"]`)?.dispatchEvent(syntheticClickEvent);
   });
 
-  const addCampaignLink = document.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"].add-campaign`);
+  const tabsParent = container.closest(".tabs-content");
+  const addCampaignLink = tabsParent.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"].add-campaign`);
   if (addCampaignLink) {
     addCampaignLink.classList.remove("add-campaign");
     addCampaignEl.dispatchEvent(syntheticClickEvent);

@@ -152,97 +152,97 @@ const startTour = (isAutoTour, showDisableTour = false) =>
       };
 
       switch (true) {
-        case switchCase("/site/", "/overview"):
-          getTour(siteOverviewTour);
-          break;
-        case switchCase("/da-site/", "/overview"):
-          getTour(siteOverviewTour);
-          break;
-        case switchCase("/site/", "/pages"):
-          getTour(sitePagesTour);
-          break;
-        case switchCase("/da-site/", "/pages"):
-          getTour(sitePagesTour);
-          break;
-        case switchCase("/site/", "/sheets"):
-          getTour(siteSheetsTour);
-          break;
-        case switchCase("/site/", "/web-analytics"):
-          getTour(siteMonitoringTour);
-          break;
-        case switchCase("/da-site/", "/web-analytics"):
-          getTour(siteMonitoringTour);
-          break;
-        case switchCase("/site/", "/emails"):
-          getTour(campaignEmailsTour);
-          break;
-        case switchCase("/da-site/", "/emails"):
-          getTour(campaignEmailsTour);
-          break;
-        case switchCase("/da-site/", "/audience"):
-          getTour(campaignEmailsAudienceTour);
-          break;
-        case switchCase("/site/", "/audience"):
-          getTour(campaignEmailsAudienceTour);
-          break;
-        case switchCase("/site/", "/seo"):
-          getTour(SEOTour);
-          break;
-        case switchCase("/da-site/", "/seo"):
-          getTour(SEOTour);
-          break;
-        case switchCase("/site/", "/campaign-analytics"):
-          getTour(campaignEmailAnalyticsTour);
-          break;
-        case switchCase("/da-site/", "/campaign-analytics"):
-          getTour(campaignEmailAnalyticsTour);
-          break;
-        case switchCase("/site/", "/settings"):
-          getTour(settingsGeneralTour);
-          break;
-        case switchCase("/da-site/", "/settings"):
-          getTour(settingsGeneralTour);
-          break;
-        case switchCase("/theme/"):
-          getTour(settingsThemeTour);
-          break;
-        case switchCase("/email/"):
-          getTour(emailTour);
-          break;
-        case switchCase("/dashboard/sites"):
-          getTour(dashboardSitesTour);
-          break;
-        case switchCase("/dashboard/account"):
-          getTour(dashboardAccountTour);
-          break;
-        case switchCase("/dashboard/admin"):
-          getTour(adminTour);
-          break;
-        case switchCase("/templates/", "/create"):
-          getTour(createTemplateTour);
-          break;
-        case switchCase("/templates/", "/create/progress"):
-          if (!showAutoTour) {
-            getTour(noTourAvailable);
-          }
-          break;
-        case switchCase("/templates/wknd-template"):
-          getTour(wkndTemplateTour);
-          break;
-        case switchCase("/templates/sports-template"):
-          getTour(sportsTemplateTour);
-          break;
-        case switchCase("/templates/club-template"):
-          getTour(clubTemplateTour);
-          break;
-        case pathname === "/" || switchCase("/templates/"):
-          getTour(homepageTour);
-          break;
-        default:
-          if (!showAutoTour) {
-            getTour(noTourAvailable);
-          }
-          break;
+      case switchCase("/site/", "/overview"):
+        getTour(siteOverviewTour);
+        break;
+      case switchCase("/da-site/", "/overview"):
+        getTour(siteOverviewTour);
+        break;
+      case switchCase("/site/", "/pages"):
+        getTour(sitePagesTour);
+        break;
+      case switchCase("/da-site/", "/pages"):
+        getTour(sitePagesTour);
+        break;
+      case switchCase("/site/", "/sheets"):
+        getTour(siteSheetsTour);
+        break;
+      case switchCase("/site/", "/web-analytics"):
+        getTour(siteMonitoringTour);
+        break;
+      case switchCase("/da-site/", "/web-analytics"):
+        getTour(siteMonitoringTour);
+        break;
+      case switchCase("/site/", "/emails"):
+        getTour(campaignEmailsTour);
+        break;
+      case switchCase("/da-site/", "/emails"):
+        getTour(campaignEmailsTour);
+        break;
+      case switchCase("/da-site/", "/audience"):
+        getTour(campaignEmailsAudienceTour);
+        break;
+      case switchCase("/site/", "/audience"):
+        getTour(campaignEmailsAudienceTour);
+        break;
+      case switchCase("/site/", "/seo"):
+        getTour(SEOTour);
+        break;
+      case switchCase("/da-site/", "/seo"):
+        getTour(SEOTour);
+        break;
+      case switchCase("/site/", "/campaign-analytics"):
+        getTour(campaignEmailAnalyticsTour);
+        break;
+      case switchCase("/da-site/", "/campaign-analytics"):
+        getTour(campaignEmailAnalyticsTour);
+        break;
+      case switchCase("/site/", "/settings"):
+        getTour(settingsGeneralTour);
+        break;
+      case switchCase("/da-site/", "/settings"):
+        getTour(settingsGeneralTour);
+        break;
+      case switchCase("/theme/"):
+        getTour(settingsThemeTour);
+        break;
+      case switchCase("/email/"):
+        getTour(emailTour);
+        break;
+      case switchCase("/dashboard/sites"):
+        getTour(dashboardSitesTour);
+        break;
+      case switchCase("/dashboard/account"):
+        getTour(dashboardAccountTour);
+        break;
+      case switchCase("/dashboard/admin"):
+        getTour(adminTour);
+        break;
+      case switchCase("/templates/", "/create"):
+        getTour(createTemplateTour);
+        break;
+      case switchCase("/templates/", "/create/progress"):
+        if (!showAutoTour) {
+          getTour(noTourAvailable);
+        }
+        break;
+      case switchCase("/templates/wknd-template"):
+        getTour(wkndTemplateTour);
+        break;
+      case switchCase("/templates/sports-template"):
+        getTour(sportsTemplateTour);
+        break;
+      case switchCase("/templates/club-template"):
+        getTour(clubTemplateTour);
+        break;
+      case pathname === "/" || switchCase("/templates/"):
+        getTour(homepageTour);
+        break;
+      default:
+        if (!showAutoTour) {
+          getTour(noTourAvailable);
+        }
+        break;
       }
     }
   }, 100);

@@ -5,8 +5,7 @@ import paginator from "../../libs/pagination/pagination.js";
 
 const defaultLimit = 6;
 
-const generateThumbnails = () => {
-  const sitesList = document.querySelector(".sites-list");
+const generateThumbnails = (sitesList) => {
   sitesList.querySelectorAll(".project-thumbnail").forEach((thumbnail) => {
     fetch(thumbnail.dataset.src)
       .then((res) => {
@@ -43,7 +42,7 @@ export default async function renderSites({ container, nav }) {
     const search = queryParams.search || "";
     const owner = queryParams.owner || userSettingsOwner;
     const isDarkAlley = type === "darkAlley";
-    const sitesList = document.querySelector(isDarkAlley ? ".sites-list-dark-alley" : ".sites-list-google-drive");
+    const sitesList = container.querySelector(isDarkAlley ? ".sites-list-dark-alley" : ".sites-list-google-drive");
     const currentLimit = Math.max(1, parseInt(isDarkAlley ? daLimit : limit, 10));
     const actualPage = isDarkAlley ? currentDaPage : currentPage;
     const url = `${SCRIPT_API}/${isDarkAlley ? "darkAlleyList" : "list"}?search=${encodeURIComponent(search)}&limit=${currentLimit}&page=${actualPage}&owner=${owner}`;
@@ -123,7 +122,7 @@ export default async function renderSites({ container, nav }) {
         }
       });
 
-      generateThumbnails();
+      generateThumbnails(newSitesList);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
@@ -134,10 +133,7 @@ export default async function renderSites({ container, nav }) {
 
   const fetchAllSites = async () => {
     await waitForAuthenticated();
-    const showDarkAlley =
-      document.querySelector("body").classList.contains("is-headwire") ||
-      document.querySelector("body").classList.contains("is-adobe") ||
-      document.querySelector("body").classList.contains("is-test-user");
+    const showDarkAlley = document.body.classList.contains("is-headwire") || document.body.classList.contains("is-adobe") || document.body.classList.contains("is-test-user");
     const queryParams = readQueryParams();
     const darkAlleyContainer = container.querySelector(".sites-list-dark-alley");
     const googleDriveContainer = container.querySelector(".sites-list-google-drive");

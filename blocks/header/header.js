@@ -54,7 +54,7 @@ export default async function decorate(block) {
     `,
     );
 
-    const dashboard = document.querySelector('header a[href="/dashboard/sites"]');
+    const dashboard = block.querySelector('header a[href="/dashboard/sites"]');
     if (dashboard) {
       dashboard.id = "dashboard-button";
       dashboard.title = "Sites";

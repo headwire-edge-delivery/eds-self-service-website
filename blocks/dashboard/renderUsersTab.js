@@ -209,8 +209,7 @@ export default async function renderUserTab({ container }) {
     functionName(true, validLength);
   };
 
-  const filterEventlistener = (filterClass, filterName, functionName, minLength = 1, noValueFunction = () => {}) => {
-    const filterInput = document.querySelector(filterClass);
+  const filterEventlistener = (filterInput, filterName, functionName, minLength = 1, noValueFunction = () => {}) => {
     let debounceTimer;
     function debounce(callback, delay) {
       clearTimeout(debounceTimer);
@@ -408,7 +407,7 @@ export default async function renderUserTab({ container }) {
       usersContainer.querySelector('[aria-label="loading"]').textContent = OOPS;
     }
   };
-  filterEventlistener(".filter-users", "user", renderUsers, userSearchMinLength);
+  filterEventlistener(filterUsersInput, "user", renderUsers, userSearchMinLength);
 
   // MARK: renderDeletedUsers
   const deletedUsersContainer = container.querySelector(".users .deleted-users");
@@ -496,7 +495,7 @@ export default async function renderUserTab({ container }) {
       deletedUsersContainer.querySelector('[aria-label="loading"]').textContent = OOPS;
     }
   };
-  filterEventlistener(".filter-deleted-users", "deleteduser", renderDeletedUsers);
+  filterEventlistener(filterDeletedUsersInput, "deleteduser", renderDeletedUsers);
 
   let anonymousUserResponse = null;
   let anonymousUserData = null;
@@ -667,23 +666,23 @@ export default async function renderUserTab({ container }) {
             },
             browser: !serverEvent
               ? {
-                  value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
-                  title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
-                }
+                value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
+                title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
+              }
               : {
-                  title: [
-                    timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
-                    timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
-                  ]
-                    .filter(Boolean)
-                    .join("\n"),
-                  value: [parseBrowser(timestampItem.browser), parseAcceptLanguage(timestampItem.language)].filter(Boolean).join(", "),
-                },
+                title: [
+                  timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
+                  timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
+                ]
+                  .filter(Boolean)
+                  .join("\n"),
+                value: [parseBrowser(timestampItem.browser), parseAcceptLanguage(timestampItem.language)].filter(Boolean).join(", "),
+              },
             device: !serverEvent
               ? {
-                  title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
-                  value: timestampItem.userAgent.os.name,
-                }
+                title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
+                value: timestampItem.userAgent.os.name,
+              }
               : timestampItem?.device?.replaceAll('"', ""),
           };
         }),
@@ -741,7 +740,7 @@ export default async function renderUserTab({ container }) {
       comboContainer.appendChild(comboBox);
 
       input.addEventListener("focus", () => {
-        document.querySelectorAll(".combobox-content").forEach((box) => {
+        container.querySelectorAll(".combobox-content").forEach((box) => {
           // NOSONAR
           if (box !== comboBoxId) {
             box.classList.remove("combobox-show");
@@ -764,9 +763,9 @@ export default async function renderUserTab({ container }) {
         comboBox.classList.add("combobox-show");
       });
 
-      document.addEventListener("click", (event) => {
+      container.addEventListener("click", (event) => {
         if (!event.target.closest(".combobox")) {
-          document.querySelectorAll(".combobox-content").forEach((box) => {
+          container.querySelectorAll(".combobox-content").forEach((box) => {
             // NOSONAR
             box.classList.remove("combobox-show");
           });
@@ -837,7 +836,7 @@ export default async function renderUserTab({ container }) {
       },
     });
 
-    filterEventlistener(".filter-anonymous", "ip", renderAnonymous, 0, () => {
+    filterEventlistener(filterAnonymousUsersInput, "ip", renderAnonymous, 0, () => {
       anonymousContainer.innerHTML = renderSkeleton("tracking");
       anonymousUserResponse = null;
       anonymousUserData = null;

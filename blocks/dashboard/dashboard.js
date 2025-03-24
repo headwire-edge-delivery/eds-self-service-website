@@ -60,6 +60,7 @@ export default async function decorate(block) {
   const accountTabContent = block.querySelector(".tab-content.account");
 
   // Add plans & account details
+  // eslint-disable-next-line no-restricted-syntax
   const additionalFragments = document.querySelectorAll("main > .fragment-wrapper, main > .section > .fragment-wrapper");
   additionalFragments.forEach((fragment) => {
     fragment.dataset.noUnload = "true";

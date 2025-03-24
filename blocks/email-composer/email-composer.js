@@ -145,15 +145,15 @@ export default async function decorate(block) {
                 <div id="email-variables">
                 <h2>Variables</h2>
                 ${variables
-                  .map(
-                    (variable) => `
+    .map(
+      (variable) => `
                   <div class="kv">
                       <input type="text" placeholder="Key" value="${variable}" readonly>
                       <input type="text" placeholder="Value" value="${customVariables[variable] ?? ""}">
                   </div>
                 `,
-                  )
-                  .join("")}
+    )
+    .join("")}
                 
                 <div class="button-container">
                     <button class="button secondary action preview-variables">Preview</button>
@@ -467,10 +467,10 @@ export default async function decorate(block) {
               </thead>
               <tbody>
                 ${
-                  audience?.length
-                    ? audience
-                        .map(
-                          (contact) => `<tr data-id="${contact.id}" data-email="${contact.email}">
+  audience?.length
+    ? audience
+      .map(
+        (contact) => `<tr data-id="${contact.id}" data-email="${contact.email}">
                     <td><input type="checkbox" class="select"></td>
                     <td>${contact.email}</td>
                     <td>${contact.firstName}</td>
@@ -482,10 +482,10 @@ export default async function decorate(block) {
                         </div>
                     </td>
                 </tr>`,
-                        )
-                        .join("")
-                    : ""
-                }
+      )
+      .join("")
+    : ""
+}
                 <tr>
                     <td></td>
                     <td><input name="email" type="email" placeholder="john.doe@example.com" required></td>

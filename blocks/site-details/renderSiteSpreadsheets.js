@@ -452,8 +452,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     <div style="display: flex;">
       <h2></h2>
       <button id="lock-button" class="button transparent" ${!isProtected && "disabled"}><img src="/icons/${
-        isProtected && isLocked ? "locked" : "unlocked"
-      }.svg" alt="lock icon" id="lock-svg" /></button>
+  isProtected && isLocked ? "locked" : "unlocked"
+}.svg" alt="lock icon" id="lock-svg" /></button>
     </div>
     <button id="edit-sheet" class="button action primary" ${isProtected && "disabled"}>Edit</button>
     <button id="discard-changes" class="button action" hidden>Discard</button>

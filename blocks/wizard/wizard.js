@@ -144,7 +144,9 @@ export default async function decorate(block) {
       .then((req) => req.json())
       .then(({ data }) => {
         const render = () => {
+          // eslint-disable-next-line no-restricted-syntax
           const selectTemplate = document.querySelector('header a[href="#select-template"]');
+          // eslint-disable-next-line no-restricted-syntax
           const back = document.querySelector('header a[href="#back"]');
 
           const hidePreview = () => {
@@ -217,6 +219,7 @@ export default async function decorate(block) {
                 selectTemplate.onclick = async (e) => {
                   e.preventDefault();
                   window.sessionStorage.redirectTo = `${window.location.href}/create`;
+                  // eslint-disable-next-line no-restricted-syntax
                   const plansDialog = document.querySelector(".plans-dialog");
                   if (plansDialog) {
                     plansDialog.showModal();
@@ -281,6 +284,7 @@ export default async function decorate(block) {
           window.onpopstate = handleHistory;
         };
 
+        // eslint-disable-next-line no-restricted-syntax
         if (document.querySelector('.header[data-block-status="loaded"]')) {
           render();
         } else {

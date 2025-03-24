@@ -196,6 +196,7 @@ export default async function decorate(block) {
       toggleAside(true);
     });
 
+    // eslint-disable-next-line no-restricted-syntax
     const headerHeight = Math.round(document.querySelector("header").clientHeight);
     const anchorAside = () => {
       const previewTop = Math.round(preview.getBoundingClientRect().top);
@@ -212,6 +213,7 @@ export default async function decorate(block) {
         const height = scrollingElement.clientHeight;
         const bottom = Math.round(scrollHeight - scrollTop - height);
 
+        // eslint-disable-next-line no-restricted-syntax
         const footerHeight = Math.round(document.querySelector("footer").clientHeight);
         if (bottom > footerHeight) {
           aside.style.height = `calc(100vh - ${headerHeight}px)`;

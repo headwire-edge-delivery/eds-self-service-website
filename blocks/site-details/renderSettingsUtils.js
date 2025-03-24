@@ -174,7 +174,7 @@ function blockIconDialogPreview({ base64, iconUrl }) {
 }
 
 // MARK: block/icon dialog
-export function blockIconDialogSetup({ name, deleteWarning, projectDetails, authHeaders, isIcon = false, base64, iconUrl, showBlockScreenshots, siteSlug }) {
+export function blockIconDialogSetup({ name, deleteWarning, projectDetails, authHeaders, isIcon = false, base64, iconUrl, showBlockScreenshots, siteSlug, container, nav }) {
   window?.zaraz?.track(`click site ${isIcon ? "icon" : "block"} settings`);
 
   const formId = `change-${isIcon ? "icon" : "block"}-form`;
@@ -215,7 +215,7 @@ export function blockIconDialogSetup({ name, deleteWarning, projectDetails, auth
     `);
     buttonList.push(replaceButton);
 
-    const replaceIconItem = document.querySelector(`[data-icon-name="${name}"`);
+    const replaceIconItem = container.querySelector(`[data-icon-name="${name}"`);
 
     // closes this dialog, then opens add Icon dialog
     // that will replace this item instead of adding new icon.
@@ -262,9 +262,9 @@ export function blockIconDialogSetup({ name, deleteWarning, projectDetails, auth
       showToast(`${isIcon ? "Icon" : "Block"} "${name}" deleted.`);
 
       submit.remove();
-      document.querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`).forEach((item) => item.remove());
+      container.querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`).forEach((item) => item.remove());
       if (name === "schedule") {
-        manageGoogleCalendarLink(null, document.querySelector(".block .tabs-nav-items"), true);
+        manageGoogleCalendarLink(null, nav, true);
       }
     } else {
       submit.disabled = false;
@@ -275,7 +275,7 @@ export function blockIconDialogSetup({ name, deleteWarning, projectDetails, auth
 }
 
 // MARK: block dialog setup
-function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
+function addBlockDialogSetup({ projectDetails, authHeaders, itemList, nav }) {
   window?.zaraz?.track("click site block add");
 
   const dialogContent = document.createElement("div");
@@ -366,7 +366,7 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
             <a class="button action primary" target="_blank" href="/redirect?url=https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}">Google Calendar</a>
           `);
 
-            manageGoogleCalendarLink(addRequestData.calendarId, itemList.closest(".block").querySelector(".tabs-nav-items"));
+            manageGoogleCalendarLink(addRequestData.calendarId, nav);
             dialog.renderDialog(`<h3 class="centered-info" >${message}</h3>`, [calendarLink]);
           } else {
             dialog.close();
@@ -385,13 +385,13 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
 }
 
 // MARK: block list
-export function renderBlocksList(container, blocksListData, { projectDetails, authHeaders, siteSlug }) {
+export function renderBlocksList({ container, nav, blocksListData, projectDetails, authHeaders, siteSlug }) {
   const blocksList = container.querySelector(".blocks");
   if (!blocksList) {
     blocksList.innerHTML = '<p class="centered-info">Failed to load blocks</p>';
     return;
   }
-  container.querySelector(".add-block").onclick = () => addBlockDialogSetup({ projectDetails, authHeaders, itemList: blocksList });
+  container.querySelector(".add-block").onclick = () => addBlockDialogSetup({ projectDetails, authHeaders, itemList: blocksList, nav });
 
   blocksList.innerHTML = "";
   blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
@@ -420,6 +420,8 @@ export function renderBlocksList(container, blocksListData, { projectDetails, au
         siteSlug,
         authHeaders,
         showBlockScreenshots: true,
+        container,
+        nav,
       });
     blocksList.appendChild(li);
   };
@@ -432,7 +434,7 @@ export function renderBlocksList(container, blocksListData, { projectDetails, au
 }
 
 // MARK: icon list
-export function renderIconsList(container, iconsListData, { projectDetails, authHeaders, siteSlug }) {
+export function renderIconsList({ container, nav, iconsListData, projectDetails, authHeaders, siteSlug }) {
   const iconsList = container.querySelector(".icons");
   container.querySelector(".add-icon").onclick = () => addIconDialogSetup({ siteSlug, authHeaders, itemList: iconsList });
 
@@ -484,6 +486,8 @@ export function renderIconsList(container, iconsListData, { projectDetails, auth
         isIcon: true,
         base64: base64 || undefined,
         iconUrl: path ? `${projectDetails.customPreviewUrl}/${path}` : undefined,
+        container,
+        nav,
       });
     iconsList.append(li);
     iconsList.querySelector("p.no-items")?.remove();
@@ -623,19 +627,19 @@ export async function renderPrevUpdatesSection(div, { projectDetails, authHeader
               </p>
               <ul class="applied-update-list">
                 ${updateList
-                  .map(
-                    (update) =>
-                      `<li><label><input required type="radio" name="update" data-version="${update.version}" value="${update.sha}"><span>Version: <strong>${
-                        update.version
-                      }</strong></span><span>Updated on: <strong>${new Date(update.date).toLocaleString(undefined, {
-                        year: "numeric",
-                        month: "numeric",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "numeric",
-                      })}</strong></span></label></li>`,
-                  )
-                  .join("")}
+    .map(
+      (update) =>
+        `<li><label><input required type="radio" name="update" data-version="${update.version}" value="${update.sha}"><span>Version: <strong>${
+          update.version
+        }</strong></span><span>Updated on: <strong>${new Date(update.date).toLocaleString(undefined, {
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+        })}</strong></span></label></li>`,
+    )
+    .join("")}
               </ul>
             </form>
         </div>

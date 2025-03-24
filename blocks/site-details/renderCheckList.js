@@ -18,6 +18,7 @@ function openButtonOnclick(event) {
     return;
   }
 
+  // eslint-disable-next-line no-restricted-syntax
   const linkForPath = document.querySelector(`[href="${path}"`);
   if (linkForPath) {
     linkForPath.click();
@@ -215,8 +216,8 @@ export default async function renderCheckList({ container, renderOptions, histor
         const encodedAdditionalQueries = encodeURIComponent(maybeStringify(item.additionalQueries || ""));
         const checklistItem = parseFragment(`
           <li class="checklist-item" data-index="${itemIndex}" data-checklist-property="${
-            item.property
-          }" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
+  item.property
+}" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
             <span class="checklist-item-title">${item.content}</span>
             <div class="checklist-button-container">
               <button
