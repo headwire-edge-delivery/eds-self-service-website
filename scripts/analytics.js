@@ -18,20 +18,20 @@ function generateTimeSeries(intervalChoice) {
   let daysBack;
 
   switch (intervalChoice) {
-  case '1d':
-    intervalMinutes = 15;
-    daysBack = 1; // 24 hours
-    break;
-  case '7d':
-    intervalMinutes = 60;
-    daysBack = 7; // 7 days
-    break;
-  case '30d':
-    intervalMinutes = 1440; // 24 hours * 60 minutes
-    daysBack = 30; // 30 days
-    break;
-  default:
-    throw new Error('Invalid interval choice.');
+    case '1d':
+      intervalMinutes = 15;
+      daysBack = 1; // 24 hours
+      break;
+    case '7d':
+      intervalMinutes = 60;
+      daysBack = 7; // 7 days
+      break;
+    case '30d':
+      intervalMinutes = 1440; // 24 hours * 60 minutes
+      daysBack = 30; // 30 days
+      break;
+    default:
+      throw new Error('Invalid interval choice.');
   }
 
   const intervalMillis = intervalMinutes * 60 * 1000;
@@ -123,18 +123,18 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                   <div id="visits-details-country" class="box">
                       <strong>By country</strong>
                       ${metrics[0].data.viewer.accounts[0].countries
-    .map(
-      (country) => `
+                        .map(
+                          (country) => `
                         <p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.sum.visits}</span></p>`,
-    )
-    .join('')}
+                        )
+                        .join('')}
                   </div>
                   <div id="visits-details-referers" class="box">
                       <strong>By referers</strong>
                       ${metrics[0].data.viewer.accounts[0].topReferers
-    .filter((ref) => ref.sum.visits > 1)
-    .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.sum.visits}</span></p>`)
-    .join('')}
+                        .filter((ref) => ref.sum.visits > 1)
+                        .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.sum.visits}</span></p>`)
+                        .join('')}
                   </div>
                   <div id="visits-details-paths" class="box">
                       <strong>By paths</strong>
@@ -143,8 +143,8 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                   <div id="visits-details-browsers" class="box">
                       <strong>By browsers</strong>
                       ${metrics[0].data.viewer.accounts[0].topBrowsers
-    .map((browsers) => `<p><span>${browsers.dimensions.metric}</span><span>${browsers.sum.visits}</span></p>`)
-    .join('')}
+                        .map((browsers) => `<p><span>${browsers.dimensions.metric}</span><span>${browsers.sum.visits}</span></p>`)
+                        .join('')}
                   </div>
                   <div id="visits-details-os" class="box">
                       <strong>By operating systems</strong>
@@ -153,8 +153,8 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                   <div id="visits-details-devices" class="box">
                       <strong>By device type</strong>
                       ${metrics[0].data.viewer.accounts[0].topDeviceTypes
-    .map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.sum.visits}</span></p>`)
-    .join('')}
+                        .map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.sum.visits}</span></p>`)
+                        .join('')}
                   </div>
               </div>
             </div>
@@ -165,14 +165,14 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                 <div id="page-views-details-country" class="box">
                     <strong>By country</strong>
                     ${metrics[0].data.viewer.accounts[0].countries
-    .map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
-    .join('')}
+                      .map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
+                      .join('')}
                 </div>
                 <div id="page-views-details-referers" class="box">
                     <strong>By referers</strong>
                     ${metrics[0].data.viewer.accounts[0].topReferers
-    .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.count}</span></p>`)
-    .join('')}
+                      .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.count}</span></p>`)
+                      .join('')}
                 </div>
                 <div id="page-views-details-paths" class="box">
                     <strong>By paths</strong>
@@ -189,8 +189,8 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                 <div id="page-views-details-devices" class="box">
                     <strong>By device type</strong>
                     ${metrics[0].data.viewer.accounts[0].topDeviceTypes
-    .map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.count}</span></p>`)
-    .join('')}
+                      .map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.count}</span></p>`)
+                      .join('')}
                 </div>
               </div>
             </div>
@@ -201,14 +201,14 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                 <div id="pageload-details-country" class="box">
                     <strong>By country</strong>
                     ${metrics[3].data.viewer.accounts[0].countries
-    .map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
-    .join('')}
+                      .map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
+                      .join('')}
                 </div>
                 <div id="pageload-details-referers" class="box">
                     <strong>By referers</strong>
                     ${metrics[3].data.viewer.accounts[0].topReferers
-    .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.count}</span></p>`)
-    .join('')}
+                      .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.count}</span></p>`)
+                      .join('')}
                 </div>
                 <div id="pageload-details-paths" class="box">
                     <strong>By paths</strong>
@@ -225,23 +225,23 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                 <div id="pageload-details-devices" class="box">
                     <strong>By device type</strong>
                     ${metrics[3].data.viewer.accounts[0].topDeviceTypes
-    .map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.count}</span></p>`)
-    .join('')}
+                      .map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.count}</span></p>`)
+                      .join('')}
                 </div>
               </div>
             </div>
           </div>
           
           ${
-  cww
-    ? `
+            cww
+              ? `
           <div id="core-web-vitals">
           <h2>Core Web Vitals</h2>
 
           <div class="cards">
               ${['lcp', 'inp', 'fid', 'cls']
-    .map(
-      (metric) => `
+                .map(
+                  (metric) => `
                 <div class="cwp-box box">
                   <strong>${metric.toUpperCase()}</strong>
                   <span>Excellent (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
@@ -249,8 +249,8 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                   <span>Needs improvement (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
                 </div>
                 `,
-    )
-    .join('')}
+                )
+                .join('')}
           </div>
           </div>
           
@@ -261,9 +261,9 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
             <div class="cwp-box box">
                 <strong>LCP</strong>
                 ${cww[0].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.largestContentfulPaintPath)
-    .map(
-      (rum) => `
+                  .filter((rum) => rum?.dimensions?.largestContentfulPaintPath)
+                  .map(
+                    (rum) => `
                     <p><span>Path</span><span>${rum.dimensions.largestContentfulPaintPath}</span></p>
                     <ul>
                       <li>Excellent (${rum?.sum.lcpGood ?? '0'})</li>
@@ -271,15 +271,15 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                       <li>Needs improvement (${rum?.sum.lcpPoor ?? '0'})</li>
                     </ul>
                   `,
-    )
-    .join('')}
+                  )
+                  .join('')}
             </div>
             <div class="box cwp-box">
                 <strong>INP</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.userAgentBrowser)
-    .map(
-      (rum) => `
+                  .filter((rum) => rum?.dimensions?.userAgentBrowser)
+                  .map(
+                    (rum) => `
                     <p><span>Browser</span><span>${rum.dimensions.userAgentBrowser}</span></p>
                     <ul>
                         <li>Excellent (${rum?.sum.inpGood ?? '0'})</li>
@@ -287,15 +287,15 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                         <li>Needs improvement (${rum?.sum.inpPoor ?? '0'})</li>
                     </ul>
                   `,
-    )
-    .join('')}
+                  )
+                  .join('')}
             </div>
             <div class="cwp-box box">
                 <strong>FID</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.firstInputDelayPath)
-    .map(
-      (rum) => `
+                  .filter((rum) => rum?.dimensions?.firstInputDelayPath)
+                  .map(
+                    (rum) => `
                   <p><span>Path</span><span>${rum.dimensions.firstInputDelayPath}</span></p>
                   <ul>
                     <li>Excellent (${rum?.sum.fidGood ?? '0'})</li>
@@ -303,15 +303,15 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                     <li>Needs improvement (${rum?.sum.fidPoor ?? '0'})</li>
                   </ul>
                 `,
-    )
-    .join('')}
+                  )
+                  .join('')}
             </div>
             <div class="cwp-box box">
                 <strong>CLS</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.cumulativeLayoutShiftPath)
-    .map(
-      (rum) => `
+                  .filter((rum) => rum?.dimensions?.cumulativeLayoutShiftPath)
+                  .map(
+                    (rum) => `
                   <p><span>Path</span><span>${rum.dimensions.cumulativeLayoutShiftPath}</span></p>
                   <ul>
                     <li>Excellent (${rum?.sum.clsGood ?? '0'})</li>
@@ -319,14 +319,14 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                     <li>Needs improvement (${rum?.sum.clsPoor ?? '0'})</li>
                   </ul>
                 `,
-    )
-    .join('')}
+                  )
+                  .join('')}
             </div>
           </div>
           </div>
           `
-    : ''
-}
+              : ''
+          }
         `;
 
     container.querySelectorAll('.box:not(.cwp-box) p span:first-child, .cwp-box p span:last-child').forEach((el) => {

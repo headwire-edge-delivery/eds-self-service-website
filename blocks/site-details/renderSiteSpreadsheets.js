@@ -333,7 +333,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       const currentMode = table.getAttribute('data-editMode');
       const disableInputs = (bool = true) => {
         table.querySelectorAll('input').forEach((input) => {
-          // NOSONAR
           input.disabled = bool;
           container.querySelector('#sheet-select').disabled = bool;
           discardButton.disabled = bool;
@@ -451,8 +450,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     <div style="display: flex;">
       <h2></h2>
       <button id="lock-button" class="button transparent" ${!isProtected && 'disabled'}><img src="/icons/${
-  isProtected && isLocked ? 'locked' : 'unlocked'
-}.svg" alt="lock icon" id="lock-svg" /></button>
+        isProtected && isLocked ? 'locked' : 'unlocked'
+      }.svg" alt="lock icon" id="lock-svg" /></button>
     </div>
     <button id="edit-sheet" class="button action primary" ${isProtected && 'disabled'}>Edit</button>
     <button id="discard-changes" class="button action" hidden>Discard</button>

@@ -366,11 +366,11 @@ function createTabsNavBreadcrumbs(breadcrumbs) {
   return `
     <div class="breadcrumbs">
       ${breadcrumbs
-    .map(({ name, href }, index) => {
-      const lastItem = index === breadcrumbs.length - 1;
-      return lastItem ? `<h1>${name}</h1>` : `<a href="${href}">${name}</a>`;
-    })
-    .join('<span>›</span>')}
+        .map(({ name, href }, index) => {
+          const lastItem = index === breadcrumbs.length - 1;
+          return lastItem ? `<h1>${name}</h1>` : `<a href="${href}">${name}</a>`;
+        })
+        .join('<span>›</span>')}
     </div>
   `;
 }

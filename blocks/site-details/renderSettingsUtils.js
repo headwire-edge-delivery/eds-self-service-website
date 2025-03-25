@@ -627,19 +627,19 @@ export async function renderPrevUpdatesSection(div, { projectDetails, authHeader
               </p>
               <ul class="applied-update-list">
                 ${updateList
-    .map(
-      (update) =>
-        `<li><label><input required type="radio" name="update" data-version="${update.version}" value="${update.sha}"><span>Version: <strong>${
-          update.version
-        }</strong></span><span>Updated on: <strong>${new Date(update.date).toLocaleString(undefined, {
-          year: 'numeric',
-          month: 'numeric',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-        })}</strong></span></label></li>`,
-    )
-    .join('')}
+                  .map(
+                    (update) =>
+                      `<li><label><input required type="radio" name="update" data-version="${update.version}" value="${update.sha}"><span>Version: <strong>${
+                        update.version
+                      }</strong></span><span>Updated on: <strong>${new Date(update.date).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: 'numeric',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                      })}</strong></span></label></li>`,
+                  )
+                  .join('')}
               </ul>
             </form>
         </div>

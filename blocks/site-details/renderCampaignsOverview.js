@@ -269,8 +269,8 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
             'beforeend',
             `
               <li data-campaign="${newCampaign.slug}"><a class="button selector action secondary" href="${pathname}/${el.dataset.type}/${
-  newCampaign.slug
-}">${newCampaign.name}</li></a>
+                newCampaign.slug
+              }">${newCampaign.name}</li></a>
             `,
           );
         });

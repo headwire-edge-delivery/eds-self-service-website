@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       frontend-branch:
-        description: "Frontend branch to checkout & run tests on"
+        description: 'Frontend branch to checkout & run tests on'
         required: false
       backend-branch:
-        description: "Backend branch to checkout & run tests on"
+        description: 'Backend branch to checkout & run tests on'
         required: false
-        default: "main"
-  pull_request:
-    branches:
-      - main
+        default: 'main'
+  # pull_request:
+  #   branches:
+  #     - main
 
 jobs:
   trigger-tests:

@@ -66,7 +66,7 @@ export default async function decorate(block) {
             </a>
           </div>
         </div>
-        
+
         <div class="content">
             ${renderSkeleton('email-composer')}
         </div>
@@ -117,10 +117,10 @@ export default async function decorate(block) {
               <h1 class="subject">${localSave?.subject ?? meta.subject}</h1>
             </a>
           </div>
-          
+
           <div class="actions"></div>
         </div>
-        
+
         <div class="content">
             <div class="preview">
                 <iframe class="iframe is-loading" name="preview" src="${EMAIL_WORKER_API}/preview?contentUrl=${url}"></iframe>
@@ -131,37 +131,37 @@ export default async function decorate(block) {
                 <h2>Subject</h2>
                 <input class="subject" type="text" value="${localSave?.subject ?? meta.subject}">
                 </div>
-                
+
                 <div id="email-recipients">
                 <h2>Recipients</h2>
-                
+
                 <div class="recipients-wrapper">
                     <table class="recipients">
                         ${renderSkeleton('recipients')}
                     </table>
                 </div>
                 </div>
-                
+
                 <div id="email-variables">
                 <h2>Variables</h2>
                 ${variables
-    .map(
-      (variable) => `
+                  .map(
+                    (variable) => `
                   <div class="kv">
                       <input type="text" placeholder="Key" value="${variable}" readonly>
                       <input type="text" placeholder="Value" value="${customVariables[variable] ?? ''}">
                   </div>
                 `,
-    )
-    .join('')}
-                
+                  )
+                  .join('')}
+
                 <div class="button-container">
                     <button class="button secondary action preview-variables">Preview</button>
                     <button class="button primary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
                 </div>
 
                 <div id="email-styles">
-                <h2>Styles (Developer)</h2>                
+                <h2>Styles (Developer)</h2>
                 <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
                 <form class="form" action="${EMAIL_WORKER_API}/preview?contentUrl=${url}" method="POST" target="preview">
                     <textarea name="styles" class="styles"></textarea>
@@ -308,7 +308,7 @@ export default async function decorate(block) {
             warning.hidden = false;
           }
         } catch {
-          // do noting
+          // do nothing
         }
 
         const keys = Object.keys(customVariables);
@@ -354,7 +354,7 @@ export default async function decorate(block) {
       block.querySelector('.actions').innerHTML = `
             <div class="warning" hidden>
               <span class="icon icon-info">
-                <img alt src="/icons/info.svg" loading="lazy">  
+                <img alt src="/icons/info.svg" loading="lazy">
               </span>
               <span>You have unsaved changes</span>
               <button type="button" aria-label="close">&#x2715;</button>
@@ -467,10 +467,10 @@ export default async function decorate(block) {
               </thead>
               <tbody>
                 ${
-  audience?.length
-    ? audience
-      .map(
-        (contact) => `<tr data-id="${contact.id}" data-email="${contact.email}">
+                  audience?.length
+                    ? audience
+                        .map(
+                          (contact) => `<tr data-id="${contact.id}" data-email="${contact.email}">
                     <td><input type="checkbox" class="select"></td>
                     <td>${contact.email}</td>
                     <td>${contact.firstName}</td>
@@ -482,10 +482,10 @@ export default async function decorate(block) {
                         </div>
                     </td>
                 </tr>`,
-      )
-      .join('')
-    : ''
-}
+                        )
+                        .join('')
+                    : ''
+                }
                 <tr>
                     <td></td>
                     <td><input name="email" type="email" placeholder="john.doe@example.com" required></td>
@@ -591,7 +591,7 @@ export default async function decorate(block) {
                 <td><input type="checkbox" class="select"></td>
                 <td>${contact.email}</td>
                 <td>${contact.firstName}</td>
-                <td>${contact.lastName}</td>   
+                <td>${contact.lastName}</td>
                 <td>
                     <div class="button-container">
                         <button class="button secondary action render">Preview</button>

@@ -30,7 +30,7 @@ function parseBrowser(str) {
         .trim()
         .replaceAll('"', '');
 
-      if (/not[\s\S]*a[\s\S]*brand/i.test(browserName)) continue; // NOSONAR
+      if (/not[\s\S]*a[\s\S]*brand/i.test(browserName)) continue;
       if (/chromium/i.test(browserName)) {
         output = browserName;
         continue;
@@ -175,13 +175,13 @@ export default async function renderUserTab({ container }) {
     <div class="known-users clusterize">
       ${renderSkeleton('tracking', Math.min(limit || 100, 5))}
     </div>
-    
+
     <h2 id="deleted-users">Deleted users</h2>
     <input type="search" placeholder="Filter by user email" class="filter-deleted-users filter">
     <div class="deleted-users clusterize">
       ${renderSkeleton('tracking', Math.min(deletedlimit || 100, 5))}
     </div>
-        
+
     <h2 id="anonymous-activity">Anonymous activity</h2>
     <input type="search" placeholder="Filter by IP" class="filter-anonymous filter">
     <div class="anonymous-users clusterize">
@@ -666,23 +666,23 @@ export default async function renderUserTab({ container }) {
             },
             browser: !serverEvent
               ? {
-                value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
-                title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
-              }
+                  value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
+                  title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
+                }
               : {
-                title: [
-                  timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
-                  timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
-                ]
-                  .filter(Boolean)
-                  .join('\n'),
-                value: [parseBrowser(timestampItem.browser), parseAcceptLanguage(timestampItem.language)].filter(Boolean).join(', '),
-              },
+                  title: [
+                    timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
+                    timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join('\n'),
+                  value: [parseBrowser(timestampItem.browser), parseAcceptLanguage(timestampItem.language)].filter(Boolean).join(', '),
+                },
             device: !serverEvent
               ? {
-                title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
-                value: timestampItem.userAgent.os.name,
-              }
+                  title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
+                  value: timestampItem.userAgent.os.name,
+                }
               : timestampItem?.device?.replaceAll('"', ''),
           };
         }),
@@ -741,7 +741,6 @@ export default async function renderUserTab({ container }) {
 
       input.addEventListener('focus', () => {
         container.querySelectorAll('.combobox-content').forEach((box) => {
-          // NOSONAR
           if (box !== comboBoxId) {
             box.classList.remove('combobox-show');
           }
@@ -766,7 +765,6 @@ export default async function renderUserTab({ container }) {
       container.addEventListener('click', (event) => {
         if (!event.target.closest('.combobox')) {
           container.querySelectorAll('.combobox-content').forEach((box) => {
-            // NOSONAR
             box.classList.remove('combobox-show');
           });
         }

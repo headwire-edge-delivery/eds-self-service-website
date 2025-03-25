@@ -72,18 +72,18 @@ const createAnalyticsTableContent = (container, campaignAnalyticsData, search) =
           <td>${complained ? dateToRelativeSpan(complained.created_at).outerHTML : ''}</td>
           <td>${opened ? dateToRelativeSpan(opened.created_at).outerHTML : ''}</td>
           <td>${
-  clicks.length
-    ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button>
+            clicks.length
+              ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button>
                 <div hidden><ul class="clicked-links">${clicks
-    .map(
-      (clicked) =>
-        `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${
-          clicked.data.click.link
-        }</a> ${dateToRelativeSpan(clicked.data.click.timestamp).outerHTML}</li>`,
-    )
-    .join('')}</ul></div>`
-    : ''
-}</td>
+                  .map(
+                    (clicked) =>
+                      `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${
+                        clicked.data.click.link
+                      }</a> ${dateToRelativeSpan(clicked.data.click.timestamp).outerHTML}</li>`,
+                  )
+                  .join('')}</ul></div>`
+              : ''
+          }</td>
         </tr>
       `;
     });
@@ -136,16 +136,16 @@ export default async function renderCampaignsAnalytics({ container, renderOption
   container.innerHTML = `
         <ul class="campaign-list" data-type="analytics">
           <li><a class="button selector action secondary ${
-  window.location.pathname.startsWith(`${pathname}/campaign-analytics/`) ? '' : 'is-selected'
-}" href="${pathname}/campaign-analytics">All emails</a></li>
+            window.location.pathname.startsWith(`${pathname}/campaign-analytics/`) ? '' : 'is-selected'
+          }" href="${pathname}/campaign-analytics">All emails</a></li>
           ${Object.keys(campaignsData)
-    .map(
-      (campaignSlug) =>
-        `<li data-campaign="${campaignSlug}"><a class="button selector action secondary ${
-          window.location.pathname === `${pathname}/campaign-analytics/${campaignSlug}` ? 'is-selected' : ''
-        }" href="${pathname}/campaign-analytics/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`,
-    )
-    .join('')}</a>
+            .map(
+              (campaignSlug) =>
+                `<li data-campaign="${campaignSlug}"><a class="button selector action secondary ${
+                  window.location.pathname === `${pathname}/campaign-analytics/${campaignSlug}` ? 'is-selected' : ''
+                }" href="${pathname}/campaign-analytics/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`,
+            )
+            .join('')}</a>
         </ul>
           
         <div id="email-metrics" class="cards metrics">

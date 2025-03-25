@@ -179,7 +179,7 @@ export default async function renderCheckList({ container, renderOptions, histor
               </div>
             </div>
           </div>
-  
+
           <ul class="checklist-list"></ul>
         </div>`);
       const checklistUl = sectionDiv.querySelector('.checklist-list');
@@ -216,8 +216,8 @@ export default async function renderCheckList({ container, renderOptions, histor
         const encodedAdditionalQueries = encodeURIComponent(maybeStringify(item.additionalQueries || ''));
         const checklistItem = parseFragment(`
           <li class="checklist-item" data-index="${itemIndex}" data-checklist-property="${
-  item.property
-}" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
+            item.property
+          }" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
             <span class="checklist-item-title">${item.content}</span>
             <div class="checklist-button-container">
               <button
@@ -244,12 +244,12 @@ export default async function renderCheckList({ container, renderOptions, histor
         openButton.onclick = openButtonOnclick;
 
         if (item.allowManualCheck) {
-          const manuelCheckButton = parseFragment(
+          const manualCheckButton = parseFragment(
             '<button class="button checklist-button checklist-manual-checkbox" aria-label="Check" ><img src="/icons/check-mark.svg" alt="Checkmark" /></button>',
           );
-          manuelCheckButton.onclick = async () => {
+          manualCheckButton.onclick = async () => {
             if (checklistItem.dataset.completed === 'true') return;
-            manuelCheckButton.classList.add('loading');
+            manualCheckButton.classList.add('loading');
             const success = await completeChecklistItem(renderOptions.siteSlug, item.property);
             if (success) {
               progressCurrent += 1;
@@ -259,9 +259,9 @@ export default async function renderCheckList({ container, renderOptions, histor
             } else {
               showErrorToast();
             }
-            manuelCheckButton.classList.remove('loading');
+            manualCheckButton.classList.remove('loading');
           };
-          openButton.before(manuelCheckButton);
+          openButton.before(manualCheckButton);
         }
 
         if (item.hintBody) {

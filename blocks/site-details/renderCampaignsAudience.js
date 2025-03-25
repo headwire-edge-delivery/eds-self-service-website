@@ -248,8 +248,8 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
                 </thead>
                 <tbody>
                     ${formattedData
-    .map(
-      (contact) => `
+                      .map(
+                        (contact) => `
                       <tr>
                         <td>${contact.email}</td>
                         <td>${contact.firstName}</td>
@@ -257,8 +257,8 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
                         <td>${contact.unsubscribed !== 'subscribed' ? '<div class="badge orange">Unsubscribed</div>' : '<div class="badge green">Subscribed</div>'}</td>
                       </tr>
                     `,
-    )
-    .join('')}
+                      )
+                      .join('')}
                 </tbody>
               </table>
             `;

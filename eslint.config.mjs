@@ -17,7 +17,6 @@ export default defineConfig([
       'max-len': ['error', { code: 180, ignoreStrings: true, ignoreComments: true }],
       quotes: ['error', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
       'no-console': 'error', // no console logs by default
-      indent: ['error', 2],
       'import/prefer-default-export': 'off',
       'no-alert': 'error', // no alert() by default
       'func-names': 'error', // no anonymous functions using function keywords. Anon Arrow functions are okay

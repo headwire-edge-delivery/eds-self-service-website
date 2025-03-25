@@ -70,7 +70,7 @@ function siteOverviewTour({ showAutoTour }) {
       },
       {
         title: 'Checklist',
-        description: "Don' know how to start? Follow the checklist!",
+        description: "Don't know how to start? Follow the checklist!",
         element: '#checklist',
       },
     ],
