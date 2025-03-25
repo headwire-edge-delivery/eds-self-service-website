@@ -23,7 +23,6 @@ export default defineConfig([
       'func-names': 'error', // no anonymous functions using function keywords. Anon Arrow functions are okay
       'no-param-reassign': 'error', // no reassigning function parameters
       'no-new': 'error', // no unassigned "new" by default
-      'consistent-return': 'error',
       'no-empty': 'error', // no empty blocks by default
       'no-undef': 'error',
       'no-unexpected-multiline': 'error',

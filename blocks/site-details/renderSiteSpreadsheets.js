@@ -114,7 +114,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         const site = siteSlug;
         const { path } = selectedSheet;
         const publishPreviewURL = `https://admin.hlx.page/preview/${projectRepo}/${site}/${defaultBranch}${path}.json`;
-        // eslint-disable-next-line consistent-return
         const post = async (previewOrPublish = 'Preview', url = publishPreviewURL) => {
           const showButtonLoading = (bool = true) => {
             if (previewOrPublish === 'Preview') {
