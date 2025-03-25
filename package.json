@@ -10,7 +10,8 @@
     "lint:css": "stylelint blocks/**/*.css styles/*.css",
     "lint": "npm run lint:js && npm run lint:css",
     "lint:fix": "npm run lint:js-fix && npm run lint:css",
-    "prettier": "npx prettier --write '**/*.{html,json,js,mjs,cjs,css}"
+    "prettier": "npx prettier --write '**/*.{html,json,js,mjs,cjs,css}",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@adobe/aem-cli": "^16.10.10",
