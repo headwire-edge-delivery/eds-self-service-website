@@ -1,9 +1,9 @@
-import { daProjectRepo, OOPS, parseFragment, projectRepo, safeText, defaultBranch, SCRIPT_API } from "../../scripts/scripts.js";
-import renderSkeleton from "../../scripts/skeletons.js";
-import { alertDialog, createDialog } from "../../scripts/dialogs.js";
-import paginator from "../../libs/pagination/pagination.js";
-import { readQueryParams } from "../../libs/queryParams/queryParams.js";
-import { cacheFetch } from "../../scripts/utils.js";
+import { daProjectRepo, OOPS, parseFragment, projectRepo, safeText, defaultBranch, SCRIPT_API } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
+import { alertDialog, createDialog } from '../../scripts/dialogs.js';
+import paginator from '../../libs/pagination/pagination.js';
+import { readQueryParams } from '../../libs/queryParams/queryParams.js';
+import { cacheFetch } from '../../scripts/utils.js';
 
 const filters = [/\/nav$/i, /\/footer$/i, /\/search$/i, /\/unsubscribe$/i, /^\/drafts\//i, /^\/tools\//i, /^\/emails\//i, /^\/\.helix\//i];
 
@@ -19,8 +19,8 @@ function filterSortIndexData(indexList) {
   });
 
   const sorted = filtered.sort((a, b) => {
-    const aSplit = a.path.split("/");
-    const bSplit = b.path.split("/");
+    const aSplit = a.path.split('/');
+    const bSplit = b.path.split('/');
     const aLength = aSplit.length;
     const bLength = bSplit.length;
     if (aLength !== bLength) {
@@ -33,29 +33,29 @@ function filterSortIndexData(indexList) {
 }
 
 function keywordStrToBadges(str) {
-  return str.split(",").map((item) => {
+  return str.split(',').map((item) => {
     const trimmed = item.trim();
-    const badge = document.createElement("div");
-    badge.classList.add("badge", "small");
+    const badge = document.createElement('div');
+    badge.classList.add('badge', 'small');
     badge.textContent = trimmed;
     return badge;
   });
 }
 
-const noImageSrc = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+const noImageSrc = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const missingBadge = '<div class="badge orange">Missing</div>';
 
 function decorateCell(metaProperty, content) {
-  const span = document.createElement("span");
+  const span = document.createElement('span');
 
-  if (metaProperty === "og:image") {
+  if (metaProperty === 'og:image') {
     const image = parseFragment(`<img alt="thumbnail" loading="lazy" onerror="this.src = '${noImageSrc}'"/>`);
     image.src = content || noImageSrc;
     span.append(image);
   } else if (!content) {
     span.innerHTML = missingBadge;
     return span;
-  } else if (metaProperty === "keywords") {
+  } else if (metaProperty === 'keywords') {
     span.append(...keywordStrToBadges(content));
   } else {
     span.textContent = content;
@@ -66,10 +66,10 @@ function decorateCell(metaProperty, content) {
 // MARK: render
 export default async function renderSiteSEO({ container, nav, renderOptions }) {
   const { projectDetails, siteSlug } = renderOptions;
-  container.innerHTML = renderSkeleton("seo");
+  container.innerHTML = renderSkeleton('seo');
 
   nav.insertAdjacentHTML(
-    "beforeend",
+    'beforeend',
     `
     <button id="open-sitemap" class="button secondary action sitemap">Open sitemap</button>
     <button id="edit-robots" class="button secondary action robots">Edit robots</button>
@@ -79,8 +79,8 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
 
   // TODO: Allow editing robots.txt for non kestrelone.com domains
   // TODO: Support reading complex multi-sitemaps
-  ["sitemap.xml", "robots.txt"].forEach((file) => {
-    const type = file.split(".")[0];
+  ['sitemap.xml', 'robots.txt'].forEach((file) => {
+    const type = file.split('.')[0];
     nav.querySelector(`.${type}`).onclick = async () => {
       const req = await fetch(`${projectDetails.customLiveUrl}/${file}`).catch(() => null);
       if (!req?.ok) {
@@ -91,35 +91,35 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
       const content = parseFragment(`
         <div>
             <h3>${file}</h3>
-            ${type === "robots" ? '<p>Ready to go live with your own domain ? Contact us at <a href="mailto:contact@kestrelone.com">contact@kestrelone.com</a> once you\'re ready.</p>' : ""}
+            ${type === 'robots' ? '<p>Ready to go live with your own domain ? Contact us at <a href="mailto:contact@kestrelone.com">contact@kestrelone.com</a> once you\'re ready.</p>' : ''}
             <pre><code></code></pre>
         </div>
     `);
-      content.querySelector("code").textContent = text;
+      content.querySelector('code').textContent = text;
       await createDialog(content);
     };
   });
 
   if (!projectDetails.darkAlleyProject) {
-    nav.querySelector("button.bulk-metadata").onclick = async (event) => {
+    nav.querySelector('button.bulk-metadata').onclick = async (event) => {
       const button = event.target;
-      button.classList.add("loading");
+      button.classList.add('loading');
       const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${siteSlug}/${defaultBranch}/metadata.json?editUrl=auto`)
         .then((res) => res.json())
         .catch(() => null);
       if (statusData?.edit?.url) {
-        window.open(statusData.edit.url, "_blank");
+        window.open(statusData.edit.url, '_blank');
       } else {
-        window.open(projectDetails.driveUrl, "_blank");
+        window.open(projectDetails.driveUrl, '_blank');
       }
-      button.classList.remove("loading");
+      button.classList.remove('loading');
     };
   }
 
   const indexData = await fetch(`${SCRIPT_API}/index/${siteSlug}`)
     .then((res) => res.json())
     .catch(() => null);
-  if (typeof indexData?.data?.length !== "number") {
+  if (typeof indexData?.data?.length !== 'number') {
     container.innerHTML = `<p>${OOPS}</p>`;
     return;
   }
@@ -128,7 +128,7 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
   try {
     filteredIndex = filterSortIndexData(indexData?.data);
   } catch {
-    container.innerHTML = "<p>Error parsing data.</p>";
+    container.innerHTML = '<p>Error parsing data.</p>';
     return;
   }
 
@@ -142,19 +142,19 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     <table class="seo-audit"></table>
   </div>`;
 
-  const showPreviewData = container.querySelector("#show-preview-data");
-  const showPublishedData = container.querySelector("#show-published-data");
+  const showPreviewData = container.querySelector('#show-preview-data');
+  const showPublishedData = container.querySelector('#show-published-data');
 
   // MARK: switch env
   // show preview/published data (rows) based on button click
   const switchEnvClick = (event) => {
-    showPreviewData.classList.remove("is-selected");
-    showPublishedData.classList.remove("is-selected");
+    showPreviewData.classList.remove('is-selected');
+    showPublishedData.classList.remove('is-selected');
     container.dataset.showEnvironment = event.target.dataset.environment;
-    event.target.classList.add("is-selected");
+    event.target.classList.add('is-selected');
     // trigger fetch of displayed cells
-    container.querySelectorAll("table.seo-audit tbody tr").forEach((tr) => {
-      if (typeof tr.populate === "function") tr.populate();
+    container.querySelectorAll('table.seo-audit tbody tr').forEach((tr) => {
+      if (typeof tr.populate === 'function') tr.populate();
     });
   };
 
@@ -162,7 +162,7 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
   showPublishedData.onclick = switchEnvClick;
   showPublishedData.click();
 
-  const table = container.querySelector(".seo-audit");
+  const table = container.querySelector('.seo-audit');
   table.innerHTML = `
     <thead>
       <tr>
@@ -180,20 +180,20 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
   // MARK: create rows
   const createTableRows = (data, startIndex, endIndex) => {
     let dataToParse;
-    if (typeof startIndex === "number" && typeof endIndex === "number") {
+    if (typeof startIndex === 'number' && typeof endIndex === 'number') {
       dataToParse = data.slice(startIndex, endIndex);
     } else {
       dataToParse = data;
     }
     const rows = dataToParse.reduce((output, item) => {
-      const previewRow = document.createElement("tr");
+      const previewRow = document.createElement('tr');
       previewRow.dataset.path = item.path;
       previewRow.dataset.fetchUrl = `${projectDetails.customPreviewUrl}${item.path}`;
-      previewRow.dataset.environment = "previewed";
-      const publishRow = document.createElement("tr");
+      previewRow.dataset.environment = 'previewed';
+      const publishRow = document.createElement('tr');
       publishRow.dataset.path = item.path;
       publishRow.dataset.fetchUrl = `${projectDetails.customLiveUrl}${item.path}`;
-      publishRow.dataset.environment = "published";
+      publishRow.dataset.environment = 'published';
 
       const initRow = (row) => {
         // MARK: populate row
@@ -202,8 +202,8 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
           // Prevent populating rows that are not displayed
           if (row.dataset.environment !== container.dataset.showEnvironment) return;
           // Rows are only removed if you change pages, so check if populated.
-          if (row.dataset.isPopulated === "true") return;
-          row.dataset.isPopulated = "true";
+          if (row.dataset.isPopulated === 'true') return;
+          row.dataset.isPopulated = 'true';
 
           row.innerHTML = `
             <td data-meta-property="og:image"><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
@@ -218,25 +218,25 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
             </td>
           `;
 
-          const editButton = row.querySelector(".edit");
+          const editButton = row.querySelector('.edit');
           if (projectDetails.darkAlleyProject) {
-            editButton.href = `https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata${item.path.endsWith("/") ? `${item.path}/index` : item.path}`;
+            editButton.href = `https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata${item.path.endsWith('/') ? `${item.path}/index` : item.path}`;
           } else {
             editButton.href = `https://docs.google.com/document/d/${item.id}/edit`;
           }
           // Cached fetch in case user comes back to this page through pagination.
           const response = await cacheFetch(row.dataset.fetchUrl);
-          ["og:image", "og:title", "og:description", "keywords"].forEach((metaProperty) => {
-            const type = metaProperty.startsWith("og:") ? "property" : "name";
+          ['og:image', 'og:title', 'og:description', 'keywords'].forEach((metaProperty) => {
+            const type = metaProperty.startsWith('og:') ? 'property' : 'name';
 
-            const regex = new RegExp(`<meta ${type}="${metaProperty}" content="([^"]*)"`, "i");
+            const regex = new RegExp(`<meta ${type}="${metaProperty}" content="([^"]*)"`, 'i');
             const match = response?.dataText?.match(regex);
             const content = match?.[1] || null;
 
             const contentSpan = decorateCell(metaProperty, content);
 
             const cell = row.querySelector(`[data-meta-property="${metaProperty}"]`);
-            cell.innerHTML = "";
+            cell.innerHTML = '';
             cell.append(contentSpan);
           });
         };
@@ -259,19 +259,19 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
 
   // add pagination after table
   table.after(
-    paginator(filteredIndex.length, limit, startPage, { page: "seoPage" }, ({ rangeStart, rangeEnd }) => {
+    paginator(filteredIndex.length, limit, startPage, { page: 'seoPage' }, ({ rangeStart, rangeEnd }) => {
       // populate table
-      tableBody.innerHTML = "";
+      tableBody.innerHTML = '';
       const rowsToDisplay = createTableRows(filteredIndex, rangeStart, rangeEnd);
       tableBody.append(...rowsToDisplay);
       // trigger fetching of displayed cells
       for (let i = 0; i < rowsToDisplay.length; i += 1) {
-        if (typeof rowsToDisplay[i]?.populate === "function") rowsToDisplay[i].populate();
+        if (typeof rowsToDisplay[i]?.populate === 'function') rowsToDisplay[i].populate();
       }
     }),
   );
-  if (tableBody.matches(":empty")) {
-    const cols = table.querySelectorAll("th").length;
+  if (tableBody.matches(':empty')) {
+    const cols = table.querySelectorAll('th').length;
     tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;
   }
 }

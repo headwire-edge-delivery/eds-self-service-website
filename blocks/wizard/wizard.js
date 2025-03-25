@@ -1,49 +1,49 @@
-import { slugMaxLength, slugify, SCRIPT_API, OOPS, sanitizeName } from "../../scripts/scripts.js";
-import { confirmDialog } from "../../scripts/dialogs.js";
+import { slugMaxLength, slugify, SCRIPT_API, OOPS, sanitizeName } from '../../scripts/scripts.js';
+import { confirmDialog } from '../../scripts/dialogs.js';
 
-const progressSteps = ["name", "drive", "code", "publish"];
+const progressSteps = ['name', 'drive', 'code', 'publish'];
 
-const daPrefix = "da-";
+const daPrefix = 'da-';
 
 /**
  * decorates the header, mainly the nav
  * @param {Element} block The header block element
  */
 export default async function decorate(block) {
-  const creationSteps = block.querySelectorAll(":scope > div");
-  creationSteps.forEach((div) => div.classList.add("step"));
+  const creationSteps = block.querySelectorAll(':scope > div');
+  creationSteps.forEach((div) => div.classList.add('step'));
 
-  const prevTemplate = document.createElement("button");
-  prevTemplate.className = "button secondary prev";
-  prevTemplate.textContent = "Go back";
+  const prevTemplate = document.createElement('button');
+  prevTemplate.className = 'button secondary prev';
+  prevTemplate.textContent = 'Go back';
 
   creationSteps.forEach((step, i) => {
-    const buttonContainer = step.querySelector(".button-container:last-child");
+    const buttonContainer = step.querySelector('.button-container:last-child');
     if (buttonContainer) {
-      const button = buttonContainer.querySelector("a");
-      button.classList.add("next");
+      const button = buttonContainer.querySelector('a');
+      button.classList.add('next');
 
       if (i === 0) {
-        step.classList.add("is-selected");
+        step.classList.add('is-selected');
       } else if (i < 2) {
         buttonContainer.prepend(prevTemplate.cloneNode(true));
       }
     }
   });
 
-  block.querySelector('a[href="#edit"]').classList.add("is-disabled");
+  block.querySelector('a[href="#edit"]').classList.add('is-disabled');
 
-  const loader = document.createElement("div");
-  loader.className = "loader";
+  const loader = document.createElement('div');
+  loader.className = 'loader';
   block.querySelectorAll('.step:has(a[href="#edit"]) li').forEach((el, i) => {
     if (i === 0) {
-      el.classList.add("is-loading");
+      el.classList.add('is-loading');
     }
     el.prepend(loader.cloneNode(true));
   });
 
   const previewTemplate = () => {
-    const template = window.location.pathname.split("/")[2];
+    const template = window.location.pathname.split('/')[2];
     const selectedTemplate = document.getElementById(template);
     if (selectedTemplate) {
       selectedTemplate.click();
@@ -53,25 +53,25 @@ export default async function decorate(block) {
   const selectStep = (event) => {
     event.preventDefault();
 
-    const isNext = event.target.closest(".next");
-    const selectedStep = block.querySelector(":scope > div.is-selected");
-    const siblingStep = selectedStep[isNext ? "nextElementSibling" : "previousElementSibling"];
+    const isNext = event.target.closest('.next');
+    const selectedStep = block.querySelector(':scope > div.is-selected');
+    const siblingStep = selectedStep[isNext ? 'nextElementSibling' : 'previousElementSibling'];
     if (siblingStep) {
       siblingStep.scrollIntoView();
 
-      selectedStep.classList.remove("is-selected");
-      siblingStep.classList.add("is-selected");
+      selectedStep.classList.remove('is-selected');
+      siblingStep.classList.add('is-selected');
 
       siblingStep.querySelectorAll('img[loading="lazy"]').forEach((img) => {
-        img.removeAttribute("loading");
+        img.removeAttribute('loading');
       });
     }
 
     if (siblingStep.querySelector('a[href="#template"]')) {
-      block.classList.remove("show-buttons");
+      block.classList.remove('show-buttons');
     }
 
-    if (siblingStep.matches(":first-child") && window.location.pathname.startsWith("/templates/")) {
+    if (siblingStep.matches(':first-child') && window.location.pathname.startsWith('/templates/')) {
       previewTemplate();
     }
 
@@ -79,8 +79,8 @@ export default async function decorate(block) {
   };
 
   // Wizard prev and next action
-  block.addEventListener("click", (event) => {
-    if ((event.target.closest(".next") || event.target.closest(".prev")) && document.body.classList.contains("is-authenticated")) {
+  block.addEventListener('click', (event) => {
+    if ((event.target.closest('.next') || event.target.closest('.prev')) && document.body.classList.contains('is-authenticated')) {
       selectStep(event);
     }
   });
@@ -88,52 +88,52 @@ export default async function decorate(block) {
   // TODO replace templates json with endpoint ?
   const templates = block.querySelector(`a[href="/templates.json"], a[href="${SCRIPT_API}/templates"]`);
   if (templates) {
-    const templateWrapper = document.createElement("div");
-    templateWrapper.className = "template-wrapper";
-    const templateContainer = document.createElement("div");
-    templateContainer.className = "template-container";
+    const templateWrapper = document.createElement('div');
+    templateWrapper.className = 'template-wrapper';
+    const templateContainer = document.createElement('div');
+    templateContainer.className = 'template-container';
     templateWrapper.append(templateContainer);
 
-    const controlsWrapper = document.createElement("div");
-    controlsWrapper.className = "controls-wrapper";
-    const leftButton = document.createElement("button");
-    leftButton.className = "button secondary prev scroll-button";
+    const controlsWrapper = document.createElement('div');
+    controlsWrapper.className = 'controls-wrapper';
+    const leftButton = document.createElement('button');
+    leftButton.className = 'button secondary prev scroll-button';
     leftButton.onclick = (e) => {
       e.stopPropagation();
       const containerBox = templateContainer.getBoundingClientRect();
-      templateContainer.scrollBy({ behavior: "smooth", left: -containerBox.width });
+      templateContainer.scrollBy({ behavior: 'smooth', left: -containerBox.width });
     };
-    const rightButton = document.createElement("button");
-    rightButton.className = "button secondary next scroll-button";
+    const rightButton = document.createElement('button');
+    rightButton.className = 'button secondary next scroll-button';
     rightButton.onclick = (e) => {
       e.stopPropagation();
       const containerBox = templateContainer.getBoundingClientRect();
-      templateContainer.scrollBy({ behavior: "smooth", left: containerBox.width });
+      templateContainer.scrollBy({ behavior: 'smooth', left: containerBox.width });
     };
 
     templateContainer.onscrollend = () => {
       if (templateContainer.scrollLeft === 0) {
-        leftButton.classList.add("is-disabled");
+        leftButton.classList.add('is-disabled');
       } else {
-        leftButton.classList.remove("is-disabled");
+        leftButton.classList.remove('is-disabled');
       }
       if (templateContainer.scrollLeft + templateContainer.offsetWidth >= templateContainer.scrollWidth) {
-        rightButton.classList.add("is-disabled");
+        rightButton.classList.add('is-disabled');
       } else {
-        rightButton.classList.remove("is-disabled");
+        rightButton.classList.remove('is-disabled');
       }
     };
 
     // debounced button refresh on resize
     let templateResizeListener;
-    window.addEventListener("resize", () => {
+    window.addEventListener('resize', () => {
       clearTimeout(templateResizeListener);
       templateResizeListener = setTimeout(() => {
         templateContainer.onscrollend();
       }, 300);
     });
 
-    leftButton.classList.add("is-disabled");
+    leftButton.classList.add('is-disabled');
 
     controlsWrapper.append(leftButton, rightButton);
     templateWrapper.append(controlsWrapper);
@@ -150,10 +150,10 @@ export default async function decorate(block) {
           const back = document.querySelector('header a[href="#back"]');
 
           const hidePreview = () => {
-            if (document.body.classList.contains("is-template-previewing")) {
-              document.body.classList.remove("is-template-previewing");
-              block.querySelector(".preview.is-visible").classList.remove("is-visible");
-              block.classList.remove("show-buttons");
+            if (document.body.classList.contains('is-template-previewing')) {
+              document.body.classList.remove('is-template-previewing');
+              block.querySelector('.preview.is-visible').classList.remove('is-visible');
+              block.classList.remove('show-buttons');
               selectTemplate.onclick = undefined;
               back.onclick = undefined;
             }
@@ -161,11 +161,11 @@ export default async function decorate(block) {
 
           templateContainer.innerHTML = data
             .map(({ id, name, description, enabled, demo }, i) => {
-              if (enabled.toLowerCase() === "false") {
-                return "";
+              if (enabled.toLowerCase() === 'false') {
+                return '';
               }
               return `
-          <a href="/templates/${id}" id="${id}" class="template ${i === 0 ? "is-selected" : ""}">
+          <a href="/templates/${id}" id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
             <p>${description}</p>
             <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
@@ -173,57 +173,57 @@ export default async function decorate(block) {
           </a>
         `;
             })
-            .join("");
+            .join('');
 
-          const templateImage = document.createElement("div");
-          templateImage.className = "template-image";
-          const templateName = document.createElement("h3");
-          templateName.textContent = templateContainer.querySelector(".template.is-selected h3").textContent;
+          const templateImage = document.createElement('div');
+          templateImage.className = 'template-image';
+          const templateName = document.createElement('h3');
+          templateName.textContent = templateContainer.querySelector('.template.is-selected h3').textContent;
           templateImage.append(templateName);
-          templateImage.append(templateContainer.querySelector(".template.is-selected img").cloneNode(true));
+          templateImage.append(templateContainer.querySelector('.template.is-selected img').cloneNode(true));
 
           // Add template image to all steps
-          const step = templateContainer.closest(".step");
+          const step = templateContainer.closest('.step');
           let nextStep = step.nextElementSibling;
           while (nextStep) {
             nextStep.append(templateImage.cloneNode(true));
             nextStep = nextStep.nextElementSibling;
           }
 
-          templateContainer.addEventListener("click", (event) => {
-            if (event.target.closest(".template")) {
+          templateContainer.addEventListener('click', (event) => {
+            if (event.target.closest('.template')) {
               event.preventDefault();
-              const template = event.target.closest(".template");
-              window.history.pushState({}, "", template.href);
+              const template = event.target.closest('.template');
+              window.history.pushState({}, '', template.href);
 
-              block.querySelector(".template.is-selected").classList.remove("is-selected");
-              template.classList.add("is-selected");
+              block.querySelector('.template.is-selected').classList.remove('is-selected');
+              template.classList.add('is-selected');
 
-              document.body.classList.add("is-template-previewing");
-              template.querySelector(".preview").classList.add("is-visible");
+              document.body.classList.add('is-template-previewing');
+              template.querySelector('.preview').classList.add('is-visible');
 
-              let selectTemplateName = selectTemplate.querySelector("span");
+              let selectTemplateName = selectTemplate.querySelector('span');
               if (!selectTemplateName) {
-                selectTemplateName = document.createElement("span");
+                selectTemplateName = document.createElement('span');
                 selectTemplate.append(selectTemplateName);
               }
-              selectTemplateName.textContent = template.querySelector("h3").textContent;
+              selectTemplateName.textContent = template.querySelector('h3').textContent;
 
               back.onclick = (e) => {
                 e.preventDefault();
                 hidePreview();
-                window.history.replaceState({}, "", "/");
+                window.history.replaceState({}, '', '/');
               };
 
-              if (document.body.classList.contains("is-anonymous")) {
+              if (document.body.classList.contains('is-anonymous')) {
                 selectTemplate.onclick = async (e) => {
                   e.preventDefault();
                   window.sessionStorage.redirectTo = `${window.location.href}/create`;
                   // eslint-disable-next-line no-restricted-syntax
-                  const plansDialog = document.querySelector(".plans-dialog");
+                  const plansDialog = document.querySelector('.plans-dialog');
                   if (plansDialog) {
                     plansDialog.showModal();
-                  } else if (await confirmDialog("Please login to continue")) {
+                  } else if (await confirmDialog('Please login to continue')) {
                     // fallback if plans isn't found
                     window.auth0Client.loginWithRedirect();
                   }
@@ -232,18 +232,18 @@ export default async function decorate(block) {
                 selectTemplate.onclick = (e) => {
                   e.preventDefault();
 
-                  window.history.replaceState({}, "", `${window.location.pathname}/create`);
+                  window.history.replaceState({}, '', `${window.location.pathname}/create`);
 
                   hidePreview();
                   block.querySelector('a[href="#template"]').click();
-                  block.classList.add("show-buttons");
+                  block.classList.add('show-buttons');
 
-                  block.querySelectorAll(".template-image").forEach((el) => {
-                    el.innerHTML = "";
-                    const name = document.createElement("h3");
-                    name.textContent = template.querySelector("h3").textContent;
+                  block.querySelectorAll('.template-image').forEach((el) => {
+                    el.innerHTML = '';
+                    const name = document.createElement('h3');
+                    name.textContent = template.querySelector('h3').textContent;
                     el.append(name);
-                    el.append(template.querySelector("img").cloneNode(true));
+                    el.append(template.querySelector('img').cloneNode(true));
                   });
                 };
               }
@@ -253,28 +253,28 @@ export default async function decorate(block) {
           // Handle on page load
           const handleHistory = () => {
             const { pathname } = window.location;
-            const split = pathname.split("/");
+            const split = pathname.split('/');
 
-            if (pathname === "/") {
+            if (pathname === '/') {
               hidePreview();
 
-              block.querySelector(".step.is-selected").classList.remove("is-selected");
-              block.querySelector(".step:nth-child(1)").classList.add("is-selected");
-            } else if (pathname.startsWith("/templates/") && split.length === 3) {
+              block.querySelector('.step.is-selected').classList.remove('is-selected');
+              block.querySelector('.step:nth-child(1)').classList.add('is-selected');
+            } else if (pathname.startsWith('/templates/') && split.length === 3) {
               const template = split.pop();
               document.getElementById(template).click();
 
-              block.querySelector(".step.is-selected").classList.remove("is-selected");
-              block.querySelector(".step:nth-child(1)").classList.add("is-selected");
-            } else if (pathname.startsWith("/templates/") && pathname.endsWith("/create")) {
+              block.querySelector('.step.is-selected').classList.remove('is-selected');
+              block.querySelector('.step:nth-child(1)').classList.add('is-selected');
+            } else if (pathname.startsWith('/templates/') && pathname.endsWith('/create')) {
               const template = split[2];
               document.getElementById(template).click();
               selectTemplate.click();
 
-              block.querySelector(".step.is-selected").classList.remove("is-selected");
-              const selectedStep = block.querySelector(".step:nth-child(2)");
-              selectedStep.classList.add("is-selected");
-              selectedStep.classList.remove("error");
+              block.querySelector('.step.is-selected').classList.remove('is-selected');
+              const selectedStep = block.querySelector('.step:nth-child(2)');
+              selectedStep.classList.add('is-selected');
+              selectedStep.classList.remove('error');
             }
           };
 
@@ -288,7 +288,7 @@ export default async function decorate(block) {
         if (document.querySelector('.header[data-block-status="loaded"]')) {
           render();
         } else {
-          document.addEventListener("header:ready", () => {
+          document.addEventListener('header:ready', () => {
             render();
           });
         }
@@ -297,46 +297,46 @@ export default async function decorate(block) {
 
   const createStep = block.querySelector(':scope > div:has(a[href="#create"])');
   // MARK: create form
-  const createForm = document.createElement("form");
-  createForm.id = "create-form";
+  const createForm = document.createElement('form');
+  createForm.id = 'create-form';
 
   // name
-  const nameInput = document.createElement("input");
-  nameInput.placeholder = "My Site";
-  nameInput.id = "site-name";
+  const nameInput = document.createElement('input');
+  nameInput.placeholder = 'My Site';
+  nameInput.id = 'site-name';
 
   // slug
-  const slugInputWrapper = document.createElement("label");
-  const slugInput = document.createElement("input");
-  slugInputWrapper.id = "slug-input-wrapper";
+  const slugInputWrapper = document.createElement('label');
+  const slugInput = document.createElement('input');
+  slugInputWrapper.id = 'slug-input-wrapper';
   slugInputWrapper.append(slugInput);
-  slugInput.placeholder = "my-site";
+  slugInput.placeholder = 'my-site';
   slugInputWrapper.dataset.leftoverChars = slugMaxLength;
-  slugInput.id = "slug-input";
+  slugInput.id = 'slug-input';
 
   slugInput.dataset.copyName = true;
 
   // create site button
   const createButton = createStep.querySelector('a[href="#create"]');
-  createButton.classList.add("is-disabled");
-  createButton.id = "create-button";
+  createButton.classList.add('is-disabled');
+  createButton.id = 'create-button';
 
   // description
-  const descriptionTextarea = document.createElement("textarea");
-  descriptionTextarea.placeholder = "Description";
-  descriptionTextarea.id = "description-input";
+  const descriptionTextarea = document.createElement('textarea');
+  descriptionTextarea.placeholder = 'Description';
+  descriptionTextarea.id = 'description-input';
 
   // dark alley toggle
-  const darkAlleyCheckbox = document.createElement("input");
-  darkAlleyCheckbox.type = "checkbox";
-  darkAlleyCheckbox.id = "dark-alley-checkbox";
-  const darkAlleyLabel = document.createElement("label");
-  darkAlleyLabel.classList.add("checkbox-label", "dark-alley-label");
-  const darkAlleySpan = document.createElement("span");
-  darkAlleySpan.textContent = "Use Dark alley?";
+  const darkAlleyCheckbox = document.createElement('input');
+  darkAlleyCheckbox.type = 'checkbox';
+  darkAlleyCheckbox.id = 'dark-alley-checkbox';
+  const darkAlleyLabel = document.createElement('label');
+  darkAlleyLabel.classList.add('checkbox-label', 'dark-alley-label');
+  const darkAlleySpan = document.createElement('span');
+  darkAlleySpan.textContent = 'Use Dark alley?';
   darkAlleyLabel.append(darkAlleyCheckbox, darkAlleySpan);
 
-  const daSlugPrefixRegex = new RegExp(`^${daPrefix}`, "i");
+  const daSlugPrefixRegex = new RegExp(`^${daPrefix}`, 'i');
 
   createForm.append(nameInput, slugInputWrapper, descriptionTextarea, darkAlleyLabel);
 
@@ -344,23 +344,23 @@ export default async function decorate(block) {
   let createButtonTimer;
   function updateCreateButton() {
     clearTimeout(createButtonTimer);
-    createButton.classList.add("is-disabled");
+    createButton.classList.add('is-disabled');
     if (nameInput.value.length < 2 || slugInput.value.length < 2) {
       return;
     }
 
     createButtonTimer = setTimeout(async () => {
-      const res = await fetch(`${SCRIPT_API}/checkAvailability/${slugInput.value}${darkAlleyCheckbox.checked ? "?darkAlley=true" : ""}`);
+      const res = await fetch(`${SCRIPT_API}/checkAvailability/${slugInput.value}${darkAlleyCheckbox.checked ? '?darkAlley=true' : ''}`);
       if (res.ok) {
         const data = await res.json().catch(() => {});
         if (data.projectSlug !== slugInput.value) {
           return;
         }
-        createButton.classList.remove("is-disabled");
-        slugInputWrapper.classList.remove("slug-taken");
+        createButton.classList.remove('is-disabled');
+        slugInputWrapper.classList.remove('slug-taken');
       } else {
-        createButton.classList.add("is-disabled");
-        slugInputWrapper.classList.add("slug-taken");
+        createButton.classList.add('is-disabled');
+        slugInputWrapper.classList.add('slug-taken');
       }
     }, 300);
   }
@@ -372,7 +372,7 @@ export default async function decorate(block) {
         slugInput.value = daPrefix + slugInput.value;
       }
     } else {
-      slugInput.value = slugInput.value.replace(daSlugPrefixRegex, "");
+      slugInput.value = slugInput.value.replace(daSlugPrefixRegex, '');
     }
   }
 
@@ -388,7 +388,7 @@ export default async function decorate(block) {
     if (event.target === slugInput) {
       slugInput.dataset.copyName = null;
     }
-    if (slugInput.dataset.copyName === "true") {
+    if (slugInput.dataset.copyName === 'true') {
       slugInput.value = nameInput.value;
     }
     daPrefixCheck();
@@ -407,18 +407,18 @@ export default async function decorate(block) {
       slugInput.dataset.copyName = true;
     }
     daPrefixCheck();
-    slugInput.value = slugInput.value.replace(/(^-+|-+$)/g, "");
+    slugInput.value = slugInput.value.replace(/(^-+|-+$)/g, '');
     slugInputWrapper.dataset.leftoverChars = slugMaxLength - slugInput.value.length;
   };
 
   if (createStep) {
-    createStep.querySelector("h2").after(createForm);
+    createStep.querySelector('h2').after(createForm);
   }
 
   const successStep = block.lastElementChild;
   if (successStep) {
-    successStep.querySelectorAll("a").forEach((el) => {
-      el.classList.add("button");
+    successStep.querySelectorAll('a').forEach((el) => {
+      el.classList.add('button');
     });
   }
 
@@ -427,13 +427,13 @@ export default async function decorate(block) {
     e.preventDefault();
 
     const token = await window.auth0Client.getTokenSilently();
-    const template = block.querySelector(".template.is-selected").id;
+    const template = block.querySelector('.template.is-selected').id;
 
-    window.history.pushState({}, "", `${window.location.pathname}/progress`);
+    window.history.pushState({}, '', `${window.location.pathname}/progress`);
 
     const reqCreate = await fetch(`${SCRIPT_API}/create`, {
       headers: {
-        "content-type": "application/json",
+        'content-type': 'application/json',
         authorization: `bearer ${token}`,
       },
       body: JSON.stringify({
@@ -443,20 +443,20 @@ export default async function decorate(block) {
         preferDarkAlley: darkAlleyCheckbox.checked,
         template,
       }),
-      method: "POST",
+      method: 'POST',
     });
 
     const editStep = block.querySelector('.step:has(a[href="#edit"])');
-    const statusList = editStep.querySelector("ul");
+    const statusList = editStep.querySelector('ul');
 
     const error = () => {
-      window?.zaraz?.track("error create site");
+      window?.zaraz?.track('error create site');
 
-      editStep.classList.add("error");
-      const errorMessage = editStep.querySelector(".error-message");
+      editStep.classList.add('error');
+      const errorMessage = editStep.querySelector('.error-message');
       if (!errorMessage) {
-        editStep.querySelector(".button-container").insertAdjacentHTML(
-          "beforebegin",
+        editStep.querySelector('.button-container').insertAdjacentHTML(
+          'beforebegin',
           `
           <div class="error-message">
               <p>${OOPS} Please try again in a few minutes.</p>
@@ -465,17 +465,17 @@ export default async function decorate(block) {
         `,
         );
 
-        editStep.querySelector(".error-message .button").onclick = () => {
-          window?.zaraz?.track("click error site back");
+        editStep.querySelector('.error-message .button').onclick = () => {
+          window?.zaraz?.track('click error site back');
 
-          window.history.replaceState({}, "", `${window.location.pathname.split("/").slice(0, -1).join("/")}`);
-          editStep.classList.remove("error");
+          window.history.replaceState({}, '', `${window.location.pathname.split('/').slice(0, -1).join('/')}`);
+          editStep.classList.remove('error');
         };
       }
     };
 
     const renderStatusList = (stepsObj) => {
-      const listItems = statusList.querySelectorAll("li");
+      const listItems = statusList.querySelectorAll('li');
       progressSteps.forEach((step, index) => {
         if (stepsObj[step]) {
           listItems[index].className = stepsObj[step].status;
@@ -496,7 +496,7 @@ export default async function decorate(block) {
 
           if (finished) {
             if (success) {
-              window.location.href = `/${darkAlleyUrl ? "da-" : ""}site/${projectSlug}`;
+              window.location.href = `/${darkAlleyUrl ? 'da-' : ''}site/${projectSlug}`;
             } else if (failed) {
               error();
             } else {

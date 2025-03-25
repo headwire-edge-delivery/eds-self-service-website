@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
-import { colorInput, KESTREL_ONE } from "../../scripts/scripts.js";
-import renderSkeleton from "../../scripts/skeletons.js";
+import { colorInput, KESTREL_ONE } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 
 export default function createBaseBlockHtml(projectSlug) {
   return /* html */ `
@@ -52,7 +52,7 @@ export default function createBaseBlockHtml(projectSlug) {
       <div class="preview">
         <div class="preview-container">
           <iframe src="https://preview--${projectSlug}.${KESTREL_ONE}?ispreview=true" class="iframe is-loading"></iframe>
-          ${renderSkeleton("theme-editor-preview")}
+          ${renderSkeleton('theme-editor-preview')}
         </div>
       </div>
       <div class="ghost-aside"></div>
@@ -96,49 +96,49 @@ export default function createBaseBlockHtml(projectSlug) {
             <span>Light</span>
             <div title="Open the color picker" class="color-picker base">
                 <span></span>
-                ${colorInput("color-light")}
+                ${colorInput('color-light')}
             </div>
           </label>
           <label>
             <span>Dark</span>
             <div title="Open the color picker" class="color-picker base">
                 <span></span>
-                ${colorInput("color-dark")}
+                ${colorInput('color-dark')}
             </div>
           </label>
           <label>
             <span>Lightest</span>
             <div title="Open the color picker" class="color-picker base">
                 <span></span>
-                ${colorInput("color-lightest")}
+                ${colorInput('color-lightest')}
             </div>
           </label>
           <label>
             <span>Darkest</span>
             <div title="Open the color picker" class="color-picker base">
                 <span></span>
-                ${colorInput("color-darkest")}
+                ${colorInput('color-darkest')}
             </div>
           </label>
           <label>
             <span>Brand primary</span>
             <div title="Open the color picker" class="color-picker base">
                 <span></span>
-                ${colorInput("color-brand-primary")}
+                ${colorInput('color-brand-primary')}
             </div>
           </label>
           <label>
             <span>Brand secondary</span>
             <div title="Open the color picker" class="color-picker base">
                 <span></span>
-                ${colorInput("color-brand-secondary")}
+                ${colorInput('color-brand-secondary')}
             </div>
           </label>
           <label>
             <span>Brand tertiary</span>
             <div title="Open the color picker" class="color-picker base">
                 <span></span>
-                ${colorInput("color-brand-tertiary")}
+                ${colorInput('color-brand-tertiary')}
             </div>
           </label>
           
@@ -147,7 +147,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Background color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("background-color", true)}
+                ${colorInput('background-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -156,7 +156,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Header background color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("header-background-color", true)}
+                ${colorInput('header-background-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -165,7 +165,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Heading text color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("heading-color", true)}
+                ${colorInput('heading-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -174,7 +174,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Body text color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("text-color", true)}
+                ${colorInput('text-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -183,7 +183,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Links text color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("link-color", true)}
+                ${colorInput('link-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -191,7 +191,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Links text color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("link-color-hover", true)}
+                ${colorInput('link-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -204,7 +204,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Text color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-text-color", true)}
+                ${colorInput('button-text-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -212,7 +212,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Background color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-background-color", true)}
+                ${colorInput('button-background-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -220,7 +220,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Border color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-border-color", true)}
+                ${colorInput('button-border-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -228,7 +228,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Text color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-text-color-hover", true)}
+                ${colorInput('button-text-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -236,7 +236,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Background color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-background-color-hover", true)}
+                ${colorInput('button-background-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -244,7 +244,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Border color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-border-color-hover", true)}
+                ${colorInput('button-border-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -255,7 +255,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Text color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-primary-text-color", true)}
+                ${colorInput('button-primary-text-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -263,7 +263,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Background color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-primary-background-color", true)}
+                ${colorInput('button-primary-background-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -271,7 +271,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Border color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-primary-border-color", true)}
+                ${colorInput('button-primary-border-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -279,7 +279,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Text color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-primary-text-color-hover", true)}
+                ${colorInput('button-primary-text-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -287,7 +287,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Background color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-primary-background-color-hover", true)}
+                ${colorInput('button-primary-background-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -295,7 +295,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Border color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-primary-border-color-hover", true)}
+                ${colorInput('button-primary-border-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -306,7 +306,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Text color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-secondary-text-color", true)}
+                ${colorInput('button-secondary-text-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -314,7 +314,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Background color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-secondary-background-color", true)}
+                ${colorInput('button-secondary-background-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -322,7 +322,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Border color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-secondary-border-color", true)}
+                ${colorInput('button-secondary-border-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -330,7 +330,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Text color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-secondary-text-color-hover", true)}
+                ${colorInput('button-secondary-text-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -338,7 +338,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Background color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-secondary-background-color-hover", true)}
+                ${colorInput('button-secondary-background-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -346,7 +346,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Border color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("button-secondary-border-color-hover", true)}
+                ${colorInput('button-secondary-border-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -357,7 +357,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Input text color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("input-text-color", true)}
+                ${colorInput('input-text-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -365,7 +365,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Input background color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("input-background-color", true)}
+                ${colorInput('input-background-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -373,7 +373,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Input border color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("input-border-color", true)}
+                ${colorInput('input-border-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -384,7 +384,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Footer background color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("footer-background-color", true)}
+                ${colorInput('footer-background-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -393,7 +393,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Footer text color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("footer-text-color", true)}
+                ${colorInput('footer-text-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -402,7 +402,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Footer Links text color</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("footer-link-color", true)}
+                ${colorInput('footer-link-color', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>
@@ -411,7 +411,7 @@ export default function createBaseBlockHtml(projectSlug) {
               <span>Footer Links text color on hover</span>
               <div title="Open the color picker" class="color-picker elements">
                 <select></select>
-                ${colorInput("footer-link-color-hover", true)}
+                ${colorInput('footer-link-color-hover', true)}
               </div>
               <span class="contrast-issues"></span>
           </label>

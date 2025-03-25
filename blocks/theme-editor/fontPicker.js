@@ -1,7 +1,7 @@
-import { parseFragment, SCRIPT_API } from "../../scripts/scripts.js";
+import { parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
 
-const fontWeights = ["300", "400", "700"];
-const fontsKey = "AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps";
+const fontWeights = ['300', '400', '700'];
+const fontsKey = 'AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps';
 
 export default async function initFontPicker({ varsObj, editor, block, warning, getCSSVars, findCSSVar }) {
   const googleFonts = await fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${fontsKey}&capability=WOFF2&sort=popularity`)
@@ -9,41 +9,41 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
     .catch(() => null);
 
   if (!googleFonts) {
-    throw new Error("Failed to load Google Fonts."); // shouldn't cause block to fail b/c we're in async
+    throw new Error('Failed to load Google Fonts.'); // shouldn't cause block to fail b/c we're in async
   }
 
   const validFonts = googleFonts.items.filter(
-    ({ subsets, variants }) => subsets.includes("latin") && fontWeights.every((weight) => variants.includes(weight === "400" ? "regular" : weight)),
+    ({ subsets, variants }) => subsets.includes('latin') && fontWeights.every((weight) => variants.includes(weight === '400' ? 'regular' : weight)),
   );
 
-  const defaultFonts = ["Arial", "Verdana", "Tahoma", "Trebuchet MS", "Times New Roman", "Georgia", "Garamond", "Courier New"];
+  const defaultFonts = ['Arial', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Times New Roman', 'Georgia', 'Garamond', 'Courier New'];
 
   const dropdownFonts = [...validFonts.slice(0, 10), ...defaultFonts.map((font) => ({ family: font }))];
 
   const updateFonts = async (selectedFont, newFont) => {
-    const selectedFonts = [...block.querySelectorAll(".font-picker")].map((el) => el.value);
+    const selectedFonts = [...block.querySelectorAll('.font-picker')].map((el) => el.value);
     const selectedCustomFonts = selectedFonts.filter((font) => !defaultFonts.includes(font));
 
     if (selectedCustomFonts.length) {
       const searchParams = new URLSearchParams();
-      searchParams.set("display", "swap");
+      searchParams.set('display', 'swap');
 
       const fallbackFonts = [];
       selectedCustomFonts.forEach((customFont) => {
         const { files } = dropdownFonts.find(({ family }) => customFont === family);
 
-        searchParams.append("family", `${customFont}:wght@300;400;700`);
+        searchParams.append('family', `${customFont}:wght@300;400;700`);
 
         fontWeights.forEach((weight) => {
           fallbackFonts.push(
             fetch(`${SCRIPT_API}/font-fallback`, {
-              method: "POST",
+              method: 'POST',
               headers: {
-                "content-type": "application/json",
+                'content-type': 'application/json',
               },
               body: JSON.stringify({
                 name: customFont,
-                url: files[weight === "400" ? "regular" : weight],
+                url: files[weight === '400' ? 'regular' : weight],
                 weight,
               }),
             }).then((res) => res.text()),
@@ -66,16 +66,16 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
         let newValue = editor.getValue();
 
         // Remove fallback fonts
-        const indexOf = newValue.indexOf("@font-face");
+        const indexOf = newValue.indexOf('@font-face');
         if (indexOf !== -1) {
-          newValue = newValue.substr(0, newValue.indexOf("@font-face"));
+          newValue = newValue.substr(0, newValue.indexOf('@font-face'));
         }
 
         // Add new fallback fonts
         newValue += `${res
-          .filter(({ status }) => status === "fulfilled")
+          .filter(({ status }) => status === 'fulfilled')
           .map(({ value }) => value)
-          .join("\n")}`;
+          .join('\n')}`;
 
         // Update editor
         editor.setValue(newValue);
@@ -85,11 +85,11 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
     }
   };
 
-  const dropdownFontStyles = document.createElement("style");
-  dropdownFontStyles.className = "dropdown-fonts";
+  const dropdownFontStyles = document.createElement('style');
+  dropdownFontStyles.className = 'dropdown-fonts';
   document.head.append(dropdownFontStyles);
   const appendFontStyles = ({ family, files, variants }) => {
-    const urlProperty = files.regular || files["400"] || files["300"] || files[variants[0]];
+    const urlProperty = files.regular || files['400'] || files['300'] || files[variants[0]];
     dropdownFontStyles.innerHTML += `@font-face {font-family: '${
       family
     }'; font-display: swap; font-weight: regular; font-style: normal; src:url(${urlProperty}) format('woff2');}\n`;
@@ -136,10 +136,10 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
       </div>
     `);
 
-    const fontList = moreFontsPicker.querySelector("ul");
-    const searchInput = moreFontsPicker.querySelector(".font-filter");
-    const categorySelect = moreFontsPicker.querySelector(".category-select");
-    const closeButton = moreFontsPicker.querySelector(".close-button");
+    const fontList = moreFontsPicker.querySelector('ul');
+    const searchInput = moreFontsPicker.querySelector('.font-filter');
+    const categorySelect = moreFontsPicker.querySelector('.category-select');
+    const closeButton = moreFontsPicker.querySelector('.close-button');
 
     closeButton.onclick = () => {
       moreFontsPicker.nextElementSibling.hidden = false;
@@ -147,10 +147,10 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
 
     const categoriesMap = { all: true };
     const currentFilters = {
-      category: "all",
+      category: 'all',
       search: searchInput.value,
     };
-    const sortSelect = moreFontsPicker.querySelector(".sort-select");
+    const sortSelect = moreFontsPicker.querySelector('.sort-select');
     const fontItems = [];
 
     // MARK: Observer
@@ -168,8 +168,8 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
     );
 
     const liOnclick = (event) => {
-      fontList.querySelectorAll(".is-selected").forEach((item) => item.classList.remove("is-selected"));
-      event.target.classList.add("is-selected");
+      fontList.querySelectorAll('.is-selected').forEach((item) => item.classList.remove('is-selected'));
+      event.target.classList.add('is-selected');
       fontList.dataset.selectedIndex = event.target.dataset.index;
 
       appendOption(selectElement, validFonts[fontList.dataset.selectedIndex]); // add selected font
@@ -178,10 +178,10 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
     };
 
     validFonts.forEach((font, index) => {
-      const li = document.createElement("li");
-      li.classList.add("font-item");
+      const li = document.createElement('li');
+      li.classList.add('font-item');
       if (selectElement.value === font.family) {
-        li.classList.add("is-selected");
+        li.classList.add('is-selected');
       }
       li.dataset.value = font.family;
       li.dataset.category = font.category;
@@ -214,7 +214,7 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
         }
 
         // category check
-        if (currentFilters?.category !== "all" && currItem.dataset.category !== currentFilters.category) {
+        if (currentFilters?.category !== 'all' && currItem.dataset.category !== currentFilters.category) {
           currItem.hidden = true;
           continue;
         }
@@ -223,7 +223,7 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
 
     // MARK: filter
     Object.keys(categoriesMap).forEach((category) => {
-      const option = document.createElement("option");
+      const option = document.createElement('option');
       option.value = category;
       option.innerText = category;
       categorySelect.append(option);
@@ -243,8 +243,8 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
     const sortFnLookup = {
       popularity: (a, b) => Number(a.dataset.index) - Number(b.dataset.index),
       alpha: (a, b) => a.dataset.value.localeCompare(b.dataset.value),
-      "reverse-alpha": (a, b) => b.dataset.value.localeCompare(a.dataset.value),
-      "mod-date": (a, b) => Number(a.dataset.lastModified) - Number(b.dataset.lastModified),
+      'reverse-alpha': (a, b) => b.dataset.value.localeCompare(a.dataset.value),
+      'mod-date': (a, b) => Number(a.dataset.lastModified) - Number(b.dataset.lastModified),
     };
     sortSelect.onchange = () => {
       if (!sortFnLookup[sortSelect.value]) return;
@@ -257,7 +257,7 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
     selectElement.after(moreFontsPicker);
   };
 
-  block.querySelectorAll(".font-picker").forEach((el) => {
+  block.querySelectorAll('.font-picker').forEach((el) => {
     let selectedFont = findCSSVar(varsObj.cssVars, el.dataset.var, true);
     dropdownFonts.forEach((gFont) => {
       appendOption(el, gFont);
@@ -284,7 +284,7 @@ export default async function initFontPicker({ varsObj, editor, block, warning, 
 
     el.nextElementSibling.onclick = (event) => {
       event.target.hidden = true;
-      if (!el.nextElementSibling.classList.contains("more-fonts-picker")) {
+      if (!el.nextElementSibling.classList.contains('more-fonts-picker')) {
         initMoreFontsPicker(el);
       }
     };

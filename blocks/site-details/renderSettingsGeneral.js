@@ -1,5 +1,5 @@
-import { parseFragment, safeText, SCRIPT_API, toValidPropertyName } from "../../scripts/scripts.js";
-import renderSkeleton from "../../scripts/skeletons.js";
+import { parseFragment, safeText, SCRIPT_API, toValidPropertyName } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 import {
   renderDangerZone,
   addIconDialogSetup,
@@ -8,15 +8,15 @@ import {
   renderIconsList,
   renderPrevUpdatesSection,
   renderUpdatesSection,
-} from "./renderSettingsUtils.js";
-import { confirmDialog } from "../../scripts/dialogs.js";
-import { showErrorToast, showToast } from "../../scripts/toast.js";
+} from './renderSettingsUtils.js';
+import { confirmDialog } from '../../scripts/dialogs.js';
+import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 // MARK: render
 export default async function renderSettingsGeneral({ container, nav, renderOptions }) {
   const { projectDetails, authHeaders, authHeadersWithBody, siteSlug, versionInfo, user } = renderOptions;
 
-  container.innerHTML = renderSkeleton("settings");
+  container.innerHTML = renderSkeleton('settings');
 
   const [authors, blocksListData, iconsListData] = await Promise.all([
     fetch(`${SCRIPT_API}/authors/${siteSlug}`, { headers: authHeaders })
@@ -90,7 +90,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   }
 
   // MARK: Authors
-  const authorsList = container.querySelector(".authors-list");
+  const authorsList = container.querySelector('.authors-list');
   const addAuthorListItem = (author) => {
     if (!author.email) return;
 
@@ -98,23 +98,23 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     const isOwner = author.owner;
 
     const listItem = parseFragment(`
-          <li class="author ${isOwner ? "is-owner" : ""}" data-author-email="${safeText(authorEmail)}">
+          <li class="author ${isOwner ? 'is-owner' : ''}" data-author-email="${safeText(authorEmail)}">
             <span>${safeText(authorEmail)}</span>
-            <button ${isOwner ? "disabled" : ""} class="transfer-button button action secondary">Make Owner</button>
-            <button ${isOwner ? "disabled" : ""} class="revoke-button button action secondary destructive">Revoke</button>
+            <button ${isOwner ? 'disabled' : ''} class="transfer-button button action secondary">Make Owner</button>
+            <button ${isOwner ? 'disabled' : ''} class="revoke-button button action secondary destructive">Revoke</button>
           </li>
         `);
 
-    const revoke = listItem.querySelector(".revoke-button");
+    const revoke = listItem.querySelector('.revoke-button');
     revoke.onclick = async () => {
-      window?.zaraz?.track("click site share delete");
+      window?.zaraz?.track('click site share delete');
 
-      if (await confirmDialog("Are you sure ?")) {
-        window?.zaraz?.track("click site share delete submit");
+      if (await confirmDialog('Are you sure ?')) {
+        window?.zaraz?.track('click site share delete submit');
 
-        authorsList.classList.add("is-disabled");
+        authorsList.classList.add('is-disabled');
         const revokeResponse = await fetch(`${SCRIPT_API}/authors/${siteSlug}/${authorEmail}`, {
-          method: "DELETE",
+          method: 'DELETE',
           headers: authHeaders,
         }).catch(() => null);
         if (revokeResponse?.ok) {
@@ -123,93 +123,93 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
         } else {
           showErrorToast();
         }
-        authorsList.classList.remove("is-disabled");
+        authorsList.classList.remove('is-disabled');
       }
     };
 
-    const changeOwnerButton = listItem.querySelector(".transfer-button");
+    const changeOwnerButton = listItem.querySelector('.transfer-button');
     changeOwnerButton.onclick = async () => {
-      window?.zaraz?.track("click site share make owner");
+      window?.zaraz?.track('click site share make owner');
 
-      if (await confirmDialog("Are you sure ?")) {
-        window?.zaraz?.track("click site share make owner submit");
+      if (await confirmDialog('Are you sure ?')) {
+        window?.zaraz?.track('click site share make owner submit');
 
-        authorsList.classList.add("is-disabled");
+        authorsList.classList.add('is-disabled');
         const changeOwnerResponse = await fetch(`${SCRIPT_API}/updateOwner/${siteSlug}/${authorEmail}`, {
-          method: "POST",
+          method: 'POST',
           headers: authHeaders,
         }).catch(() => null);
         if (changeOwnerResponse?.ok) {
-          const prevOwner = authorsList.querySelector("li.is-owner");
+          const prevOwner = authorsList.querySelector('li.is-owner');
           if (prevOwner) {
-            prevOwner.classList.remove("is-owner");
-            prevOwner.querySelectorAll("button[disabled]").forEach((button) => {
+            prevOwner.classList.remove('is-owner');
+            prevOwner.querySelectorAll('button[disabled]').forEach((button) => {
               button.disabled = null;
             });
           }
 
           revoke.disabled = true;
           changeOwnerButton.disabled = true;
-          listItem.classList.add("is-owner");
-          showToast("Owner updated.");
+          listItem.classList.add('is-owner');
+          showToast('Owner updated.');
         } else {
           showErrorToast();
         }
-        authorsList.classList.remove("is-disabled");
+        authorsList.classList.remove('is-disabled');
       }
     };
 
     authorsList.append(listItem);
   };
 
-  const addAuthorForm = container.querySelector(".add-author-form");
+  const addAuthorForm = container.querySelector('.add-author-form');
   // TODO: Update when we have dark alley authorization
   if (projectDetails.darkAlleyProject) {
-    addAuthorForm.classList.add("is-disabled");
+    addAuthorForm.classList.add('is-disabled');
   }
   addAuthorForm.onsubmit = async (event) => {
-    window?.zaraz?.track("click site share add submit");
+    window?.zaraz?.track('click site share add submit');
 
     event.preventDefault();
 
     const email = event.target.email.value;
     if (authorsList.querySelector(`[data-author-email="${safeText(email)}"]`)) {
-      showToast("Author already exists", "warning");
+      showToast('Author already exists', 'warning');
       return;
     }
 
-    addAuthorForm.classList.add("is-disabled");
+    addAuthorForm.classList.add('is-disabled');
     const isValid = /^(?!@).*@.*(?<!@)$/.test(email);
     if (!isValid) {
-      showToast("Please enter a valid email.", "warning");
-      addAuthorForm.classList.remove("is-disabled");
+      showToast('Please enter a valid email.', 'warning');
+      addAuthorForm.classList.remove('is-disabled');
       return;
     }
     const response = await fetch(`${SCRIPT_API}/authors/${siteSlug}/${email}`, {
-      method: "POST",
+      method: 'POST',
       headers: authHeaders,
     }).catch(() => null);
     if (response?.ok) {
       addAuthorListItem({ email });
-      event.target.email.value = "";
-      showToast("Author added.");
+      event.target.email.value = '';
+      showToast('Author added.');
     } else {
       showErrorToast();
     }
-    addAuthorForm.classList.remove("is-disabled");
+    addAuthorForm.classList.remove('is-disabled');
   };
 
   // Enables the Add button only if the email is in a valid format
   addAuthorForm.oninput = () => {
-    if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addAuthorForm.querySelector("input").value)) {
-      addAuthorForm.querySelector("#add-author-button").classList.remove("is-disabled");
-      container.querySelector("#new-author-warning").hidden = true;
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addAuthorForm.querySelector('input').value)) {
+      addAuthorForm.querySelector('#add-author-button').classList.remove('is-disabled');
+      container.querySelector('#new-author-warning').hidden = true;
     } else {
-      addAuthorForm.querySelector("#add-author-button").classList.add("is-disabled");
-      container.querySelector("#new-author-warning").hidden = false;
+      addAuthorForm.querySelector('#add-author-button').classList.add('is-disabled');
+      container.querySelector('#new-author-warning').hidden = false;
     }
-    if (addAuthorForm.querySelector("input").value === "") {
-      container.querySelector("#new-author-warning").hidden = true;
+    if (addAuthorForm.querySelector('input').value === '') {
+      container.querySelector('#new-author-warning').hidden = true;
     }
   };
 
@@ -218,54 +218,54 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   }
 
   // MARK: Contact Email
-  const contactEmailForm = container.querySelector(".contact-email-form");
-  const contactEmailFormInput = contactEmailForm.querySelector("input");
-  const contactEmail = projectDetails.contactEmail || projectDetails.ownerEmail || "";
-  const contactEmailButton = contactEmailForm.querySelector("#contact-email-save");
+  const contactEmailForm = container.querySelector('.contact-email-form');
+  const contactEmailFormInput = contactEmailForm.querySelector('input');
+  const contactEmail = projectDetails.contactEmail || projectDetails.ownerEmail || '';
+  const contactEmailButton = contactEmailForm.querySelector('#contact-email-save');
   contactEmailFormInput.value = contactEmail;
   // email input validation
   contactEmailFormInput.oninput = () => {
     if (contactEmailFormInput.value === contactEmail || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contactEmailFormInput.value)) {
-      contactEmailButton.classList.remove("is-disabled");
-      container.querySelector("#contact-email-warning").hidden = true;
+      contactEmailButton.classList.remove('is-disabled');
+      container.querySelector('#contact-email-warning').hidden = true;
     } else {
-      contactEmailButton.classList.add("is-disabled");
-      container.querySelector("#contact-email-warning").hidden = false;
+      contactEmailButton.classList.add('is-disabled');
+      container.querySelector('#contact-email-warning').hidden = false;
     }
   };
 
   contactEmailForm.onsubmit = async (event) => {
-    window?.zaraz?.track("click site contact submit");
+    window?.zaraz?.track('click site contact submit');
 
     event.preventDefault();
 
     if (!contactEmailFormInput.value) return;
 
-    contactEmailForm.classList.add("is-disabled");
+    contactEmailForm.classList.add('is-disabled');
 
     const response = await fetch(`${SCRIPT_API}/updateContact/${siteSlug}`, {
       headers: authHeadersWithBody,
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ contactEmail: contactEmailFormInput.value }),
     }).catch(() => null);
     if (response?.ok) {
       projectDetails.contactEmail = contactEmailFormInput.value;
-      showToast("Contact email updated.");
+      showToast('Contact email updated.');
     } else {
       showErrorToast();
     }
 
-    contactEmailForm.classList.remove("is-disabled");
+    contactEmailForm.classList.remove('is-disabled');
   };
 
   // MARK: Favicon
-  container.querySelector(".change-favicon").onclick = () =>
+  container.querySelector('.change-favicon').onclick = () =>
     addIconDialogSetup({
       siteSlug,
       authHeaders,
       authHeadersWithBody,
-      titleText: "Favicon",
-      fileAccept: ".ico",
+      titleText: 'Favicon',
+      fileAccept: '.ico',
       uploadEndpoint: `${SCRIPT_API}/favicon/${siteSlug}`,
       replaceIconItem: container.querySelector('.favicon-section img[alt="favicon"]'),
       defaultSrc: `https://${siteSlug}.kestrelone.com/favicon.ico`,
@@ -276,9 +276,9 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   renderIconsList({ container, nav, iconsListData, projectDetails, authHeaders, siteSlug });
 
   // MARK: Updates section
-  const updatePromptInfoDiv = container.querySelector(".update-prompt-info");
-  const updateInfoDiv = container.querySelector(".update-info");
-  const prevUpdateInfoDiv = container.querySelector(".prev-update-info");
+  const updatePromptInfoDiv = container.querySelector('.update-prompt-info');
+  const updateInfoDiv = container.querySelector('.update-info');
+  const prevUpdateInfoDiv = container.querySelector('.prev-update-info');
   renderUpdatesSection(updateInfoDiv, { projectDetails, authHeaders, versionInfo });
   renderPrevUpdatesSection(prevUpdateInfoDiv, {
     projectDetails,
@@ -291,26 +291,26 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   const emailAsPropertyName = toValidPropertyName(user.email);
   if (projectDetails?.hideUpdatePrompts?.[emailAsPropertyName]) {
     updatePromptInfoDiv.insertAdjacentHTML(
-      "beforeend",
+      'beforeend',
       '<p>Update prompts are disabled. Enable them <button id="enable-update-prompts" class="button action secondary">here</button></p>',
     );
-    updatePromptInfoDiv.querySelector("#enable-update-prompts").onclick = async (event) => {
-      event.target.classList.add("loading");
+    updatePromptInfoDiv.querySelector('#enable-update-prompts').onclick = async (event) => {
+      event.target.classList.add('loading');
       const enablePromptRes = await fetch(`${SCRIPT_API}/disableUpdatePrompts/${projectDetails.projectSlug}?forceState=false`, {
-        method: "POST",
+        method: 'POST',
         headers: authHeaders,
       }).catch(() => null);
       if (enablePromptRes?.ok) {
         projectDetails.hideUpdatePrompts[emailAsPropertyName] = false;
-        showToast("Update prompts enabled.");
+        showToast('Update prompts enabled.');
         event.target.parentElement.remove();
       } else {
-        showErrorToast("Failed to enable update prompts. Try again later.");
+        showErrorToast('Failed to enable update prompts. Try again later.');
       }
-      event.target.classList.remove("loading");
+      event.target.classList.remove('loading');
     };
   }
 
   // MARK: delete project
-  renderDangerZone({ container: container.querySelector("#danger-zone"), renderOptions });
+  renderDangerZone({ container: container.querySelector('#danger-zone'), renderOptions });
 }

@@ -1,8 +1,8 @@
-import { getUserSettings, OOPS, parseFragment, SCRIPT_API, updateUserSettings, waitForAuthenticated } from "../../scripts/scripts.js";
-import renderSkeleton from "../../scripts/skeletons.js";
+import { getUserSettings, OOPS, parseFragment, SCRIPT_API, updateUserSettings, waitForAuthenticated } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
 
 export default async function renderAccount({ container, nav }) {
-  container.insertAdjacentHTML("afterbegin", renderSkeleton("account"));
+  container.insertAdjacentHTML('afterbegin', renderSkeleton('account'));
 
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
@@ -22,7 +22,7 @@ export default async function renderAccount({ container, nav }) {
       const pageViewsPercentage = (pageViews * 100) / maxPageViews;
       const sentEmailsPercentage = (sentEmails * 100) / maxSentEmails;
 
-      container.querySelector(".account-usage-skeleton").replaceWith(
+      container.querySelector('.account-usage-skeleton').replaceWith(
         ...parseFragment(`
         <h2 style="margin-top: 32px">Monthly consumption</h2>
         <div id="pv-usage" class="progress-bar">
@@ -41,7 +41,7 @@ export default async function renderAccount({ container, nav }) {
       );
     })
     .catch(() => {
-      container.querySelector(".account-usage-skeleton").replaceWith(
+      container.querySelector('.account-usage-skeleton').replaceWith(
         ...parseFragment(`
           <h2 style="margin-top: 32px">Monthly consumption</h2>
           <p>${OOPS}</p>
@@ -50,30 +50,30 @@ export default async function renderAccount({ container, nav }) {
     });
 
   nav.innerHTML = `
-    <button id="toggle-auto-tour-button" class="button secondary action">${userSettings?.showAutoTour ? "Disable Auto Tour" : "Enable Auto Tour"}</button>
+    <button id="toggle-auto-tour-button" class="button secondary action">${userSettings?.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour'}</button>
     <a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>
   `;
 
-  const toggleAutoTourButton = document.getElementById("toggle-auto-tour-button");
+  const toggleAutoTourButton = document.getElementById('toggle-auto-tour-button');
 
   toggleAutoTourButton.onclick = async () => {
-    toggleAutoTourButton.classList.add("loading");
+    toggleAutoTourButton.classList.add('loading');
     const showAutoTour = !userSettings.showAutoTour;
     const success = await updateUserSettings({ showAutoTour });
     if (success) {
       userSettings.showAutoTour = showAutoTour;
-      toggleAutoTourButton.textContent = userSettings.showAutoTour ? "Disable Auto Tour" : "Enable Auto Tour";
-      document.dispatchEvent(new CustomEvent("user:autotour", { detail: { showAutoTour } }));
+      toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
+      document.dispatchEvent(new CustomEvent('user:autotour', { detail: { showAutoTour } }));
     }
-    toggleAutoTourButton.classList.remove("loading");
+    toggleAutoTourButton.classList.remove('loading');
   };
 
-  document.addEventListener("user:autotour", ({ detail }) => {
+  document.addEventListener('user:autotour', ({ detail }) => {
     userSettings.showAutoTour = detail.showAutoTour;
-    toggleAutoTourButton.textContent = userSettings.showAutoTour ? "Disable Auto Tour" : "Enable Auto Tour";
+    toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
   });
 
-  container.querySelector(".account-details-skeleton").replaceWith(
+  container.querySelector('.account-details-skeleton').replaceWith(
     parseFragment(`
     <div class="cards">
       <div class="box">

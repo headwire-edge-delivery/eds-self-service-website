@@ -14,11 +14,11 @@
 }
 
 /* User is redirected to dashboard automatically */
-.wizard.block a[href="#site-details"] {
+.wizard.block a[href='#site-details'] {
   display: none !important;
 }
 
-.wizard.block .button-container:has(a[href="#template"]) {
+.wizard.block .button-container:has(a[href='#template']) {
   display: none !important;
 }
 
@@ -108,10 +108,10 @@
 }
 
 .wizard.block .template-wrapper .scroll-button::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background: center / contain no-repeat url("/icons/chevron-down.svg");
+  background: center / contain no-repeat url('/icons/chevron-down.svg');
   transform: rotate(90deg);
   filter: invert(1);
 }
@@ -215,7 +215,7 @@
   background-color: var(--white);
 }
 
-.wizard.block input:not([type="checkbox"]),
+.wizard.block input:not([type='checkbox']),
 .wizard.block textarea,
 .wizard.block #slug-input-wrapper {
   width: 300px;
@@ -225,14 +225,14 @@
 
 .wizard.block #slug-input-wrapper.slug-taken::before {
   display: block;
-  content: "Slug already taken!";
+  content: 'Slug already taken!';
   color: red;
   position: absolute;
   bottom: -20px;
   left: 16px;
 }
 
-.wizard.block input:not([type="checkbox"]),
+.wizard.block input:not([type='checkbox']),
 .wizard.block textarea {
   font-size: 16px;
   padding: 16px;
@@ -260,7 +260,7 @@
 }
 
 .wizard.block #slug-input-wrapper::after {
-  content: "(" attr(data-leftover-chars) ")";
+  content: '(' attr(data-leftover-chars) ')';
   display: flex;
   justify-content: center;
   align-items: center;
@@ -281,19 +281,19 @@
   }
 }
 
-.wizard.block .step:has(a[href="#edit"]) .error-message {
+.wizard.block .step:has(a[href='#edit']) .error-message {
   display: none;
 }
 
-.wizard.block .step:has(a[href="#edit"]).error .error-message {
+.wizard.block .step:has(a[href='#edit']).error .error-message {
   display: block;
 }
 
-.wizard.block .step:has(a[href="#edit"]).error :is(ul, h2 + p) {
+.wizard.block .step:has(a[href='#edit']).error :is(ul, h2 + p) {
   display: none;
 }
 
-.wizard.block .step:has(a[href="#edit"]) .loader {
+.wizard.block .step:has(a[href='#edit']) .loader {
   border: 2px solid var(--gray);
   animation: spin 1s linear infinite;
   border-top: 2px solid var(--black);
@@ -305,32 +305,32 @@
   font-weight: bold;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li {
+.wizard.block .step:has(a[href='#edit']) li {
   opacity: 0.5;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.success,
-.wizard.block .step:has(a[href="#edit"]) li.loading {
+.wizard.block .step:has(a[href='#edit']) li.success,
+.wizard.block .step:has(a[href='#edit']) li.loading {
   opacity: 1;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.success .loader,
-.wizard.block .step:has(a[href="#edit"]) li.loading .loader {
+.wizard.block .step:has(a[href='#edit']) li.success .loader,
+.wizard.block .step:has(a[href='#edit']) li.loading .loader {
   display: flex;
   opacity: 1;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.success .loader {
+.wizard.block .step:has(a[href='#edit']) li.success .loader {
   border: none;
   animation: none;
   position: relative;
   transform: rotate(45deg) translate(-30%, 0);
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.success .loader::before,
-.wizard.block .step:has(a[href="#edit"]) li.success .loader::after {
+.wizard.block .step:has(a[href='#edit']) li.success .loader::before,
+.wizard.block .step:has(a[href='#edit']) li.success .loader::after {
   display: block;
-  content: "";
+  content: '';
   position: absolute;
   width: 2px;
   height: 100%;
@@ -339,14 +339,14 @@
   right: 0;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.success .loader::after {
+.wizard.block .step:has(a[href='#edit']) li.success .loader::after {
   width: 50%;
   height: 2px;
   bottom: 0;
   top: unset;
 }
 
-.wizard.block > .step:last-child a[href^="#"]:not(.is-ready) {
+.wizard.block > .step:last-child a[href^='#']:not(.is-ready) {
   display: none;
 }
 

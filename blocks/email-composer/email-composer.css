@@ -83,7 +83,7 @@
   display: none;
 }
 
-.email-composer input:is([type="text"], [type="email"]) {
+.email-composer input:is([type='text'], [type='email']) {
   margin-bottom: 32px;
   display: block;
   width: 100%;

@@ -4,7 +4,7 @@ export const transformEmptyRow = (data, headers) => {
   data.map((row) => {
     if (row.length < headers.length) {
       for (let i = row.length; i < headers.length; i += 1) {
-        row.push("");
+        row.push('');
       }
     }
     return null;
@@ -13,12 +13,12 @@ export const transformEmptyRow = (data, headers) => {
 };
 
 export const confirmUnsavedChanges = (element) => {
-  if (element.dataset.unsavedChanges === "true") {
+  if (element.dataset.unsavedChanges === 'true') {
     // eslint-disable-next-line no-alert
-    const confirmLeave = window.confirm("Leave site?\nChanges you made may not be saved.");
+    const confirmLeave = window.confirm('Leave site?\nChanges you made may not be saved.');
     if (confirmLeave) {
-      element.dataset.unsavedChanges = "false";
-      window.zaraz?.track("Discarding unsave changes");
+      element.dataset.unsavedChanges = 'false';
+      window.zaraz?.track('Discarding unsave changes');
       return true;
     }
     return false;
@@ -35,7 +35,7 @@ const fetchCache = {};
  * @param {string} [parseMethod='text'] - The method to parse the response (e.g., 'text', 'json').
  * @returns {Promise<Object|null>} The response object with dataText or null if an error occurs.
  */
-export async function cacheFetch(url, fetchOptions, parseMethod = "text") {
+export async function cacheFetch(url, fetchOptions, parseMethod = 'text') {
   if (fetchCache[url] instanceof Promise) {
     const result = await fetchCache[url];
     return result;

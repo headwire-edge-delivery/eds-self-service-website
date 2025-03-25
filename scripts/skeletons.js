@@ -1,4 +1,4 @@
-import { loadCSS } from "./aem.js";
+import { loadCSS } from './aem.js';
 
 loadCSS(`${window.hlx.codeBasePath}/styles/skeletons.css`);
 
@@ -7,23 +7,23 @@ loadCSS(`${window.hlx.codeBasePath}/styles/skeletons.css`);
  * @param {String} type
  */
 export default function renderSkeleton(type, children = undefined) {
-  if (type === "site-overview") {
+  if (type === 'site-overview') {
     return `
       <div aria-label="loading">
         <div style="display: flex;gap: 32px;">
             <div style="display: flex;flex-wrap: wrap;gap: 32px;align-items: stretch;justify-content: center;">
-                ${[...Array(4)].map(() => '<div style="height: 100px;flex:1;min-width: 200px;max-width: 300px;width: 100%;" class="skeleton"></div>').join("")}
+                ${[...Array(4)].map(() => '<div style="height: 100px;flex:1;min-width: 200px;max-width: 300px;width: 100%;" class="skeleton"></div>').join('')}
             </div>
             <div style="min-width: 40%;max-width: 40%;" class="skeleton"></div>
         </div>
       </div>
     `;
   }
-  if (type === "account") {
+  if (type === 'account') {
     return `
       <div aria-label="loading" class="account-details-skeleton">
         <div style="margin-bottom: 32px; height: 80px; display: flex;flex-wrap: wrap;gap: 32px;align-items: stretch;justify-content: center;">
-            ${[...Array(3)].map(() => '<div class="skeleton" style="width: 300px;"></div>').join("")}
+            ${[...Array(3)].map(() => '<div class="skeleton" style="width: 300px;"></div>').join('')}
         </div>
       </div>
       <div aria-label="loading" class="account-usage-skeleton">
@@ -33,7 +33,7 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === "tracking") {
+  if (type === 'tracking') {
     const count = Math.max(1, children ?? 5);
     const rows = [...Array(count)]
       .map(
@@ -48,7 +48,7 @@ export default function renderSkeleton(type, children = undefined) {
       </tr>
     `,
       )
-      .join("");
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -70,9 +70,9 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === "sites") {
+  if (type === 'sites') {
     const count = Math.max(1, children ?? 6);
-    const cards = [...Array(count)].map(() => '<div class="skeleton" style="width: 286px; height: 376px;"></div>').join("");
+    const cards = [...Array(count)].map(() => '<div class="skeleton" style="width: 286px; height: 376px;"></div>').join('');
 
     return `
       <div aria-label="loading">
@@ -83,7 +83,7 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === "pages") {
+  if (type === 'pages') {
     const rows = [...Array(10)]
       .map(
         () => `
@@ -102,7 +102,7 @@ export default function renderSkeleton(type, children = undefined) {
       </tr>
     `,
       )
-      .join("");
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -124,7 +124,7 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === "sheets") {
+  if (type === 'sheets') {
     const rows = [...Array(10)]
       .map(
         () => `
@@ -134,7 +134,7 @@ export default function renderSkeleton(type, children = undefined) {
       </tr>
     `,
       )
-      .join("");
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -163,7 +163,7 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === "sheetsTable") {
+  if (type === 'sheetsTable') {
     const rows = [...Array(10)]
       .map(
         () => `
@@ -173,7 +173,7 @@ export default function renderSkeleton(type, children = undefined) {
       </tr>
     `,
       )
-      .join("");
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -191,7 +191,7 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === "seo") {
+  if (type === 'seo') {
     const rows = [...Array(5)]
       .map(
         () => `
@@ -207,7 +207,7 @@ export default function renderSkeleton(type, children = undefined) {
       </tr>
     `,
       )
-      .join("");
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -229,8 +229,8 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === "site-analytics") {
-    const boxes = [...Array(3)].map(() => '<div class="skeleton" style="height: 80px; width: 300px"></div>').join("");
+  if (type === 'site-analytics') {
+    const boxes = [...Array(3)].map(() => '<div class="skeleton" style="height: 80px; width: 300px"></div>').join('');
 
     return `
       <div aria-label="loading">
@@ -242,7 +242,7 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === "campaigns") {
+  if (type === 'campaigns') {
     const rows = [...Array(10)]
       .map(
         () => `
@@ -260,7 +260,7 @@ export default function renderSkeleton(type, children = undefined) {
       </tr>
     `,
       )
-      .join("");
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -284,7 +284,7 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === "audience") {
+  if (type === 'audience') {
     const rows = [...Array(10)]
       .map(
         () => `
@@ -303,7 +303,7 @@ export default function renderSkeleton(type, children = undefined) {
       </tr>
     `,
       )
-      .join("");
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -325,8 +325,8 @@ export default function renderSkeleton(type, children = undefined) {
       </div>
     `;
   }
-  if (type === "campaign-analytics") {
-    const boxes = [...Array(5)].map(() => '<div class="skeleton" style="height: 80px; width: 300px"></div>').join("");
+  if (type === 'campaign-analytics') {
+    const boxes = [...Array(5)].map(() => '<div class="skeleton" style="height: 80px; width: 300px"></div>').join('');
 
     return `
       <div aria-label="loading">
@@ -342,11 +342,11 @@ export default function renderSkeleton(type, children = undefined) {
         <div class="skeleton" style="width: 150px; height: 24px;margin-top: 40px;margin-bottom: 24px;"></div>
         <div class="skeleton" style="height: 45px;margin-bottom: 16px;"></div>
         
-        ${renderSkeleton("campaign-tracking")}
+        ${renderSkeleton('campaign-tracking')}
       </div>
     `;
   }
-  if (type === "campaign-tracking") {
+  if (type === 'campaign-tracking') {
     const rows = [...Array(5)]
       .map(
         () => `
@@ -360,7 +360,7 @@ export default function renderSkeleton(type, children = undefined) {
       </tr>
     `,
       )
-      .join("");
+      .join('');
 
     return `
       <table>
@@ -382,7 +382,7 @@ export default function renderSkeleton(type, children = undefined) {
         </table>
     `;
   }
-  if (type === "settings") {
+  if (type === 'settings') {
     return `
       <div aria-label="loading">
         <div class="skeleton" style="width: 150px; height: 24px;margin-bottom: 24px;"></div>
@@ -411,7 +411,7 @@ export default function renderSkeleton(type, children = undefined) {
       </div>  
     `;
   }
-  if (type === "email-composer") {
+  if (type === 'email-composer') {
     return `
       <div style="flex: 1; height: 100%; min-height: calc(100vh - 200px)" class="skeleton" aria-label="loading"></div>
       <div style="max-width: 50%; min-width: 50%;" aria-label="loading">
@@ -419,12 +419,12 @@ export default function renderSkeleton(type, children = undefined) {
           <div class="skeleton" style="height: 34px;"></div>
           <div class="skeleton" style="width: 150px; height: 24px;margin-top: 48px;margin-bottom: 16px;"></div>
           <table>
-              ${renderSkeleton("recipients")}
+              ${renderSkeleton('recipients')}
           </table>
       </div> 
     `;
   }
-  if (type === "recipients") {
+  if (type === 'recipients') {
     const rows = [...Array(10)]
       .map(
         () => `
@@ -442,7 +442,7 @@ export default function renderSkeleton(type, children = undefined) {
       </tr>
     `,
       )
-      .join("");
+      .join('');
 
     return `
       <thead>
@@ -459,14 +459,14 @@ export default function renderSkeleton(type, children = undefined) {
       </tbody>
     `;
   }
-  if (type === "theme-editor") {
+  if (type === 'theme-editor') {
     const pickers = [...Array(5)]
       .map(
         () => `
         <div class="skeleton" style="width: 120px; height: 20px;margin-bottom: 14px;margin-top: 24px;"></div>
         <div class="skeleton" style="height: 34px;"></div>`,
       )
-      .join("");
+      .join('');
 
     return `
       <div class="skeleton skeleton-theme-editor-iframe" style="min-height: calc(100vh - 200px);" class="skeleton" aria-label="loading"></div>
@@ -477,9 +477,9 @@ export default function renderSkeleton(type, children = undefined) {
       </div> 
     `;
   }
-  if (type === "theme-editor-preview") {
+  if (type === 'theme-editor-preview') {
     return '<div class="skeleton skeleton-theme-editor-iframe"></div>';
   }
 
-  return "";
+  return '';
 }

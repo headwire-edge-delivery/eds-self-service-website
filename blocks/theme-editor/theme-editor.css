@@ -191,7 +191,7 @@
   width: 100%;
 }
 
-.theme-editor.block input:not([type="color"]) {
+.theme-editor.block input:not([type='color']) {
   margin-bottom: 24px;
   display: block;
   width: 100%;
@@ -265,10 +265,10 @@
 
 .theme-editor.block span.contrast-issues::after {
   display: inline-block;
-  content: "";
+  content: '';
   height: 15px;
   width: 20px;
-  background: url("/icons/info.svg") center / contain no-repeat;
+  background: url('/icons/info.svg') center / contain no-repeat;
 }
 
 .theme-editor.block span.contrast-issues:empty {
@@ -297,8 +297,8 @@
   gap: 8px;
 }
 
-.theme-editor.block .toggle-sidebar.button:not([aria-checked="true"]),
-.theme-editor.block .viewers .button:not([aria-checked="true"]) {
+.theme-editor.block .toggle-sidebar.button:not([aria-checked='true']),
+.theme-editor.block .viewers .button:not([aria-checked='true']) {
   border-color: transparent;
 }
 
@@ -308,11 +308,11 @@
   transform: rotate(-180deg);
 }
 
-.theme-editor.block .toggle-sidebar.button:not([aria-checked="true"]) svg path.triangle {
+.theme-editor.block .toggle-sidebar.button:not([aria-checked='true']) svg path.triangle {
   transform: rotate(0deg);
 }
 
-.theme-editor.block option[value="FONTS_MORE_VALUE"] {
+.theme-editor.block option[value='FONTS_MORE_VALUE'] {
   font-family: var(--font-family);
 }
 

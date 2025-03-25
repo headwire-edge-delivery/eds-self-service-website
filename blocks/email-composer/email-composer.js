@@ -1,8 +1,8 @@
-import { SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE, projectRepo, daProjectRepo } from "../../scripts/scripts.js";
-import renderSkeleton from "../../scripts/skeletons.js";
-import { loadCSS, toCamelCase } from "../../scripts/aem.js";
-import { confirmDialog } from "../../scripts/dialogs.js";
-import { showErrorToast, showToast } from "../../scripts/toast.js";
+import { SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE, projectRepo, daProjectRepo } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
+import { loadCSS, toCamelCase } from '../../scripts/aem.js';
+import { confirmDialog } from '../../scripts/dialogs.js';
+import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 let timer;
 const debounce = (fn) => {
@@ -18,10 +18,10 @@ const debounce = (fn) => {
  */
 export default async function decorate(block) {
   onAuthenticated(async () => {
-    const split = window.location.pathname.split("/");
+    const split = window.location.pathname.split('/');
     const id = split[2];
     const campaignSlug = split[4];
-    const path = `/${split.slice(3).join("/")}`;
+    const path = `/${split.slice(3).join('/')}`;
     const url = `https://preview--${id}.${KESTREL_ONE}${path}`;
 
     const token = await window.auth0Client.getTokenSilently();
@@ -68,7 +68,7 @@ export default async function decorate(block) {
         </div>
         
         <div class="content">
-            ${renderSkeleton("email-composer")}
+            ${renderSkeleton('email-composer')}
         </div>
       </div>`;
 
@@ -78,17 +78,17 @@ export default async function decorate(block) {
       let customVariables = {};
 
       // Default contact email
-      if (variables.includes("email")) {
+      if (variables.includes('email')) {
         customVariables.email = project.contactEmail;
       }
 
       // Default unsubscribe link
-      if (variables.includes("unsubscribe")) {
+      if (variables.includes('unsubscribe')) {
         customVariables.unsubscribe = `${SCRIPT_API}/unsubscribe/${project.projectSlug}/{id}`;
       }
 
       // Default copyright
-      if (variables.includes("copyright")) {
+      if (variables.includes('copyright')) {
         customVariables.copyright = `${new Date().getFullYear()}`;
       }
 
@@ -137,7 +137,7 @@ export default async function decorate(block) {
                 
                 <div class="recipients-wrapper">
                     <table class="recipients">
-                        ${renderSkeleton("recipients")}
+                        ${renderSkeleton('recipients')}
                     </table>
                 </div>
                 </div>
@@ -149,15 +149,15 @@ export default async function decorate(block) {
       (variable) => `
                   <div class="kv">
                       <input type="text" placeholder="Key" value="${variable}" readonly>
-                      <input type="text" placeholder="Value" value="${customVariables[variable] ?? ""}">
+                      <input type="text" placeholder="Value" value="${customVariables[variable] ?? ''}">
                   </div>
                 `,
     )
-    .join("")}
+    .join('')}
                 
                 <div class="button-container">
                     <button class="button secondary action preview-variables">Preview</button>
-                    <button class="button primary action save-variables">Save variable${variables.length > 1 ? "s" : ""}</button>
+                    <button class="button primary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
                 </div>
 
                 <div id="email-styles">
@@ -175,25 +175,25 @@ export default async function decorate(block) {
         </div>
       `;
 
-      const subject = block.querySelector("h1.subject");
-      const subjectInput = block.querySelector("input.subject");
-      const iframe = block.querySelector(".iframe");
-      const form = block.querySelector(".form");
-      const previewVars = block.querySelector(".preview-variables");
-      const saveVars = block.querySelector(".save-variables");
+      const subject = block.querySelector('h1.subject');
+      const subjectInput = block.querySelector('input.subject');
+      const iframe = block.querySelector('.iframe');
+      const form = block.querySelector('.form');
+      const previewVars = block.querySelector('.preview-variables');
+      const saveVars = block.querySelector('.save-variables');
       let warning = { hidden: true };
       let savedEditorStyles;
 
-      iframe.addEventListener("load", () => {
+      iframe.addEventListener('load', () => {
         // Add loading buffer
         setTimeout(() => {
-          iframe.classList.remove("is-loading");
-          iframe.parentElement.querySelector(".skeleton")?.remove();
+          iframe.classList.remove('is-loading');
+          iframe.parentElement.querySelector('.skeleton')?.remove();
         }, 1000);
       });
       // Loading timeout
       setTimeout(() => {
-        iframe.classList.remove("is-loading");
+        iframe.classList.remove('is-loading');
       }, 2000);
 
       const hideWarning = () => {
@@ -222,7 +222,7 @@ export default async function decorate(block) {
         let newValue = value;
         const matches = value.match(regExp);
         if (matches) {
-          const rendering = block.querySelector(".recipients tbody tr.is-rendering, .recipients tbody tr:has(input:checked)");
+          const rendering = block.querySelector('.recipients tbody tr.is-rendering, .recipients tbody tr:has(input:checked)');
           if (!rendering) {
             return newValue;
           }
@@ -246,57 +246,57 @@ export default async function decorate(block) {
       };
 
       // MARK: Render codemirror
-      block.querySelector(".enable-styles").onclick = (event) => {
-        window?.zaraz?.track("click email styles enable");
+      block.querySelector('.enable-styles').onclick = (event) => {
+        window?.zaraz?.track('click email styles enable');
 
         event.target.remove();
-        editor = window.CodeMirror.fromTextArea(block.querySelector(".styles"));
-        editor.on("change", () => {
+        editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
+        editor.on('change', () => {
           warning.hidden = false;
         });
 
         savedEditorStyles = editor.getValue();
       };
 
-      const saveStyles = block.querySelector(".save-styles");
+      const saveStyles = block.querySelector('.save-styles');
       saveStyles.onclick = async () => {
-        window?.zaraz?.track("click email preview styles");
+        window?.zaraz?.track('click email preview styles');
 
         savedEditorStyles = editor.getValue();
 
-        saveStyles.classList.add("loading");
+        saveStyles.classList.add('loading');
         const req = await fetch(`${SCRIPT_API}/emailStyles/${id}`, {
-          method: "POST",
+          method: 'POST',
           headers: {
             authorization: `bearer ${token}`,
-            "content-type": "application/json",
+            'content-type': 'application/json',
           },
           body: JSON.stringify({
             filePath: meta.styles,
-            css: btoa(editor.getValue() || ""),
+            css: btoa(editor.getValue() || ''),
           }),
         });
 
         if (req.ok) {
-          showToast("Styles updated! Updates can take up to 1 minute to be reflected for all users.");
+          showToast('Styles updated! Updates can take up to 1 minute to be reflected for all users.');
         } else {
           showErrorToast();
         }
 
-        saveStyles.classList.remove("loading");
+        saveStyles.classList.remove('loading');
 
         hideWarning();
       };
 
       // MARK: Render preview with custom variables
       previewVars.onclick = (event) => {
-        iframe.classList.add("is-loading");
+        iframe.classList.add('is-loading');
 
         if (event.isTrusted) {
-          window?.zaraz?.track("click email preview variables");
+          window?.zaraz?.track('click email preview variables');
         }
 
-        block.querySelectorAll(".kv input:first-child").forEach((input) => {
+        block.querySelectorAll('.kv input:first-child').forEach((input) => {
           const key = input.value;
           const { value } = input.nextElementSibling;
           customVariables[key] = value;
@@ -334,7 +334,7 @@ export default async function decorate(block) {
       previewVars.click();
 
       saveVars.onclick = () => {
-        window?.zaraz?.track("click email save variables");
+        window?.zaraz?.track('click email save variables');
 
         previewVars.click();
         window.localStorage[window.location.href] = JSON.stringify({
@@ -345,13 +345,13 @@ export default async function decorate(block) {
         hideWarning();
 
         const text = saveVars.textContent;
-        saveVars.textContent = "✓";
+        saveVars.textContent = '✓';
         setTimeout(() => {
           saveVars.textContent = text;
         }, 2000);
       };
 
-      block.querySelector(".actions").innerHTML = `
+      block.querySelector('.actions').innerHTML = `
             <div class="warning" hidden>
               <span class="icon icon-info">
                 <img alt src="/icons/info.svg" loading="lazy">  
@@ -365,71 +365,71 @@ export default async function decorate(block) {
             <button id="send-button" class="button primary action send is-disabled">Send</button>
           `;
 
-      warning = block.querySelector(".warning");
-      warning.querySelector("button").onclick = () => {
+      warning = block.querySelector('.warning');
+      warning.querySelector('button').onclick = () => {
         warning.hidden = true;
       };
 
-      const editButton = block.querySelector(".actions button.edit");
+      const editButton = block.querySelector('.actions button.edit');
       if (project?.darkAlleyProject) {
         // DA project
-        const daEditLink = document.createElement("a");
-        daEditLink.classList.add("button", "action", "secondary", "edit");
-        daEditLink.target = "_blank";
+        const daEditLink = document.createElement('a');
+        daEditLink.classList.add('button', 'action', 'secondary', 'edit');
+        daEditLink.target = '_blank';
         daEditLink.href = `https://da.live/edit#/${daProjectRepo}/${id}${path}`;
-        daEditLink.innerText = "Edit";
-        daEditLink.id = "edit-button";
+        daEditLink.innerText = 'Edit';
+        daEditLink.id = 'edit-button';
         editButton.replaceWith(daEditLink);
       } else {
         // is drive project
-        editButton.addEventListener("click", async () => {
-          editButton.classList.add("loading");
+        editButton.addEventListener('click', async () => {
+          editButton.classList.add('loading');
           const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${project.projectSlug}/main${path}?editUrl=auto`)
             .then((res) => res.json())
             .catch(() => null);
           if (statusData?.edit?.url) {
-            window.open(statusData.edit.url, "_blank");
+            window.open(statusData.edit.url, '_blank');
           } else {
-            window.open(project.driveUrl, "_blank");
+            window.open(project.driveUrl, '_blank');
           }
-          editButton.classList.remove("loading");
+          editButton.classList.remove('loading');
         });
       }
 
       if (project.darkAlleyProject) {
-        block.querySelectorAll(".breadcrumbs a").forEach((link) => {
-          if (link.href.includes("/site/")) {
-            link.href = link.href.replace("/site/", "/da-site/");
+        block.querySelectorAll('.breadcrumbs a').forEach((link) => {
+          if (link.href.includes('/site/')) {
+            link.href = link.href.replace('/site/', '/da-site/');
           }
         });
       }
 
-      block.querySelector(".edit").onclick = () => {
-        window?.zaraz?.track("click email edit");
+      block.querySelector('.edit').onclick = () => {
+        window?.zaraz?.track('click email edit');
       };
 
-      block.querySelector(".copy").onclick = (e) => {
-        window?.zaraz?.track("click email copy");
+      block.querySelector('.copy').onclick = (e) => {
+        window?.zaraz?.track('click email copy');
 
         e.preventDefault();
 
-        window.open(iframe.src.replace("/preview/", "/copy/"), "_blank");
+        window.open(iframe.src.replace('/preview/', '/copy/'), '_blank');
       };
 
       // Load codemirror to edit styles
-      loadCSS("/libs/codemirror/codemirror.min.css");
-      await import("../../libs/codemirror/codemirror.min.js");
-      await import("../../libs/codemirror/css.min.js");
+      loadCSS('/libs/codemirror/codemirror.min.css');
+      await import('../../libs/codemirror/codemirror.min.js');
+      await import('../../libs/codemirror/css.min.js');
 
       fetch(`${project.customPreviewUrl}${meta.styles}`)
         .then((resStyles) => {
           if (resStyles.ok) {
             return resStyles.text();
           }
-          return "";
+          return '';
         })
         .then((css) => {
-          const styles = block.querySelector(".styles");
+          const styles = block.querySelector('.styles');
           styles.value = css;
         });
 
@@ -447,7 +447,7 @@ export default async function decorate(block) {
           return false;
         })
         .then((data) => {
-          const recipients = block.querySelector(".recipients");
+          const recipients = block.querySelector('.recipients');
 
           if (!data?.length) {
             // eslint-disable-next-line no-param-reassign
@@ -483,8 +483,8 @@ export default async function decorate(block) {
                     </td>
                 </tr>`,
       )
-      .join("")
-    : ""
+      .join('')
+    : ''
 }
                 <tr>
                     <td></td>
@@ -498,9 +498,9 @@ export default async function decorate(block) {
               </tbody>
             `;
 
-          const send = block.querySelector(".send");
+          const send = block.querySelector('.send');
           const toggleSendDisabled = () => {
-            send.classList.toggle("is-disabled", recipients.querySelector('tbody input[type="checkbox"]:checked') === null);
+            send.classList.toggle('is-disabled', recipients.querySelector('tbody input[type="checkbox"]:checked') === null);
           };
 
           recipients.querySelector('thead input[type="checkbox"]').onclick = (e) => {
@@ -512,32 +512,32 @@ export default async function decorate(block) {
             toggleSendDisabled();
           };
 
-          recipients.querySelector("tbody").onclick = async (e) => {
+          recipients.querySelector('tbody').onclick = async (e) => {
             if (e.target.matches('input[type="checkbox"]')) {
               toggleSendDisabled();
-            } else if (e.target.matches(".render")) {
-              window?.zaraz?.track("click email preview recipients");
+            } else if (e.target.matches('.render')) {
+              window?.zaraz?.track('click email preview recipients');
 
-              const isRendering = recipients.querySelector(".is-rendering");
+              const isRendering = recipients.querySelector('.is-rendering');
               if (isRendering) {
-                isRendering.classList.remove("is-rendering");
+                isRendering.classList.remove('is-rendering');
               }
 
-              e.target.closest("tr").classList.add("is-rendering");
+              e.target.closest('tr').classList.add('is-rendering');
 
               // Re-render preview with newly selected recipient
               previewVars.click();
-            } else if (e.target.matches(".remove")) {
-              window?.zaraz?.track("click email recipients remove");
+            } else if (e.target.matches('.remove')) {
+              window?.zaraz?.track('click email recipients remove');
 
-              const tr = e.target.closest("tr[data-id]");
-              tr.classList.add("loading");
+              const tr = e.target.closest('tr[data-id]');
+              tr.classList.add('loading');
 
               const req = await fetch(`${SCRIPT_API}/audience/${id}`, {
-                method: "DELETE",
+                method: 'DELETE',
                 headers: {
                   authorization: `bearer ${token}`,
-                  "content-type": "application/json",
+                  'content-type': 'application/json',
                 },
                 body: JSON.stringify({
                   id: tr.dataset.id,
@@ -546,37 +546,37 @@ export default async function decorate(block) {
 
               if (req.ok) {
                 tr.remove();
-                showToast("Recipient removed.");
+                showToast('Recipient removed.');
               } else {
                 showErrorToast();
               }
 
-              tr.classList.remove("loading");
+              tr.classList.remove('loading');
               toggleSendDisabled();
             }
           };
 
-          const add = recipients.querySelector(".add");
+          const add = recipients.querySelector('.add');
           recipients.querySelector('input[name="email"]').oninput = (e) => {
             const { value } = e.target;
-            add.classList.toggle("is-disabled", !(value.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)));
+            add.classList.toggle('is-disabled', !(value.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)));
           };
 
           add.onclick = async () => {
-            window?.zaraz?.track("click email recipients add");
+            window?.zaraz?.track('click email recipients add');
 
-            add.classList.add("loading");
+            add.classList.add('loading');
 
             const contact = {};
-            ["email", "firstName", "lastName"].forEach((name) => {
+            ['email', 'firstName', 'lastName'].forEach((name) => {
               contact[name] = recipients.querySelector(`input[name="${name}"]`).value;
             });
 
             const req = await fetch(`${SCRIPT_API}/audience/${id}`, {
-              method: "POST",
+              method: 'POST',
               headers: {
                 authorization: `bearer ${token}`,
-                "content-type": "application/json",
+                'content-type': 'application/json',
               },
               body: JSON.stringify(contact),
             });
@@ -586,7 +586,7 @@ export default async function decorate(block) {
               contact.id = res.id;
               audience.push(contact);
 
-              const tr = document.createElement("tr");
+              const tr = document.createElement('tr');
               tr.innerHTML = `
                 <td><input type="checkbox" class="select"></td>
                 <td>${contact.email}</td>
@@ -602,55 +602,55 @@ export default async function decorate(block) {
 
               tr.dataset.id = contact.id;
               tr.dataset.email = contact.email;
-              add.closest("tr").before(tr);
+              add.closest('tr').before(tr);
 
               // Reset
-              recipients.querySelectorAll("input[name]").forEach((input) => {
-                input.value = "";
+              recipients.querySelectorAll('input[name]').forEach((input) => {
+                input.value = '';
               });
-              showToast("Recipient added.");
+              showToast('Recipient added.');
             } else {
               showErrorToast();
             }
 
-            add.classList.remove("loading");
+            add.classList.remove('loading');
           };
 
           send.onclick = async () => {
-            window?.zaraz?.track("click email send");
+            window?.zaraz?.track('click email send');
 
             // Preview to update the iframe source
             previewVars.click();
 
-            const selectedRecipients = [...recipients.querySelectorAll("tbody tr:has(input:checked)")];
+            const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
 
             if (await confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
-              window?.zaraz?.track("click email copy submit");
+              window?.zaraz?.track('click email copy submit');
 
-              block.classList.add("is-sending");
+              block.classList.add('is-sending');
 
               const req = await fetch(`${SCRIPT_API}/send/${id}`, {
                 headers: {
-                  "content-type": "application/json",
+                  'content-type': 'application/json',
                   authorization: `bearer ${token}`,
                 },
                 body: JSON.stringify({
-                  styles: block.querySelector(".styles").value,
+                  styles: block.querySelector('.styles').value,
                   emailUrl: iframe.src,
                   subject: subjectInput.value,
                   variables: customVariables,
                   to: audience.filter((contact) => selectedRecipients.find((el) => el.dataset.id === contact.id)),
                 }),
-                method: "POST",
+                method: 'POST',
               });
 
               if (req.ok) {
-                showToast("Email delivered.");
+                showToast('Email delivered.');
               } else {
                 showErrorToast();
               }
 
-              block.classList.remove("is-sending");
+              block.classList.remove('is-sending');
             }
           };
         });

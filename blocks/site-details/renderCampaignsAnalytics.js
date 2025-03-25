@@ -1,14 +1,14 @@
-import { readQueryParams, removeQueryParams, writeQueryParams } from "../../libs/queryParams/queryParams.js";
-import { clamp, dateToRelativeSpan, parseFragment, safeText, SCRIPT_API, syntheticClickEvent } from "../../scripts/scripts.js";
-import renderSkeleton from "../../scripts/skeletons.js";
-import { createDialog } from "../../scripts/dialogs.js";
+import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
+import { clamp, dateToRelativeSpan, parseFragment, safeText, SCRIPT_API, syntheticClickEvent } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
+import { createDialog } from '../../scripts/dialogs.js';
 
 const createAnalyticsTableContent = (container, campaignAnalyticsData, search) => {
   if (!campaignAnalyticsData) {
     return '<tr><td class="empty" colspan="8">Not enough data</td></tr>';
   }
 
-  container.querySelector(".email-details").innerHTML = `
+  container.querySelector('.email-details').innerHTML = `
   <div id="scrollArea" class="clusterize-scroll">
     <table>
       <thead>
@@ -33,8 +33,8 @@ const createAnalyticsTableContent = (container, campaignAnalyticsData, search) =
 
   const list = Object.keys(campaignAnalyticsData)
     .sort((emailIdA, emailIdB) => {
-      const sentA = campaignAnalyticsData[emailIdA].find(({ type }) => type === "email.sent");
-      const sentB = campaignAnalyticsData[emailIdB].find(({ type }) => type === "email.sent");
+      const sentA = campaignAnalyticsData[emailIdA].find(({ type }) => type === 'email.sent');
+      const sentB = campaignAnalyticsData[emailIdB].find(({ type }) => type === 'email.sent');
       if (sentA && sentB) {
         return new Date(sentB.created_at) - new Date(sentA.created_at);
       }
@@ -46,31 +46,31 @@ const createAnalyticsTableContent = (container, campaignAnalyticsData, search) =
         return null;
       }
       const reverse = campaignAnalyticsData[emailId].reverse();
-      const sent = campaignAnalyticsData[emailId].find(({ type }) => type === "email.sent");
-      const delivered = reverse.find(({ type }) => type === "email.delivered");
-      const complained = campaignAnalyticsData[emailId].find(({ type }) => type === "email.complained");
-      const bounced = campaignAnalyticsData[emailId].find(({ type }) => type === "email.bounced");
-      const opened = reverse.find(({ type }) => type === "email.opened");
-      const clicks = campaignAnalyticsData[emailId].filter(({ type }) => type === "email.clicked");
-      const emailURL = campaignAnalyticsData[emailId][0].data.headers.find(({ name }) => name === "X-Email-Url")?.value;
+      const sent = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.sent');
+      const delivered = reverse.find(({ type }) => type === 'email.delivered');
+      const complained = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.complained');
+      const bounced = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.bounced');
+      const opened = reverse.find(({ type }) => type === 'email.opened');
+      const clicks = campaignAnalyticsData[emailId].filter(({ type }) => type === 'email.clicked');
+      const emailURL = campaignAnalyticsData[emailId][0].data.headers.find(({ name }) => name === 'X-Email-Url')?.value;
 
       let campaign;
       try {
-        const emailPreviewUrl = new URL(new URLSearchParams(new URL(emailURL).search).get("contentUrl"));
-        campaign = emailPreviewUrl.pathname.split("/")[2];
+        const emailPreviewUrl = new URL(new URLSearchParams(new URL(emailURL).search).get('contentUrl'));
+        campaign = emailPreviewUrl.pathname.split('/')[2];
       } catch {
-        campaign = "";
+        campaign = '';
       }
 
       return `
         <tr data-email="${emailId}" data-campaign="${campaign}">
           <td>${emailURL ? `<a href="/redirect?url=${emailURL}" target="_blank">${subject}</a>` : subject}</td>
-          <td>${campaignAnalyticsData[emailId][0].data.to.join(",")}</td>
-          <td>${sent ? dateToRelativeSpan(sent.created_at).outerHTML : ""}</td>
-          <td>${delivered ? dateToRelativeSpan(delivered.created_at).outerHTML : ""}</td>
-          <td>${bounced ? dateToRelativeSpan(bounced.created_at).outerHTML : ""}</td>
-          <td>${complained ? dateToRelativeSpan(complained.created_at).outerHTML : ""}</td>
-          <td>${opened ? dateToRelativeSpan(opened.created_at).outerHTML : ""}</td>
+          <td>${campaignAnalyticsData[emailId][0].data.to.join(',')}</td>
+          <td>${sent ? dateToRelativeSpan(sent.created_at).outerHTML : ''}</td>
+          <td>${delivered ? dateToRelativeSpan(delivered.created_at).outerHTML : ''}</td>
+          <td>${bounced ? dateToRelativeSpan(bounced.created_at).outerHTML : ''}</td>
+          <td>${complained ? dateToRelativeSpan(complained.created_at).outerHTML : ''}</td>
+          <td>${opened ? dateToRelativeSpan(opened.created_at).outerHTML : ''}</td>
           <td>${
   clicks.length
     ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button>
@@ -81,8 +81,8 @@ const createAnalyticsTableContent = (container, campaignAnalyticsData, search) =
           clicked.data.click.link
         }</a> ${dateToRelativeSpan(clicked.data.click.timestamp).outerHTML}</li>`,
     )
-    .join("")}</ul></div>`
-    : ""
+    .join('')}</ul></div>`
+    : ''
 }</td>
         </tr>
       `;
@@ -90,15 +90,15 @@ const createAnalyticsTableContent = (container, campaignAnalyticsData, search) =
 
   const rows = list.filter((row) => row !== null);
 
-  const clusterizeTable = container.querySelector("#contentArea");
+  const clusterizeTable = container.querySelector('#contentArea');
 
   const clusterize = new Clusterize({
     rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
-    scrollId: "scrollArea",
+    scrollId: 'scrollArea',
     contentElem: clusterizeTable,
     callbacks: {
       clusterChanged: () => {
-        clusterizeTable.querySelectorAll(".click-details").forEach((el) => {
+        clusterizeTable.querySelectorAll('.click-details').forEach((el) => {
           el.onclick = () => {
             const clone = el.nextElementSibling.cloneNode(true);
             clone.hidden = false;
@@ -120,7 +120,7 @@ const createAnalyticsTableContent = (container, campaignAnalyticsData, search) =
 export default async function renderCampaignsAnalytics({ container, renderOptions, pushHistory, onHistoryPopArray, replaceHistory }) {
   const { token, siteSlug, pathname } = renderOptions;
 
-  container.innerHTML = renderSkeleton("campaign-analytics");
+  container.innerHTML = renderSkeleton('campaign-analytics');
 
   const [campaignAnalyticsData, campaignsData] = await Promise.all([
     fetch(`${SCRIPT_API}/email/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -131,21 +131,21 @@ export default async function renderCampaignsAnalytics({ container, renderOption
       .catch(() => ({})),
   ]);
 
-  let search = readQueryParams().search || "";
+  let search = readQueryParams().search || '';
 
   container.innerHTML = `
         <ul class="campaign-list" data-type="analytics">
           <li><a class="button selector action secondary ${
-  window.location.pathname.startsWith(`${pathname}/campaign-analytics/`) ? "" : "is-selected"
+  window.location.pathname.startsWith(`${pathname}/campaign-analytics/`) ? '' : 'is-selected'
 }" href="${pathname}/campaign-analytics">All emails</a></li>
           ${Object.keys(campaignsData)
     .map(
       (campaignSlug) =>
         `<li data-campaign="${campaignSlug}"><a class="button selector action secondary ${
-          window.location.pathname === `${pathname}/campaign-analytics/${campaignSlug}` ? "is-selected" : ""
+          window.location.pathname === `${pathname}/campaign-analytics/${campaignSlug}` ? 'is-selected' : ''
         }" href="${pathname}/campaign-analytics/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`,
     )
-    .join("")}</a>
+    .join('')}</a>
         </ul>
           
         <div id="email-metrics" class="cards metrics">
@@ -174,11 +174,11 @@ export default async function renderCampaignsAnalytics({ container, renderOption
         <h2 id="email-details">Email details</h2>
         <input value="${safeText(search)}" type="search" placeholder="Filter" class="filter-email-details filter">
         <div class="email-details clusterize">
-          ${renderSkeleton("campaign-tracking")}
+          ${renderSkeleton('campaign-tracking')}
         </div>
       `;
 
-  const emailFilter = container.querySelector(".filter-email-details");
+  const emailFilter = container.querySelector('.filter-email-details');
 
   // eslint-disable-next-line func-names
   emailFilter.oninput = (function () {
@@ -191,8 +191,8 @@ export default async function renderCampaignsAnalytics({ container, renderOption
           search = event.target.value;
           writeQueryParams({ search });
         } else {
-          search = "";
-          removeQueryParams(["search"]);
+          search = '';
+          removeQueryParams(['search']);
         }
         createAnalyticsTableContent(container, campaignAnalyticsData, search);
       }, 300);
@@ -209,18 +209,18 @@ export default async function renderCampaignsAnalytics({ container, renderOption
     let clickedCount = 0;
     let complainedCount = 0;
 
-    const selector = hasCampaign ? "tr[data-campaign]:not([hidden])" : "tbody tr";
+    const selector = hasCampaign ? 'tr[data-campaign]:not([hidden])' : 'tbody tr';
     container.querySelectorAll(selector).forEach((tr) => {
       const emailId = tr.dataset.email;
       if (emailId) {
         const reverse = campaignAnalyticsData[emailId].reverse();
 
-        const sent = campaignAnalyticsData[emailId].find(({ type }) => type === "email.sent");
-        const delivered = reverse.find(({ type }) => type === "email.delivered");
-        const complained = campaignAnalyticsData[emailId].find(({ type }) => type === "email.complained");
-        const bounced = campaignAnalyticsData[emailId].find(({ type }) => type === "email.bounced");
-        const opened = reverse.find(({ type }) => type === "email.opened");
-        const clicks = campaignAnalyticsData[emailId].filter(({ type }) => type === "email.clicked");
+        const sent = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.sent');
+        const delivered = reverse.find(({ type }) => type === 'email.delivered');
+        const complained = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.complained');
+        const bounced = campaignAnalyticsData[emailId].find(({ type }) => type === 'email.bounced');
+        const opened = reverse.find(({ type }) => type === 'email.opened');
+        const clicks = campaignAnalyticsData[emailId].filter(({ type }) => type === 'email.clicked');
 
         if (sent) {
           sentCount += 1;
@@ -248,35 +248,35 @@ export default async function renderCampaignsAnalytics({ container, renderOption
     const openedPercent = clamp(((openedCount / deliveredCount) * 100).toFixed(2));
     const clickedPercent = clamp(((clickedCount / openedCount) * 100).toFixed(2));
     const complainedPercent = clamp(((complainedCount / deliveredCount) * 100).toFixed(2));
-    container.querySelector(".delivered-count").textContent = `${deliveredPercent}%`;
-    container.querySelector(".bounced-count").textContent = `${bouncedPercent}%`;
-    container.querySelector(".opened-count").textContent = `${openedPercent}%`;
-    container.querySelector(".clicked-count").textContent = `${clickedPercent}%`;
-    container.querySelector(".complained-count").textContent = `${complainedPercent}%`;
+    container.querySelector('.delivered-count').textContent = `${deliveredPercent}%`;
+    container.querySelector('.bounced-count').textContent = `${bouncedPercent}%`;
+    container.querySelector('.opened-count').textContent = `${openedPercent}%`;
+    container.querySelector('.clicked-count').textContent = `${clickedPercent}%`;
+    container.querySelector('.complained-count').textContent = `${complainedPercent}%`;
   };
 
-  const campaignList = container.querySelector(".campaign-list");
+  const campaignList = container.querySelector('.campaign-list');
   campaignList.onclick = (event) => {
-    if (event.target.matches("a")) {
+    if (event.target.matches('a')) {
       event.preventDefault();
 
       const link = event.target;
-      const selectedCampaign = campaignList.querySelector(".is-selected");
+      const selectedCampaign = campaignList.querySelector('.is-selected');
       if (selectedCampaign) {
-        selectedCampaign.classList.remove("is-selected");
+        selectedCampaign.classList.remove('is-selected');
       }
-      link.classList.add("is-selected");
+      link.classList.add('is-selected');
 
       const li = link.parentElement;
-      const hasCampaign = li.matches("[data-campaign]");
-      container.querySelectorAll("tr[data-campaign]").forEach((tr) => {
+      const hasCampaign = li.matches('[data-campaign]');
+      container.querySelectorAll('tr[data-campaign]').forEach((tr) => {
         tr.hidden = hasCampaign ? tr.dataset.campaign !== li.dataset.campaign : false;
       });
 
       calculateCampaignStats(hasCampaign);
 
       if (!event?.detail?.synthetic) {
-        pushHistory(link.getAttribute("href"));
+        pushHistory(link.getAttribute('href'));
       }
     }
   };
@@ -287,14 +287,14 @@ export default async function renderCampaignsAnalytics({ container, renderOption
 
   calculateCampaignStats(window.location.pathname.startsWith(`${pathname}/campaign-analytics/`));
 
-  if (!container.querySelector(".campaign-list .is-selected")) {
+  if (!container.querySelector('.campaign-list .is-selected')) {
     container.querySelector('.campaign-list[data-type="analytics"] a').dispatchEvent(syntheticClickEvent);
     replaceHistory(`${pathname}/campaign-analytics`);
   }
 
   if (window.location.pathname === `${pathname}/campaign-analytics` && campaignList.childElementCount === 1) {
     container.insertAdjacentHTML(
-      "afterbegin",
+      'afterbegin',
       `
       <div class="well">
         <img src="/icons/illustrations/pc.svg" alt="" loading="lazy"/>
@@ -307,10 +307,10 @@ export default async function renderCampaignsAnalytics({ container, renderOption
     `,
     );
 
-    container.querySelector(".well button").onclick = () => {
-      const tabsParent = container.closest(".tabs-content");
+    container.querySelector('.well button').onclick = () => {
+      const tabsParent = container.closest('.tabs-content');
       const link = tabsParent.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"]`);
-      link.classList.add("add-campaign");
+      link.classList.add('add-campaign');
       link.dispatchEvent(syntheticClickEvent);
     };
   }

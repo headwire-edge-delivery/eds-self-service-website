@@ -22,8 +22,8 @@
   gap: 6px;
 }
 
-.form.block label[data-required-field="true"] span::after {
-  content: " *";
+.form.block label[data-required-field='true'] span::after {
+  content: ' *';
 }
 
 .form.block form.loading::after {
@@ -58,7 +58,7 @@
   display: block;
 }
 
-.form.block button[type="submit"] {
+.form.block button[type='submit'] {
   align-self: flex-start;
   margin-top: 32px;
 }

@@ -1,9 +1,9 @@
-import { SCRIPT_API } from "../../scripts/scripts.js";
-import renderSkeleton from "../../scripts/skeletons.js";
-import renderAnalytics from "../../scripts/analytics.js";
+import { SCRIPT_API } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
+import renderAnalytics from '../../scripts/analytics.js';
 
 export default async function renderSiteAnalytics({ container, nav, renderOptions }) {
-  container.innerHTML = renderSkeleton("site-analytics");
+  container.innerHTML = renderSkeleton('site-analytics');
 
   const { token, siteSlug } = renderOptions;
 
@@ -17,7 +17,7 @@ export default async function renderSiteAnalytics({ container, nav, renderOption
       ),
     );
 
-  const analytics = await loadWebAnalytics("1d");
+  const analytics = await loadWebAnalytics('1d');
   await renderAnalytics({
     analytics,
     container,

@@ -172,7 +172,7 @@ dialog .users img {
   font-weight: 500;
 }
 
-:is(.dashboard.block, dialog) .users table [data-column="event"] {
+:is(.dashboard.block, dialog) .users table [data-column='event'] {
   text-transform: capitalize;
 }
 
@@ -208,7 +208,7 @@ body:is(.is-headwire, .is-adobe, .is-test-user) .dashboard.block .sites-list-dar
   display: grid;
   gap: 0 1px;
   grid-auto-flow: row;
-  grid-template: "anon-ip anon-event anon-date anon-url anon-location anon-ref anon-browser anon-device";
+  grid-template: 'anon-ip anon-event anon-date anon-url anon-location anon-ref anon-browser anon-device';
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   grid-template-rows: 1fr;
 }

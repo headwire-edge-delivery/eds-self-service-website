@@ -4,22 +4,22 @@
     <title>Page not found</title>
     <script type="text/javascript">
       window.isErrorPage = true;
-      window.errorCode = "404";
+      window.errorCode = '404';
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta property="og:title" content="Page not found" />
     <script src="/scripts/scripts.js" type="module" crossorigin="use-credentials"></script>
     <script type="module">
-      window.addEventListener("load", () => {
+      window.addEventListener('load', () => {
         if (document.referrer) {
           const { origin, pathname } = new URL(document.referrer);
           if (origin === window.location.origin) {
-            const backBtn = document.createElement("a");
-            backBtn.classList.add("button", "primary");
+            const backBtn = document.createElement('a');
+            backBtn.classList.add('button', 'primary');
             backBtn.href = pathname;
-            backBtn.textContent = "Go back";
-            backBtn.title = "Go back";
-            const btnContainer = document.querySelector("main.error .button-container");
+            backBtn.textContent = 'Go back';
+            backBtn.title = 'Go back';
+            const btnContainer = document.querySelector('main.error .button-container');
             btnContainer.append(backBtn);
           }
         }

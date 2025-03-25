@@ -1,11 +1,11 @@
-import { SCRIPT_API, waitForAuthenticated } from "../../scripts/scripts.js";
-import renderSkeleton from "../../scripts/skeletons.js";
-import renderAnalytics from "../../scripts/analytics.js";
+import { SCRIPT_API, waitForAuthenticated } from '../../scripts/scripts.js';
+import renderSkeleton from '../../scripts/skeletons.js';
+import renderAnalytics from '../../scripts/analytics.js';
 
 export default async function renderAnalyticsTab({ container, nav }) {
   container.innerHTML = `
     <div class="analytics">
-      ${renderSkeleton("site-analytics")}
+      ${renderSkeleton('site-analytics')}
     </div>
   `;
   await waitForAuthenticated();
@@ -19,10 +19,10 @@ export default async function renderAnalyticsTab({ container, nav }) {
       .catch(() => [null]);
 
   // MARK: analytics
-  loadWebAnalytics("1d").then((analytics) => {
+  loadWebAnalytics('1d').then((analytics) => {
     renderAnalytics({
       analytics,
-      container: container.querySelector(".analytics"),
+      container: container.querySelector('.analytics'),
       nav,
       loadWebAnalytics,
     });

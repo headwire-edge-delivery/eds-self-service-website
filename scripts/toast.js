@@ -1,5 +1,5 @@
-import { loadCSS } from "./aem.js";
-import { OOPS, parseFragment } from "./scripts.js";
+import { loadCSS } from './aem.js';
+import { OOPS, parseFragment } from './scripts.js';
 
 loadCSS(`${window.hlx.codeBasePath}/styles/toast.css`);
 
@@ -14,17 +14,17 @@ function hideToast(toast) {
         toast.remove();
         res();
       };
-      toast.classList.remove("is-visible");
+      toast.classList.remove('is-visible');
     }
   });
 }
 
-export function showToast(text = "Done.", type = "success") {
-  const toastContainer = document.querySelector(".toast-container") || parseFragment('<ul class="toast-container"></ul>');
+export function showToast(text = 'Done.', type = 'success') {
+  const toastContainer = document.querySelector('.toast-container') || parseFragment('<ul class="toast-container"></ul>');
 
-  toastContainer.addEventListener("click", async (event) => {
-    if (event.target.matches(".close")) {
-      await hideToast(event.target.closest("li"));
+  toastContainer.addEventListener('click', async (event) => {
+    if (event.target.matches('.close')) {
+      await hideToast(event.target.closest('li'));
     }
   });
 
@@ -44,7 +44,7 @@ export function showToast(text = "Done.", type = "success") {
   }
 
   setTimeout(() => {
-    toast.classList.add("is-visible");
+    toast.classList.add('is-visible');
   }, 1);
 
   setTimeout(() => {
@@ -53,5 +53,5 @@ export function showToast(text = "Done.", type = "success") {
 }
 
 export function showErrorToast(content = OOPS) {
-  showToast(content, "error");
+  showToast(content, 'error');
 }

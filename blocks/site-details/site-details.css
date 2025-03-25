@@ -232,7 +232,7 @@
   margin: 0 0 24px;
 }
 
-.site-details.block .seo-audit [data-meta-property="og:image"] img {
+.site-details.block .seo-audit [data-meta-property='og:image'] img {
   display: block;
   width: 64px;
   height: 64px;
@@ -246,11 +246,11 @@
   display: none;
 }
 
-.site-details.block .tab-content.seo[data-show-environment="previewed"] span.previewed {
+.site-details.block .tab-content.seo[data-show-environment='previewed'] span.previewed {
   display: block;
 }
 
-.site-details.block .tab-content.seo[data-show-environment="published"] span.published {
+.site-details.block .tab-content.seo[data-show-environment='published'] span.published {
   display: block;
 }
 
@@ -258,11 +258,11 @@
   display: none;
 }
 
-.site-details.block .tab-content.seo[data-show-environment="previewed"] tr[data-environment="previewed"] {
+.site-details.block .tab-content.seo[data-show-environment='previewed'] tr[data-environment='previewed'] {
   display: table-row;
 }
 
-.site-details.block .tab-content.seo[data-show-environment="published"] tr[data-environment="published"] {
+.site-details.block .tab-content.seo[data-show-environment='published'] tr[data-environment='published'] {
   display: table-row;
 }
 
@@ -293,7 +293,7 @@ dialog .clicked-links li {
   flex: 1;
 }
 
-.site-details.block .form button[type="submit"] {
+.site-details.block .form button[type='submit'] {
   align-self: flex-end;
 }
 
@@ -352,9 +352,9 @@ dialog .clicked-links li {
 }
 
 .site-details.block .checklist .checklist-title::after {
-  content: "";
+  content: '';
   display: block;
-  background: url("/icons/loading.svg") no-repeat center;
+  background: url('/icons/loading.svg') no-repeat center;
   filter: invert(1);
   opacity: 0;
   width: 26px;
@@ -396,7 +396,7 @@ dialog .clicked-links li {
   background-color: var(--light-gray);
 }
 
-.site-details.block .checklist .checklist-item[data-completed="true"] {
+.site-details.block .checklist .checklist-item[data-completed='true'] {
   background-color: var(--light-green);
 }
 
@@ -436,12 +436,12 @@ dialog .clicked-links li {
   height: 70%;
 }
 
-.site-details.block .checklist .checklist-item[data-completed="true"] .checklist-manual-checkbox {
+.site-details.block .checklist .checklist-item[data-completed='true'] .checklist-manual-checkbox {
   border: 2px solid transparent;
   background-color: transparent;
 }
 
-.site-details.block .checklist .checklist-item[data-completed="true"] .checklist-manual-checkbox img {
+.site-details.block .checklist .checklist-item[data-completed='true'] .checklist-manual-checkbox img {
   opacity: 1;
 }
 

@@ -1,14 +1,14 @@
 const getCSSVars = (css) =>
   css
-    .split("\n")
+    .split('\n')
     .map((s) => {
       let formatted = s.trim();
-      if (formatted.endsWith(";")) {
+      if (formatted.endsWith(';')) {
         formatted = formatted.slice(0, -1);
       }
       return formatted;
     })
-    .filter((prop) => prop.startsWith("--"));
+    .filter((prop) => prop.startsWith('--'));
 
 function hexToRgb(hexValue) {
   if (!hexValue) return null;
@@ -46,7 +46,7 @@ function calculateContrast(hex1, hex2, aaThreshold = 4.5, aaaThreshold = 7) {
   const rgb2 = hexToRgb(hex2);
 
   if (!rgb1 || !rgb2) {
-    return { error: "Invalid color input" };
+    return { error: 'Invalid color input' };
   }
 
   const lum1 = luminance(rgb1.r, rgb1.g, rgb1.b);
@@ -64,7 +64,7 @@ function calculateContrast(hex1, hex2, aaThreshold = 4.5, aaaThreshold = 7) {
 // https://www.w3.org/TR/WCAG21/#contrast-minimum
 // https://www.w3.org/TR/WCAG22/#contrast-enhanced
 const contrastThresholdMap = {
-  "heading-color": {
+  'heading-color': {
     AA: 3,
     AAA: 4.5,
   },
@@ -88,95 +88,95 @@ function getRequiredContrastThreshold(name1, name2) {
 // They are still here to help visualize relationships between colors.
 const cssVariableMap = {
   // backgrounds
-  "background-color": {
+  'background-color': {
     // shouldContrastWith: ['heading-color', 'text-color', 'link-color', 'link-color-hover'],
   },
-  "header-background-color": {
+  'header-background-color': {
     // shouldContrastWith: ['link-color', 'link-color-hover'],
   },
   // text colors
-  "heading-color": {
-    shouldContrastWith: ["background-color"],
+  'heading-color': {
+    shouldContrastWith: ['background-color'],
   },
-  "text-color": {
-    shouldContrastWith: ["background-color"],
+  'text-color': {
+    shouldContrastWith: ['background-color'],
   },
-  "link-color": {
-    shouldContrastWith: ["background-color", "header-background-color"],
+  'link-color': {
+    shouldContrastWith: ['background-color', 'header-background-color'],
   },
-  "link-color-hover": {
-    shouldContrastWith: ["background-color", "header-background-color"],
+  'link-color-hover': {
+    shouldContrastWith: ['background-color', 'header-background-color'],
   },
   // button default
-  "button-text-color": {
-    shouldContrastWith: ["button-background-color"],
+  'button-text-color': {
+    shouldContrastWith: ['button-background-color'],
   },
-  "button-background-color": {
+  'button-background-color': {
     // shouldContrastWith: ['button-text-color'],
   },
-  "button-text-color-hover": {
-    shouldContrastWith: ["button-background-color-hover"],
+  'button-text-color-hover': {
+    shouldContrastWith: ['button-background-color-hover'],
   },
-  "button-background-color-hover": {
+  'button-background-color-hover': {
     // shouldContrastWith: ['button-text-color-hover'],
   },
   // button primary
-  "button-primary-text-color": {
-    shouldContrastWith: ["button-primary-background-color"],
+  'button-primary-text-color': {
+    shouldContrastWith: ['button-primary-background-color'],
   },
-  "button-primary-background-color": {
+  'button-primary-background-color': {
     // shouldContrastWith: ['button-primary-text-color'],
   },
-  "button-primary-text-color-hover": {
-    shouldContrastWith: ["button-primary-background-color-hover"],
+  'button-primary-text-color-hover': {
+    shouldContrastWith: ['button-primary-background-color-hover'],
   },
-  "button-primary-background-color-hover": {
+  'button-primary-background-color-hover': {
     // shouldContrastWith: ['button-primary-text-color-hover'],
   },
   // button secondary
-  "button-secondary-text-color": {
-    shouldContrastWith: ["button-secondary-background-color"],
+  'button-secondary-text-color': {
+    shouldContrastWith: ['button-secondary-background-color'],
   },
-  "button-secondary-background-color": {
+  'button-secondary-background-color': {
     // shouldContrastWith: ['button-secondary-text-color'],
   },
-  "button-secondary-text-color-hover": {
-    shouldContrastWith: ["button-secondary-background-color-hover"],
+  'button-secondary-text-color-hover': {
+    shouldContrastWith: ['button-secondary-background-color-hover'],
   },
-  "button-secondary-background-color-hover": {
+  'button-secondary-background-color-hover': {
     // shouldContrastWith: ['button-secondary-text-color-hover'],
   },
   // inputs
-  "input-text-color": {
-    shouldContrastWith: ["input-background-color"],
+  'input-text-color': {
+    shouldContrastWith: ['input-background-color'],
   },
-  "input-background-color": {
+  'input-background-color': {
     // shouldContrastWith: ['input-text-color'],
   },
   // footer
-  "footer-background-color": {
-    shouldContrastWith: ["footer-link-color", "footer-link-color-hover", "footer-text-color"],
+  'footer-background-color': {
+    shouldContrastWith: ['footer-link-color', 'footer-link-color-hover', 'footer-text-color'],
   },
-  "footer-link-color": {
-    shouldContrastWith: ["footer-background-color"],
+  'footer-link-color': {
+    shouldContrastWith: ['footer-background-color'],
   },
-  "footer-link-color-hover": {
-    shouldContrastWith: ["footer-background-color"],
+  'footer-link-color-hover': {
+    shouldContrastWith: ['footer-background-color'],
   },
-  "footer-text-color": {
-    shouldContrastWith: ["footer-background-color"],
+  'footer-text-color': {
+    shouldContrastWith: ['footer-background-color'],
   },
 };
 
 function evaluateVariable(obj, value) {
-  if (value?.startsWith("var(")) {
-    const varName = value.replace("var(", "").replace(")", "").trim();
+  if (value?.startsWith('var(')) {
+    const varName = value.replace('var(', '').replace(')', '').trim();
     const newValue = obj[varName].value;
 
     if (!newValue) {
       return null;
     }
-    if (newValue?.startsWith("var(")) {
+    if (newValue?.startsWith('var(')) {
       return evaluateVariable(obj, newValue);
     }
     return newValue;
@@ -186,14 +186,14 @@ function evaluateVariable(obj, value) {
 }
 
 function handler(event) {
-  if (event.data.type !== "contrastCheck") {
+  if (event.data.type !== 'contrastCheck') {
     return;
   }
   const cssVars = getCSSVars(event.data.css);
   const eventCssVars = cssVars.reduce((output, cssVar) => {
-    let [varName, value] = cssVar.split(":");
-    varName = varName.replaceAll("--", "").trim();
-    value = value.replaceAll("--", "").trim();
+    let [varName, value] = cssVar.split(':');
+    varName = varName.replaceAll('--', '').trim();
+    value = value.replaceAll('--', '').trim();
 
     // only get values of variables we care about
     output[varName] = { value };
@@ -224,7 +224,7 @@ function handler(event) {
   const filteredCssVarsKeys = Object.keys(filteredCssVars);
   if (filteredCssVarsKeys.length !== mapKeys.length) {
     // eslint-disable-next-line no-console
-    console.warn("filteredCssVars has missing keys:", mapKeys - filteredCssVarsKeys);
+    console.warn('filteredCssVars has missing keys:', mapKeys - filteredCssVarsKeys);
   }
 
   const contrastIssues = [];
@@ -251,10 +251,10 @@ function handler(event) {
     }
   }
   self.postMessage({
-    type: "contrastCheck",
+    type: 'contrastCheck',
     evaluatedCssVars: filteredCssVars,
     contrastIssues,
   });
 }
 
-self.addEventListener("message", handler);
+self.addEventListener('message', handler);

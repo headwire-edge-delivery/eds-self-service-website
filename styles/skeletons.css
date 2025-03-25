@@ -1,5 +1,5 @@
-div[aria-label="loading"] > table > thead > tr > th,
-div[aria-label="loading"] > table > tbody > tr > td {
+div[aria-label='loading'] > table > thead > tr > th,
+div[aria-label='loading'] > table > tbody > tr > td {
   overflow: hidden !important;
 }
 
