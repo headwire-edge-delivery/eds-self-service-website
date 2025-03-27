@@ -1,9 +1,4 @@
-import {
-  completeChecklistItem,
-  dateToRelativeSpan,
-  OOPS,
-  parseFragment, safeText, SCRIPT_API, validateEmail,
-} from '../../scripts/scripts.js';
+import { completeChecklistItem, dateToRelativeSpan, OOPS, parseFragment, safeText, SCRIPT_API, validateEmail } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
@@ -64,7 +59,9 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
         headers: {
           authorization: `bearer ${token}`,
         },
-      }).then((res) => res.json()).catch(() => null);
+      })
+        .then((res) => res.json())
+        .catch(() => null);
     }
 
     container.innerHTML = `
@@ -210,16 +207,19 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
           try {
             const response = await fetch(event.target.result);
             const data = await response.text();
-            formattedData = data.split('\n').map((line) => {
-              const [email, firstName, lastName, unsubscribed] = line.split(',').map((col) => (col ? col.trim() : ''));
+            formattedData = data
+              .split('\n')
+              .map((line) => {
+                const [email, firstName, lastName, unsubscribed] = line.split(',').map((col) => (col ? col.trim() : ''));
 
-              return {
-                email,
-                firstName,
-                lastName,
-                unsubscribed,
-              };
-            }).filter(({ email }) => validateEmail(email));
+                return {
+                  email,
+                  firstName,
+                  lastName,
+                  unsubscribed,
+                };
+              })
+              .filter(({ email }) => validateEmail(email));
 
             if (!formattedData?.length) {
               submit.disabled = true;
@@ -247,21 +247,25 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
                   <th>Status</th>
                 </thead>
                 <tbody>
-                    ${formattedData.map((contact) => `
+                    ${formattedData
+                      .map(
+                        (contact) => `
                       <tr>
                         <td>${contact.email}</td>
                         <td>${contact.firstName}</td>
                         <td>${contact.lastName}</td>
                         <td>${contact.unsubscribed !== 'subscribed' ? '<div class="badge orange">Unsubscribed</div>' : '<div class="badge green">Subscribed</div>'}</td>
                       </tr>
-                    `).join('')}
+                    `,
+                      )
+                      .join('')}
                 </tbody>
               </table>
             `;
             }
-          } catch (e) {
+          } catch {
             submit.disabled = true;
-            preview.innerHTML = 'File can\'t be read. Please try another file.';
+            preview.innerHTML = "File can't be read. Please try another file.";
           }
         };
         reader.readAsDataURL(file);
@@ -375,7 +379,8 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
 
           tr.querySelector('[data-name="firstName"]').textContent = body.firstName;
           tr.querySelector('[data-name="lastName"]').textContent = body.lastName;
-          tr.querySelector('[data-name="unsubscribed"]').innerHTML = `<div class="badge ${body.unsubscribed ? 'orange' : 'green'}">${body.unsubscribed ? 'Unsubscribed' : 'Subscribed'}</div>`;
+          tr.querySelector('[data-name="unsubscribed"]').innerHTML =
+            `<div class="badge ${body.unsubscribed ? 'orange' : 'green'}">${body.unsubscribed ? 'Unsubscribed' : 'Subscribed'}</div>`;
         } else {
           dialog.setLoading(false);
           await alertDialog(OOPS);

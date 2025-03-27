@@ -35,8 +35,6 @@
   text-size-adjust: 100%;
 }
 
-
-
 [hidden] {
   display: none !important;
 }
@@ -113,7 +111,7 @@ footer {
   margin-top: auto;
 }
 
-main:has(> [data-section-status="loaded"]) + footer {
+main:has(> [data-section-status='loaded']) + footer {
   display: block;
 }
 
@@ -151,7 +149,7 @@ label:first-child > span {
   padding-top: 0;
 }
 
-label:has(> input[type="checkbox"] + span) {
+label:has(> input[type='checkbox'] + span) {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -191,7 +189,8 @@ a:hover {
   text-decoration: underline;
 }
 
-.button-container, .expedition-popover-navigation-btns {
+.button-container,
+.expedition-popover-navigation-btns {
   display: flex;
   gap: 16px;
   justify-content: center;
@@ -208,7 +207,9 @@ table .button-container {
   gap: 12px;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   font-family: var(--font-family);
   color: var(--black);
   font-style: normal;
@@ -236,8 +237,7 @@ input:focus-visible {
   outline-offset: 0;
 }
 
-
-input[type="checkbox"] {
+input[type='checkbox'] {
   width: 24px;
   height: 24px;
   position: relative;
@@ -252,8 +252,8 @@ input[type="checkbox"] {
   justify-content: center;
 }
 
-input[type="checkbox"]::after {
-  content: "";
+input[type='checkbox']::after {
+  content: '';
   display: block;
   width: 100%;
   height: 100%;
@@ -262,12 +262,11 @@ input[type="checkbox"]::after {
   transition: opacity 0.3s;
 }
 
-input[type="checkbox"]:checked::after {
+input[type='checkbox']:checked::after {
   opacity: 1;
 }
 
-
-input[type="file"]::file-selector-button,
+input[type='file']::file-selector-button,
 .button {
   display: inline-flex;
   text-decoration: none;
@@ -290,13 +289,13 @@ input[type="file"]::file-selector-button,
   font-family: var(--font-family);
 }
 
-input[type="file"] {
+input[type='file'] {
   border: 1px solid var(--gray);
   width: 100%;
   padding: 0;
 }
 
-input[type="file"]::file-selector-button {
+input[type='file']::file-selector-button {
   border-width: 0 1px 0 0;
   padding: 9px;
   font-size: 13px;
@@ -307,14 +306,14 @@ input[type="file"]::file-selector-button {
   border-color: var(--white);
 }
 
-input[type="file"]::file-selector-button:hover,
+input[type='file']::file-selector-button:hover,
 .button:hover {
   background-color: var(--gray);
   color: var(--black);
   text-decoration: none;
 }
 
-input[type="color"] {
+input[type='color'] {
   padding: 0;
   background-color: transparent;
   width: 40px;
@@ -334,7 +333,7 @@ input[type="color"] {
   overflow: hidden;
 }
 
-.color-input-circle-wrapper input[type="color"] {
+.color-input-circle-wrapper input[type='color'] {
   min-width: 150%;
   min-height: 150%;
   border: none;
@@ -425,14 +424,14 @@ input[type="color"] {
 }
 
 .button.loading::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   filter: invert(1);
-  background: url("/icons/loading.svg") no-repeat center;
+  background: url('/icons/loading.svg') no-repeat center;
 }
 
 .button.primary.loading::after {
@@ -475,7 +474,7 @@ table td.empty {
 }
 
 table tr.loading {
-  opacity: .4;
+  opacity: 0.4;
   pointer-events: none;
 }
 
@@ -492,7 +491,6 @@ table tr.loading {
 .is-headwire .headwire-only {
   display: block;
 }
-
 
 /* MARK: Icons */
 .icon {
@@ -589,7 +587,6 @@ table tr.loading {
   justify-content: space-between;
 }
 
-
 .tabs-wrapper .tabs-content:has(> p:only-child) {
   display: block;
   padding: 0;
@@ -674,7 +671,7 @@ table tr.loading {
 
 @media (width < 768px) {
   .tabs-wrapper .tabs-content aside {
-      width: 100%;
+    width: 100%;
   }
 
   .tabs-wrapper .tabs-content-container {
@@ -682,12 +679,12 @@ table tr.loading {
   }
 
   .dashboard.block .details {
-      max-width: 100% !important;
+    max-width: 100% !important;
   }
 
   .site-details.block .tabs-nav-items > * {
-      flex-direction: column;
-      align-items: flex-start;
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
@@ -755,7 +752,7 @@ table tr.loading {
 .filter {
   width: 100%;
   font-size: 14px;
-  background-image: url("/icons/search.svg");
+  background-image: url('/icons/search.svg');
   background-position: 12px 12px;
   background-size: 20px;
   background-repeat: no-repeat;

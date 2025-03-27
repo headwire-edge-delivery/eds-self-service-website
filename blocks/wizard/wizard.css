@@ -1,359 +1,362 @@
 .hero-container.wizard-container .hero-wrapper {
-    display: none;
+  display: none;
 }
 
 .hero-container.wizard-container:has(.wizard.block > .step:first-child.is-selected) .hero-wrapper {
-    display: block;
+  display: block;
 }
 
 .wizard.block {
-    display: flex;
-    overflow: hidden;
-    padding-block: 32px;
-    min-height: 50vh;
+  display: flex;
+  overflow: hidden;
+  padding-block: 32px;
+  min-height: 50vh;
 }
 
 /* User is redirected to dashboard automatically */
-.wizard.block a[href="#site-details"] {
-    display: none !important;
+.wizard.block a[href='#site-details'] {
+  display: none !important;
 }
 
-.wizard.block .button-container:has(a[href="#template"]) {
-    display: none !important;
+.wizard.block .button-container:has(a[href='#template']) {
+  display: none !important;
 }
 
 .wizard.block > .step {
-    min-width: 100%;
-    text-align: center;
+  min-width: 100%;
+  text-align: center;
 }
 
 .wizard.block > .step:not(.is-selected) {
-    display: none;
+  display: none;
 }
 
 .wizard.block ul {
-    list-style: none;
-    padding: 0;
-    gap: 16px;
-    display: inline-flex;
-    flex-direction: column;
-    margin-inline: auto;
+  list-style: none;
+  padding: 0;
+  gap: 16px;
+  display: inline-flex;
+  flex-direction: column;
+  margin-inline: auto;
 }
 
 .wizard.block li {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 20px;
-    font-weight: 200;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 200;
 }
 
 .wizard.block .button-container {
-    margin-top: 32px;
+  margin-top: 32px;
 }
 
 .wizard.block .button-container:last-child {
-    width: 100%;
-    margin: 0;
-    padding: 16px;
-    display: none;
+  width: 100%;
+  margin: 0;
+  padding: 16px;
+  display: none;
 }
 
 .is-template-previewing .wizard.block .button-container:last-child {
-    display: none !important;
+  display: none !important;
 }
 
 .wizard.block:has(.template.is-selected) .button-container:last-child {
-    display: flex;
+  display: flex;
 }
 
 .wizard.block .template-container {
-    display: flex;
-    gap: 64px;
-    overflow: auto;
-    padding-left: calc((100vw - var(--layout-width)) / 2 - 16px);
-    padding-right: 16px;
-    margin: 48px auto auto 16px;
+  display: flex;
+  gap: 64px;
+  overflow: auto;
+  padding-left: calc((100vw - var(--layout-width)) / 2 - 16px);
+  padding-right: 16px;
+  margin: 48px auto auto 16px;
 }
 
 /* scrollbar styles */
 .wizard.block .template-container::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 .wizard.block .template-wrapper {
-    position: relative;
+  position: relative;
 }
 
 .wizard.block .template-wrapper .controls-wrapper {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    pointer-events: none;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
 }
 
 .wizard.block .template-wrapper .scroll-button {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    padding: 4px;
-    pointer-events: all;
-    position: relative;
-    background: var(--orange);
-    box-shadow: 0 0 5px var(--box-shadow-color);
-    border-color: var(--white);
-    margin-inline: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  padding: 4px;
+  pointer-events: all;
+  position: relative;
+  background: var(--orange);
+  box-shadow: 0 0 5px var(--box-shadow-color);
+  border-color: var(--white);
+  margin-inline: 16px;
 }
 
 .wizard.block .template-wrapper .scroll-button::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: center / contain no-repeat url('/icons/chevron-down.svg');
-    transform: rotate(90deg);
-    filter: invert(1);
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: center / contain no-repeat url('/icons/chevron-down.svg');
+  transform: rotate(90deg);
+  filter: invert(1);
 }
 
 .wizard.block .template-wrapper .scroll-button.next::after {
-    transform: rotate(-90deg);
+  transform: rotate(-90deg);
 }
 
 .wizard.block .template {
-    padding: 32px;
-    min-width: calc(var(--layout-width) / 2.5);
-    border-radius: var(--border-radius);
-    background-color: var(--dark-blue);
-    color: var(--white);
-    text-decoration: none;
-    transition: all var(--animation-duration);
+  padding: 32px;
+  min-width: calc(var(--layout-width) / 2.5);
+  border-radius: var(--border-radius);
+  background-color: var(--dark-blue);
+  color: var(--white);
+  text-decoration: none;
+  transition: all var(--animation-duration);
 }
 
 .wizard.block .template:hover {
-    background-color: var(--light-blue);
+  background-color: var(--light-blue);
 }
 
 .wizard.block .template h3 {
-    color: var(--white)
+  color: var(--white);
 }
 
-
-
 @media (width < 768px) {
-    .wizard.block .template-container {
-        flex-direction: column;
-        padding-inline: 16px;
-        margin-left: 0;
-        gap: 32px;
-    }
+  .wizard.block .template-container {
+    flex-direction: column;
+    padding-inline: 16px;
+    margin-left: 0;
+    gap: 32px;
+  }
 
-    .wizard.block .template {
-        min-width: calc(100vw - 32px);
-    }
+  .wizard.block .template {
+    min-width: calc(100vw - 32px);
+  }
 
-    .wizard.block .template-wrapper .controls-wrapper {
-        display: none;
-    }
+  .wizard.block .template-wrapper .controls-wrapper {
+    display: none;
+  }
 }
 
 .wizard.block .template .preview {
-    display: none;
+  display: none;
 }
 
 .wizard.block .template .preview.is-visible {
-    z-index: 1;
-    display: block;
-    position: fixed;
-    top: 64px;
-    left: 0;
-    right: 0;
-    height: calc(100vh - var(--header-height));
-    width: 100vw;
-    border: none;
-    background-color: var(--white);
+  z-index: 1;
+  display: block;
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  height: calc(100vh - var(--header-height));
+  width: 100vw;
+  border: none;
+  background-color: var(--white);
 }
 
 .wizard.block .template h3 + p {
-    font-weight: 200;
-    text-align: justify;
+  font-weight: 200;
+  text-align: justify;
 }
 
 .wizard.block .template-image {
-    max-width: var(--layout-width);
-    width: 100%;
-    margin: 32px auto auto;
+  max-width: var(--layout-width);
+  width: 100%;
+  margin: 32px auto auto;
 }
 
 .wizard.block .carousel {
-    padding-block: 16px;
+  padding-block: 16px;
 }
 
 .wizard.block .carousel img {
-    background-color: var(--gray);
-    object-fit: contain;
-    height: 260px;
+  background-color: var(--gray);
+  object-fit: contain;
+  height: 260px;
 }
 
 .wizard.block .carousel img:not(.is-selected) {
-    display: none;
+  display: none;
 }
 
 .wizard.block .carousel .dots {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
 }
 
 .wizard.block .carousel .dot {
-    border-radius: 50%;
-    border: 1px solid var(--white);
-    padding: 4px;
-    cursor: pointer;
+  border-radius: 50%;
+  border: 1px solid var(--white);
+  padding: 4px;
+  cursor: pointer;
 }
 
 .wizard.block .carousel .dot.is-selected {
-    background-color: var(--white);
+  background-color: var(--white);
 }
 
-.wizard.block input:not([type="checkbox"]),
+.wizard.block input:not([type='checkbox']),
 .wizard.block textarea,
 .wizard.block #slug-input-wrapper {
-    width: 300px;
-    display: block;
-    margin: 16px auto auto;
+  width: 300px;
+  display: block;
+  margin: 16px auto auto;
 }
 
 .wizard.block #slug-input-wrapper.slug-taken::before {
-    display: block;
-    content: 'Slug already taken!';
-    color: red;
-    position: absolute;
-    bottom: -20px;
-    left: 16px;
+  display: block;
+  content: 'Slug already taken!';
+  color: red;
+  position: absolute;
+  bottom: -20px;
+  left: 16px;
 }
 
-.wizard.block input:not([type="checkbox"]),
+.wizard.block input:not([type='checkbox']),
 .wizard.block textarea {
-    font-size: 16px;
-    padding: 16px;
-    margin-block: 32px;
-    text-overflow: ellipsis;
+  font-size: 16px;
+  padding: 16px;
+  margin-block: 32px;
+  text-overflow: ellipsis;
 }
 
 .wizard.block .checkbox-label {
-    width: 300px;
-    display: flex;
-    margin: auto;
+  width: 300px;
+  display: flex;
+  margin: auto;
 }
 
 .wizard.block textarea {
-    resize: vertical;
-    min-height: 74px;
+  resize: vertical;
+  min-height: 74px;
 }
 
 .wizard.block #slug-input-wrapper {
-    position: relative;
+  position: relative;
 }
 
 .wizard.block #slug-input-wrapper input {
-    padding-right: 40px;
+  padding-right: 40px;
 }
 
 .wizard.block #slug-input-wrapper::after {
-    content: '(' attr(data-leftover-chars) ')';
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    top: 0;
-    right: 0;
-    height: 100%;
-    width: 40px;
-    position: absolute;
+  content: '(' attr(data-leftover-chars) ')';
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 40px;
+  position: absolute;
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.wizard.block .step:has(a[href="#edit"]) .error-message {
-    display: none;
+.wizard.block .step:has(a[href='#edit']) .error-message {
+  display: none;
 }
 
-.wizard.block .step:has(a[href="#edit"]).error .error-message {
-    display: block;
+.wizard.block .step:has(a[href='#edit']).error .error-message {
+  display: block;
 }
 
-.wizard.block .step:has(a[href="#edit"]).error :is(ul, h2 + p) {
-    display: none;
+.wizard.block .step:has(a[href='#edit']).error :is(ul, h2 + p) {
+  display: none;
 }
 
-.wizard.block .step:has(a[href="#edit"]) .loader {
-    border: 2px solid var(--gray);
-    animation: spin 1s linear infinite;
-    border-top: 2px solid var(--black);
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    opacity: 0;
-    align-items: center;
-    font-weight: bold;
+.wizard.block .step:has(a[href='#edit']) .loader {
+  border: 2px solid var(--gray);
+  animation: spin 1s linear infinite;
+  border-top: 2px solid var(--black);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+  align-items: center;
+  font-weight: bold;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li {
-    opacity: .5;
+.wizard.block .step:has(a[href='#edit']) li {
+  opacity: 0.5;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.success,
-.wizard.block .step:has(a[href="#edit"]) li.loading {
-    opacity: 1;
+.wizard.block .step:has(a[href='#edit']) li.success,
+.wizard.block .step:has(a[href='#edit']) li.loading {
+  opacity: 1;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.success .loader,
-.wizard.block .step:has(a[href="#edit"]) li.loading .loader {
-    display: flex;
-    opacity: 1;
+.wizard.block .step:has(a[href='#edit']) li.success .loader,
+.wizard.block .step:has(a[href='#edit']) li.loading .loader {
+  display: flex;
+  opacity: 1;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.success .loader {
-    border: none;
-    animation: none;
-    position: relative;
-    transform: rotate(45deg) translate(-30%, 0);
+.wizard.block .step:has(a[href='#edit']) li.success .loader {
+  border: none;
+  animation: none;
+  position: relative;
+  transform: rotate(45deg) translate(-30%, 0);
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.success .loader::before,
-.wizard.block .step:has(a[href="#edit"]) li.success .loader::after {
-    display: block;
-    content: '';
-    position: absolute;
-    width: 2px;
-    height: 100%;
-    background-color: var(--black);
-    top: 0;
-    right: 0;
+.wizard.block .step:has(a[href='#edit']) li.success .loader::before,
+.wizard.block .step:has(a[href='#edit']) li.success .loader::after {
+  display: block;
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  background-color: var(--black);
+  top: 0;
+  right: 0;
 }
 
-.wizard.block .step:has(a[href="#edit"]) li.success .loader::after {
-    width: 50%;
-    height: 2px;
-    bottom: 0;
-    top: unset;
+.wizard.block .step:has(a[href='#edit']) li.success .loader::after {
+  width: 50%;
+  height: 2px;
+  bottom: 0;
+  top: unset;
 }
 
-.wizard.block > .step:last-child a[href^="#"]:not(.is-ready) {
-    display: none;
+.wizard.block > .step:last-child a[href^='#']:not(.is-ready) {
+  display: none;
 }
 
 /* MARK: Dark Alley */
 .wizard.block .dark-alley-label {
-    display: none;
+  display: none;
 }
 
 body:is(.is-headwire, .is-adobe, .is-test-user) .wizard.block .dark-alley-label {
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
 }

@@ -44,18 +44,20 @@ export async function cacheFetch(url, fetchOptions, parseMethod = 'text') {
     return fetchCache[url];
   }
 
-  fetchCache[url] = await fetch(url, fetchOptions).then(async (res) => {
-    const output = {
-      ok: res.ok,
-      status: res.status,
-    };
-    try {
-      output.dataText = res.ok ? await res[parseMethod]() : null;
-    } catch {
-      output.dataText = null;
-    }
-    return output;
-  }).catch(() => null);
+  fetchCache[url] = await fetch(url, fetchOptions)
+    .then(async (res) => {
+      const output = {
+        ok: res.ok,
+        status: res.status,
+      };
+      try {
+        output.dataText = res.ok ? await res[parseMethod]() : null;
+      } catch {
+        output.dataText = null;
+      }
+      return output;
+    })
+    .catch(() => null);
 
   return fetchCache[url];
 }

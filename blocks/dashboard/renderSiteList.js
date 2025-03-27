@@ -1,16 +1,11 @@
-import {
-  waitForAuthenticated, SCRIPT_API, KESTREL_ONE, getUserSettings, updateUserSettings,
-  OOPS,
-  safeText,
-} from '../../scripts/scripts.js';
+import { waitForAuthenticated, SCRIPT_API, KESTREL_ONE, getUserSettings, updateUserSettings, OOPS, safeText } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
 
 const defaultLimit = 6;
 
-const generateThumbnails = () => {
-  const sitesList = document.querySelector('.sites-list');
+const generateThumbnails = (sitesList) => {
   sitesList.querySelectorAll('.project-thumbnail').forEach((thumbnail) => {
     fetch(thumbnail.dataset.src)
       .then((res) => {
@@ -47,7 +42,7 @@ export default async function renderSites({ container, nav }) {
     const search = queryParams.search || '';
     const owner = queryParams.owner || userSettingsOwner;
     const isDarkAlley = type === 'darkAlley';
-    const sitesList = document.querySelector(isDarkAlley ? '.sites-list-dark-alley' : '.sites-list-google-drive');
+    const sitesList = container.querySelector(isDarkAlley ? '.sites-list-dark-alley' : '.sites-list-google-drive');
     const currentLimit = Math.max(1, parseInt(isDarkAlley ? daLimit : limit, 10));
     const actualPage = isDarkAlley ? currentDaPage : currentPage;
     const url = `${SCRIPT_API}/${isDarkAlley ? 'darkAlleyList' : 'list'}?search=${encodeURIComponent(search)}&limit=${currentLimit}&page=${actualPage}&owner=${owner}`;
@@ -127,7 +122,7 @@ export default async function renderSites({ container, nav }) {
         }
       });
 
-      generateThumbnails();
+      generateThumbnails(newSitesList);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
@@ -138,7 +133,7 @@ export default async function renderSites({ container, nav }) {
 
   const fetchAllSites = async () => {
     await waitForAuthenticated();
-    const showDarkAlley = document.querySelector('body').classList.contains('is-headwire') || document.querySelector('body').classList.contains('is-adobe') || document.querySelector('body').classList.contains('is-test-user');
+    const showDarkAlley = document.body.classList.contains('is-headwire') || document.body.classList.contains('is-adobe') || document.body.classList.contains('is-test-user');
     const queryParams = readQueryParams();
     const darkAlleyContainer = container.querySelector('.sites-list-dark-alley');
     const googleDriveContainer = container.querySelector('.sites-list-google-drive');
@@ -152,29 +147,31 @@ export default async function renderSites({ container, nav }) {
     }
     const fetchGoogleDrive = fetchProjects('googleDrive');
 
-    Promise.all([fetchDarkAlley, fetchGoogleDrive]).then(() => {
-      if (totalItems.fetchFailed) return;
-      const well = container.querySelector('.well');
-      const createButton = nav.querySelector('#create-new-button');
-      const sites = container.querySelector('.sites');
-      const filter = container.querySelector('.filter');
-      if (!filter.value && totalItems.googleDrive === 0 && totalItems.darkAlley === 0) {
-        well.hidden = false;
-        createButton.hidden = true;
-        createButton.removeAttribute('id');
-        sites.hidden = true;
-        filter.disabled = true;
-      } else {
-        well.hidden = true;
-        createButton.hidden = false;
-        createButton.id = 'create-new-button';
-        sites.hidden = false;
-        filter.disabled = false;
-      }
-    }).catch((error) => {
-      // eslint-disable-next-line no-console
-      console.error('Error fetching projects:', error);
-    });
+    Promise.all([fetchDarkAlley, fetchGoogleDrive])
+      .then(() => {
+        if (totalItems.fetchFailed) return;
+        const well = container.querySelector('.well');
+        const createButton = nav.querySelector('#create-new-button');
+        const sites = container.querySelector('.sites');
+        const filter = container.querySelector('.filter');
+        if (!filter.value && totalItems.googleDrive === 0 && totalItems.darkAlley === 0) {
+          well.hidden = false;
+          createButton.hidden = true;
+          createButton.removeAttribute('id');
+          sites.hidden = true;
+          filter.disabled = true;
+        } else {
+          well.hidden = true;
+          createButton.hidden = false;
+          createButton.id = 'create-new-button';
+          sites.hidden = false;
+          filter.disabled = false;
+        }
+      })
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching projects:', error);
+      });
   };
 
   container.innerHTML = `
@@ -247,7 +244,7 @@ export default async function renderSites({ container, nav }) {
         fetchAllSites();
       }, 300);
     };
-  }());
+  })();
 
   fetchAllSites();
 }

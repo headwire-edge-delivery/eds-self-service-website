@@ -1,21 +1,9 @@
-import {
-  daProjectRepo,
-  dateToRelativeSpan,
-  EMAIL_WORKER_API,
-  OOPS,
-  parseFragment,
-  SCRIPT_API,
-  projectRepo,
-  safeText,
-  completeChecklistItem,
-} from '../../scripts/scripts.js';
+import { daProjectRepo, dateToRelativeSpan, EMAIL_WORKER_API, OOPS, parseFragment, SCRIPT_API, projectRepo, safeText, completeChecklistItem } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
 
-export function renderTable({
-  table, tableData, type, projectDetails, token, isDrafts = false,
-}) {
+export function renderTable({ table, tableData, type, projectDetails, token, isDrafts = false }) {
   const isEmail = type === 'emails';
   table.innerHTML = `
     <thead>
@@ -48,7 +36,9 @@ export function renderTable({
         <td>
           <div id="email-open-edit" class="button-container">
             <a class="button action secondary edit" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
-            <a class="button action secondary open" href="/redirect?url=${EMAIL_WORKER_API}/preview?contentUrl=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Open</a>
+            <a class="button action secondary open" href="/redirect?url=${EMAIL_WORKER_API}/preview?contentUrl=${
+              projectDetails.customPreviewUrl
+            }${item.path}" target="_blank">Open</a>
             ${isDeletable ? '<button class="button action secondary delete-email destructive">Delete</button>' : ''}
           </div>
         </td>
@@ -108,10 +98,13 @@ export function renderTable({
           const container = tableRow.querySelector('.button-container');
           const previewButton = `<a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>`;
           if (status === 'Published') {
-            container.insertAdjacentHTML('afterbegin', `
+            container.insertAdjacentHTML(
+              'afterbegin',
+              `
               ${previewButton}
               ${!item.path.startsWith('/drafts/') ? `<a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>` : ''}
-            `);
+            `,
+            );
           } else if (status === 'Previewed') {
             container.insertAdjacentHTML('afterbegin', previewButton);
           }
@@ -140,9 +133,7 @@ export function renderTable({
 }
 
 // MARK: add page dialog
-function addPageDialogSetup({
-  projectDetails, token, user,
-}) {
+function addPageDialogSetup({ projectDetails, token, user }) {
   const submit = parseFragment('<button form="add-page-form" type="submit" class="button primary action">Create Page</button>');
   const content = parseFragment(`
     <div>
@@ -150,7 +141,11 @@ function addPageDialogSetup({
       
       <div class="columns">
         <form id="add-page-form">
-          <p>The newly created document will appear in the drafts folder. Make sure to move it to your desired path before attempting to publish! Draft files cannot be published.</p>
+          <p>
+            The newly created document will appear in the drafts folder.
+            Make sure to move it to your desired path before attempting to publish!
+            Draft files cannot be published.
+          </p>
           <label>
               <span>Page Name *</span>
               <input required name="pageName" placeholder="Blog Page"/>
@@ -175,24 +170,27 @@ function addPageDialogSetup({
   const templateUrl = `https://main--${projectDetails.templateSlug}--headwire-self-service-templates.aem.live`;
   const templateRegex = /^template\s*-\s*(?!.*authoring\s+guide\s*-)/i;
 
-  fetch(`${templateUrl}/tools/sidekick/library.json`).then((res) => res.json()).then(({ data }) => {
-    const templates = data.filter((item) => !!(templateRegex.test(item.name)));
-    // eslint-disable-next-line no-console
-    console.log('templates:', templates);
+  fetch(`${templateUrl}/tools/sidekick/library.json`)
+    .then((res) => res.json())
+    .then(({ data }) => {
+      const templates = data.filter((item) => !!templateRegex.test(item.name));
+      // eslint-disable-next-line no-console
+      console.log('templates:', templates);
 
-    dropdown.innerHTML = '';
-    dropdown.disabled = null;
-    templates.forEach((template) => {
-      template.templateName = template.name.split('-')[1].trim();
-      const option = document.createElement('option');
-      option.value = template.path;
-      option.innerText = template.templateName;
-      dropdown.append(option);
-    });
-    previewIframe.hidden = false;
-    previewIframe.src = `${templateUrl}${dropdown.value}`;
+      dropdown.innerHTML = '';
+      dropdown.disabled = null;
+      templates.forEach((template) => {
+        template.templateName = template.name.split('-')[1].trim();
+        const option = document.createElement('option');
+        option.value = template.path;
+        option.innerText = template.templateName;
+        dropdown.append(option);
+      });
+      previewIframe.hidden = false;
+      previewIframe.src = `${templateUrl}${dropdown.value}`;
+    })
     // eslint-disable-next-line no-console
-  }).catch((err) => console.error(err));
+    .catch((err) => console.error(err));
 
   dropdown.onchange = () => {
     previewIframe.src = `${templateUrl}${dropdown.value}`;
@@ -217,7 +215,6 @@ function addPageDialogSetup({
       method: 'POST',
       headers: { authorization: `bearer ${token}`, 'content-type': 'application/json' },
       body: JSON.stringify(body),
-
     }).catch(() => null);
     if (addPageRequest?.ok) {
       completeChecklistItem(projectDetails.projectSlug, 'pageAdded', projectDetails);
@@ -254,7 +251,9 @@ function addPageDialogSetup({
         empty.remove();
       }
 
-      tableBody.insertAdjacentHTML('afterbegin', `
+      tableBody.insertAdjacentHTML(
+        'afterbegin',
+        `
         <tr data-id="${responseData.newPageId}" data-path="/drafts/${responseData.pageSlug}">
             <td>${safeText(body.pageName)}</td>
             <td>/drafts/${responseData.pageSlug}</td>
@@ -266,7 +265,8 @@ function addPageDialogSetup({
                 <button class="button action secondary delete-page destructive">Delete</button>
             </td>
         </tr>
-      `);
+      `,
+      );
     } else {
       await alertDialog(OOPS);
     }
@@ -276,9 +276,7 @@ function addPageDialogSetup({
 
 // MARK: render
 export default async function renderSitePages({ container, nav, renderOptions }) {
-  const {
-    projectDetails, user, token, siteSlug,
-  } = renderOptions;
+  const { projectDetails, user, token, siteSlug } = renderOptions;
   container.innerHTML = renderSkeleton('pages');
 
   // add page button
@@ -289,12 +287,16 @@ export default async function renderSitePages({ container, nav, renderOptions })
   addPageButton.textContent = 'Add Page';
   addPageButton.onclick = () => {
     addPageDialogSetup({
-      projectDetails, token, user,
+      projectDetails,
+      token,
+      user,
     });
   };
   nav.append(addPageButton);
 
-  const indexData = await fetch(`${SCRIPT_API}/index/${siteSlug}`).then((res) => res.json()).catch(() => null);
+  const indexData = await fetch(`${SCRIPT_API}/index/${siteSlug}`)
+    .then((res) => res.json())
+    .catch(() => null);
 
   if (!indexData?.data) {
     container.innerHTML = `<p>${OOPS}</p>`;
@@ -343,16 +345,29 @@ export default async function renderSitePages({ container, nav, renderOptions })
     }
   }
   renderTable({
-    table: container.querySelector('.pages'), tableData: pages, projectDetails, token,
+    table: container.querySelector('.pages'),
+    tableData: pages,
+    projectDetails,
+    token,
   });
   const navsTable = renderTable({
-    table: container.querySelector('.navs'), tableData: navs, projectDetails, token,
+    table: container.querySelector('.navs'),
+    tableData: navs,
+    projectDetails,
+    token,
   });
   renderTable({
-    table: container.querySelector('.footers'), tableData: footers, projectDetails, token,
+    table: container.querySelector('.footers'),
+    tableData: footers,
+    projectDetails,
+    token,
   });
   renderTable({
-    table: container.querySelector('.drafts'), tableData: drafts, projectDetails, token, isDrafts: true,
+    table: container.querySelector('.drafts'),
+    tableData: drafts,
+    projectDetails,
+    token,
+    isDrafts: true,
   });
 
   container.onclick = async (event) => {

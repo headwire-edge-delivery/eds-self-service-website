@@ -1,17 +1,7 @@
-import {
-  OOPS,
-  SCRIPT_API,
-  defaultBranch,
-  parseFragment,
-  projectRepo,
-} from '../../scripts/scripts.js';
+import { OOPS, SCRIPT_API, defaultBranch, parseFragment, projectRepo } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { isSame, transformEmptyRow, confirmUnsavedChanges } from '../../scripts/utils.js';
-import {
-  readQueryParams,
-  removeQueryParams,
-  writeQueryParams,
-} from '../../libs/queryParams/queryParams.js';
+import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import { showToast, showErrorToast } from '../../scripts/toast.js';
 import { createDialog } from '../../scripts/dialogs.js';
 
@@ -49,12 +39,14 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   }
 
   // TODO: on selected instead
-  await Promise.all(sheetIndexData.map(async (sheetIndex) => {
-    const sheetTitles = await fetch(`${SCRIPT_API}/sheetTitles/${siteSlug}/${sheetIndex.id}`, { headers: { authorization: `bearer ${token}` } })
-      .then((res) => res.json())
-      .catch(() => null);
-    sheetIndex.ranges = sheetTitles || [];
-  }));
+  await Promise.all(
+    sheetIndexData.map(async (sheetIndex) => {
+      const sheetTitles = await fetch(`${SCRIPT_API}/sheetTitles/${siteSlug}/${sheetIndex.id}`, { headers: { authorization: `bearer ${token}` } })
+        .then((res) => res.json())
+        .catch(() => null);
+      sheetIndex.ranges = sheetTitles || [];
+    }),
+  );
 
   const tabsAside = container.closest('.tabs-content').querySelector('aside.tabs-aside');
   const queryParams = readQueryParams();
@@ -66,10 +58,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   let sheetID = selectedSheet.id;
   let sheetName = selectedSheet.name;
   if (!selectedSheet.ranges?.includes(queryParams.sheet)) removeQueryParams(['sheet']);
-  // eslint-disable-next-line max-len
-  let selectedRange = selectedSheet.ranges?.includes(queryParams.sheet)
-    ? queryParams.sheet
-    : selectedSheet.ranges?.[0];
+  let selectedRange = selectedSheet.ranges?.includes(queryParams.sheet) ? queryParams.sheet : selectedSheet.ranges?.[0];
   let isProtected = selectedSheet.protected;
   let isLocked = true;
   let contentChanged = () => false;
@@ -125,7 +114,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         const site = siteSlug;
         const { path } = selectedSheet;
         const publishPreviewURL = `https://admin.hlx.page/preview/${projectRepo}/${site}/${defaultBranch}${path}.json`;
-        // eslint-disable-next-line consistent-return
         const post = async (previewOrPublish = 'Preview', url = publishPreviewURL) => {
           const showButtonLoading = (bool = true) => {
             if (previewOrPublish === 'Preview') {
@@ -145,18 +133,10 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
             }
             showButtonLoading(false);
             if (previewOrPublish === 'Preview' || previewOrPublish === 'PreviewAndPublish') {
-              showToast(
-                `Preview successfully updated: <a href="${
-                  customPreviewUrl + path
-                }.json" target="_blank">See the changes on your Preview site</a>`,
-              );
+              showToast(`Preview successfully updated: <a href="${customPreviewUrl + path}.json" target="_blank">See the changes on your Preview site</a>`);
             }
             if (previewOrPublish === 'Publish') {
-              showToast(
-                `Publish successfully updated: <a href="${
-                  customPreviewUrl + path
-                }.json" target="_blank">See the changes on your Live site</a>`,
-              );
+              showToast(`Publish successfully updated: <a href="${customPreviewUrl + path}.json" target="_blank">See the changes on your Live site</a>`);
             }
             return response;
           } catch (error) {
@@ -304,10 +284,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
         // Add New Row button
         const addRowContainer = container.querySelector('#add-row-container');
         if (addRowContainer) addRowContainer.remove(); // Clean up the previous button
-        sheetTable.insertAdjacentHTML(
-          'afterend',
-          '<div id="add-row-container"><button id="add-row" class="button action">New Row</button></div>',
-        );
+        sheetTable.insertAdjacentHTML('afterend', '<div id="add-row-container"><button id="add-row" class="button action">New Row</button></div>');
 
         container.querySelector('#add-row').addEventListener('click', () => {
           sheetTable.append(generateEmptyRow(tableData));
@@ -356,7 +333,6 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       const currentMode = table.getAttribute('data-editMode');
       const disableInputs = (bool = true) => {
         table.querySelectorAll('input').forEach((input) => {
-          // NOSONAR
           input.disabled = bool;
           container.querySelector('#sheet-select').disabled = bool;
           discardButton.disabled = bool;
@@ -428,22 +404,15 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       };
 
       if (isLocked) {
-        const unlockButton = parseFragment(
-          '<button class="button action destructive" id="lock-unlock">Unlock (not recommended)</button>',
-        );
-        const cancelUnlockButton = parseFragment(
-          '<button class="button action primary" id="lock-discard">Discard</button>',
-        );
+        const unlockButton = parseFragment('<button class="button action destructive" id="lock-unlock">Unlock (not recommended)</button>');
+        const cancelUnlockButton = parseFragment('<button class="button action primary" id="lock-discard">Discard</button>');
 
         const lockDialog = createDialog(
           `<div id="protected-sheet-info">
           <p>You are in the process of removing the protection, which allows you to edit the spreadsheet.</p>
           <strong>We recommend that you do not do this, as this is not usually necessary.</strong>
           <p>Please only proceed if you know what you are doing.</p></div>`,
-          [
-            unlockButton,
-            cancelUnlockButton,
-          ],
+          [unlockButton, cancelUnlockButton],
           { open: false },
         );
 
@@ -480,21 +449,15 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
   <div class="spreadsheet-title">
     <div style="display: flex;">
       <h2></h2>
-      <button id="lock-button" class="button transparent" ${
-  !isProtected && 'disabled'
-}><img src="/icons/${
-  isProtected && isLocked ? 'locked' : 'unlocked'
-}.svg" alt="lock icon" id="lock-svg" /></button>
+      <button id="lock-button" class="button transparent" ${!isProtected && 'disabled'}><img src="/icons/${
+        isProtected && isLocked ? 'locked' : 'unlocked'
+      }.svg" alt="lock icon" id="lock-svg" /></button>
     </div>
     <button id="edit-sheet" class="button action primary" ${isProtected && 'disabled'}>Edit</button>
     <button id="discard-changes" class="button action" hidden>Discard</button>
     <a class="button action secondary" href="https://docs.google.com/spreadsheets/d/${sheetID}" id="open-sheet" target="_blank">Open</a>
-    <button id="preview-sheet" class="button action secondary" ${
-  isProtected && 'disabled'
-}>Preview</button>
-    <button id="publish-sheet" class="button action secondary" ${
-  isProtected && 'disabled'
-}>Publish</button>
+    <button id="preview-sheet" class="button action secondary" ${isProtected && 'disabled'}>Preview</button>
+    <button id="publish-sheet" class="button action secondary" ${isProtected && 'disabled'}>Publish</button>
     <button id="preview-publish-info-button" class="button transparent"><img src="/icons/help-dark.svg" alt="hint icon" /></button></div>
   <div class="spreadsheet-table-container"><table id="sheet-table" class="sheet" data-editMode="false"></table></div>
   </div>`;
@@ -505,12 +468,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
       `<div id="preview-publish-info">
       <p>The "Preview" will update the sheet for the Preview site and "Publish" will update it for the Preview and Live site.</p></div>`,
       [
-        parseFragment(
-          `<a href="${customPreviewUrl}" target="_blank" class="button action secondary">Open your Preview site</a>`,
-        ),
-        parseFragment(
-          `<a href="${customLiveUrl}" target="_blank" class="button action secondary">Open your Live site</a>`,
-        ),
+        parseFragment(`<a href="${customPreviewUrl}" target="_blank" class="button action secondary">Open your Preview site</a>`),
+        parseFragment(`<a href="${customLiveUrl}" target="_blank" class="button action secondary">Open your Live site</a>`),
       ],
     );
   });
@@ -561,9 +520,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
     writeQueryParams({ path: selectedSheet.path, sheet: selectedRange });
     container.querySelector('.spreadsheet-title h2').textContent = selectedSheet.name;
     container.querySelector('.sheet').innerHTML = renderSkeleton('sheetsTable');
-    container.querySelector(
-      '#open-sheet',
-    ).href = `https://docs.google.com/spreadsheets/d/${sheetID}`;
+    container.querySelector('#open-sheet').href = `https://docs.google.com/spreadsheets/d/${sheetID}`;
     await fetchAndRenderSheet(selectedSheet);
   });
 

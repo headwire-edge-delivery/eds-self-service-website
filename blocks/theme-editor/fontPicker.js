@@ -3,14 +3,7 @@ import { parseFragment, SCRIPT_API } from '../../scripts/scripts.js';
 const fontWeights = ['300', '400', '700'];
 const fontsKey = 'AIzaSyDJEbwD5gSSwekxhVJKKCQdzWegzhDGPps';
 
-export default async function initFontPicker({
-  varsObj,
-  editor,
-  block,
-  warning,
-  getCSSVars,
-  findCSSVar,
-}) {
+export default async function initFontPicker({ varsObj, editor, block, warning, getCSSVars, findCSSVar }) {
   const googleFonts = await fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${fontsKey}&capability=WOFF2&sort=popularity`)
     .then((req) => req.json())
     .catch(() => null);
@@ -20,25 +13,12 @@ export default async function initFontPicker({
   }
 
   const validFonts = googleFonts.items.filter(
-    ({ subsets, variants }) => subsets.includes('latin')
-      && fontWeights.every((weight) => variants.includes(weight === '400' ? 'regular' : weight)),
+    ({ subsets, variants }) => subsets.includes('latin') && fontWeights.every((weight) => variants.includes(weight === '400' ? 'regular' : weight)),
   );
 
-  const defaultFonts = [
-    'Arial',
-    'Verdana',
-    'Tahoma',
-    'Trebuchet MS',
-    'Times New Roman',
-    'Georgia',
-    'Garamond',
-    'Courier New',
-  ];
+  const defaultFonts = ['Arial', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Times New Roman', 'Georgia', 'Garamond', 'Courier New'];
 
-  const dropdownFonts = [
-    ...validFonts.slice(0, 10),
-    ...defaultFonts.map((font) => ({ family: font })),
-  ];
+  const dropdownFonts = [...validFonts.slice(0, 10), ...defaultFonts.map((font) => ({ family: font }))];
 
   const updateFonts = async (selectedFont, newFont) => {
     const selectedFonts = [...block.querySelectorAll('.font-picker')].map((el) => el.value);
@@ -77,14 +57,7 @@ export default async function initFontPicker({
         varsObj.cssFonts = await req.text();
 
         // Update editor
-        editor.setValue(
-          editor
-            .getValue()
-            .replace(
-              `--${selectedFont.name}:${selectedFont.fullValue}`,
-              `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`,
-            ),
-        );
+        editor.setValue(editor.getValue().replace(`--${selectedFont.name}:${selectedFont.fullValue}`, `--${selectedFont.name}: '${newFont}', '${newFont} Fallback', sans-serif`));
 
         varsObj.cssVars = getCSSVars(editor.getValue());
       }
@@ -117,7 +90,9 @@ export default async function initFontPicker({
   document.head.append(dropdownFontStyles);
   const appendFontStyles = ({ family, files, variants }) => {
     const urlProperty = files.regular || files['400'] || files['300'] || files[variants[0]];
-    dropdownFontStyles.innerHTML += `@font-face {font-family: '${family}'; font-display: swap; font-weight: regular; font-style: normal; src:url(${urlProperty}) format('woff2');}\n`;
+    dropdownFontStyles.innerHTML += `@font-face {font-family: '${
+      family
+    }'; font-display: swap; font-weight: regular; font-style: normal; src:url(${urlProperty}) format('woff2');}\n`;
   };
 
   const appendOption = (selectElement, { family, files, variants }) => {
@@ -179,15 +154,18 @@ export default async function initFontPicker({
     const fontItems = [];
 
     // MARK: Observer
-    const itemViewObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          appendFontStyles(validFonts[entry.target.dataset.index]);
+    const itemViewObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            appendFontStyles(validFonts[entry.target.dataset.index]);
 
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { root: fontList });
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { root: fontList },
+    );
 
     const liOnclick = (event) => {
       fontList.querySelectorAll('.is-selected').forEach((item) => item.classList.remove('is-selected'));
@@ -207,7 +185,8 @@ export default async function initFontPicker({
       }
       li.dataset.value = font.family;
       li.dataset.category = font.category;
-      if (!categoriesMap[font.category]) { // add new categories
+      if (!categoriesMap[font.category]) {
+        // add new categories
         categoriesMap[font.category] = true;
       }
       li.dataset.lastModified = Date.parse(font.lastModified);
@@ -229,19 +208,13 @@ export default async function initFontPicker({
         currItem.hidden = null;
 
         // search check
-        if (
-          currentFilters?.search?.length
-          && !currItem.dataset.value.toLowerCase().includes(currentFilters.search.toLowerCase())
-        ) {
+        if (currentFilters?.search?.length && !currItem.dataset.value.toLowerCase().includes(currentFilters.search.toLowerCase())) {
           currItem.hidden = true;
           continue;
         }
 
         // category check
-        if (
-          currentFilters?.category !== 'all'
-          && currItem.dataset.category !== currentFilters.category
-        ) {
+        if (currentFilters?.category !== 'all' && currItem.dataset.category !== currentFilters.category) {
           currItem.hidden = true;
           continue;
         }
@@ -301,9 +274,10 @@ export default async function initFontPicker({
     let selectedFontOption = el.querySelector(`option[value="${selectedFont.value}"]`);
     if (!selectedFontOption) {
       // add selected font, if it was not in the reduced list
-      selectedFontOption = appendOption(el, validFonts.find(
-        (gFont) => gFont.family === selectedFont.value,
-      ));
+      selectedFontOption = appendOption(
+        el,
+        validFonts.find((gFont) => gFont.family === selectedFont.value),
+      );
     }
     el.value = selectedFontOption.value;
     el.style.fontFamily = selectedFontOption.style.fontFamily;

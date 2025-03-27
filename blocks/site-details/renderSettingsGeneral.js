@@ -1,11 +1,11 @@
-import {
-  parseFragment, safeText, SCRIPT_API,
-  toValidPropertyName,
-} from '../../scripts/scripts.js';
+import { parseFragment, safeText, SCRIPT_API, toValidPropertyName } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import {
   renderDangerZone,
-  addIconDialogSetup, manageGoogleCalendarLink, renderBlocksList, renderIconsList,
+  addIconDialogSetup,
+  manageGoogleCalendarLink,
+  renderBlocksList,
+  renderIconsList,
   renderPrevUpdatesSection,
   renderUpdatesSection,
 } from './renderSettingsUtils.js';
@@ -14,20 +14,20 @@ import { showErrorToast, showToast } from '../../scripts/toast.js';
 
 // MARK: render
 export default async function renderSettingsGeneral({ container, nav, renderOptions }) {
-  const {
-    projectDetails, authHeaders, authHeadersWithBody, siteSlug, versionInfo, user,
-  } = renderOptions;
+  const { projectDetails, authHeaders, authHeadersWithBody, siteSlug, versionInfo, user } = renderOptions;
 
   container.innerHTML = renderSkeleton('settings');
 
-  const [
-    authors,
-    blocksListData,
-    iconsListData,
-  ] = await Promise.all([
-    fetch(`${SCRIPT_API}/authors/${siteSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
-    fetch(`${SCRIPT_API}/blocks/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
-    fetch(`${SCRIPT_API}/icons/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null),
+  const [authors, blocksListData, iconsListData] = await Promise.all([
+    fetch(`${SCRIPT_API}/authors/${siteSlug}`, { headers: authHeaders })
+      .then((res) => res.json())
+      .catch(() => null),
+    fetch(`${SCRIPT_API}/blocks/${projectDetails.projectSlug}`, { headers: authHeaders })
+      .then((res) => res.json())
+      .catch(() => null),
+    fetch(`${SCRIPT_API}/icons/${projectDetails.projectSlug}`, { headers: authHeaders })
+      .then((res) => res.json())
+      .catch(() => null),
   ]);
 
   container.innerHTML = `
@@ -47,7 +47,8 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     <h2>Contact email</h2>
     <form class="contact-email-form form">
         <label>
-            <span>Define which email the contact form submits to. <span id="contact-email-warning" hidden class="warning">Please enter a valid Email (e.g. person@example.com)</span></span>
+            <span>Define which email the contact form submits to.
+            <span id="contact-email-warning" hidden class="warning">Please enter a valid Email (e.g. person@example.com)</span></span>
             <input name="email" type="email" placeholder="person@example.com" />
         </label>    
         <button id="contact-email-save" title="Update the Contact Email" class="button primary is-disabled action" type="submit">Update</button>
@@ -142,7 +143,9 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
           const prevOwner = authorsList.querySelector('li.is-owner');
           if (prevOwner) {
             prevOwner.classList.remove('is-owner');
-            prevOwner.querySelectorAll('button[disabled]').forEach((button) => { button.disabled = null; });
+            prevOwner.querySelectorAll('button[disabled]').forEach((button) => {
+              button.disabled = null;
+            });
           }
 
           revoke.disabled = true;
@@ -200,13 +203,13 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   addAuthorForm.oninput = () => {
     if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addAuthorForm.querySelector('input').value)) {
       addAuthorForm.querySelector('#add-author-button').classList.remove('is-disabled');
-      document.querySelector('#new-author-warning').hidden = true;
+      container.querySelector('#new-author-warning').hidden = true;
     } else {
       addAuthorForm.querySelector('#add-author-button').classList.add('is-disabled');
-      document.querySelector('#new-author-warning').hidden = false;
+      container.querySelector('#new-author-warning').hidden = false;
     }
     if (addAuthorForm.querySelector('input').value === '') {
-      document.querySelector('#new-author-warning').hidden = true;
+      container.querySelector('#new-author-warning').hidden = true;
     }
   };
 
@@ -224,10 +227,10 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   contactEmailFormInput.oninput = () => {
     if (contactEmailFormInput.value === contactEmail || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contactEmailFormInput.value)) {
       contactEmailButton.classList.remove('is-disabled');
-      document.querySelector('#contact-email-warning').hidden = true;
+      container.querySelector('#contact-email-warning').hidden = true;
     } else {
       contactEmailButton.classList.add('is-disabled');
-      document.querySelector('#contact-email-warning').hidden = false;
+      container.querySelector('#contact-email-warning').hidden = false;
     }
   };
 
@@ -256,20 +259,21 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
   };
 
   // MARK: Favicon
-  container.querySelector('.change-favicon').onclick = () => addIconDialogSetup({
-    siteSlug,
-    authHeaders,
-    authHeadersWithBody,
-    titleText: 'Favicon',
-    fileAccept: '.ico',
-    uploadEndpoint: `${SCRIPT_API}/favicon/${siteSlug}`,
-    replaceIconItem: container.querySelector('.favicon-section img[alt="favicon"]'),
-    defaultSrc: `https://${siteSlug}.kestrelone.com/favicon.ico`,
-  });
+  container.querySelector('.change-favicon').onclick = () =>
+    addIconDialogSetup({
+      siteSlug,
+      authHeaders,
+      authHeadersWithBody,
+      titleText: 'Favicon',
+      fileAccept: '.ico',
+      uploadEndpoint: `${SCRIPT_API}/favicon/${siteSlug}`,
+      replaceIconItem: container.querySelector('.favicon-section img[alt="favicon"]'),
+      defaultSrc: `https://${siteSlug}.kestrelone.com/favicon.ico`,
+    });
 
   // MARK: blocks & icons
-  renderBlocksList(container, blocksListData, { projectDetails, authHeaders, siteSlug });
-  renderIconsList(container, iconsListData, { projectDetails, authHeaders, siteSlug });
+  renderBlocksList({ container, nav, blocksListData, projectDetails, authHeaders, siteSlug });
+  renderIconsList({ container, nav, iconsListData, projectDetails, authHeaders, siteSlug });
 
   // MARK: Updates section
   const updatePromptInfoDiv = container.querySelector('.update-prompt-info');
@@ -286,10 +290,16 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
 
   const emailAsPropertyName = toValidPropertyName(user.email);
   if (projectDetails?.hideUpdatePrompts?.[emailAsPropertyName]) {
-    updatePromptInfoDiv.insertAdjacentHTML('beforeend', '<p>Update prompts are disabled. Enable them <button id="enable-update-prompts" class="button action secondary">here</button></p>');
+    updatePromptInfoDiv.insertAdjacentHTML(
+      'beforeend',
+      '<p>Update prompts are disabled. Enable them <button id="enable-update-prompts" class="button action secondary">here</button></p>',
+    );
     updatePromptInfoDiv.querySelector('#enable-update-prompts').onclick = async (event) => {
       event.target.classList.add('loading');
-      const enablePromptRes = await fetch(`${SCRIPT_API}/disableUpdatePrompts/${projectDetails.projectSlug}?forceState=false`, { method: 'POST', headers: authHeaders }).catch(() => null);
+      const enablePromptRes = await fetch(`${SCRIPT_API}/disableUpdatePrompts/${projectDetails.projectSlug}?forceState=false`, {
+        method: 'POST',
+        headers: authHeaders,
+      }).catch(() => null);
       if (enablePromptRes?.ok) {
         projectDetails.hideUpdatePrompts[emailAsPropertyName] = false;
         showToast('Update prompts enabled.');

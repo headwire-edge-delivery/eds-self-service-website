@@ -1,8 +1,9 @@
+/* eslint-disable max-len */
 import { colorInput, KESTREL_ONE } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 
 export default function createBaseBlockHtml(projectSlug) {
-  return /* html */`
+  return /* html */ `
   <div class="nav">
     <div class="breadcrumbs">
       <a href="/dashboard/sites">

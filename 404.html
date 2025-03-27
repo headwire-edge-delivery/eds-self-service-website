@@ -1,54 +1,52 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
-<head>
-  <title>Page not found</title>
-  <script type="text/javascript">
-    window.isErrorPage = true;
-    window.errorCode = '404';
-  </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:title" content="Page not found">
-  <script src="/scripts/scripts.js" type="module" crossorigin="use-credentials"></script>
-  <script type="module">
-    window.addEventListener('load', () => {
-      if (document.referrer) {
-        const { origin, pathname } = new URL(document.referrer);
-        if (origin === window.location.origin) {
-          const backBtn = document.createElement('a');
-          backBtn.classList.add('button', 'primary');
-          backBtn.href = pathname;
-          backBtn.textContent = 'Go back';
-          backBtn.title = 'Go back';
-          const btnContainer = document.querySelector('main.error .button-container');
-          btnContainer.append(backBtn);
+  <head>
+    <title>Page not found</title>
+    <script type="text/javascript">
+      window.isErrorPage = true;
+      window.errorCode = '404';
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="og:title" content="Page not found" />
+    <script src="/scripts/scripts.js" type="module" crossorigin="use-credentials"></script>
+    <script type="module">
+      window.addEventListener('load', () => {
+        if (document.referrer) {
+          const { origin, pathname } = new URL(document.referrer);
+          if (origin === window.location.origin) {
+            const backBtn = document.createElement('a');
+            backBtn.classList.add('button', 'primary');
+            backBtn.href = pathname;
+            backBtn.textContent = 'Go back';
+            backBtn.title = 'Go back';
+            const btnContainer = document.querySelector('main.error .button-container');
+            btnContainer.append(backBtn);
+          }
         }
+      });
+    </script>
+    <link rel="stylesheet" href="/styles/styles.css" />
+    <style>
+      main.error {
+        min-height: calc(100vh - 64px);
+        display: grid;
+        place-items: center;
+        text-align: center;
       }
-    });
-  </script>
-  <link rel="stylesheet" href="/styles/styles.css">
-  <style>
-    main.error {
-      min-height: calc(100vh - 64px);
-      display: grid;
-      place-items: center;
-      text-align: center;
-    }
-  </style>
-  <link rel="stylesheet" href="/styles/lazy-styles.css">
-</head>
+    </style>
+    <link rel="stylesheet" href="/styles/lazy-styles.css" />
+  </head>
 
-<body>
-  <header></header>
-  <main class="error">
-    <div class="section">
-      <h1>404 Page Not Found</h1>
-      <p class="button-container">
-        <a href="/" class="button secondary">Go home</a>
-      </p>
-    </div>
-  </main>
-  <footer></footer>
-</body>
-
+  <body>
+    <header></header>
+    <main class="error">
+      <div class="section">
+        <h1>404 Page Not Found</h1>
+        <p class="button-container">
+          <a href="/" class="button secondary">Go home</a>
+        </p>
+      </div>
+    </main>
+    <footer></footer>
+  </body>
 </html>

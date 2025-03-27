@@ -9,11 +9,13 @@ function siteOverviewTour({ showAutoTour }) {
     steps: [
       {
         title: 'Overview',
-        description: 'Overview serves as your centralized control hub, offering quick access to essential information and actions about your site to help you to stay organized and productive with ease.',
+        description:
+          'Overview serves as your centralized control hub, offering quick access to essential information and actions about your site to help you to stay organized and productive with ease.',
       },
       {
         title: 'Install Sidekick',
-        description: 'Please install the Sidekick Extension. It is mandatory to use the Sidekick Extension. <a href="https://www.aem.live/docs/sidekick-extension" target="_blank">Click here to learn more about Sidekick.</a>',
+        description:
+          'Please install the Sidekick Extension. It is mandatory to use the Sidekick Extension. <a href="https://www.aem.live/docs/sidekick-extension" target="_blank">Click here to learn more about Sidekick.</a>',
         element: '#install-sidekick-button',
         skip: isDarkAlley,
         destroyOnClicked: false,
@@ -42,7 +44,7 @@ function siteOverviewTour({ showAutoTour }) {
       },
       {
         title: 'Site ID',
-        description: 'A unique identifier for your site that can\'t be changed.',
+        description: "A unique identifier for your site that can't be changed.",
         element: '#site-id',
       },
       {
@@ -68,7 +70,7 @@ function siteOverviewTour({ showAutoTour }) {
       },
       {
         title: 'Checklist',
-        description: 'Don\' know how to start? Follow the checklist!',
+        description: "Don't know how to start? Follow the checklist!",
         element: '#checklist',
       },
     ],
@@ -92,11 +94,13 @@ function sitePagesTour({ showAutoTour }) {
     steps: [
       {
         title: 'Pages',
-        description: 'Pages lists all pages to serve as a comprehensive directory of your website\'s content. It provides a convenient overview of all accessible pages, enabling easy navigation and exploration of your site.',
+        description:
+          "Pages lists all pages to serve as a comprehensive directory of your website's content. It provides a convenient overview of all accessible pages, enabling easy navigation and exploration of your site.",
       },
       {
         title: 'Add a new Page',
-        description: 'If you want to create a new page, click here. <br /> It will open a dialog where you can define a Page name and choose between the Templates. <br /> It\'s the easiest way to create a new page.',
+        description:
+          "If you want to create a new page, click here. <br /> It will open a dialog where you can define a Page name and choose between the Templates. <br /> It's the easiest way to create a new page.",
         element: '#add-page-button',
         side: 'left',
       },
@@ -144,7 +148,8 @@ function siteSheetsTour({ showAutoTour }) {
   const editButtonText = document.querySelector('#edit-sheet')?.textContent;
   let editButtonDescription;
   if (editButtonText === 'Edit') {
-    editButtonDescription = 'Click to edit the selected sheet. Once you make changes, the button will change to a Save Button. Otherwise, you can return to preview mode. <br/> If you want to know more about editing, click on the "Edit" and open the Tour again.';
+    editButtonDescription =
+      'Click to edit the selected sheet. Once you make changes, the button will change to a Save Button. Otherwise, you can return to preview mode. <br/> If you want to know more about editing, click on the "Edit" and open the Tour again.';
   } else if (editButtonText === 'Save') {
     editButtonDescription = 'Click to save your changes. After saving, the button will change to "Back" to return to preview mode.';
   } else {
@@ -174,7 +179,8 @@ function siteSheetsTour({ showAutoTour }) {
       },
       {
         title: 'Lock / Unlock',
-        description: 'Most of the Spreadsheets are not protected, but "query-index" and "search-index" are. For every other Sheet, the lock has no functionality. <br /> If you want to edit a protected Sheet, you need to unlock them first. <br /> However, we strongly advise against doing this unless you fully understand the risks, as unintended changes could disrupt critical functionality. <br /> <strong>Only remove protection if you are confident in your actions!</strong>',
+        description:
+          'Most of the Spreadsheets are not protected, but "query-index" and "search-index" are. For every other Sheet, the lock has no functionality. <br /> If you want to edit a protected Sheet, you need to unlock them first. <br /> However, we strongly advise against doing this unless you fully understand the risks, as unintended changes could disrupt critical functionality. <br /> <strong>Only remove protection if you are confident in your actions!</strong>',
         element: '#lock-button',
       },
       {
@@ -184,7 +190,7 @@ function siteSheetsTour({ showAutoTour }) {
       },
       {
         title: 'Edit a Value',
-        description: 'Let\'s edit your Sheet. <br /> You can change the content of your Sheet here.',
+        description: "Let's edit your Sheet. <br /> You can change the content of your Sheet here.",
         element: 'tbody tr td div input',
         skip: editButtonText === 'Edit',
         destroyOnClicked: false,
@@ -208,7 +214,7 @@ function siteSheetsTour({ showAutoTour }) {
       },
       {
         title: 'Discard Changes',
-        description: 'It looks like you have made some changes. <br /> If you want to discard them, that\'s the right button for you.',
+        description: "It looks like you have made some changes. <br /> If you want to discard them, that's the right button for you.",
         element: '#discard-changes',
         skip: document.querySelector('#discard-changes').hidden === true,
         destroyOnClicked: false,
@@ -220,12 +226,14 @@ function siteSheetsTour({ showAutoTour }) {
       },
       {
         title: 'Preview',
-        description: 'Preview is the same as in the Sidekick Browser Extension. <br /> It will update the sheet for your Preview Site. <br/> If you have unsaved changes, you will need to save or discard them first.',
+        description:
+          'Preview is the same as in the Sidekick Browser Extension. <br /> It will update the sheet for your Preview Site. <br/> If you have unsaved changes, you will need to save or discard them first.',
         element: '#preview-sheet',
       },
       {
         title: 'Publish',
-        description: 'Publish is the same as in the Sidekick Browser Extension. <br /> It will update the sheet for your Live Site and your Preview Site. <br/> If you have unsaved changes, you will need to save or discard them first.',
+        description:
+          'Publish is the same as in the Sidekick Browser Extension. <br /> It will update the sheet for your Live Site and your Preview Site. <br/> If you have unsaved changes, you will need to save or discard them first.',
         element: '#publish-sheet',
       },
       {
@@ -234,7 +242,7 @@ function siteSheetsTour({ showAutoTour }) {
         element: '#preview-publish-info-button',
       },
       {
-        title: 'You\'re ready to go',
+        title: "You're ready to go",
         description: 'Now you are ready to edit your Spreadsheets.',
       },
     ],
@@ -253,7 +261,8 @@ function siteMonitoringTour({ showAutoTour }) {
     steps: [
       {
         title: 'Monitoring',
-        description: '<p>Here, you\'ll find key insights into your web performance all in one place.</p><p><strong>Website key metrics:</strong></p><ul><li><strong>Visits</strong>: when someone navigates to your website, either directly or from an external referer. One visit can consist of multiple page views.</li><li><strong>Page views</strong>: when a page of your website is loaded by the browser.</li><li><strong>Page load time</strong>: total amount of time it took to load the page (P50 median).</li><li><strong>Core Web Vitals</strong>: an initiative by Google to provide unified guidance for quality signals that are essential to delivering a great user experience on the web.</li></ul>',
+        description:
+          "<p>Here, you'll find key insights into your web performance all in one place.</p><p><strong>Website key metrics:</strong></p><ul><li><strong>Visits</strong>: when someone navigates to your website, either directly or from an external referer. One visit can consist of multiple page views.</li><li><strong>Page views</strong>: when a page of your website is loaded by the browser.</li><li><strong>Page load time</strong>: total amount of time it took to load the page (P50 median).</li><li><strong>Core Web Vitals</strong>: an initiative by Google to provide unified guidance for quality signals that are essential to delivering a great user experience on the web.</li></ul>",
       },
       {
         title: 'Period Selector',
@@ -338,7 +347,8 @@ function siteMonitoringTour({ showAutoTour }) {
       },
       {
         title: 'Core Web Vitals',
-        description: 'Core Web Vitals are a set of real-world, user-centered metrics that quantify key aspects of the user experience. They measure dimensions of web usability such as load time, interactivity, and the stability of content as it loads. <br/> <a href="https://web.dev/articles/vitals" target="_blank">Learn more about Core Web Vitals.</a>',
+        description:
+          'Core Web Vitals are a set of real-world, user-centered metrics that quantify key aspects of the user experience. They measure dimensions of web usability such as load time, interactivity, and the stability of content as it loads. <br/> <a href="https://web.dev/articles/vitals" target="_blank">Learn more about Core Web Vitals.</a>',
         element: '#core-web-vitals',
       },
       {
@@ -352,9 +362,4 @@ function siteMonitoringTour({ showAutoTour }) {
   return tourData;
 }
 
-export {
-  siteOverviewTour,
-  sitePagesTour,
-  siteSheetsTour,
-  siteMonitoringTour,
-};
+export { siteOverviewTour, sitePagesTour, siteSheetsTour, siteMonitoringTour };

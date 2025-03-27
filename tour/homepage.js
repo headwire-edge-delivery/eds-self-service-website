@@ -6,8 +6,7 @@ export default function homepageTour() {
   });
 
   const tourData = {
-    onFinished: () => {
-    },
+    onFinished: () => {},
     steps: [
       {
         title: 'Welcome to Fast Sites',

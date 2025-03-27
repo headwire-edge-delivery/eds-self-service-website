@@ -33,25 +33,22 @@ export default async function decorate(block) {
   ];
 
   if (isAdmin) {
-    tabsToRender.push(
-      {
-        section: true,
-        name: 'Admin',
-      },
-    );
-    tabsToRender.push(
-      {
-        name: 'Analytics', href: `${pathname}/analytics`, iconSrc: '/icons/analytics.svg', renderTab: renderAnalyticsTab,
-      },
-    );
-    tabsToRender.push(
-      {
-        name: 'Users',
-        href: `${pathname}/users`,
-        iconSrc: '/icons/admin.svg',
-        renderTab: renderUserTab,
-      },
-    );
+    tabsToRender.push({
+      section: true,
+      name: 'Admin',
+    });
+    tabsToRender.push({
+      name: 'Analytics',
+      href: `${pathname}/analytics`,
+      iconSrc: '/icons/analytics.svg',
+      renderTab: renderAnalyticsTab,
+    });
+    tabsToRender.push({
+      name: 'Users',
+      href: `${pathname}/users`,
+      iconSrc: '/icons/admin.svg',
+      renderTab: renderUserTab,
+    });
   }
 
   createTabs({
@@ -63,9 +60,8 @@ export default async function decorate(block) {
   const accountTabContent = block.querySelector('.tab-content.account');
 
   // Add plans & account details
-  const additionalFragments = document.querySelectorAll(
-    'main > .fragment-wrapper, main > .section > .fragment-wrapper',
-  );
+  // eslint-disable-next-line no-restricted-syntax
+  const additionalFragments = document.querySelectorAll('main > .fragment-wrapper, main > .section > .fragment-wrapper');
   additionalFragments.forEach((fragment) => {
     fragment.dataset.noUnload = 'true';
     accountTabContent.append(fragment);

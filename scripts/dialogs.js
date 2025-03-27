@@ -16,9 +16,7 @@ loadCSS(`${window.hlx.codeBasePath}/styles/dialogs.css`);
  * exist in DOM after close.
  * @returns {HTMLDialogElement} The created dialog element.
  */
-export const createDialog = (contentDiv, buttons, {
-  open = true, onCloseFn, fullscreen, surviveClose = false,
-} = {}) => {
+export const createDialog = (contentDiv, buttons, { open = true, onCloseFn, fullscreen, surviveClose = false } = {}) => {
   const dialog = document.createElement('dialog');
   dialog.classList.add('display-dialog');
   if (fullscreen) dialog.classList.add('fullscreen');
@@ -79,12 +77,16 @@ export const createDialog = (contentDiv, buttons, {
   };
 
   if (!surviveClose) {
-    dialog.addEventListener('close', () => {
-      dialog.remove();
-      if (typeof onCloseFn === 'function') {
-        onCloseFn();
-      }
-    }, { once: true });
+    dialog.addEventListener(
+      'close',
+      () => {
+        dialog.remove();
+        if (typeof onCloseFn === 'function') {
+          onCloseFn();
+        }
+      },
+      { once: true },
+    );
   }
 
   document.body.append(dialog);

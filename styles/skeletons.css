@@ -1,33 +1,33 @@
-div[aria-label="loading"] > table > thead > tr > th,
-div[aria-label="loading"] > table > tbody > tr > td {
-    overflow: hidden !important;
+div[aria-label='loading'] > table > thead > tr > th,
+div[aria-label='loading'] > table > tbody > tr > td {
+  overflow: hidden !important;
 }
 
 .skeleton {
-    position: relative;
-    overflow: hidden;
-    background: var(--skeleton-bg);
-    border-radius: var(--small-border-radius);
-    animation: skeleton-bg-slide 1s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+  background: var(--skeleton-bg);
+  border-radius: var(--small-border-radius);
+  animation: skeleton-bg-slide 1s ease-in-out infinite;
 }
 
 @keyframes skeleton-bg-slide {
-    0% {
-        background-position: 100% 0;
-    }
-    
-    100% {
-        background-position: -100% 0;
-    }
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 .skeleton-theme-editor-iframe {
-    width: 810px;
-    margin: 0 auto;
+  width: 810px;
+  margin: 0 auto;
 }
 
 @media (width < 768px) {
-    .skeleton-theme-editor-iframe {
-        width: 375px;
-    }
+  .skeleton-theme-editor-iframe {
+    width: 375px;
+  }
 }

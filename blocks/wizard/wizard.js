@@ -1,15 +1,7 @@
-import {
-  slugMaxLength, slugify, SCRIPT_API, OOPS,
-  sanitizeName,
-} from '../../scripts/scripts.js';
+import { slugMaxLength, slugify, SCRIPT_API, OOPS, sanitizeName } from '../../scripts/scripts.js';
 import { confirmDialog } from '../../scripts/dialogs.js';
 
-const progressSteps = [
-  'name',
-  'drive',
-  'code',
-  'publish',
-];
+const progressSteps = ['name', 'drive', 'code', 'publish'];
 
 const daPrefix = 'da-';
 
@@ -88,10 +80,7 @@ export default async function decorate(block) {
 
   // Wizard prev and next action
   block.addEventListener('click', (event) => {
-    if (
-      (event.target.closest('.next') || event.target.closest('.prev'))
-      && document.body.classList.contains('is-authenticated')
-    ) {
+    if ((event.target.closest('.next') || event.target.closest('.prev')) && document.body.classList.contains('is-authenticated')) {
       selectStep(event);
     }
   });
@@ -128,8 +117,7 @@ export default async function decorate(block) {
       } else {
         leftButton.classList.remove('is-disabled');
       }
-      if (templateContainer.scrollLeft + templateContainer.offsetWidth
-        >= templateContainer.scrollWidth) {
+      if (templateContainer.scrollLeft + templateContainer.offsetWidth >= templateContainer.scrollWidth) {
         rightButton.classList.add('is-disabled');
       } else {
         rightButton.classList.remove('is-disabled');
@@ -156,7 +144,9 @@ export default async function decorate(block) {
       .then((req) => req.json())
       .then(({ data }) => {
         const render = () => {
+          // eslint-disable-next-line no-restricted-syntax
           const selectTemplate = document.querySelector('header a[href="#select-template"]');
+          // eslint-disable-next-line no-restricted-syntax
           const back = document.querySelector('header a[href="#back"]');
 
           const hidePreview = () => {
@@ -170,14 +160,11 @@ export default async function decorate(block) {
           };
 
           templateContainer.innerHTML = data
-            .map(
-              ({
-                id, name, description, enabled, demo,
-              }, i) => {
-                if (enabled.toLowerCase() === 'false') {
-                  return '';
-                }
-                return `
+            .map(({ id, name, description, enabled, demo }, i) => {
+              if (enabled.toLowerCase() === 'false') {
+                return '';
+              }
+              return `
           <a href="/templates/${id}" id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
             <p>${description}</p>
@@ -185,8 +172,7 @@ export default async function decorate(block) {
             <iframe class="preview" src="${demo}" loading="lazy"></iframe>
           </a>
         `;
-              },
-            )
+            })
             .join('');
 
           const templateImage = document.createElement('div');
@@ -233,6 +219,7 @@ export default async function decorate(block) {
                 selectTemplate.onclick = async (e) => {
                   e.preventDefault();
                   window.sessionStorage.redirectTo = `${window.location.href}/create`;
+                  // eslint-disable-next-line no-restricted-syntax
                   const plansDialog = document.querySelector('.plans-dialog');
                   if (plansDialog) {
                     plansDialog.showModal();
@@ -297,6 +284,7 @@ export default async function decorate(block) {
           window.onpopstate = handleHistory;
         };
 
+        // eslint-disable-next-line no-restricted-syntax
         if (document.querySelector('.header[data-block-status="loaded"]')) {
           render();
         } else {
@@ -393,9 +381,7 @@ export default async function decorate(block) {
     if (event.target === nameInput) {
       nameInput.value = sanitizeName(nameInput.value);
     }
-    if (event.target === nameInput && (
-      !slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === daPrefix))
-    ) {
+    if (event.target === nameInput && (!slugInput.value || (darkAlleyCheckbox.checked && slugInput.value === daPrefix))) {
       slugInput.dataset.copyName = true;
     }
     // slug copy handling
@@ -469,12 +455,15 @@ export default async function decorate(block) {
       editStep.classList.add('error');
       const errorMessage = editStep.querySelector('.error-message');
       if (!errorMessage) {
-        editStep.querySelector('.button-container').insertAdjacentHTML('beforebegin', `
+        editStep.querySelector('.button-container').insertAdjacentHTML(
+          'beforebegin',
+          `
           <div class="error-message">
               <p>${OOPS} Please try again in a few minutes.</p>
               <button class="button prev">Go back</button>
           </div>
-        `);
+        `,
+        );
 
         editStep.querySelector('.error-message .button').onclick = () => {
           window?.zaraz?.track('click error site back');
@@ -501,14 +490,7 @@ export default async function decorate(block) {
       const statusInterval = setInterval(async () => {
         const reqStatus = await fetch(`${SCRIPT_API}/jobs/${jobId}`);
         if (reqStatus.ok) {
-          const {
-            steps,
-            finished,
-            success,
-            failed,
-            projectSlug,
-            darkAlleyUrl,
-          } = await reqStatus.json();
+          const { steps, finished, success, failed, projectSlug, darkAlleyUrl } = await reqStatus.json();
 
           renderStatusList(steps);
 

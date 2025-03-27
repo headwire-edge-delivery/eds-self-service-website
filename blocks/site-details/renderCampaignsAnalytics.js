@@ -1,19 +1,14 @@
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
-import {
-  clamp,
-  dateToRelativeSpan,
-  parseFragment, safeText, SCRIPT_API,
-  syntheticClickEvent,
-} from '../../scripts/scripts.js';
+import { clamp, dateToRelativeSpan, parseFragment, safeText, SCRIPT_API, syntheticClickEvent } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { createDialog } from '../../scripts/dialogs.js';
 
-const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
+const createAnalyticsTableContent = (container, campaignAnalyticsData, search) => {
   if (!campaignAnalyticsData) {
     return '<tr><td class="empty" colspan="8">Not enough data</td></tr>';
   }
 
-  document.querySelector('.email-details').innerHTML = `
+  container.querySelector('.email-details').innerHTML = `
   <div id="scrollArea" class="clusterize-scroll">
     <table>
       <thead>
@@ -62,7 +57,6 @@ const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
       let campaign;
       try {
         const emailPreviewUrl = new URL(new URLSearchParams(new URL(emailURL).search).get('contentUrl'));
-        // eslint-disable-next-line prefer-destructuring
         campaign = emailPreviewUrl.pathname.split('/')[2];
       } catch {
         campaign = '';
@@ -77,26 +71,34 @@ const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
           <td>${bounced ? dateToRelativeSpan(bounced.created_at).outerHTML : ''}</td>
           <td>${complained ? dateToRelativeSpan(complained.created_at).outerHTML : ''}</td>
           <td>${opened ? dateToRelativeSpan(opened.created_at).outerHTML : ''}</td>
-          <td>${clicks.length ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button>
-                <div hidden><ul class="clicked-links">${clicks.map(
-    (clicked) => `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${clicked.data.click.link}</a> ${dateToRelativeSpan(clicked.data.click.timestamp).outerHTML}</li>`,
-  ).join('')}</ul></div>`
-    : ''
-}</td>
+          <td>${
+            clicks.length
+              ? `<button class="click-details button action secondary">${clicks.length}&nbsp;click(s)</button>
+                <div hidden><ul class="clicked-links">${clicks
+                  .map(
+                    (clicked) =>
+                      `<li>Clicked <a href="${clicked.data.click.link}" target="_blank">${
+                        clicked.data.click.link
+                      }</a> ${dateToRelativeSpan(clicked.data.click.timestamp).outerHTML}</li>`,
+                  )
+                  .join('')}</ul></div>`
+              : ''
+          }</td>
         </tr>
       `;
     });
 
   const rows = list.filter((row) => row !== null);
 
-  // eslint-disable-next-line no-undef
+  const clusterizeTable = container.querySelector('#contentArea');
+
   const clusterize = new Clusterize({
     rows: rows.length ? rows : ['<tr><td class="empty" colspan="8">No data found</td></tr>'],
     scrollId: 'scrollArea',
-    contentId: 'contentArea',
+    contentElem: clusterizeTable,
     callbacks: {
       clusterChanged: () => {
-        document.querySelector('#contentArea').querySelectorAll('.click-details').forEach((el) => {
+        clusterizeTable.querySelectorAll('.click-details').forEach((el) => {
           el.onclick = () => {
             const clone = el.nextElementSibling.cloneNode(true);
             clone.hidden = false;
@@ -115,16 +117,8 @@ const createAnalyticsTableContent = (campaignAnalyticsData, search) => {
   return clusterize;
 };
 
-export default async function renderCampaignsAnalytics({
-  container,
-  renderOptions,
-  pushHistory,
-  onHistoryPopArray,
-  replaceHistory,
-}) {
-  const {
-    token, siteSlug, pathname,
-  } = renderOptions;
+export default async function renderCampaignsAnalytics({ container, renderOptions, pushHistory, onHistoryPopArray, replaceHistory }) {
+  const { token, siteSlug, pathname } = renderOptions;
 
   container.innerHTML = renderSkeleton('campaign-analytics');
 
@@ -142,15 +136,16 @@ export default async function renderCampaignsAnalytics({
   container.innerHTML = `
         <ul class="campaign-list" data-type="analytics">
           <li><a class="button selector action secondary ${
-  window.location.pathname.startsWith(`${pathname}/campaign-analytics/`) ? '' : 'is-selected'
-}" href="${pathname}/campaign-analytics">All emails</a></li>
+            window.location.pathname.startsWith(`${pathname}/campaign-analytics/`) ? '' : 'is-selected'
+          }" href="${pathname}/campaign-analytics">All emails</a></li>
           ${Object.keys(campaignsData)
-    .map(
-      (campaignSlug) => `<li data-campaign="${campaignSlug}"><a class="button selector action secondary ${
-        window.location.pathname === `${pathname}/campaign-analytics/${campaignSlug}` ? 'is-selected' : ''
-      }" href="${pathname}/campaign-analytics/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`,
-    )
-    .join('')}</a>
+            .map(
+              (campaignSlug) =>
+                `<li data-campaign="${campaignSlug}"><a class="button selector action secondary ${
+                  window.location.pathname === `${pathname}/campaign-analytics/${campaignSlug}` ? 'is-selected' : ''
+                }" href="${pathname}/campaign-analytics/${campaignSlug}">${campaignsData[campaignSlug].name}</li></a>`,
+            )
+            .join('')}</a>
         </ul>
           
         <div id="email-metrics" class="cards metrics">
@@ -199,12 +194,12 @@ export default async function renderCampaignsAnalytics({
           search = '';
           removeQueryParams(['search']);
         }
-        createAnalyticsTableContent(campaignAnalyticsData, search);
+        createAnalyticsTableContent(container, campaignAnalyticsData, search);
       }, 300);
     };
-  }());
+  })();
 
-  createAnalyticsTableContent(campaignAnalyticsData, search);
+  createAnalyticsTableContent(container, campaignAnalyticsData, search);
 
   const calculateCampaignStats = (hasCampaign) => {
     let sentCount = 0;
@@ -298,7 +293,9 @@ export default async function renderCampaignsAnalytics({
   }
 
   if (window.location.pathname === `${pathname}/campaign-analytics` && campaignList.childElementCount === 1) {
-    container.insertAdjacentHTML('afterbegin', `
+    container.insertAdjacentHTML(
+      'afterbegin',
+      `
       <div class="well">
         <img src="/icons/illustrations/pc.svg" alt="" loading="lazy"/>
         <div class="text">
@@ -307,10 +304,12 @@ export default async function renderCampaignsAnalytics({
           <button class="button primary">Start now</button>
         </div>
       </div>
-    `);
+    `,
+    );
 
     container.querySelector('.well button').onclick = () => {
-      const link = document.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"]`);
+      const tabsParent = container.closest('.tabs-content');
+      const link = tabsParent.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"]`);
       link.classList.add('add-campaign');
       link.dispatchEvent(syntheticClickEvent);
     };
