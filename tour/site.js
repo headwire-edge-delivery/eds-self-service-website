@@ -98,6 +98,14 @@ function sitePagesTour({ showAutoTour }) {
           "Pages lists all pages to serve as a comprehensive directory of your website's content. It provides a convenient overview of all accessible pages, enabling easy navigation and exploration of your site.",
       },
       {
+        title: 'Guides',
+        description:
+          'Access the guides to find out how to create content correctly. If you want to learn even more about editing, read the <a href="https://www.aem.live/docs/authoring">Documentation</a>',
+        element: '#guides-button',
+        destroyOnClicked: false,
+        side: 'left',
+      },
+      {
         title: 'Add a new Page',
         description:
           "If you want to create a new page, click here. <br /> It will open a dialog where you can define a Page name and choose between the Templates. <br /> It's the easiest way to create a new page.",
@@ -105,17 +113,17 @@ function sitePagesTour({ showAutoTour }) {
         side: 'left',
       },
       {
+        title: 'See your Site in Action',
+        description: 'Open your amazing site in a new tab.',
+        element: '#open-button',
+        destroyOnClicked: false,
+        side: 'left',
+      },
+      {
         title: 'Pages',
         description: 'A list of all pages in your site',
         destroyOnClicked: false,
         element: '#pages-overview',
-      },
-      {
-        title: 'Edit or Open your Page',
-        description: `You can Edit your Page (which will take you to ${isDarkAlley ? 'Dark Alley' : 'Google Drive'}) or Open your Page in a new tab.`,
-        element: '.button-container',
-        destroyOnClicked: false,
-        side: 'left',
       },
       {
         title: 'Navigation',

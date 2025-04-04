@@ -31,7 +31,7 @@ function SEOTour({ showAutoTour }) {
         side: 'left',
       },
       {
-        title: 'Published/Preview state',
+        title: 'Preview/Published state',
         description: 'Here you can switch between viewing the preview/published state of pages. Make sure your pages are optimized before publishing them.',
         element: '#seo-overview > .button-container',
       },

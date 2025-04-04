@@ -2,6 +2,8 @@ import { hasDarkAlleyAccess } from '../scripts/scripts.js';
 
 function createTemplateTour() {
   const hasDarkAlley = hasDarkAlleyAccess();
+  const templateName = document.querySelector('.template-image h3').textContent;
+  const projectUrl = document.querySelector('#slug-input-wrapper > span').textContent;
   const tourData = {
     onFinished: () => {
       /* prevent "do you want to disable tour?" from showing */
@@ -9,26 +11,28 @@ function createTemplateTour() {
     steps: [
       {
         title: 'Create your new Website',
-        description: 'Here you can create a new Website with the selected Template.',
+        description: `Here you can create a new Website with your selected Template (${templateName}).`,
         destroyOnClicked: false,
       },
       {
         title: 'Name your Site',
-        description: 'Enter a name for your new Site.',
-        element: '#site-name',
+        description: 'Enter a name for your new Site. <br /> The Name will be used as the title of your website. <br /> Choose a name that reflects your brand or purpose.',
+        element: '.input-wrapper:has(#site-name)',
         destroyOnClicked: false,
       },
       {
         title: 'Define a Slug',
-        description:
-          'It will be automatically generated based on the Site Name. But you can change it here. <br /> A Slug is a part of a URL which identifies a particular page on a website in a form readable by users.',
-        element: '#slug-input',
+        description: `It will be automatically generated based on the Site Name. But you can change it here.
+            <br /> A Slug is a part of a URL which identifies a particular page on a website in a form readable by users.
+            <br /> For example, your Site will be available at: <br /> <b>${projectUrl}.</b>`,
+        element: '.input-wrapper:has(#slug-input)',
         destroyOnClicked: false,
       },
       {
         title: 'Describe your Site',
-        description: 'Give a short description of your Site.',
-        element: '#description-input',
+        description:
+          "Give a short description of your Site.<br /> This is only for you or your team.<br /> If you're not sure, just leave it blank. You can change the description at any time.",
+        element: '.input-wrapper:has(#description-input)',
         destroyOnClicked: false,
       },
       {
@@ -43,6 +47,14 @@ function createTemplateTour() {
         title: 'Create your Site',
         description: 'Click here to create your new Site.',
         element: '#create-button',
+        destroyOnClicked: false,
+      },
+      {
+        title: 'Template Preview',
+        description: `A little preview of the ${templateName}. This is how your new Site will look like. You can customize it after the Site is created.`,
+        element: '.template-image',
+        side: 'top',
+        align: 'center',
         destroyOnClicked: false,
       },
     ],

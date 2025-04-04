@@ -24,6 +24,7 @@ export default function homepageTour() {
         title: 'Sign in',
         description: 'Currently you are not logged in. To create or edit a Site, you need to sign in.',
         element: 'a[href="#signin"]',
+        side: 'left',
         skip: userIsAuthenticated,
       },
       {
