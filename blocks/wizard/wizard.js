@@ -174,13 +174,40 @@ export default async function decorate(block) {
             <p>${description}</p>
             <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
             <iframe class="preview" src="${demo}" loading="lazy"></iframe>
-            <div style="margin-top: 1rem;">
+            <div id="preview-create-container">
               <a href="/templates/${id}" class="button">Preview</a>
               <a href="/templates/${id}/create" class="button primary">Create</a>
             </div>
           </div>`;
             })
             .join('');
+
+          if (document.body.classList.contains('is-anonymous')) {
+            const createLinks = templateContainer.querySelectorAll('a[href$="/create"]');
+
+            createLinks.forEach((link) => {
+              link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.sessionStorage.redirectTo = e.target.href;
+
+                // eslint-disable-next-line no-restricted-syntax
+                const plansDialog = document.querySelector('.plans-dialog');
+                if (plansDialog) {
+                  plansDialog.showModal();
+
+                  const handleClose = () => {
+                    window.sessionStorage.removeItem('redirectTo');
+                    plansDialog.removeEventListener('close', handleClose);
+                  };
+                  plansDialog.addEventListener('close', handleClose);
+                } else if (await confirmDialog('Please login to continue')) {
+                  // fallback if plans isn't found
+                  window.auth0Client.loginWithRedirect();
+                }
+              });
+            });
+          }
 
           const templateImage = document.createElement('div');
           templateImage.className = 'template-image';
@@ -240,6 +267,12 @@ export default async function decorate(block) {
                   const plansDialog = document.querySelector('.plans-dialog');
                   if (plansDialog) {
                     plansDialog.showModal();
+
+                    const handleClose = () => {
+                      window.sessionStorage.removeItem('redirectTo');
+                      plansDialog.removeEventListener('close', handleClose);
+                    };
+                    plansDialog.addEventListener('close', handleClose);
                   } else if (await confirmDialog('Please login to continue')) {
                     // fallback if plans isn't found
                     window.auth0Client.loginWithRedirect();
@@ -320,6 +353,7 @@ export default async function decorate(block) {
   nameInputWrapper.classList.add('input-wrapper');
   const nameLabel = document.createElement('label');
   nameLabel.textContent = 'Name';
+  nameLabel.htmlFor = 'site-name';
   nameInputWrapper.append(nameLabel);
   const nameInput = document.createElement('input');
   nameInput.placeholder = 'My Site';
@@ -331,6 +365,7 @@ export default async function decorate(block) {
   slugInputWrapper.classList.add('input-wrapper');
   const slugLabel = document.createElement('label');
   slugLabel.textContent = 'Slug';
+  slugLabel.htmlFor = 'slug-input';
   slugInputWrapper.append(slugLabel);
   const slugInput = document.createElement('input');
   slugInputWrapper.id = 'slug-input-wrapper';
@@ -356,6 +391,7 @@ export default async function decorate(block) {
   const descriptionLabel = document.createElement('label');
   descriptionLabel.classList.add('input-label');
   descriptionLabel.textContent = 'Description';
+  descriptionLabel.htmlFor = 'description-input';
   descriptionTextareaWrapper.append(descriptionLabel);
   const descriptionTextarea = document.createElement('textarea');
   descriptionTextarea.placeholder = 'Description';
@@ -432,7 +468,7 @@ export default async function decorate(block) {
     slugInput.value = slugify(slugInput.value);
 
     slugInput.value = slugInput.value.substring(0, slugMaxLength);
-    slugPreview.textContent = `https://${slugInput.value}.kestrelone.com`;
+    slugPreview.textContent = slugInput.value ? `https://${slugInput.value}.kestrelone.com` : 'https://my-site.kestrelone.com';
     slugInputWrapper.dataset.leftoverChars = slugMaxLength - slugInput.value.length;
 
     updateCreateButton();

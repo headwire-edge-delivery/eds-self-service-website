@@ -179,6 +179,10 @@
   margin: 32px auto auto;
 }
 
+.wizard.block #preview-create-container {
+  margin-top: 1rem;
+}
+
 .wizard.block .carousel {
   padding-block: 16px;
 }
