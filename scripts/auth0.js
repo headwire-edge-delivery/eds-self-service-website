@@ -2,6 +2,9 @@ import { getExpirationTime, SCRIPT_API } from './scripts.js';
 
 const unauthenticatedAllowedPaths = {
   '/': true,
+  '/templates/wknd-template': true,
+  '/templates/sports-template': true,
+  '/templates/club-template': true,
   '/feedback': true,
   '/account-deleted': true,
   '/contact-sales': true,

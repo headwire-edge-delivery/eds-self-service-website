@@ -13,7 +13,7 @@ export function renderTable({ table, tableData, type, projectDetails, token, isD
         <th>Last update</th>
         ${!isEmail ? '<th>Status</th>' : ''}
         <th></th>
-      </tr>  
+      </tr>
     </thead>
     <tbody></tbody>
   `;
@@ -32,7 +32,7 @@ export function renderTable({ table, tableData, type, projectDetails, token, isD
       tableRow.innerHTML = `
         <td>${safeText(item.name)}</td>
         <td>${item.path}</td>
-        <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>          
+        <td>${dateToRelativeSpan(item.lastModified).outerHTML}</td>
         <td>
           <div id="email-open-edit" class="button-container">
             <a class="button action secondary edit" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
@@ -138,7 +138,7 @@ function addPageDialogSetup({ projectDetails, token, user }) {
   const content = parseFragment(`
     <div>
       <h3>Add a new Page</h3>
-      
+
       <div class="columns">
         <form id="add-page-form">
           <p>
@@ -157,10 +157,10 @@ function addPageDialogSetup({ projectDetails, token, user }) {
             </select>
           </label>
         </form>
-        
+
         <iframe hidden></iframe>
       </div>
-      
+
     </div>
   `);
 
@@ -279,20 +279,18 @@ export default async function renderSitePages({ container, nav, renderOptions })
   const { projectDetails, user, token, siteSlug } = renderOptions;
   container.innerHTML = renderSkeleton('pages');
 
-  // add page button
-  const addPageButton = document.createElement('button');
-  addPageButton.classList.add('button', 'secondary', 'action', 'add-page');
-  addPageButton.id = 'add-page-button';
-  addPageButton.title = 'Add a new Page';
-  addPageButton.textContent = 'Add Page';
-  addPageButton.onclick = () => {
+  /* eslint-disable */
+  nav.innerHTML = `
+    <a href="/redirect?url=${projectDetails.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
+    <button class="button secondary action add-page" id="add-page-button" title="Add a new Page">Add Page</button>
+  `;
+  nav.querySelector('#add-page-button').onclick = () => {
     addPageDialogSetup({
       projectDetails,
       token,
       user,
     });
   };
-  nav.append(addPageButton);
 
   const indexData = await fetch(`${SCRIPT_API}/index/${siteSlug}`)
     .then((res) => res.json())
@@ -308,17 +306,17 @@ export default async function renderSitePages({ container, nav, renderOptions })
     <h2>Pages</h2>
     <table class="pages"></table>
   </div>
-  
+
   <div id="nav-overview">
     <h2>Navigation</h2>
     <table class="navs"></table>
   </div>
-  
+
   <div id="footer-overview">
     <h2>Footer</h2>
     <table class="footers"></table>
   </div>
-  
+
   <div id="drafts-overview">
     <h2>Drafts</h2>
     <table class="drafts"></table>

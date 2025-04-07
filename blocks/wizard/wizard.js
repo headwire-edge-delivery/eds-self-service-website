@@ -56,7 +56,11 @@ export default async function decorate(block) {
     const isNext = event.target.closest('.next');
     const selectedStep = block.querySelector(':scope > div.is-selected');
     const siblingStep = selectedStep[isNext ? 'nextElementSibling' : 'previousElementSibling'];
-    if (siblingStep) {
+    if (window.location.pathname.includes('/templates/') && siblingStep) {
+      if (!isNext && window.location.pathname.endsWith('/create')) {
+        history.back();
+        return;
+      }
       siblingStep.scrollIntoView();
 
       selectedStep.classList.remove('is-selected');
@@ -165,15 +169,45 @@ export default async function decorate(block) {
                 return '';
               }
               return `
-          <a href="/templates/${id}" id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
+          <div id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
             <h3>${name}</h3>
             <p>${description}</p>
             <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
             <iframe class="preview" src="${demo}" loading="lazy"></iframe>
-          </a>
-        `;
+            <div id="preview-create-container">
+              <a href="/templates/${id}" class="button">Preview</a>
+              <a href="/templates/${id}/create" class="button primary">Create</a>
+            </div>
+          </div>`;
             })
             .join('');
+
+          if (document.body.classList.contains('is-anonymous')) {
+            const createLinks = templateContainer.querySelectorAll('a[href$="/create"]');
+
+            createLinks.forEach((link) => {
+              link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.sessionStorage.redirectTo = e.target.href;
+
+                // eslint-disable-next-line no-restricted-syntax
+                const plansDialog = document.querySelector('.plans-dialog');
+                if (plansDialog) {
+                  plansDialog.showModal();
+
+                  const handleClose = () => {
+                    window.sessionStorage.removeItem('redirectTo');
+                    plansDialog.removeEventListener('close', handleClose);
+                  };
+                  plansDialog.addEventListener('close', handleClose);
+                } else if (await confirmDialog('Please login to continue')) {
+                  // fallback if plans isn't found
+                  window.auth0Client.loginWithRedirect();
+                }
+              });
+            });
+          }
 
           const templateImage = document.createElement('div');
           templateImage.className = 'template-image';
@@ -194,7 +228,17 @@ export default async function decorate(block) {
             if (event.target.closest('.template')) {
               event.preventDefault();
               const template = event.target.closest('.template');
-              window.history.pushState({}, '', template.href);
+              if (!event.target.matches('.template .button, .template .button *')) {
+                return;
+              }
+
+              if (event.target.matches('.button')) {
+                if (event.target.href.endsWith('create')) {
+                  window.location.href = event.target.href;
+                } else {
+                  window.history.pushState({}, '', event.target.href);
+                }
+              }
 
               block.querySelector('.template.is-selected').classList.remove('is-selected');
               template.classList.add('is-selected');
@@ -223,6 +267,12 @@ export default async function decorate(block) {
                   const plansDialog = document.querySelector('.plans-dialog');
                   if (plansDialog) {
                     plansDialog.showModal();
+
+                    const handleClose = () => {
+                      window.sessionStorage.removeItem('redirectTo');
+                      plansDialog.removeEventListener('close', handleClose);
+                    };
+                    plansDialog.addEventListener('close', handleClose);
                   } else if (await confirmDialog('Please login to continue')) {
                     // fallback if plans isn't found
                     window.auth0Client.loginWithRedirect();
@@ -261,15 +311,13 @@ export default async function decorate(block) {
               block.querySelector('.step.is-selected').classList.remove('is-selected');
               block.querySelector('.step:nth-child(1)').classList.add('is-selected');
             } else if (pathname.startsWith('/templates/') && split.length === 3) {
-              const template = split.pop();
-              document.getElementById(template).click();
+              block.querySelector('a[href="' + pathname + '"]').click();
 
               block.querySelector('.step.is-selected').classList.remove('is-selected');
               block.querySelector('.step:nth-child(1)').classList.add('is-selected');
             } else if (pathname.startsWith('/templates/') && pathname.endsWith('/create')) {
               const template = split[2];
               document.getElementById(template).click();
-              selectTemplate.click();
 
               block.querySelector('.step.is-selected').classList.remove('is-selected');
               const selectedStep = block.querySelector('.step:nth-child(2)');
@@ -301,12 +349,24 @@ export default async function decorate(block) {
   createForm.id = 'create-form';
 
   // name
+  const nameInputWrapper = document.createElement('div');
+  nameInputWrapper.classList.add('input-wrapper');
+  const nameLabel = document.createElement('label');
+  nameLabel.textContent = 'Name';
+  nameLabel.htmlFor = 'site-name';
+  nameInputWrapper.append(nameLabel);
   const nameInput = document.createElement('input');
   nameInput.placeholder = 'My Site';
   nameInput.id = 'site-name';
+  nameInputWrapper.append(nameInput);
 
   // slug
-  const slugInputWrapper = document.createElement('label');
+  const slugInputWrapper = document.createElement('div');
+  slugInputWrapper.classList.add('input-wrapper');
+  const slugLabel = document.createElement('label');
+  slugLabel.textContent = 'Slug';
+  slugLabel.htmlFor = 'slug-input';
+  slugInputWrapper.append(slugLabel);
   const slugInput = document.createElement('input');
   slugInputWrapper.id = 'slug-input-wrapper';
   slugInputWrapper.append(slugInput);
@@ -316,15 +376,27 @@ export default async function decorate(block) {
 
   slugInput.dataset.copyName = true;
 
+  const slugPreview = document.createElement('span');
+  slugPreview.textContent = 'https://my-site.kestrelone.com';
+  slugInputWrapper.append(slugPreview);
+
   // create site button
   const createButton = createStep.querySelector('a[href="#create"]');
   createButton.classList.add('is-disabled');
   createButton.id = 'create-button';
 
   // description
+  const descriptionTextareaWrapper = document.createElement('div');
+  descriptionTextareaWrapper.classList.add('input-wrapper');
+  const descriptionLabel = document.createElement('label');
+  descriptionLabel.classList.add('input-label');
+  descriptionLabel.textContent = 'Description';
+  descriptionLabel.htmlFor = 'description-input';
+  descriptionTextareaWrapper.append(descriptionLabel);
   const descriptionTextarea = document.createElement('textarea');
   descriptionTextarea.placeholder = 'Description';
   descriptionTextarea.id = 'description-input';
+  descriptionTextareaWrapper.append(descriptionTextarea);
 
   // dark alley toggle
   const darkAlleyCheckbox = document.createElement('input');
@@ -338,7 +410,7 @@ export default async function decorate(block) {
 
   const daSlugPrefixRegex = new RegExp(`^${daPrefix}`, 'i');
 
-  createForm.append(nameInput, slugInputWrapper, descriptionTextarea, darkAlleyLabel);
+  createForm.append(nameInputWrapper, slugInputWrapper, descriptionTextareaWrapper, darkAlleyLabel);
 
   // MARK: Valid slug check
   let createButtonTimer;
@@ -396,6 +468,7 @@ export default async function decorate(block) {
     slugInput.value = slugify(slugInput.value);
 
     slugInput.value = slugInput.value.substring(0, slugMaxLength);
+    slugPreview.textContent = slugInput.value ? `https://${slugInput.value}.kestrelone.com` : 'https://my-site.kestrelone.com';
     slugInputWrapper.dataset.leftoverChars = slugMaxLength - slugInput.value.length;
 
     updateCreateButton();

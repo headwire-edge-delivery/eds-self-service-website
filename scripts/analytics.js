@@ -158,7 +158,7 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                   </div>
               </div>
             </div>
-  
+
             <div id="page-views-details">
               <h2>Page views details</h2>
               <div class="cards metrics">
@@ -194,7 +194,7 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                 </div>
               </div>
             </div>
-  
+
             <div id="pageload-details">
               <h2>Page load time details</h2>
               <div class="cards metrics">
@@ -231,7 +231,7 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
               </div>
             </div>
           </div>
-          
+
           ${
             cww
               ? `
@@ -244,19 +244,19 @@ export default async function renderAnalytics({ analytics, container, nav, loadW
                   (metric) => `
                 <div class="cwp-box box">
                   <strong>${metric.toUpperCase()}</strong>
-                  <span>Excellent (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
-                  <span>Good (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
-                  <span>Needs improvement (${metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
+                  <span>Excellent (${metrics[2].data?.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
+                  <span>Good (${metrics[2].data?.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
+                  <span>Needs improvement (${metrics[2].data?.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
                 </div>
                 `,
                 )
                 .join('')}
           </div>
           </div>
-          
+
           <div id="core-web-vitals-path-browsers">
           <h2>By Path and Browsers</h2>
-          
+
           <div class="cards metrics">
             <div class="cwp-box box">
                 <strong>LCP</strong>
