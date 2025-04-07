@@ -4,14 +4,9 @@
  * https://www.aem.live/developer/block-collection/fragment
  */
 
-import {
-  decorateMain,
-} from '../../scripts/scripts.js';
+import { decorateMain } from '../../scripts/scripts.js';
 
-import {
-  loadBlocks,
-  updateSectionsStatus,
-} from '../../scripts/aem.js';
+import { loadBlocks, updateSectionsStatus } from '../../scripts/aem.js';
 import { createDialog } from '../../scripts/dialogs.js';
 
 /**

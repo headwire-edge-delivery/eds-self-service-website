@@ -1,9 +1,4 @@
-import {
-  OOPS,
-  SCRIPT_API,
-  waitForAuthenticated,
-  dateToRelativeString,
-} from '../../scripts/scripts.js';
+import { OOPS, SCRIPT_API, waitForAuthenticated, dateToRelativeString } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
@@ -30,9 +25,12 @@ function parseBrowser(str) {
     let output = '';
     for (const browserStr of browserParts) {
       // matches semicolon that is not within quotes
-      const browserName = browserStr.match(/(?:[^";]|"(?:\\.|[^"\\])*")+/g)[0].trim().replaceAll('"', '');
+      const browserName = browserStr
+        .match(/(?:[^";]|"(?:\\.|[^"\\])*")+/g)[0]
+        .trim()
+        .replaceAll('"', '');
 
-      if (/not[\s\S]*a[\s\S]*brand/i.test(browserName)) continue; // NOSONAR
+      if (/not[\s\S]*a[\s\S]*brand/i.test(browserName)) continue;
       if (/chromium/i.test(browserName)) {
         output = browserName;
         continue;
@@ -45,7 +43,7 @@ function parseBrowser(str) {
     }
 
     return output;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -58,10 +56,7 @@ if (!Number.isInteger(maxRows)) {
 maxRows = Math.max(100, maxRows);
 
 // MARK: createTable
-function createTable({
-  tableId,
-  headers, rows, tableClass = '', columns = [],
-}) {
+function createTable({ tableId, headers, rows, tableClass = '', columns = [] }) {
   if (!columns || !columns.length) {
     // eslint-disable-next-line no-param-reassign
     columns = headers.map(toClassName);
@@ -139,7 +134,10 @@ function createTable({
   }
 
   return {
-    table, thead, tbody, wrapper: tableWrapper,
+    table,
+    thead,
+    tbody,
+    wrapper: tableWrapper,
   };
 }
 
@@ -165,9 +163,7 @@ const paginatorEventlistener = (container, queryParam, functionName, skeletonChi
 
 // MARK: render
 export default async function renderUserTab({ container }) {
-  const {
-    ip, user, deleteduser, limit = 100, deletedlimit, page = 1, deletedpage = 1,
-  } = readQueryParams();
+  const { ip, user, deleteduser, limit = 100, deletedlimit, page = 1, deletedpage = 1 } = readQueryParams();
   let filterByIp = ip || '';
   let filterByMail = user || '';
   let filterByDeletedMail = deleteduser || '';
@@ -179,13 +175,13 @@ export default async function renderUserTab({ container }) {
     <div class="known-users clusterize">
       ${renderSkeleton('tracking', Math.min(limit || 100, 5))}
     </div>
-    
+
     <h2 id="deleted-users">Deleted users</h2>
     <input type="search" placeholder="Filter by user email" class="filter-deleted-users filter">
     <div class="deleted-users clusterize">
       ${renderSkeleton('tracking', Math.min(deletedlimit || 100, 5))}
     </div>
-        
+
     <h2 id="anonymous-activity">Anonymous activity</h2>
     <input type="search" placeholder="Filter by IP" class="filter-anonymous filter">
     <div class="anonymous-users clusterize">
@@ -213,8 +209,7 @@ export default async function renderUserTab({ container }) {
     functionName(true, validLength);
   };
 
-  const filterEventlistener = (filterClass, filterName, functionName, minLength = 1, noValueFunction = () => {}) => { // eslint-disable-line max-len
-    const filterInput = document.querySelector(filterClass);
+  const filterEventlistener = (filterInput, filterName, functionName, minLength = 1, noValueFunction = () => {}) => {
     let debounceTimer;
     function debounce(callback, delay) {
       clearTimeout(debounceTimer);
@@ -251,41 +246,42 @@ export default async function renderUserTab({ container }) {
       const originalRecentActivityData = timestamps.reverse();
       const recentActivityData = [...originalRecentActivityData];
 
-      const generateTable = () => createTable({
-        tableId: 'recent-activity',
-        tableClass: 'recent-activity',
-        headers: ['Event', 'Date', 'URL', 'Location', 'IP', 'Referrer', 'Browser', 'Device'],
-        rows: recentActivityData.map((timestamp) => {
-          const timestampItem = tracking[timestamp];
-          const date = new Date(Number(timestamp));
+      const generateTable = () =>
+        createTable({
+          tableId: 'recent-activity',
+          tableClass: 'recent-activity',
+          headers: ['Event', 'Date', 'URL', 'Location', 'IP', 'Referrer', 'Browser', 'Device'],
+          rows: recentActivityData.map((timestamp) => {
+            const timestampItem = tracking[timestamp];
+            const date = new Date(Number(timestamp));
 
-          return {
-            ...timestampItem,
-            event: `${timestampItem.event}${timestampItem.isSPA ? ' SPA' : ''}`,
-            date: {
-              value: dateToRelativeString(date),
-              title: date.toLocaleString(),
-            },
-            url: {
-              value: timestampItem.url,
-              link: timestampItem.url,
-            },
-            location: [timestampItem.location?.city, timestampItem.location?.country].filter(Boolean).join(', '),
-            referrer: {
-              value: timestampItem.referrer,
-              link: timestampItem.referrer,
-            },
-            browser: {
-              value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
-              title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
-            },
-            device: {
-              value: `${timestampItem.userAgent.os.name}`,
-              title: `${timestampItem.userAgent.device?.vendor}, ${timestampItem.userAgent.os.name}, ${timestampItem.userAgent.os.version}`,
-            },
-          };
-        }),
-      });
+            return {
+              ...timestampItem,
+              event: `${timestampItem.event}${timestampItem.isSPA ? ' SPA' : ''}`,
+              date: {
+                value: dateToRelativeString(date),
+                title: date.toLocaleString(),
+              },
+              url: {
+                value: timestampItem.url,
+                link: timestampItem.url,
+              },
+              location: [timestampItem.location?.city, timestampItem.location?.country].filter(Boolean).join(', '),
+              referrer: {
+                value: timestampItem.referrer,
+                link: timestampItem.referrer,
+              },
+              browser: {
+                value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
+                title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
+              },
+              device: {
+                value: `${timestampItem.userAgent.os.name}`,
+                title: `${timestampItem.userAgent.device?.vendor}, ${timestampItem.userAgent.os.name}, ${timestampItem.userAgent.os.version}`,
+              },
+            };
+          }),
+        });
 
       const activitiesDialogTable = generateTable();
 
@@ -354,29 +350,30 @@ export default async function renderUserTab({ container }) {
       const { pagination } = usersJSON;
       const usersData = users;
 
-      const generateTable = () => createTable({
-        tableId: 'user-activity',
-        headers: ['Email', 'Name', 'Created at', 'Last login', 'Logins count', ''],
-        columns: ['email', 'name', 'created_at', 'last_login', 'logins_count', 'buttons'],
-        rows: users.map((u) => {
-          const createdAt = new Date(u.created_at);
-          const lastLogin = new Date(u.last_login);
-          return {
-            ...u,
-            created_at: {
-              title: createdAt.toLocaleString(),
-              value: dateToRelativeString(createdAt),
-            },
-            last_login: {
-              title: lastLogin.toLocaleString(),
-              value: dateToRelativeString(lastLogin),
-            },
-            buttons: {
-              html: `<button data-user="${u.email}" class="button action secondary">Show activity</button>`,
-            },
-          };
-        }),
-      });
+      const generateTable = () =>
+        createTable({
+          tableId: 'user-activity',
+          headers: ['Email', 'Name', 'Created at', 'Last login', 'Logins count', ''],
+          columns: ['email', 'name', 'created_at', 'last_login', 'logins_count', 'buttons'],
+          rows: users.map((u) => {
+            const createdAt = new Date(u.created_at);
+            const lastLogin = new Date(u.last_login);
+            return {
+              ...u,
+              created_at: {
+                title: createdAt.toLocaleString(),
+                value: dateToRelativeString(createdAt),
+              },
+              last_login: {
+                title: lastLogin.toLocaleString(),
+                value: dateToRelativeString(lastLogin),
+              },
+              buttons: {
+                html: `<button data-user="${u.email}" class="button action secondary">Show activity</button>`,
+              },
+            };
+          }),
+        });
 
       const usersTable = generateTable();
 
@@ -410,7 +407,7 @@ export default async function renderUserTab({ container }) {
       usersContainer.querySelector('[aria-label="loading"]').textContent = OOPS;
     }
   };
-  filterEventlistener('.filter-users', 'user', renderUsers, userSearchMinLength);
+  filterEventlistener(filterUsersInput, 'user', renderUsers, userSearchMinLength);
 
   // MARK: renderDeletedUsers
   const deletedUsersContainer = container.querySelector('.users .deleted-users');
@@ -429,18 +426,16 @@ export default async function renderUserTab({ container }) {
       const { pagination } = deletedUsersJSON;
       let deletedUsersTable = null;
 
-      const originalDeletedUsersData = Object.keys(deletedUsers)
-      // eslint-disable-next-line max-len
-        .sort((uA, uB) => new Date(deletedUsers[uB].deleted_at) - new Date(deletedUsers[uA].deleted_at));
+      const originalDeletedUsersData = Object.keys(deletedUsers).sort((uA, uB) => new Date(deletedUsers[uB].deleted_at) - new Date(deletedUsers[uA].deleted_at));
       const deletedUsersData = [...originalDeletedUsersData];
 
-      const generateTable = () => createTable({
-        tableId: 'deleted-users',
-        tableClass: 'deleted-users',
-        headers: ['Email', 'Name', 'Created at', 'Deleted at', 'Last login', 'Logins count', ''],
-        columns: ['email', 'name', 'created_at', 'deleted_at', 'last_login', 'logins_count', 'buttons'],
-        rows: deletedUsersData
-          .map((u) => {
+      const generateTable = () =>
+        createTable({
+          tableId: 'deleted-users',
+          tableClass: 'deleted-users',
+          headers: ['Email', 'Name', 'Created at', 'Deleted at', 'Last login', 'Logins count', ''],
+          columns: ['email', 'name', 'created_at', 'deleted_at', 'last_login', 'logins_count', 'buttons'],
+          rows: deletedUsersData.map((u) => {
             const deletedUser = deletedUsers[u];
             const createdAt = new Date(deletedUser.created_at);
             const deletedAt = new Date(deletedUser.deleted_at);
@@ -465,16 +460,12 @@ export default async function renderUserTab({ container }) {
               },
             };
           }),
-      });
+        });
 
       deletedUsersTable = generateTable();
 
       deletedUsersContainer.innerHTML = '';
-      deletedUsersContainer.append(paginator(
-        pagination.totalItems,
-        limit,
-        pagination.currentPage,
-      ));
+      deletedUsersContainer.append(paginator(pagination.totalItems, limit, pagination.currentPage));
 
       deletedUsersContainer.prepend(deletedUsersTable.wrapper);
 
@@ -487,7 +478,6 @@ export default async function renderUserTab({ container }) {
         contentId: 'contentArea-deleted-users',
         callbacks: {
           scrollingProgress: (progress) => {
-            // eslint-disable-next-line max-len
             if (progress > 90 && deletedCluster.getRowsAmount() !== originalDeletedUsersData.length) {
               deletedUsersData.splice(0, maxRows);
               const newRows = [...generateTable().tbody.children].map((row) => row.outerHTML);
@@ -505,13 +495,11 @@ export default async function renderUserTab({ container }) {
       deletedUsersContainer.querySelector('[aria-label="loading"]').textContent = OOPS;
     }
   };
-  filterEventlistener('.filter-deleted-users', 'deleteduser', renderDeletedUsers);
+  filterEventlistener(filterDeletedUsersInput, 'deleteduser', renderDeletedUsers);
 
   let anonymousUserResponse = null;
   let anonymousUserData = null;
-  const {
-    anonymousEvent, anonymousLocation, anonymousReferrer, anonymousBrowser, anonymousDevice,
-  } = readQueryParams();
+  const { anonymousEvent, anonymousLocation, anonymousReferrer, anonymousBrowser, anonymousDevice } = readQueryParams();
   const anonymousFilter = {
     event: anonymousEvent || 'all',
     location: anonymousLocation || 'all',
@@ -625,76 +613,80 @@ export default async function renderUserTab({ container }) {
       const timestampItem = timestamps[timestamp];
       const { ip: timestampIp } = timestampItem;
 
-      /* eslint-disable */
       const matchesIpFilter = !filterByIp || timestampIp.includes(filterByIp);
       const matchesEventFilter = anonymousFilter.event === 'all' || anonymousFilter.event === timestampItem.event;
       const matchesLocationFilter = anonymousFilter.location === 'all' || [timestampItem.city, timestampItem.country].filter(Boolean).join(', ') === anonymousFilter.location;
       const matchesReferrerFilter = anonymousFilter.referrer === 'all' || anonymousFilter.referrer === timestampItem.referrer;
-      const matchesBrowserFilter = anonymousFilter.browser === 'all'
-          || (timestampItem.userAgent && timestampItem.userAgent.browser && timestampItem.userAgent.browser.name
-           && anonymousFilter.browser === `${timestampItem.userAgent.browser.name} (${parseAcceptLanguage(timestampItem.language) || 'unknown'})`)
-          || (timestampItem.browser && anonymousFilter.browser === `${parseBrowser(timestampItem.browser)} (${parseAcceptLanguage(timestampItem.language) || 'unknown'})`);
-      const matchesDeviceFilter = anonymousFilter.device === 'all'
-          || (timestampItem.userAgent && timestampItem.userAgent.os && timestampItem.userAgent.os.name
-           && anonymousFilter.device === timestampItem.userAgent.os.name)
-          || (timestampItem.device && anonymousFilter.device === timestampItem.device.replaceAll('"', ''));
+      const matchesBrowserFilter =
+        anonymousFilter.browser === 'all' ||
+        (timestampItem.userAgent &&
+          timestampItem.userAgent.browser &&
+          timestampItem.userAgent.browser.name &&
+          anonymousFilter.browser === `${timestampItem.userAgent.browser.name} (${parseAcceptLanguage(timestampItem.language) || 'unknown'})`) ||
+        (timestampItem.browser && anonymousFilter.browser === `${parseBrowser(timestampItem.browser)} (${parseAcceptLanguage(timestampItem.language) || 'unknown'})`);
+      const matchesDeviceFilter =
+        anonymousFilter.device === 'all' ||
+        (timestampItem.userAgent && timestampItem.userAgent.os && timestampItem.userAgent.os.name && anonymousFilter.device === timestampItem.userAgent.os.name) ||
+        (timestampItem.device && anonymousFilter.device === timestampItem.device.replaceAll('"', ''));
 
       if (matchesIpFilter && matchesEventFilter && matchesLocationFilter && matchesReferrerFilter && matchesBrowserFilter && matchesDeviceFilter) {
         filteredTimestamps[timestamp] = timestampItem;
       }
-      /* eslint-enable */
     });
 
-    const originalAnonymousData = Object.keys(filteredTimestamps)
-      .sort((A, B) => new Date(Number(B)) - new Date(Number(A)));
+    const originalAnonymousData = Object.keys(filteredTimestamps).sort((A, B) => new Date(Number(B)) - new Date(Number(A)));
     const anonymousData = [...originalAnonymousData];
 
-    const generateTable = () => createTable({
-      tableId: 'anonymous',
-      tableClass: 'anonymous',
-      headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
-      rows: anonymousData.map((timestamp) => {
-        const timestampItem = timestamps[timestamp];
-        const serverEvent = ['server email request', 'server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
-        const timestampDate = new Date(Number(timestamp));
+    const generateTable = () =>
+      createTable({
+        tableId: 'anonymous',
+        tableClass: 'anonymous',
+        headers: ['IP', 'Event', 'Date', 'URL', 'Location', 'Referrer', 'Browser', 'Device'],
+        rows: anonymousData.map((timestamp) => {
+          const timestampItem = timestamps[timestamp];
+          const serverEvent = ['server email request', 'server api request', 'server page request', 'server redirect request'].includes(timestampItem.event);
+          const timestampDate = new Date(Number(timestamp));
 
-        return {
-          ...timestampItem,
-          event: timestampItem.event + (!serverEvent && timestampItem.isSPA ? ' SPA' : ''),
-          date: {
-            value: dateToRelativeString(timestampDate),
-            title: timestampDate.toLocaleString(),
-          },
-          url: {
-            value: timestampItem.url.replace(SCRIPT_API, ''),
-            title: timestampItem.url,
-            link: timestampItem.url,
-          },
-          location: [timestampItem.city, timestampItem.country].filter(Boolean).join(', '),
-          referrer: {
-            value: timestampItem.referrer,
-            link: timestampItem.referrer,
-          },
-          browser: !serverEvent ? {
-            value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
-            title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
-          } : {
-            title: [
-              timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
-              timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
-            ].filter(Boolean).join('\n'),
-            value: [
-              parseBrowser(timestampItem.browser),
-              parseAcceptLanguage(timestampItem.language),
-            ].filter(Boolean).join(', '),
-          },
-          device: !serverEvent ? {
-            title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
-            value: timestampItem.userAgent.os.name,
-          } : timestampItem?.device?.replaceAll('"', ''),
-        };
-      }),
-    });
+          return {
+            ...timestampItem,
+            event: timestampItem.event + (!serverEvent && timestampItem.isSPA ? ' SPA' : ''),
+            date: {
+              value: dateToRelativeString(timestampDate),
+              title: timestampDate.toLocaleString(),
+            },
+            url: {
+              value: timestampItem.url.replace(SCRIPT_API, ''),
+              title: timestampItem.url,
+              link: timestampItem.url,
+            },
+            location: [timestampItem.city, timestampItem.country].filter(Boolean).join(', '),
+            referrer: {
+              value: timestampItem.referrer,
+              link: timestampItem.referrer,
+            },
+            browser: !serverEvent
+              ? {
+                  value: `${timestampItem.userAgent.browser.name}, ${parseAcceptLanguage(timestampItem.language)}`,
+                  title: `${timestampItem.userAgent.browser.name} ${timestampItem.userAgent.browser.version} ${timestampItem.language}`,
+                }
+              : {
+                  title: [
+                    timestampItem.browser ? `Full sec-ch-ua header: ${timestampItem.browser}` : null,
+                    timestampItem.language ? `Full accept-language header: ${timestampItem.language}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join('\n'),
+                  value: [parseBrowser(timestampItem.browser), parseAcceptLanguage(timestampItem.language)].filter(Boolean).join(', '),
+                },
+            device: !serverEvent
+              ? {
+                  title: `${timestampItem.userAgent.device?.vendor} ${timestampItem.userAgent.os.name} ${timestampItem.userAgent.os.version}`,
+                  value: timestampItem.userAgent.os.name,
+                }
+              : timestampItem?.device?.replaceAll('"', ''),
+          };
+        }),
+      });
 
     anonymousTable = generateTable();
 
@@ -707,9 +699,10 @@ export default async function renderUserTab({ container }) {
       input.id = inputId;
       input.autocomplete = 'off';
       const currentValue = anonymousFilter[name.toLowerCase()];
-      input.placeholder = (typeof options === 'object' && !Array.isArray(options) && options[currentValue])
-          || (Array.isArray(options) && options.includes(currentValue) && currentValue)
-          || 'Select...';
+      input.placeholder =
+        (typeof options === 'object' && !Array.isArray(options) && options[currentValue]) ||
+        (Array.isArray(options) && options.includes(currentValue) && currentValue) ||
+        'Select...';
       input.classList.add('button', 'action', 'secondary');
 
       const comboBox = document.createElement('div');
@@ -747,7 +740,7 @@ export default async function renderUserTab({ container }) {
       comboContainer.appendChild(comboBox);
 
       input.addEventListener('focus', () => {
-        document.querySelectorAll('.combobox-content').forEach((box) => { // NOSONAR
+        container.querySelectorAll('.combobox-content').forEach((box) => {
           if (box !== comboBoxId) {
             box.classList.remove('combobox-show');
           }
@@ -769,9 +762,9 @@ export default async function renderUserTab({ container }) {
         comboBox.classList.add('combobox-show');
       });
 
-      document.addEventListener('click', (event) => {
+      container.addEventListener('click', (event) => {
         if (!event.target.closest('.combobox')) {
-          document.querySelectorAll('.combobox-content').forEach((box) => { // NOSONAR
+          container.querySelectorAll('.combobox-content').forEach((box) => {
             box.classList.remove('combobox-show');
           });
         }
@@ -810,23 +803,15 @@ export default async function renderUserTab({ container }) {
       return comboContainer;
     };
 
-    const anonymousGridContent = ['ip', 'event', 'date', 'url', 'location', 'referrer', 'browser', 'device']
-      .map((id) => `<div id="anon-${id}"></div>`)
-      .join('');
+    const anonymousGridContent = ['ip', 'event', 'date', 'url', 'location', 'referrer', 'browser', 'device'].map((id) => `<div id="anon-${id}"></div>`).join('');
     anonymousContainer.innerHTML = `<div class="anonymous-grid">${anonymousGridContent}</div>`;
     document.getElementById('anon-event').appendChild(generateCombobox('event-input', 'event-content', events, 'Event'));
 
-    document.getElementById('anon-location').appendChild(
-      generateCombobox('location-input', 'location-content', locations, 'Location'),
-    );
+    document.getElementById('anon-location').appendChild(generateCombobox('location-input', 'location-content', locations, 'Location'));
 
-    document.getElementById('anon-referrer').appendChild(
-      generateCombobox('referrer-input', 'referrer-content', referrers, 'Referrer'),
-    );
+    document.getElementById('anon-referrer').appendChild(generateCombobox('referrer-input', 'referrer-content', referrers, 'Referrer'));
 
-    document.getElementById('anon-browser').appendChild(
-      generateCombobox('browser-input', 'browser-content', browsers, 'Browser'),
-    );
+    document.getElementById('anon-browser').appendChild(generateCombobox('browser-input', 'browser-content', browsers, 'Browser'));
 
     document.getElementById('anon-device').appendChild(generateCombobox('device-input', 'device-content', devices, 'Device'));
 
@@ -849,8 +834,10 @@ export default async function renderUserTab({ container }) {
       },
     });
 
-    filterEventlistener('.filter-anonymous', 'ip', renderAnonymous, 0, () => {
-      anonymousContainer.innerHTML = renderSkeleton('tracking'); anonymousUserResponse = null; anonymousUserData = null;
+    filterEventlistener(filterAnonymousUsersInput, 'ip', renderAnonymous, 0, () => {
+      anonymousContainer.innerHTML = renderSkeleton('tracking');
+      anonymousUserResponse = null;
+      anonymousUserData = null;
     });
   };
 

@@ -1,7 +1,4 @@
-import {
-  completeChecklistItem, OOPS, parseFragment, SCRIPT_API,
-  slugifyFilename,
-} from '../../scripts/scripts.js';
+import { completeChecklistItem, OOPS, parseFragment, SCRIPT_API, slugifyFilename } from '../../scripts/scripts.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 import { showToast } from '../../scripts/toast.js';
 
@@ -48,7 +45,8 @@ export function manageGoogleCalendarLink(calendarId, nav, onlyRemove = false) {
   if (onlyRemove) return;
   nav.insertAdjacentHTML(
     'afterbegin',
-    `<a class="button action secondary google-calendar-link" target="_blank" id="google-calendar" href="/redirect?url=https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
+    `<a class="button action secondary google-calendar-link" target="_blank" id="google-calendar"
+    href="/redirect?url=https://calendar.google.com/calendar/render?cid=${calendarId}">Google Calendar</a>`,
   );
 }
 
@@ -60,8 +58,13 @@ function validateFileType(acceptString, fileName) {
 }
 
 export function addIconDialogSetup({
-  nameOverride, replaceIconItem,
-  authHeaders, siteSlug, itemList, fileAccept = '.svg', titleText = 'Add icon',
+  nameOverride,
+  replaceIconItem,
+  authHeaders,
+  siteSlug,
+  itemList,
+  fileAccept = '.svg',
+  titleText = 'Add icon',
   uploadEndpoint = `${SCRIPT_API}/icons/${siteSlug}`,
   defaultSrc,
 }) {
@@ -153,7 +156,7 @@ export function addIconDialogSetup({
       }
     } else {
       dialog.setLoading(false);
-      await alertDialog('Something went wrong! Make sure this icon doesn\'t already exist.');
+      await alertDialog("Something went wrong! Make sure this icon doesn't already exist.");
     }
   };
   return dialog;
@@ -171,17 +174,7 @@ function blockIconDialogPreview({ base64, iconUrl }) {
 }
 
 // MARK: block/icon dialog
-export function blockIconDialogSetup({
-  name,
-  deleteWarning,
-  projectDetails,
-  authHeaders,
-  isIcon = false,
-  base64,
-  iconUrl,
-  showBlockScreenshots,
-  siteSlug,
-}) {
+export function blockIconDialogSetup({ name, deleteWarning, projectDetails, authHeaders, isIcon = false, base64, iconUrl, showBlockScreenshots, siteSlug, container, nav }) {
   window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`);
 
   const formId = `change-${isIcon ? 'icon' : 'block'}-form`;
@@ -203,9 +196,12 @@ export function blockIconDialogSetup({
         const blockPreview = content.querySelector('.block-preview');
 
         data.forEach((screenshot) => {
-          blockPreview.insertAdjacentHTML('beforeend', `
+          blockPreview.insertAdjacentHTML(
+            'beforeend',
+            `
             <img src="http://main--${projectDetails.templateSlug}--headwire-self-service-templates.aem.live/${screenshot.substring(2)}" alt="screenshot"/>
-          `);
+          `,
+          );
         });
       });
   }
@@ -219,14 +215,18 @@ export function blockIconDialogSetup({
     `);
     buttonList.push(replaceButton);
 
-    const replaceIconItem = document.querySelector(`[data-icon-name="${name}"`);
+    const replaceIconItem = container.querySelector(`[data-icon-name="${name}"`);
 
     // closes this dialog, then opens add Icon dialog
     // that will replace this item instead of adding new icon.
     replaceButton.onclick = () => {
       replaceButton.closest('dialog').close();
       const addDialogForReplace = addIconDialogSetup({
-        nameOverride: name, authHeaders, siteSlug, replaceIconItem, titleText: `Replace ${name}`,
+        nameOverride: name,
+        authHeaders,
+        siteSlug,
+        replaceIconItem,
+        titleText: `Replace ${name}`,
       });
       addDialogForReplace.showModal();
     };
@@ -262,11 +262,9 @@ export function blockIconDialogSetup({
       showToast(`${isIcon ? 'Icon' : 'Block'} "${name}" deleted.`);
 
       submit.remove();
-      document
-        .querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`)
-        .forEach((item) => item.remove());
+      container.querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`).forEach((item) => item.remove());
       if (name === 'schedule') {
-        manageGoogleCalendarLink(null, document.querySelector('.block .tabs-nav-items'), true);
+        manageGoogleCalendarLink(null, nav, true);
       }
     } else {
       submit.disabled = false;
@@ -277,7 +275,7 @@ export function blockIconDialogSetup({
 }
 
 // MARK: block dialog setup
-function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
+function addBlockDialogSetup({ projectDetails, authHeaders, itemList, nav }) {
   window?.zaraz?.track('click site block add');
 
   const dialogContent = document.createElement('div');
@@ -287,26 +285,21 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
   Promise.all([
     fetch(`${SCRIPT_API}/compatibleBlocks/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()),
     fetch(`${SCRIPT_API}/blocks/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()),
-  ]).then(([compatibleBlocks, currentBlocks]) => {
-    const data = compatibleBlocks.filter(
-      (item) => !currentBlocks.some((currentBlocksItem) => currentBlocksItem.name === item.name),
-    );
+  ])
+    .then(([compatibleBlocks, currentBlocks]) => {
+      const data = compatibleBlocks.filter((item) => !currentBlocks.some((currentBlocksItem) => currentBlocksItem.name === item.name));
 
-    if (data.length === 0) {
-      dialog.renderDialog('<h3 class="centered-info" >No new blocks available</h3>');
-      return;
-    }
+      if (data.length === 0) {
+        dialog.renderDialog('<h3 class="centered-info" >No new blocks available</h3>');
+        return;
+      }
 
-    const content = parseFragment(`
+      const content = parseFragment(`
       <div>
         <h3>Add block</h3>
         <form id="add-block-form">
           <select class="button secondary action">
-          ${data.map(
-    (blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${
-      blockOption.name
-    }</option>`,
-  ).join('')}
+          ${data.map((blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${blockOption.name}</option>`).join('')}
           </select>
           
           <p class="block-info"></p>
@@ -315,90 +308,90 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList }) {
       </div>
     `);
 
-    const select = content.querySelector('select');
-    const blockInfo = content.querySelector('.block-info');
-    const blockPreview = content.querySelector('.block-preview');
+      const select = content.querySelector('select');
+      const blockInfo = content.querySelector('.block-info');
+      const blockPreview = content.querySelector('.block-preview');
 
-    select.onchange = () => {
-      blockInfo.innerText = select.querySelector(`option[value="${select.value}"]`).dataset.blockCreateInfo;
+      select.onchange = () => {
+        blockInfo.innerText = select.querySelector(`option[value="${select.value}"]`).dataset.blockCreateInfo;
 
-      fetch(`${SCRIPT_API}/blockScreenshots/${projectDetails.projectSlug}/${select.value}`)
-        .then((response) => response.json())
-        .then((screenshotData) => {
-          blockPreview.innerHTML = '';
-          screenshotData.forEach((screenshot) => {
-            blockPreview.insertAdjacentHTML('beforeend', `
+        fetch(`${SCRIPT_API}/blockScreenshots/${projectDetails.projectSlug}/${select.value}`)
+          .then((response) => response.json())
+          .then((screenshotData) => {
+            blockPreview.innerHTML = '';
+            screenshotData.forEach((screenshot) => {
+              blockPreview.insertAdjacentHTML(
+                'beforeend',
+                `
               <img src="http://main--${projectDetails.templateSlug}--headwire-self-service-templates.aem.live/${screenshot.substring(2)}" alt="screenshot"/>
-            `);
+            `,
+              );
+            });
           });
-        });
-    };
-    select.onchange();
+      };
+      select.onchange();
 
-    const submit = parseFragment(`
+      const submit = parseFragment(`
       <button type="submit" form="add-block-form" class="button action primary">Add</button>
     `);
 
-    dialog.renderDialog(content, [submit]);
+      dialog.renderDialog(content, [submit]);
 
-    const form = document.getElementById('add-block-form');
+      const form = document.getElementById('add-block-form');
 
-    form.onsubmit = async (event) => {
-      event.preventDefault();
+      form.onsubmit = async (event) => {
+        event.preventDefault();
 
-      window?.zaraz?.track('click site block add submit');
+        window?.zaraz?.track('click site block add submit');
 
-      if (!select.value) {
-        await alertDialog('Please select a block');
-        return;
-      }
+        if (!select.value) {
+          await alertDialog('Please select a block');
+          return;
+        }
 
-      dialog.setLoading(true, 'Adding Block...');
+        dialog.setLoading(true, 'Adding Block...');
 
-      const addRequest = await fetch(`${SCRIPT_API}/blocks/${projectDetails.projectSlug}/${select.value}`, {
-        method: 'POST',
-        headers: authHeaders,
-      }).catch(() => null);
+        const addRequest = await fetch(`${SCRIPT_API}/blocks/${projectDetails.projectSlug}/${select.value}`, {
+          method: 'POST',
+          headers: authHeaders,
+        }).catch(() => null);
 
-      if (addRequest?.ok) {
-        const addRequestData = await addRequest.json().catch(() => ({}));
-        dialog.setLoading(false);
+        if (addRequest?.ok) {
+          const addRequestData = await addRequest.json().catch(() => ({}));
+          dialog.setLoading(false);
 
-        const message = `Block "${select.value}" added.`;
-        if (addRequestData.calendarId) {
-          const calendarLink = parseFragment(`
+          const message = `Block "${select.value}" added.`;
+          if (addRequestData.calendarId) {
+            const calendarLink = parseFragment(`
             <a class="button action primary" target="_blank" href="/redirect?url=https://calendar.google.com/calendar/render?cid=${addRequestData.calendarId}">Google Calendar</a>
           `);
 
-          manageGoogleCalendarLink(addRequestData.calendarId, itemList.closest('.block').querySelector('.tabs-nav-items'));
-          dialog.renderDialog(`<h3 class="centered-info" >${message}</h3>`, [calendarLink]);
-        } else {
-          dialog.close();
-          showToast(message);
-        }
+            manageGoogleCalendarLink(addRequestData.calendarId, nav);
+            dialog.renderDialog(`<h3 class="centered-info" >${message}</h3>`, [calendarLink]);
+          } else {
+            dialog.close();
+            showToast(message);
+          }
 
-        itemList.addItem({ name: select.value });
-      } else {
-        await alertDialog(OOPS);
-      }
-    };
-  }).catch(() => {
-    dialogContent.innerHTML = '<h3 class="centered-info" >Failed to load available blocks</h3>';
-  });
+          itemList.addItem({ name: select.value });
+        } else {
+          await alertDialog(OOPS);
+        }
+      };
+    })
+    .catch(() => {
+      dialogContent.innerHTML = '<h3 class="centered-info" >Failed to load available blocks</h3>';
+    });
 }
 
 // MARK: block list
-export function renderBlocksList(
-  container,
-  blocksListData,
-  { projectDetails, authHeaders, siteSlug },
-) {
+export function renderBlocksList({ container, nav, blocksListData, projectDetails, authHeaders, siteSlug }) {
   const blocksList = container.querySelector('.blocks');
   if (!blocksList) {
     blocksList.innerHTML = '<p class="centered-info">Failed to load blocks</p>';
     return;
   }
-  container.querySelector('.add-block').onclick = () => addBlockDialogSetup({ projectDetails, authHeaders, itemList: blocksList });
+  container.querySelector('.add-block').onclick = () => addBlockDialogSetup({ projectDetails, authHeaders, itemList: blocksList, nav });
 
   blocksList.innerHTML = '';
   blocksList.addItem = ({ name, deleteWarning, createInfo }) => {
@@ -419,14 +412,17 @@ export function renderBlocksList(
     li.append(blockIcon, blockName);
     blocksList.querySelector('p.no-items')?.remove();
 
-    li.onclick = () => blockIconDialogSetup({
-      name,
-      deleteWarning,
-      projectDetails,
-      siteSlug,
-      authHeaders,
-      showBlockScreenshots: true,
-    });
+    li.onclick = () =>
+      blockIconDialogSetup({
+        name,
+        deleteWarning,
+        projectDetails,
+        siteSlug,
+        authHeaders,
+        showBlockScreenshots: true,
+        container,
+        nav,
+      });
     blocksList.appendChild(li);
   };
 
@@ -438,11 +434,7 @@ export function renderBlocksList(
 }
 
 // MARK: icon list
-export function renderIconsList(
-  container,
-  iconsListData,
-  { projectDetails, authHeaders, siteSlug },
-) {
+export function renderIconsList({ container, nav, iconsListData, projectDetails, authHeaders, siteSlug }) {
   const iconsList = container.querySelector('.icons');
   container.querySelector('.add-icon').onclick = () => addIconDialogSetup({ siteSlug, authHeaders, itemList: iconsList });
 
@@ -485,15 +477,18 @@ export function renderIconsList(
     buttonsContainer.append(settingsButton, copyButton);
     li.append(buttonsContainer);
 
-    settingsButton.onclick = () => blockIconDialogSetup({
-      name,
-      projectDetails,
-      siteSlug,
-      authHeaders,
-      isIcon: true,
-      base64: base64 || undefined,
-      iconUrl: path ? `${projectDetails.customPreviewUrl}/${path}` : undefined,
-    });
+    settingsButton.onclick = () =>
+      blockIconDialogSetup({
+        name,
+        projectDetails,
+        siteSlug,
+        authHeaders,
+        isIcon: true,
+        base64: base64 || undefined,
+        iconUrl: path ? `${projectDetails.customPreviewUrl}/${path}` : undefined,
+        container,
+        nav,
+      });
     iconsList.append(li);
     iconsList.querySelector('p.no-items')?.remove();
 
@@ -522,13 +517,14 @@ export function renderIconsList(
 }
 
 // MARK: project updates
-export async function renderUpdatesSection(
-  div,
-  { projectDetails, authHeaders, versionInfo },
-) {
+export async function renderUpdatesSection(div, { projectDetails, authHeaders, versionInfo }) {
   div.innerHTML = '';
   const endpoint = `${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
-  const versionInfoData = versionInfo || await fetch(`${endpoint}checkUpdates/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null);
+  const versionInfoData =
+    versionInfo ||
+    (await fetch(`${endpoint}checkUpdates/${projectDetails.projectSlug}`, { headers: authHeaders })
+      .then((res) => res.json())
+      .catch(() => null));
 
   if (!versionInfoData) {
     div.innerHTML = '<h3>Could not get update information.</h3>';
@@ -563,8 +559,7 @@ export async function renderUpdatesSection(
         <button class="button action primary update-button">Cancel</button>
       `);
 
-      const projectUpdateDialog = createDialog(dialogContent, [confirmUpdateButton,
-        cancelButton]);
+      const projectUpdateDialog = createDialog(dialogContent, [confirmUpdateButton, cancelButton]);
 
       confirmUpdateButton.onclick = async () => {
         window?.zaraz?.track('did site update');
@@ -600,9 +595,7 @@ export async function renderUpdatesSection(
 }
 
 // MARK: revert updates
-export async function renderPrevUpdatesSection(div, {
-  projectDetails, authHeaders, authHeadersWithBody, rerenderUpdatesSection, updateInfoDiv,
-}) {
+export async function renderPrevUpdatesSection(div, { projectDetails, authHeaders, authHeadersWithBody, rerenderUpdatesSection, updateInfoDiv }) {
   div.innerHTML = '<h3>Previously applied updates</h3>';
   const endpoint = `${SCRIPT_API}/${projectDetails.darkAlleyProject ? 'daUpdateProject' : 'updateProject'}/`;
 
@@ -618,18 +611,35 @@ export async function renderPrevUpdatesSection(div, {
     `);
     const revertUpdateDialog = createDialog(content, []);
 
-    const updateList = await fetch(`${endpoint}appliedUpdates/${projectDetails.projectSlug}`, { headers: authHeaders }).then((res) => res.json()).catch(() => null);
+    const updateList = await fetch(`${endpoint}appliedUpdates/${projectDetails.projectSlug}`, { headers: authHeaders })
+      .then((res) => res.json())
+      .catch(() => null);
     if (updateList.length > 0) {
       content = parseFragment(`
         <div>
             <h3>Revert Updates to Project</h3>
             
             <form id="revert-form">
-              <p class="warning">Keep in mind, any changes made on the options and theme pages after an update will <strong>also</strong> be reverted! <strong>This action cannot be undone!</strong></p>
+              <p class="warning">
+                Keep in mind, any changes made on the options and theme pages after an update will
+                <strong>also</strong>
+                be reverted! <strong>This action cannot be undone!</strong>
+              </p>
               <ul class="applied-update-list">
-                ${updateList.map((update) => `<li><label><input required type="radio" name="update" data-version="${update.version}" value="${update.sha}"><span>Version: <strong>${update.version}</strong></span><span>Updated on: <strong>${new Date(update.date).toLocaleString(undefined, {
-    year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
-  })}</strong></span></label></li>`).join('')}
+                ${updateList
+                  .map(
+                    (update) =>
+                      `<li><label><input required type="radio" name="update" data-version="${update.version}" value="${update.sha}"><span>Version: <strong>${
+                        update.version
+                      }</strong></span><span>Updated on: <strong>${new Date(update.date).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: 'numeric',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                      })}</strong></span></label></li>`,
+                  )
+                  .join('')}
               </ul>
             </form>
         </div>
@@ -655,12 +665,14 @@ export async function renderPrevUpdatesSection(div, {
         event.preventDefault();
         window?.zaraz?.track('did site update revert');
 
-        if (await confirmDialog(`
+        if (
+          await confirmDialog(`
             <div>
-                <h3>Are you sure you want to revert ${`the ${currentSelectedUpdate}` || 'to before a previous'} update?</h3>
+                <h3>Are you sure you want to revert ${currentSelectedUpdate ? `the ${currentSelectedUpdate}` : 'to before a previous'} update?</h3>
                 <p class="error"><strong>any changes made on the options and theme pages after an update will also be reverted!</strong></p>
                 <p class="error">This action cannot be undone!</p>
-            </div>`)) {
+            </div>`)
+        ) {
           revertUpdateDialog.dataset.loadingText = 'Reverting to previous version...';
           revertUpdateDialog.setLoading(true);
 
@@ -711,7 +723,7 @@ export async function renderDangerZone({ container, renderOptions }) {
     const block = container.closest('.site-details.block');
 
     block.classList.add('is-deleting');
-    if (await confirmDialog('Are you sure you want to delete your site? (This can\'t be undone)')) {
+    if (await confirmDialog("Are you sure you want to delete your site? (This can't be undone)")) {
       window?.zaraz?.track('click site delete submit');
 
       const reqDelete = await fetch(`${SCRIPT_API}/${renderOptions.projectDetails.darkAlleyProject ? 'da-' : ''}delete/${renderOptions.projectDetails.projectSlug}`, {

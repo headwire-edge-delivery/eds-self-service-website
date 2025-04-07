@@ -13,9 +13,7 @@ function generateFieldId(fieldData, suffix = '') {
 function createLabel(field, fieldData, placeholders) {
   const label = document.createElement('label');
   label.id = generateFieldId(fieldData, '-label');
-  const labelContent = placeholders?.[toCamelCase(fieldData['label-placeholder'])]
-    || fieldData['label-placeholder']
-    || fieldData.name;
+  const labelContent = placeholders?.[toCamelCase(fieldData['label-placeholder'])] || fieldData['label-placeholder'] || fieldData.name;
   label.innerHTML = `<span class="label-text">${labelContent}</span>`;
   label.dataset.requiredField = fieldData?.required?.toLowerCase() === 'true';
   if (fieldData.labelFor) {
@@ -30,10 +28,7 @@ function setCommonAttributes(field, fieldData, placeholders, index) {
   if (!field.name) field.name = fieldData.name;
   if (!field.required) field.required = fieldData.required.toLowerCase() === 'true';
   if (!field.placeholder) {
-    field.placeholder = placeholders?.[toCamelCase(fieldData['example-placeholder'])]
-    || fieldData['example-placeholder']
-    || fieldData.name
-    || '';
+    field.placeholder = placeholders?.[toCamelCase(fieldData['example-placeholder'])] || fieldData['example-placeholder'] || fieldData.name || '';
   }
   if (!field.dataset.index) field.dataset.index = index;
 }
@@ -175,10 +170,7 @@ const FIELD_CREATOR_FUNCTIONS = {
 };
 
 async function createField(fieldData, form, placeholders, index) {
-  fieldData.id = fieldData.id
-    || placeholders[toCamelCase(fieldData['label-placeholder'])]
-    || fieldData['label-placeholder']
-    || index;
+  fieldData.id = fieldData.id || placeholders[toCamelCase(fieldData['label-placeholder'])] || fieldData['label-placeholder'] || index;
   const type = fieldData.type?.toLowerCase();
   const createFieldFunc = FIELD_CREATOR_FUNCTIONS[type] || createInput;
   if (type === 'fieldset' || type === 'radio') {
@@ -194,17 +186,12 @@ async function createField(fieldData, form, placeholders, index) {
 }
 
 export default async function createForm(formConfigPath) {
-  const [resp, placeholders] = await Promise.all([
-    fetch(formConfigPath),
-    getPlaceholder(null),
-  ]);
+  const [resp, placeholders] = await Promise.all([fetch(formConfigPath), getPlaceholder(null)]);
   const json = await resp.json();
 
   const form = document.createElement('form');
 
-  const fields = await Promise.all(
-    json.data.map((fieldData, index) => createField(fieldData, form, placeholders, index)),
-  );
+  const fields = await Promise.all(json.data.map((fieldData, index) => createField(fieldData, form, placeholders, index)));
 
   fields.forEach((field, index) => {
     if (form.contains(field)) {
@@ -225,12 +212,7 @@ export default async function createForm(formConfigPath) {
     form.append(field);
   });
 
-  form.insertAdjacentHTML(
-    'beforeend',
-    `<button class="button" type="submit">${
-      placeholders.formButtonSubmit || 'Send'
-    }</button>`,
-  );
+  form.insertAdjacentHTML('beforeend', `<button class="button" type="submit">${placeholders.formButtonSubmit || 'Send'}</button>`);
 
   return form;
 }

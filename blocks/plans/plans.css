@@ -1,57 +1,56 @@
 dialog.plans-dialog {
-    min-height: 500px;
-    width: auto;
-    max-width: 80vw;
+  min-height: 500px;
+  width: auto;
+  max-width: 80vw;
 }
 
 @media (width < 768px) {
-    .plans-dialog {
-        min-height: unset;
-    }
+  .plans-dialog {
+    min-height: unset;
+  }
 }
 
 .plans.block {
-    display: flex;
-    gap: 32px;
-    padding: 32px 0;
-    flex-wrap: wrap;
-    overflow: auto;
-    align-items: stretch;
-    justify-content: flex-start;
-    height: 100%;
+  display: flex;
+  gap: 32px;
+  padding: 32px 0;
+  flex-wrap: wrap;
+  overflow: auto;
+  align-items: stretch;
+  justify-content: flex-start;
+  height: 100%;
 }
 
 .plans-dialog .plans.block {
-    padding: 32px;
-    justify-content: center;
+  padding: 32px;
+  justify-content: center;
 }
 
 .plans.block > div {
-    width: 300px;
-    border: 1px solid var(--light-gray);
-    padding: 16px;
-    border-radius: var(--border-radius);
+  width: 300px;
+  border: 1px solid var(--light-gray);
+  padding: 16px;
+  border-radius: var(--border-radius);
 }
 
 .plans.block > div strong {
-    font-weight: normal;
+  font-weight: normal;
 }
 
 .is-authenticated .plans.block > div.is-selected {
-    border-color: var(--light-blue);
-    background-color: var(--light-blue);
+  border-color: var(--light-blue);
+  background-color: var(--light-blue);
 }
 
 .is-authenticated .plans.block > div.is-selected :is(h2, strong) {
-    color: var(--white);
+  color: var(--white);
 }
 
 .is-authenticated .plans.block > div:first-child .button-container {
-    display: none;
+  display: none;
 }
 
 .plans.block .button-container {
-    justify-content: flex-start;
-    margin-block: 32px;
+  justify-content: flex-start;
+  margin-block: 32px;
 }
-

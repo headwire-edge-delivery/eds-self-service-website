@@ -8,7 +8,8 @@ function campaignEmailsTour({ showAutoTour }) {
     steps: [
       {
         title: 'Campaigns',
-        description: 'Campaigns serves as your toolkit for crafting impactful communication in your online endeavors tailored for various purposes, from newsletters to promotional campaigns streamlining your email creation process.',
+        description:
+          'Campaigns serves as your toolkit for crafting impactful communication in your online endeavors tailored for various purposes, from newsletters to promotional campaigns streamlining your email creation process.',
       },
       {
         title: 'Campaigns filter',
@@ -86,7 +87,8 @@ function campaignEmailAnalyticsTour({ showAutoTour }) {
     steps: [
       {
         title: 'Campaign Analytics',
-        description: 'Here, you\'ll find key insights into your campaign performance all in one place. <br /> <strong>Campaign key metrics:</strong> <br /> <ul><li><strong>Delivery rate</strong>: percentage of successfully delivered emails.</li><li><strong>Bounce rate</strong>: percentage of emails sent that couldn\'t be delivered to the recipient\'s inbox.</li><li><strong>Open rate</strong>: percentage of recipients who opened the email.</li><li><strong>Click-to-open rate</strong>: percentage of recipients who clicked on a link inside the email after opening.</li><li><strong>Spam complaints rate</strong>: percentage of recipients reporting the email as spam.</li></ul>',
+        description:
+          "Here, you'll find key insights into your campaign performance all in one place. <br /> <strong>Campaign key metrics:</strong> <br /> <ul><li><strong>Delivery rate</strong>: percentage of successfully delivered emails.</li><li><strong>Bounce rate</strong>: percentage of emails sent that couldn't be delivered to the recipient's inbox.</li><li><strong>Open rate</strong>: percentage of recipients who opened the email.</li><li><strong>Click-to-open rate</strong>: percentage of recipients who clicked on a link inside the email after opening.</li><li><strong>Spam complaints rate</strong>: percentage of recipients reporting the email as spam.</li></ul>",
       },
       {
         title: 'Campaigns filter',
@@ -105,7 +107,7 @@ function campaignEmailAnalyticsTour({ showAutoTour }) {
       },
       {
         title: 'Bounce Rate',
-        description: 'The percentage of emails sent that couldn\'t be delivered to the recipient\'s inbox.',
+        description: "The percentage of emails sent that couldn't be delivered to the recipient's inbox.",
         element: '#email-metrics-bounce-rate',
       },
       {
@@ -176,7 +178,8 @@ function emailTour() {
       },
       {
         title: 'Styles',
-        description: 'If you are familiar with CSS, you can add your Email Styles here. It will open a Textarea where you can modify the CSS. <br /> If you\'re not familiar with CSS, you can <a href="https://www.w3schools.com/css/" target="_blank">learn more about CSS here</a>. <br /> Only change the CSS if you know what you are doing.',
+        description:
+          'If you are familiar with CSS, you can add your Email Styles here. It will open a Textarea where you can modify the CSS. <br /> If you\'re not familiar with CSS, you can <a href="https://www.w3schools.com/css/" target="_blank">learn more about CSS here</a>. <br /> Only change the CSS if you know what you are doing.',
         element: '#email-styles',
         destroyOnClicked: false,
       },
@@ -193,6 +196,4 @@ function emailTour() {
   return tourData;
 }
 
-export {
-  campaignEmailsTour, campaignEmailsAudienceTour, campaignEmailAnalyticsTour, emailTour,
-};
+export { campaignEmailsTour, campaignEmailsAudienceTour, campaignEmailAnalyticsTour, emailTour };

@@ -35,7 +35,9 @@ export default function renderSkeleton(type, children = undefined) {
   }
   if (type === 'tracking') {
     const count = Math.max(1, children ?? 5);
-    const rows = [...Array(count)].map(() => `
+    const rows = [...Array(count)]
+      .map(
+        () => `
       <tr>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
@@ -44,7 +46,9 @@ export default function renderSkeleton(type, children = undefined) {
         <td><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 150px; height: 34px;"></div></td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -80,7 +84,9 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'pages') {
-    const rows = [...Array(10)].map(() => `
+    const rows = [...Array(10)]
+      .map(
+        () => `
       <tr>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 200px; height: 30px;"></div></td>
@@ -94,7 +100,9 @@ export default function renderSkeleton(type, children = undefined) {
             </div>
         </td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -117,12 +125,16 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'sheets') {
-    const rows = [...Array(10)].map(() => `
+    const rows = [...Array(10)]
+      .map(
+        () => `
       <tr>
         <td><div class="skeleton" style="width: 100%; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 100%; height: 30px;"></div></td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -152,12 +164,16 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'sheetsTable') {
-    const rows = [...Array(10)].map(() => `
+    const rows = [...Array(10)]
+      .map(
+        () => `
       <tr>
         <td><div class="skeleton" style="width: 95%;height:30px;"></div></td>
         <td><div class="skeleton" style="width: 95%;height:30px;"></div></td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -176,7 +192,9 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'seo') {
-    const rows = [...Array(5)].map(() => `
+    const rows = [...Array(5)]
+      .map(
+        () => `
       <tr>
         <td><div class="skeleton" style="width: 64px; height: 64px;"></div></td>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
@@ -187,7 +205,9 @@ export default function renderSkeleton(type, children = undefined) {
             <div class="skeleton" style="width: 50px; height: 34px;"></div>
         </td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -223,7 +243,9 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'campaigns') {
-    const rows = [...Array(10)].map(() => `
+    const rows = [...Array(10)]
+      .map(
+        () => `
       <tr>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
@@ -236,7 +258,9 @@ export default function renderSkeleton(type, children = undefined) {
             </div>
         </td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -261,7 +285,9 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'audience') {
-    const rows = [...Array(10)].map(() => `
+    const rows = [...Array(10)]
+      .map(
+        () => `
       <tr class="skeleton-row">
         <td><div class="skeleton" style="width: 200px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
@@ -275,7 +301,9 @@ export default function renderSkeleton(type, children = undefined) {
             </div>
         </td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     return `
       <div aria-label="loading">
@@ -319,7 +347,9 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'campaign-tracking') {
-    const rows = [...Array(5)].map(() => `
+    const rows = [...Array(5)]
+      .map(
+        () => `
       <tr>
         <td><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
         <td><div class="skeleton" style="width: 150px; height: 30px;"></div></td>
@@ -328,7 +358,9 @@ export default function renderSkeleton(type, children = undefined) {
         <td></td>
         <td></td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     return `
       <table>
@@ -393,7 +425,9 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'recipients') {
-    const rows = [...Array(10)].map(() => `
+    const rows = [...Array(10)]
+      .map(
+        () => `
       <tr>
         <td><div class="skeleton" style="width: 34px; height: 34px;"></div></td>
         <td><div class="skeleton" style="width: 100px; height: 30px;"></div></td>
@@ -406,7 +440,9 @@ export default function renderSkeleton(type, children = undefined) {
           </div>
         </td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     return `
       <thead>
@@ -424,9 +460,13 @@ export default function renderSkeleton(type, children = undefined) {
     `;
   }
   if (type === 'theme-editor') {
-    const pickers = [...Array(5)].map(() => `
+    const pickers = [...Array(5)]
+      .map(
+        () => `
         <div class="skeleton" style="width: 120px; height: 20px;margin-bottom: 14px;margin-top: 24px;"></div>
-        <div class="skeleton" style="height: 34px;"></div>`).join('');
+        <div class="skeleton" style="height: 34px;"></div>`,
+      )
+      .join('');
 
     return `
       <div class="skeleton skeleton-theme-editor-iframe" style="min-height: calc(100vh - 200px);" class="skeleton" aria-label="loading"></div>

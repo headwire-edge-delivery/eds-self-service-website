@@ -27,11 +27,15 @@ async function onFeedbackFormSubmit(event) {
   });
   if (response.ok) {
     form.classList.add('success');
-    form.addEventListener('click', () => {
-      form.reset();
-      form.classList.remove('success');
-      disableForm(form, false);
-    }, { once: true });
+    form.addEventListener(
+      'click',
+      () => {
+        form.reset();
+        form.classList.remove('success');
+        disableForm(form, false);
+      },
+      { once: true },
+    );
   } else {
     showErrorToast();
     disableForm(form, false);
@@ -64,9 +68,7 @@ async function onSalesContactFormSubmit(event) {
 export default async function decorate(block) {
   const contactSalesVariation = block.classList.contains('contact-sales');
   const formSetupLink = block.querySelector('a[href]')?.href || '/feedback-form-setup.json';
-  const form = await createForm(
-    formSetupLink,
-  );
+  const form = await createForm(formSetupLink);
 
   form.dataset.loadingMessage = 'Sending...';
   form.dataset.successMessage = contactSalesVariation ? 'Thank you for your inquiry. We will contact you soon!' : 'Thank you for your feedback.';

@@ -1,15 +1,14 @@
-/* eslint-disable no-restricted-globals */
-
-const getCSSVars = (css) => css
-  .split('\n')
-  .map((s) => {
-    let formatted = s.trim();
-    if (formatted.endsWith(';')) {
-      formatted = formatted.slice(0, -1);
-    }
-    return formatted;
-  })
-  .filter((prop) => prop.startsWith('--'));
+const getCSSVars = (css) =>
+  css
+    .split('\n')
+    .map((s) => {
+      let formatted = s.trim();
+      if (formatted.endsWith(';')) {
+        formatted = formatted.slice(0, -1);
+      }
+      return formatted;
+    })
+    .filter((prop) => prop.startsWith('--'));
 
 function hexToRgb(hexValue) {
   if (!hexValue) return null;
@@ -19,11 +18,7 @@ function hexToRgb(hexValue) {
   const fullHexValue = hexValue.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
 
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHexValue);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16),
-  } : null;
+  return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
 }
 
 function luminance(r, g, b) {
@@ -236,12 +231,7 @@ function handler(event) {
     if (!shouldContrastWith?.length) continue;
     for (let j = 0; j < shouldContrastWith.length; j += 1) {
       const requiredThresholds = getRequiredContrastThreshold(varKey, shouldContrastWith[j]);
-      const { ratio, AA, AAA } = calculateContrast(
-        filteredCssVars[varKey].value,
-        filteredCssVars[shouldContrastWith[j]].value,
-        requiredThresholds.AA,
-        requiredThresholds.AAA,
-      );
+      const { ratio, AA, AAA } = calculateContrast(filteredCssVars[varKey].value, filteredCssVars[shouldContrastWith[j]].value, requiredThresholds.AA, requiredThresholds.AAA);
 
       if (!AA || !AAA) {
         contrastIssues.push({

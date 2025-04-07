@@ -1,16 +1,8 @@
-import {
-  SCRIPT_API,
-  parseFragment,
-  completeChecklistItem,
-  highlightElement,
-  maybeStringify,
-  maybeParse,
-} from '../../scripts/scripts.js';
+import { SCRIPT_API, parseFragment, completeChecklistItem, highlightElement, maybeStringify, maybeParse } from '../../scripts/scripts.js';
 import { readQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import { toClassName } from '../../scripts/aem.js';
 import { showErrorToast } from '../../scripts/toast.js';
 
-// eslint-disable-next-line consistent-return
 function openButtonOnclick(event) {
   const path = event?.currentTarget?.dataset?.path || '';
   const encodedHighlightSelector = event?.currentTarget?.dataset?.highlightSelector || '';
@@ -18,9 +10,7 @@ function openButtonOnclick(event) {
   const encodedTooltip = event?.currentTarget?.dataset?.tooltip || '';
   if (encodedTooltip) writeQueryParams({ tooltip: encodedTooltip });
 
-  const decodedAdditionalQueries = maybeParse(
-    decodeURIComponent(event?.currentTarget?.dataset?.additionalQueries || ''),
-  );
+  const decodedAdditionalQueries = maybeParse(decodeURIComponent(event?.currentTarget?.dataset?.additionalQueries || ''));
   if (decodedAdditionalQueries) writeQueryParams(decodedAdditionalQueries);
 
   if (!path) {
@@ -28,6 +18,7 @@ function openButtonOnclick(event) {
     return;
   }
 
+  // eslint-disable-next-line no-restricted-syntax
   const linkForPath = document.querySelector(`[href="${path}"`);
   if (linkForPath) {
     linkForPath.click();
@@ -46,9 +37,7 @@ function openButtonOnclick(event) {
 }
 
 // MARK: renderCheckList
-export default async function renderCheckList({
-  container, renderOptions, historyArray,
-}) {
+export default async function renderCheckList({ container, renderOptions, historyArray }) {
   container.innerHTML = `
     <div id="checklist" class="checklist">
       <h2 class="checklist-title">Checklist</h2>
@@ -109,7 +98,8 @@ export default async function renderCheckList({
           path: `${renderOptions.pathname}/pages`,
           highlight: 'table.navs .button.edit',
           property: 'navEdited',
-          tooltip: 'Add an additional link to to the list of links in your nav document.\nMake sure you link the published page URL (i.e. https://mysite.kestrelone.com/blog) to the page you want to link to. The link to the drive document will not work.',
+          tooltip:
+            'Add an additional link to to the list of links in your nav document.\nMake sure you link the published page URL (i.e. https://mysite.kestrelone.com/blog) to the page you want to link to. The link to the drive document will not work.',
         },
         {
           content: 'Add your logo',
@@ -124,7 +114,7 @@ export default async function renderCheckList({
           property: 'faviconAdded',
         },
         {
-          content: 'Update your site\'s theme',
+          content: "Update your site's theme",
           path: `${window.location.origin}/theme/${renderOptions.siteSlug}`,
           newTab: true,
           completeOnClick: true,
@@ -160,9 +150,7 @@ export default async function renderCheckList({
   let defaultSectionIndex = 0;
 
   // MARK: render items
-  const renderChecklistItems = (
-    checklistData = renderOptions?.projectDetails?.checklistData || {},
-  ) => {
+  const renderChecklistItems = (checklistData = renderOptions?.projectDetails?.checklistData || {}) => {
     // reset
     sectionTabsContainer.innerHTML = '';
     checklistSectionsContainer.innerHTML = '';
@@ -173,12 +161,7 @@ export default async function renderCheckList({
       section.sectionItems.forEach((item) => {
         if (item.completed) {
           checklistData[item.property] = true;
-          completeChecklistItem(
-            renderOptions.siteSlug,
-            item.property,
-            renderOptions?.projectDetails,
-            false,
-          );
+          completeChecklistItem(renderOptions.siteSlug, item.property, renderOptions?.projectDetails, false);
         }
       });
 
@@ -196,17 +179,14 @@ export default async function renderCheckList({
               </div>
             </div>
           </div>
-  
+
           <ul class="checklist-list"></ul>
         </div>`);
       const checklistUl = sectionDiv.querySelector('.checklist-list');
       const progressBarFill = sectionDiv.querySelector('.progress-bar-fill');
 
       const progressTotal = section.sectionItems.length;
-      let progressCurrent = section.sectionItems.reduce(
-        (current, item) => (checklistData[item.property] ? current + 1 : current),
-        0,
-      );
+      let progressCurrent = section.sectionItems.reduce((current, item) => (checklistData[item.property] ? current + 1 : current), 0);
 
       // render progress
       const totalSpan = sectionDiv.querySelector('.progress-wrapper .total');
@@ -219,7 +199,11 @@ export default async function renderCheckList({
       renderProgress();
 
       // section tab button
-      const sectionTabButton = parseFragment(`<button class="button secondary selector action" data-section-index="${index}" data-section-name="${toClassName(section.section)}" data-selected="false">${section.section}</button>`);
+      const sectionTabButton = parseFragment(
+        `<button class="button secondary selector action" data-section-index="${index}" data-section-name="${toClassName(
+          section.section,
+        )}" data-selected="false">${section.section}</button>`,
+      );
       sectionTabButton.onclick = setSelectedSection;
       sectionTabsContainer.append(sectionTabButton);
 
@@ -231,7 +215,9 @@ export default async function renderCheckList({
         const encodedTooltip = encodeURIComponent(item.tooltip || '');
         const encodedAdditionalQueries = encodeURIComponent(maybeStringify(item.additionalQueries || ''));
         const checklistItem = parseFragment(`
-          <li class="checklist-item" data-index="${itemIndex}" data-checklist-property="${item.property}" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
+          <li class="checklist-item" data-index="${itemIndex}" data-checklist-property="${
+            item.property
+          }" data-path="${item.path}" data-highlight-selector="${encodedHighlightSelector}">
             <span class="checklist-item-title">${item.content}</span>
             <div class="checklist-button-container">
               <button
@@ -258,10 +244,12 @@ export default async function renderCheckList({
         openButton.onclick = openButtonOnclick;
 
         if (item.allowManualCheck) {
-          const manuelCheckButton = parseFragment('<button class="button checklist-button checklist-manual-checkbox" aria-label="Check" ><img src="/icons/check-mark.svg" alt="Checkmark" /></button>');
-          manuelCheckButton.onclick = async () => {
+          const manualCheckButton = parseFragment(
+            '<button class="button checklist-button checklist-manual-checkbox" aria-label="Check" ><img src="/icons/check-mark.svg" alt="Checkmark" /></button>',
+          );
+          manualCheckButton.onclick = async () => {
             if (checklistItem.dataset.completed === 'true') return;
-            manuelCheckButton.classList.add('loading');
+            manualCheckButton.classList.add('loading');
             const success = await completeChecklistItem(renderOptions.siteSlug, item.property);
             if (success) {
               progressCurrent += 1;
@@ -271,14 +259,16 @@ export default async function renderCheckList({
             } else {
               showErrorToast();
             }
-            manuelCheckButton.classList.remove('loading');
+            manualCheckButton.classList.remove('loading');
           };
-          openButton.before(manuelCheckButton);
+          openButton.before(manualCheckButton);
         }
 
         if (item.hintBody) {
           const title = checklistItem.querySelector('.checklist-item-title');
-          const hintButton = parseFragment(`<button class="hint-button"><img src="/icons/help-dark.svg" alt="hint icon" /><div hidden class="hint-container">${item.hintBody}</div></button>`);
+          const hintButton = parseFragment(
+            `<button class="hint-button"><img src="/icons/help-dark.svg" alt="hint icon" /><div hidden class="hint-container">${item.hintBody}</div></button>`,
+          );
           const hintContainer = hintButton.querySelector('.hint-container');
 
           const updateHintPos = () => {
@@ -341,7 +331,8 @@ export default async function renderCheckList({
     const fetchedChecklistData = await fetch(`${SCRIPT_API}/checklist/${renderOptions.siteSlug}`, {
       method: 'GET',
       headers: { authorization: `bearer ${await window.auth0Client.getTokenSilently()}` },
-    }).then((res) => (res.ok ? res.json() : null))
+    })
+      .then((res) => (res.ok ? res.json() : null))
       .catch(() => null);
 
     checklistTitle.classList.remove('reloading-checklist');

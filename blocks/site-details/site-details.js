@@ -2,15 +2,7 @@
 
 import { writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import { createDialog } from '../../scripts/dialogs.js';
-import {
-  SCRIPT_API, OOPS,
-  waitForAuthenticated,
-  createTabs,
-  parseFragment,
-  highlightElement,
-  safeText,
-  toValidPropertyName,
-} from '../../scripts/scripts.js';
+import { SCRIPT_API, OOPS, waitForAuthenticated, createTabs, parseFragment, highlightElement, safeText, toValidPropertyName } from '../../scripts/scripts.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
 import renderCampaignsAnalytics from './renderCampaignsAnalytics.js';
 import renderCampaignsAudience from './renderCampaignsAudience.js';
@@ -51,10 +43,7 @@ export default async function decorate(block) {
     return;
   }
 
-  const [siteDetails, versionInfo] = await Promise.all([
-    siteDetailsReq.json().catch(() => null),
-    versionInfoReq?.json().catch(() => null),
-  ]);
+  const [siteDetails, versionInfo] = await Promise.all([siteDetailsReq.json().catch(() => null), versionInfoReq?.json().catch(() => null)]);
 
   if (!siteDetails) {
     block.innerHTML = `<div class="centered-message"><p>${OOPS}<p></div>`;
@@ -64,9 +53,19 @@ export default async function decorate(block) {
   createTabs({
     block,
     defaultTab: 0,
-    breadcrumbs: [{ name: 'Dashboard', href: '/dashboard/sites' }, { name: siteDetails.project.projectName, href: pathname }],
+    breadcrumbs: [
+      { name: 'Dashboard', href: '/dashboard/sites' },
+      { name: siteDetails.project.projectName, href: pathname },
+    ],
     renderOptions: {
-      projectDetails: siteDetails.project, token, user, siteSlug, pathname, authHeaders, authHeadersWithBody, versionInfo,
+      projectDetails: siteDetails.project,
+      token,
+      user,
+      siteSlug,
+      pathname,
+      authHeaders,
+      authHeadersWithBody,
+      versionInfo,
     },
     tabs: [
       {
@@ -151,7 +150,8 @@ export default async function decorate(block) {
     const levelParagraphMap = {
       patch: 'Patch updates contain smaller features and bugfixes. These are safe to update without any issues.',
       minor: 'Minor updates contain minor features and bugfixes. These are safe to update without any issues.',
-      major: 'Major updates contain large features and bugfixes. These may require you to change how you author your content & blocks. When updating a major version check that everything still looks as intended.',
+      major:
+        'Major updates contain large features and bugfixes. These may require you to change how you author your content & blocks. When updating a major version check that everything still looks as intended.',
     };
 
     const dialogContent = `
@@ -164,7 +164,9 @@ export default async function decorate(block) {
     // yes dialog already has a close button, but I think it's good to have one here.
     // Without one it might make users think the only options are update or don't show again.
     const closeButton = parseFragment('<button class="button action secondary close-alt">Close</button>');
-    const dontShowAgainButton = parseFragment(`<button class="button action secondary dont-show">Disable update prompts for ${safeText(siteDetails?.project?.projectName) || 'this project'}</button>`);
+    const dontShowAgainButton = parseFragment(
+      `<button class="button action secondary dont-show">Disable update prompts for ${safeText(siteDetails?.project?.projectName) || 'this project'}</button>`,
+    );
 
     const updateDialog = createDialog(dialogContent, [showMeButton, closeButton, dontShowAgainButton]);
 
@@ -181,7 +183,10 @@ export default async function decorate(block) {
 
     dontShowAgainButton.onclick = async () => {
       updateDialog.close();
-      const togglePromptsResponse = await fetch(`${SCRIPT_API}/disableUpdatePrompts/${siteSlug}?forceState=true`, { method: 'POST', headers: authHeaders }).catch(() => null);
+      const togglePromptsResponse = await fetch(`${SCRIPT_API}/disableUpdatePrompts/${siteSlug}?forceState=true`, {
+        method: 'POST',
+        headers: authHeaders,
+      }).catch(() => null);
       if (togglePromptsResponse?.ok) {
         showToast(`You will no longer be prompted to update ${safeText(siteDetails?.project?.projectName) || 'this project'} when a new version is available.`);
         siteDetails.project.hideUpdatePrompts[emailAsPropertyName] = true;

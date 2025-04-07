@@ -50,12 +50,7 @@ function generateTimeSeries(intervalChoice) {
   return timeSeries;
 }
 
-export default async function renderAnalytics({
-  analytics,
-  container,
-  nav,
-  loadWebAnalytics,
-}) {
+export default async function renderAnalytics({ analytics, container, nav, loadWebAnalytics }) {
   container.classList.add('analytics');
 
   if (!analytics || !analytics?.[0]) {
@@ -85,21 +80,14 @@ export default async function renderAnalytics({
     }
     const totalVisits = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.sum?.visits ?? 0;
     const totalPageViews = metrics[0]?.data?.viewer.accounts[0]?.total[0]?.count ?? 0;
-    const medianPageLoadTime = metrics[2]
-      ?.data?.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
+    const medianPageLoadTime = metrics[2]?.data?.viewer.accounts[0]?.totalPerformance[0]?.aggregation?.pageLoadTime ?? 0;
 
-    const visitsDelta = metrics[2]?.data?.viewer.accounts[0].visitsDelta[0]
-      ? (totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits - 100
-      : 0;
-    const pageViewsDelta = metrics[2]?.data?.viewer.accounts[0].pageviewsDelta[0]
-      ? (totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count - 100
-      : 0;
-    const performanceDelta = metrics[2]?.data?.viewer.accounts[0].performanceDelta[0]
-    && metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime > 0
-      ? (medianPageLoadTime * 100) / metrics[2]
-        .data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime
-      - 100
-      : 0;
+    const visitsDelta = metrics[2]?.data?.viewer.accounts[0].visitsDelta[0] ? (totalVisits * 100) / metrics[2].data.viewer.accounts[0].visitsDelta[0].sum.visits - 100 : 0;
+    const pageViewsDelta = metrics[2]?.data?.viewer.accounts[0].pageviewsDelta[0] ? (totalPageViews * 100) / metrics[2].data.viewer.accounts[0].pageviewsDelta[0].count - 100 : 0;
+    const performanceDelta =
+      metrics[2]?.data?.viewer.accounts[0].performanceDelta[0] && metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime > 0
+        ? (medianPageLoadTime * 100) / metrics[2].data.viewer.accounts[0].performanceDelta[0].aggregation.pageLoadTime - 100
+        : 0;
 
     container.innerHTML = `
           <div class="title">
@@ -134,152 +122,148 @@ export default async function renderAnalytics({
               <div class="cards metrics">
                   <div id="visits-details-country" class="box">
                       <strong>By country</strong>
-                      ${metrics[0].data.viewer.accounts[0].countries.map((country) => `
-                        <p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.sum.visits}</span></p>`)
-    .join('')}
+                      ${metrics[0].data.viewer.accounts[0].countries
+                        .map(
+                          (country) => `
+                        <p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.sum.visits}</span></p>`,
+                        )
+                        .join('')}
                   </div>
                   <div id="visits-details-referers" class="box">
                       <strong>By referers</strong>
                       ${metrics[0].data.viewer.accounts[0].topReferers
-    .filter((ref) => ref.sum.visits > 1)
-    .map(
-      (referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.sum.visits}</span></p>`,
-    )
-    .join('')
-}
+                        .filter((ref) => ref.sum.visits > 1)
+                        .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.sum.visits}</span></p>`)
+                        .join('')}
                   </div>
                   <div id="visits-details-paths" class="box">
                       <strong>By paths</strong>
-                      ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `<p><span>${paths.dimensions.metric}</span><span>${paths.sum.visits}</span></p>`)
-    .join('')}
+                      ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `<p><span>${paths.dimensions.metric}</span><span>${paths.sum.visits}</span></p>`).join('')}
                   </div>
                   <div id="visits-details-browsers" class="box">
                       <strong>By browsers</strong>
-                      ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `<p><span>${browsers.dimensions.metric}</span><span>${browsers.sum.visits}</span></p>`)
-    .join('')}
+                      ${metrics[0].data.viewer.accounts[0].topBrowsers
+                        .map((browsers) => `<p><span>${browsers.dimensions.metric}</span><span>${browsers.sum.visits}</span></p>`)
+                        .join('')}
                   </div>
                   <div id="visits-details-os" class="box">
                       <strong>By operating systems</strong>
-                      ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `<p><span>${OSs.dimensions.metric}</span><span>${OSs.sum.visits}</span></p>`)
-    .join('')}
+                      ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `<p><span>${OSs.dimensions.metric}</span><span>${OSs.sum.visits}</span></p>`).join('')}
                   </div>
                   <div id="visits-details-devices" class="box">
                       <strong>By device type</strong>
-                      ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.sum.visits}</span></p>`)
-    .join('')}
+                      ${metrics[0].data.viewer.accounts[0].topDeviceTypes
+                        .map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.sum.visits}</span></p>`)
+                        .join('')}
                   </div>
               </div>
             </div>
-  
+
             <div id="page-views-details">
               <h2>Page views details</h2>
               <div class="cards metrics">
                 <div id="page-views-details-country" class="box">
                     <strong>By country</strong>
-                    ${metrics[0].data.viewer.accounts[0].countries.map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
-    .join('')}
+                    ${metrics[0].data.viewer.accounts[0].countries
+                      .map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
+                      .join('')}
                 </div>
                 <div id="page-views-details-referers" class="box">
                     <strong>By referers</strong>
-                    ${metrics[0].data.viewer.accounts[0].topReferers.map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.count}</span></p>`)
-    .join('')}
+                    ${metrics[0].data.viewer.accounts[0].topReferers
+                      .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.count}</span></p>`)
+                      .join('')}
                 </div>
                 <div id="page-views-details-paths" class="box">
                     <strong>By paths</strong>
-                    ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `<p><span>${paths.dimensions.metric}</span><span>${paths.count}</span></p>`)
-    .join('')}
+                    ${metrics[0].data.viewer.accounts[0].topPaths.map((paths) => `<p><span>${paths.dimensions.metric}</span><span>${paths.count}</span></p>`).join('')}
                 </div>
                 <div id="page-views-details-browsers" class="box">
                     <strong>By browsers</strong>
-                    ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `<p><span>${browsers.dimensions.metric}</span><span>${browsers.count}</span></p>`)
-    .join('')}
+                    ${metrics[0].data.viewer.accounts[0].topBrowsers.map((browsers) => `<p><span>${browsers.dimensions.metric}</span><span>${browsers.count}</span></p>`).join('')}
                 </div>
                 <div id="page-views-details-os" class="box">
                     <strong>By operating systems</strong>
-                    ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `<p><span>${OSs.dimensions.metric}</span><span>${OSs.count}</span></p>`)
-    .join('')}
+                    ${metrics[0].data.viewer.accounts[0].topOSs.map((OSs) => `<p><span>${OSs.dimensions.metric}</span><span>${OSs.count}</span></p>`).join('')}
                 </div>
                 <div id="page-views-details-devices" class="box">
                     <strong>By device type</strong>
-                    ${metrics[0].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.count}</span></p>`)
-    .join('')}
+                    ${metrics[0].data.viewer.accounts[0].topDeviceTypes
+                      .map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.count}</span></p>`)
+                      .join('')}
                 </div>
               </div>
             </div>
-  
+
             <div id="pageload-details">
               <h2>Page load time details</h2>
               <div class="cards metrics">
                 <div id="pageload-details-country" class="box">
                     <strong>By country</strong>
-                    ${metrics[3].data.viewer.accounts[0].countries.map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
-    .join('')}
+                    ${metrics[3].data.viewer.accounts[0].countries
+                      .map((country) => `<p><span>${countries.find(({ value }) => value === country.dimensions.metric)?.label}</span><span>${country.count}</span></p>`)
+                      .join('')}
                 </div>
                 <div id="pageload-details-referers" class="box">
                     <strong>By referers</strong>
-                    ${metrics[3].data.viewer.accounts[0].topReferers.map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.count}</span></p>`)
-    .join('')}
+                    ${metrics[3].data.viewer.accounts[0].topReferers
+                      .map((referer) => `<p><span>${referer.dimensions.metric ? referer.dimensions.metric : 'None (direct)'}</span><span>${referer.count}</span></p>`)
+                      .join('')}
                 </div>
                 <div id="pageload-details-paths" class="box">
                     <strong>By paths</strong>
-                    ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `<p><span>${paths.dimensions.metric}</span><span>${paths.count}</span></p>`)
-    .join('')}
+                    ${metrics[3].data.viewer.accounts[0].topPaths.map((paths) => `<p><span>${paths.dimensions.metric}</span><span>${paths.count}</span></p>`).join('')}
                 </div>
                 <div id="pageload-details-browsers" class="box">
                     <strong>By browsers</strong>
-                    ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `<p><span>${browsers.dimensions.metric}</span><span>${browsers.count}</span></p>`)
-    .join('')}
+                    ${metrics[3].data.viewer.accounts[0].topBrowsers.map((browsers) => `<p><span>${browsers.dimensions.metric}</span><span>${browsers.count}</span></p>`).join('')}
                 </div>
                 <div id="pageload-details-os" class="box">
                     <strong>By operating systems</strong>
-                    ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `<p><span>${OSs.dimensions.metric}</span><span>${OSs.count}</span></p>`)
-    .join('')}
+                    ${metrics[3].data.viewer.accounts[0].topOSs.map((OSs) => `<p><span>${OSs.dimensions.metric}</span><span>${OSs.count}</span></p>`).join('')}
                 </div>
                 <div id="pageload-details-devices" class="box">
                     <strong>By device type</strong>
-                    ${metrics[3].data.viewer.accounts[0].topDeviceTypes.map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.count}</span></p>`)
-    .join('')}
+                    ${metrics[3].data.viewer.accounts[0].topDeviceTypes
+                      .map((deviceTypes) => `<p><span>${deviceTypes.dimensions.metric}</span><span>${deviceTypes.count}</span></p>`)
+                      .join('')}
                 </div>
               </div>
             </div>
           </div>
-          
-          ${cww ? `
+
+          ${
+            cww
+              ? `
           <div id="core-web-vitals">
           <h2>Core Web Vitals</h2>
 
           <div class="cards">
               ${['lcp', 'inp', 'fid', 'cls']
-    .map(
-      (metric) => `
+                .map(
+                  (metric) => `
                 <div class="cwp-box box">
                   <strong>${metric.toUpperCase()}</strong>
-                  <span>Excellent (${
-  metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'
-})</span>
-                  <span>Good (${
-  metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'
-})</span>
-                  <span>Needs improvement (${
-  metrics[2].data.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'
-})</span>
+                  <span>Excellent (${metrics[2].data?.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Good`] ?? '0'})</span>
+                  <span>Good (${metrics[2].data?.viewer.accounts[0]?.[metric][0]?.sum[`${metric}NeedsImprovement`] ?? '0'})</span>
+                  <span>Needs improvement (${metrics[2].data?.viewer.accounts[0]?.[metric][0]?.sum[`${metric}Poor`] ?? '0'})</span>
                 </div>
                 `,
-    )
-    .join('')}
+                )
+                .join('')}
           </div>
           </div>
-          
+
           <div id="core-web-vitals-path-browsers">
           <h2>By Path and Browsers</h2>
-          
+
           <div class="cards metrics">
             <div class="cwp-box box">
                 <strong>LCP</strong>
                 ${cww[0].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.largestContentfulPaintPath)
-    .map(
-      (rum) => `
+                  .filter((rum) => rum?.dimensions?.largestContentfulPaintPath)
+                  .map(
+                    (rum) => `
                     <p><span>Path</span><span>${rum.dimensions.largestContentfulPaintPath}</span></p>
                     <ul>
                       <li>Excellent (${rum?.sum.lcpGood ?? '0'})</li>
@@ -287,15 +271,15 @@ export default async function renderAnalytics({
                       <li>Needs improvement (${rum?.sum.lcpPoor ?? '0'})</li>
                     </ul>
                   `,
-    )
-    .join('')}
+                  )
+                  .join('')}
             </div>
             <div class="box cwp-box">
                 <strong>INP</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.userAgentBrowser)
-    .map(
-      (rum) => `
+                  .filter((rum) => rum?.dimensions?.userAgentBrowser)
+                  .map(
+                    (rum) => `
                     <p><span>Browser</span><span>${rum.dimensions.userAgentBrowser}</span></p>
                     <ul>
                         <li>Excellent (${rum?.sum.inpGood ?? '0'})</li>
@@ -303,15 +287,15 @@ export default async function renderAnalytics({
                         <li>Needs improvement (${rum?.sum.inpPoor ?? '0'})</li>
                     </ul>
                   `,
-    )
-    .join('')}
+                  )
+                  .join('')}
             </div>
             <div class="cwp-box box">
                 <strong>FID</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.firstInputDelayPath)
-    .map(
-      (rum) => `
+                  .filter((rum) => rum?.dimensions?.firstInputDelayPath)
+                  .map(
+                    (rum) => `
                   <p><span>Path</span><span>${rum.dimensions.firstInputDelayPath}</span></p>
                   <ul>
                     <li>Excellent (${rum?.sum.fidGood ?? '0'})</li>
@@ -319,15 +303,15 @@ export default async function renderAnalytics({
                     <li>Needs improvement (${rum?.sum.fidPoor ?? '0'})</li>
                   </ul>
                 `,
-    )
-    .join('')}
+                  )
+                  .join('')}
             </div>
             <div class="cwp-box box">
                 <strong>CLS</strong>
                 ${cww[1].data.viewer.accounts[0]?.rumWebVitalsEventsAdaptiveGroups
-    .filter((rum) => rum?.dimensions?.cumulativeLayoutShiftPath)
-    .map(
-      (rum) => `
+                  .filter((rum) => rum?.dimensions?.cumulativeLayoutShiftPath)
+                  .map(
+                    (rum) => `
                   <p><span>Path</span><span>${rum.dimensions.cumulativeLayoutShiftPath}</span></p>
                   <ul>
                     <li>Excellent (${rum?.sum.clsGood ?? '0'})</li>
@@ -335,12 +319,14 @@ export default async function renderAnalytics({
                     <li>Needs improvement (${rum?.sum.clsPoor ?? '0'})</li>
                   </ul>
                 `,
-    )
-    .join('')}
+                  )
+                  .join('')}
             </div>
           </div>
           </div>
-          ` : ''}
+          `
+              : ''
+          }
         `;
 
     container.querySelectorAll('.box:not(.cwp-box) p span:first-child, .cwp-box p span:last-child').forEach((el) => {
@@ -355,9 +341,9 @@ export default async function renderAnalytics({
     const pageViewsData = [];
 
     series.forEach((d) => {
-      const found = metrics[1].data.viewer.accounts[0].series.find((serie) => (periodSelector.value === '30d'
-        ? d.toLocaleDateString() === new Date(serie.dimensions.ts).toLocaleDateString()
-        : d.getTime() === new Date(serie.dimensions.ts).getTime()));
+      const found = metrics[1].data.viewer.accounts[0].series.find((serie) =>
+        periodSelector.value === '30d' ? d.toLocaleDateString() === new Date(serie.dimensions.ts).toLocaleDateString() : d.getTime() === new Date(serie.dimensions.ts).getTime(),
+      );
 
       if (found) {
         visitsData.push(found.sum.visits);

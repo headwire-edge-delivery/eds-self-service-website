@@ -1,8 +1,4 @@
-import {
-  getUserSettings, OOPS, parseFragment,
-  SCRIPT_API,
-  updateUserSettings, waitForAuthenticated,
-} from '../../scripts/scripts.js';
+import { getUserSettings, OOPS, parseFragment, SCRIPT_API, updateUserSettings, waitForAuthenticated } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 
 export default async function renderAccount({ container, nav }) {
@@ -11,10 +7,7 @@ export default async function renderAccount({ container, nav }) {
   await waitForAuthenticated();
   const token = await window.auth0Client.getTokenSilently();
 
-  const [userSettings, user] = await Promise.all([
-    getUserSettings(SCRIPT_API),
-    window.auth0Client.getUser(),
-  ]);
+  const [userSettings, user] = await Promise.all([getUserSettings(SCRIPT_API), window.auth0Client.getUser()]);
 
   fetch(`${SCRIPT_API}/account-usage`, {
     headers: {
@@ -29,7 +22,8 @@ export default async function renderAccount({ container, nav }) {
       const pageViewsPercentage = (pageViews * 100) / maxPageViews;
       const sentEmailsPercentage = (sentEmails * 100) / maxSentEmails;
 
-      container.querySelector('.account-usage-skeleton').replaceWith(...parseFragment(`
+      container.querySelector('.account-usage-skeleton').replaceWith(
+        ...parseFragment(`
         <h2 style="margin-top: 32px">Monthly consumption</h2>
         <div id="pv-usage" class="progress-bar">
             <div class="progress-bar-fill" style="width:${pageViewsPercentage}%"></div>
@@ -43,12 +37,16 @@ export default async function renderAccount({ container, nav }) {
               <span>${sentEmails} / ${maxSentEmails} Sent Emails</span>
             </div>
         </div>
-      `));
-    }).catch(() => {
-      container.querySelector('.account-usage-skeleton').replaceWith(...parseFragment(`
+      `),
+      );
+    })
+    .catch(() => {
+      container.querySelector('.account-usage-skeleton').replaceWith(
+        ...parseFragment(`
           <h2 style="margin-top: 32px">Monthly consumption</h2>
           <p>${OOPS}</p>
-        `));
+        `),
+      );
     });
 
   nav.innerHTML = `
@@ -75,7 +73,8 @@ export default async function renderAccount({ container, nav }) {
     toggleAutoTourButton.textContent = userSettings.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour';
   });
 
-  container.querySelector('.account-details-skeleton').replaceWith(parseFragment(`
+  container.querySelector('.account-details-skeleton').replaceWith(
+    parseFragment(`
     <div class="cards">
       <div class="box">
           <strong>Name</strong>
@@ -90,5 +89,6 @@ export default async function renderAccount({ container, nav }) {
           <span id="current-plan">Free Plan</span>
       </div>
     </div>
-  `));
+  `),
+  );
 }

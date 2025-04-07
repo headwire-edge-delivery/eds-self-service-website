@@ -17,8 +17,7 @@ import { confirmUnsavedChanges } from './utils.js';
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 const range = document.createRange();
 
-export const SCRIPT_API = window.location.hostname === 'localhost'
-  ? 'http://localhost:4000' : 'https://api.kestrelone.com';
+export const SCRIPT_API = window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'https://api.kestrelone.com';
 export const EMAIL_WORKER_API = `${SCRIPT_API}/emailPreview`;
 export const OOPS = 'Oops ! Something went wrong …';
 
@@ -53,19 +52,16 @@ export function clamp(num, min = 0, max = 100, setNan = 'min') {
   return result;
 }
 
-export async function completeChecklistItem(
-  projectSlug,
-  itemName,
-  projectDetails = null,
-  allowUpdateEl = true,
-) {
+export async function completeChecklistItem(projectSlug, itemName, projectDetails = null, allowUpdateEl = true) {
   if (projectDetails?.checklistData?.[itemName]) return true; // already complete
   const checklistDataResponse = await fetch(`${SCRIPT_API}/checklist/${projectSlug}/${itemName}`, {
     method: 'POST',
     headers: { authorization: `bearer ${await window.auth0Client.getTokenSilently()}` },
   }).catch(() => null);
   if (checklistDataResponse?.ok && allowUpdateEl) {
-    document.querySelectorAll(`[data-checklist-property="${itemName}"]`).forEach((el) => { el.dataset.completed = true; });
+    document.querySelectorAll(`[data-checklist-property="${itemName}"]`).forEach((el) => {
+      el.dataset.completed = true;
+    });
   }
   return checklistDataResponse?.ok || false;
 }
@@ -141,10 +137,7 @@ export function maybeParse(str) {
 }
 
 // extra four, for separators
-export const slugMaxLength = 63
-  - defaultBranch.length
-  - projectRepo.length
-  - 4;
+export const slugMaxLength = 63 - defaultBranch.length - projectRepo.length - 4;
 
 const daClassRegex = /\b(is-headwire|is-adobe|is-test-user)\b/i;
 export function hasDarkAlleyAccess() {
@@ -178,13 +171,18 @@ export function dateToRelativeString(date) {
 
   return rtf.format(0, 'second'); // Default to "now"
 }
-export function dateToRelativeSpan(date, className, lang = [], format = {
-  year: 'numeric',
-  month: 'numeric',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-}) {
+export function dateToRelativeSpan(
+  date,
+  className,
+  lang = [],
+  format = {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  },
+) {
   if (!(date instanceof Date)) {
     date = new Date(date); // eslint-disable-line no-param-reassign
   }
@@ -233,7 +231,9 @@ export async function getUserSettings() {
 
   const data = await fetch(`${SCRIPT_API}/userSettings`, {
     headers,
-  }).then((response) => response.json()).catch(() => null);
+  })
+    .then((response) => response.json())
+    .catch(() => null);
 
   if (data) {
     cachedUserSettings = data;
@@ -300,9 +300,7 @@ export function parseFragment(fragmentString) {
  * @param {String} return value for this key, if 'falsy' will return whole object.
  */
 export const getPlaceholder = async (str) => {
-  const placeholderLanguage = document.documentElement.lang === 'en'
-    ? 'default'
-    : `/${document.documentElement.lang}`;
+  const placeholderLanguage = document.documentElement.lang === 'en' ? 'default' : `/${document.documentElement.lang}`;
   if (!window.placeholders) {
     await fetchPlaceholders(placeholderLanguage);
   }
@@ -333,14 +331,7 @@ export function slugifyFilename(str) {
 }
 
 export function safeText(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/\n/g, '&#10;')
-    .replace(/\//g, '&#47;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  return text.replace(/&/g, '&amp;').replace(/\n/g, '&#10;').replace(/\//g, '&#47;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 const sanitizedNameRegex = /[`\\~!@#$%*+=[\]{};:'",<.>/?]/g;
@@ -374,21 +365,17 @@ function createTabsNavBreadcrumbs(breadcrumbs) {
 
   return `
     <div class="breadcrumbs">
-      ${breadcrumbs.map(({ name, href }, index) => {
-    const lastItem = index === breadcrumbs.length - 1;
-    return lastItem ? `<h1>${name}</h1>` : `<a href="${href}">${name}</a>`;
-  }).join('<span>›</span>')}
+      ${breadcrumbs
+        .map(({ name, href }, index) => {
+          const lastItem = index === breadcrumbs.length - 1;
+          return lastItem ? `<h1>${name}</h1>` : `<a href="${href}">${name}</a>`;
+        })
+        .join('<span>›</span>')}
     </div>
   `;
 }
 
-export function createTabs({
-  block,
-  breadcrumbs,
-  tabs,
-  renderOptions,
-  defaultTab = 0,
-}) {
+export function createTabs({ block, breadcrumbs, tabs, renderOptions, defaultTab = 0 }) {
   document.body.dataset.tabsStatus = 'loading';
   const blockContent = block.cloneNode(true);
   block.innerHTML = `
@@ -445,8 +432,7 @@ export function createTabs({
   const details = block.querySelector('.details');
 
   const functionalTabs = tabs.filter((tab) => tab && !tab?.section && !tab?.isLink);
-  const tabToSelect = functionalTabs.find(({ href }) => window
-    .location.pathname.startsWith(href)) || functionalTabs[defaultTab];
+  const tabToSelect = functionalTabs.find(({ href }) => window.location.pathname.startsWith(href)) || functionalTabs[defaultTab];
 
   let previousSection = '';
 
@@ -591,7 +577,6 @@ export const syntheticClickEvent = new CustomEvent('click', {
  * Decorates the main element.
  * @param {Element} main The main element
  */
-// eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
   // hopefully forward compatible button decoration
   decorateButtons(main);
@@ -638,7 +623,6 @@ async function loadLazy(doc) {
  * without impacting the user experience.
  */
 function loadDelayed() {
-  // eslint-disable-next-line import/no-cycle
   window.setTimeout(() => import('./delayed.js'), 3000);
   // load anything that can be postponed to the latest here
 }
@@ -652,13 +636,14 @@ const debounce = (fn) => {
   timer = setTimeout(() => fn(), 500);
 };
 
-const isPageReady = () => [...document.body.querySelectorAll('[data-section-status]')].every((element) => element.dataset.sectionStatus === 'loaded')
-  && (!document.body.dataset.tabsStatus || document.body.dataset.tabsStatus === 'loaded')
-  && [...document.body.querySelectorAll('[data-block-status]')].every((element) => element.dataset.blockStatus === 'loaded')
-  && document.body.querySelectorAll('[aria-label="loading"], .skeletons').length === 0
-  && document.body.querySelector('header:empty') === null
-  && document.body.querySelector('footer:empty') === null
-  && (document.body.classList.contains('is-authenticated') || document.body.classList.contains('is-anonymous'));
+const isPageReady = () =>
+  [...document.body.querySelectorAll('[data-section-status]')].every((element) => element.dataset.sectionStatus === 'loaded') &&
+  (!document.body.dataset.tabsStatus || document.body.dataset.tabsStatus === 'loaded') &&
+  [...document.body.querySelectorAll('[data-block-status]')].every((element) => element.dataset.blockStatus === 'loaded') &&
+  document.body.querySelectorAll('[aria-label="loading"], .skeletons').length === 0 &&
+  document.body.querySelector('header:empty') === null &&
+  document.body.querySelector('footer:empty') === null &&
+  (document.body.classList.contains('is-authenticated') || document.body.classList.contains('is-anonymous'));
 
 const setPageLoaded = () => {
   document.body.classList.remove('page-loading');

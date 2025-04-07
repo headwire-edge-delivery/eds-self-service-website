@@ -40,12 +40,11 @@ function dashboardSitesTour({ showAutoTour }) {
         title: 'Filter My Sites Overview',
         description: 'Here you can filter the sites by name. <br /> Just type the name of the site you want to filter.',
         element: '.filter',
-        skip: !document.querySelector(driveProjectListQuery)?.children?.length
-        && !document.querySelector(darkAlleyProjectListQuery)?.children?.length,
+        skip: !document.querySelector(driveProjectListQuery)?.children?.length && !document.querySelector(darkAlleyProjectListQuery)?.children?.length,
       },
       {
-        title: 'Let\'s create a Website!',
-        description: 'You don\'t have any sites yet. Let\'s create one! <br /> Click here to create a new site.',
+        title: "Let's create a Website!",
+        description: "You don't have any sites yet. Let's create one! <br /> Click here to create a new site.",
         skip: document.querySelector(driveProjectListQuery)?.children?.length > 0 || !showAutoTour,
       },
     ],
@@ -74,7 +73,9 @@ function dashboardAccountTour({ showAutoTour }) {
       },
       {
         title: 'Disable or Enable the Auto Tour?',
-        description: showAutoTour ? 'You can enable or disable the Auto Tour here.' : 'If you enable the Auto Tour, it will guide you through the Website. <br /> It will display the Tour automatically on every Page.',
+        description: showAutoTour
+          ? 'You can enable or disable the Auto Tour here.'
+          : 'If you enable the Auto Tour, it will guide you through the Website. <br /> It will display the Tour automatically on every Page.',
         element: '#toggle-auto-tour-button',
         side: 'right',
         destroyOnClicked: false,
@@ -104,14 +105,16 @@ function dashboardAccountTour({ showAutoTour }) {
       },
       {
         title: 'Delete your Account',
-        description: 'If you really want to delete your account, click here. <br /> If you delete your account, all your sites that exclusively belong to you will be deleted too. <br /> If you have shared sites, they will be removed from your account, but not deleted. <br /> You can always re-join to Fast Sites again.',
+        description:
+          'If you really want to delete your account, click here. <br /> If you delete your account, all your sites that exclusively belong to you will be deleted too. <br /> If you have shared sites, they will be removed from your account, but not deleted. <br /> You can always re-join to Fast Sites again.',
         element: '#delete-account-button',
         destroyOnClicked: true,
         side: 'top',
       },
       {
         title: 'Delete all Projects',
-        description: 'If you really want to delete <strong>all</strong> your projects, click here. <br /> This will delete all your projects that are exclusively yours. <br /> If you have shared projects, they will not be deleted.',
+        description:
+          'If you really want to delete <strong>all</strong> your projects, click here. <br /> This will delete all your projects that are exclusively yours. <br /> If you have shared projects, they will not be deleted.',
         element: '#delete-all-projects-button',
         destroyOnClicked: true,
         side: 'top',
@@ -123,10 +126,9 @@ function dashboardAccountTour({ showAutoTour }) {
         skip: !showAutoTour,
       },
       {
-        title: 'You\'re ready to go!',
+        title: "You're ready to go!",
         description: 'You now have all the information you need to get started.',
-        skip: !showAutoTour
-          || (!document.querySelector(driveProjectListQuery)?.children?.length && showAutoTour),
+        skip: !showAutoTour || (!document.querySelector(driveProjectListQuery)?.children?.length && showAutoTour),
       },
     ],
   };

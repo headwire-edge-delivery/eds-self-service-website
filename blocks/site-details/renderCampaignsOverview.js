@@ -3,7 +3,13 @@ import {
   daProjectRepo,
   dateToRelativeSpan,
   dateToRelativeString,
-  EMAIL_WORKER_API, OOPS, parseFragment, safeText, sanitizeName, SCRIPT_API, slugify,
+  EMAIL_WORKER_API,
+  OOPS,
+  parseFragment,
+  safeText,
+  sanitizeName,
+  SCRIPT_API,
+  slugify,
   syntheticClickEvent,
 } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
@@ -12,18 +18,18 @@ import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.
 import { readQueryParams, removeQueryParams } from '../../libs/queryParams/queryParams.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
 
-export default async function renderCampaignsOverview({
-  container, nav, renderOptions, pushHistory, replaceHistory, onHistoryPopArray,
-}) {
-  const {
-    projectDetails, user, token, siteSlug, pathname,
-  } = renderOptions;
+export default async function renderCampaignsOverview({ container, nav, renderOptions, pushHistory, replaceHistory, onHistoryPopArray }) {
+  const { projectDetails, user, token, siteSlug, pathname } = renderOptions;
   container.innerHTML = renderSkeleton('campaigns');
 
   // get required data
   const [indexData, campaignsData] = await Promise.all([
-    fetch(`${SCRIPT_API}/index/${siteSlug}`).then((res) => res.json()).catch(() => null),
-    fetch(`${SCRIPT_API}/campaigns/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.json()).catch(() => ({})),
+    fetch(`${SCRIPT_API}/index/${siteSlug}`)
+      .then((res) => res.json())
+      .catch(() => null),
+    fetch(`${SCRIPT_API}/campaigns/${siteSlug}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .catch(() => ({})),
   ]);
 
   if (!indexData?.data) {
@@ -113,7 +119,11 @@ export default async function renderCampaignsOverview({
     `;
 
   renderTable({
-    table: campaignContainer.querySelector('table.emails'), tableData: emailDocuments, type: 'emails', projectDetails, token,
+    table: campaignContainer.querySelector('table.emails'),
+    tableData: emailDocuments,
+    type: 'emails',
+    projectDetails,
+    token,
   });
 
   allCampaignSlugs.forEach((campaignSlug) => {
@@ -150,7 +160,11 @@ export default async function renderCampaignsOverview({
     campaignContainer.append(campaignDetails);
 
     renderTable({
-      table: campaignContainer.querySelector(`.campaign-${campaignSlug} table.emails`), tableData: campaignEmails, type: 'emails', projectDetails, token,
+      table: campaignContainer.querySelector(`.campaign-${campaignSlug} table.emails`),
+      tableData: campaignEmails,
+      type: 'emails',
+      projectDetails,
+      token,
     });
   });
 
@@ -193,7 +207,8 @@ export default async function renderCampaignsOverview({
           
           <form id="create-campaign-form">
             <p>
-                Start your email marketing campaign with individual email messages with specific purposes including the following: downloading a PDF, sign up for a newsletter, or make a purchase.
+                Start your email marketing campaign with individual email messages with specific purposes including the following:
+                downloading a PDF, sign up for a newsletter, or make a purchase.
             </p>
             <label>
                 <span>Name *</span>
@@ -250,12 +265,19 @@ export default async function renderCampaignsOverview({
         completeChecklistItem(siteSlug, 'createdCampaign', projectDetails);
 
         container.querySelectorAll('.campaign-list').forEach((el) => {
-          el.insertAdjacentHTML('beforeend', `
-              <li data-campaign="${newCampaign.slug}"><a class="button selector action secondary" href="${pathname}/${el.dataset.type}/${newCampaign.slug}">${newCampaign.name}</li></a>
-            `);
+          el.insertAdjacentHTML(
+            'beforeend',
+            `
+              <li data-campaign="${newCampaign.slug}"><a class="button selector action secondary" href="${pathname}/${el.dataset.type}/${
+                newCampaign.slug
+              }">${newCampaign.name}</li></a>
+            `,
+          );
         });
 
-        campaignContainer.insertAdjacentHTML('beforeend', `
+        campaignContainer.insertAdjacentHTML(
+          'beforeend',
+          `
             <div class="campaign campaign-${newCampaign.slug}" hidden>
               <div class="cards">
                 <div class="box">
@@ -280,11 +302,16 @@ export default async function renderCampaignsOverview({
               <h2>${safeText(newCampaign.name)} emails</h2>
               <table class="emails"></table>
             </div>
-          `);
+          `,
+        );
 
         const newCampaignEmails = emailDocuments.filter(({ path }) => path.startsWith(`/emails/${newCampaign.slug}/`));
         renderTable({
-          table: campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`), tableData: newCampaignEmails, type: 'emails', projectDetails, token,
+          table: campaignContainer.querySelector(`.campaign-${newCampaign.slug} .emails`),
+          tableData: newCampaignEmails,
+          type: 'emails',
+          projectDetails,
+          token,
         });
 
         const link = campaignList.querySelector('li:last-child a');
@@ -449,7 +476,9 @@ export default async function renderCampaignsOverview({
         }).catch(() => null);
 
         if (deleteReq?.ok) {
-          const emailsToDelete = [...container.querySelectorAll(`.campaign-${campaignSlug} .emails tr[data-path]`)].map((el) => `.campaign .emails tr[data-path="${el.dataset.path}"]`);
+          const emailsToDelete = [...container.querySelectorAll(`.campaign-${campaignSlug} .emails tr[data-path]`)].map(
+            (el) => `.campaign .emails tr[data-path="${el.dataset.path}"]`,
+          );
 
           container.querySelector(`.campaign-${campaignSlug}`).remove();
           if (emailsToDelete.length) {
@@ -483,7 +512,8 @@ export default async function renderCampaignsOverview({
     campaignList.querySelector(`[href="${currentItem}"]`)?.dispatchEvent(syntheticClickEvent);
   });
 
-  const addCampaignLink = document.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"].add-campaign`);
+  const tabsParent = container.closest('.tabs-content');
+  const addCampaignLink = tabsParent.querySelector(`.tabs-aside a[href$="/${siteSlug}/emails"].add-campaign`);
   if (addCampaignLink) {
     addCampaignLink.classList.remove('add-campaign');
     addCampaignEl.dispatchEvent(syntheticClickEvent);

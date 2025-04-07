@@ -1,10 +1,4 @@
-import {
-  SCRIPT_API,
-  onAuthenticated,
-  OOPS,
-  KESTREL_ONE,
-  completeChecklistItem,
-} from '../../scripts/scripts.js';
+import { SCRIPT_API, onAuthenticated, OOPS, KESTREL_ONE, completeChecklistItem } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS } from '../../scripts/aem.js';
 import { confirmDialog } from '../../scripts/dialogs.js';
@@ -21,16 +15,17 @@ const debounce = (fn) => {
   timer = setTimeout(() => fn(), 500);
 };
 
-const getCSSVars = (css) => css
-  .split('\n')
-  .map((s) => {
-    let formatted = s.trim();
-    if (formatted.endsWith(';')) {
-      formatted = formatted.slice(0, -1);
-    }
-    return formatted;
-  })
-  .filter((prop) => prop.startsWith('--'));
+const getCSSVars = (css) =>
+  css
+    .split('\n')
+    .map((s) => {
+      let formatted = s.trim();
+      if (formatted.endsWith(';')) {
+        formatted = formatted.slice(0, -1);
+      }
+      return formatted;
+    })
+    .filter((prop) => prop.startsWith('--'));
 
 const findCSSVar = (vars, name, isFont) => {
   const found = vars.find((prop) => {
@@ -99,7 +94,8 @@ export default async function decorate(block) {
           return res.text();
         }
         throw new Error(res.status);
-      }).catch((error) => {
+      })
+      .catch((error) => {
         // eslint-disable-next-line no-console
         console.log('error loading site theme:', error);
         return null;
@@ -132,9 +128,12 @@ export default async function decorate(block) {
       // Add loading buffer
       setTimeout(() => {
         previewFrame.classList.remove('is-loading');
-        previewFrame.contentWindow.postMessage({
-          type: 'getHeightInterval',
-        }, '*');
+        previewFrame.contentWindow.postMessage(
+          {
+            type: 'getHeightInterval',
+          },
+          '*',
+        );
         window.addEventListener('message', (event) => {
           if (event.data.type !== 'previewHeight') return;
           previewFrame.style.height = event.data.height;
@@ -197,6 +196,7 @@ export default async function decorate(block) {
       toggleAside(true);
     });
 
+    // eslint-disable-next-line no-restricted-syntax
     const headerHeight = Math.round(document.querySelector('header').clientHeight);
     const anchorAside = () => {
       const previewTop = Math.round(preview.getBoundingClientRect().top);
@@ -213,6 +213,7 @@ export default async function decorate(block) {
         const height = scrollingElement.clientHeight;
         const bottom = Math.round(scrollHeight - scrollTop - height);
 
+        // eslint-disable-next-line no-restricted-syntax
         const footerHeight = Math.round(document.querySelector('footer').clientHeight);
         if (bottom > footerHeight) {
           aside.style.height = `calc(100vh - ${headerHeight}px)`;
@@ -225,7 +226,6 @@ export default async function decorate(block) {
     window.addEventListener('resize', anchorAside, { passive: true });
     anchorAside();
 
-    // eslint-disable-next-line max-len
     const findSelectedPreset = () => presets.find((preset) => preset.vars.every((cssVar) => varsObj.cssVars.includes(cssVar)));
 
     const updatePreset = () => {
@@ -245,10 +245,7 @@ export default async function decorate(block) {
       .then((res) => res.json())
       .then((res) => {
         presets = res;
-        presetsPicker.insertAdjacentHTML(
-          'afterbegin',
-          presets.map((preset) => `<option>${preset.name}</option>`).join(''),
-        );
+        presetsPicker.insertAdjacentHTML('afterbegin', presets.map((preset) => `<option>${preset.name}</option>`).join(''));
 
         updatePreset();
 
@@ -346,14 +343,17 @@ export default async function decorate(block) {
     const contrastIssueSpans = block.querySelectorAll('span.contrast-issues');
     contrastIssueSpans.forEach((span) => {
       span.textContent = '';
-      span.title = 'This variable has a low contrast ratio compared to the listed variables. It fails to meet the WCAG 2.0 AAA or AA standard.\nThis can potentially cause accessibility issues and lower page-ranking on search engines.';
+      span.title =
+        'This variable has a low contrast ratio compared to the listed variables. It fails to meet the WCAG 2.0 AAA or AA standard.\nThis can potentially cause accessibility issues and lower page-ranking on search engines.';
     });
 
     const displayContrastIssues = (event) => {
       if (event.data.type !== 'contrastCheck') {
         return;
       }
-      contrastIssueSpans.forEach((span) => { span.textContent = ''; });
+      contrastIssueSpans.forEach((span) => {
+        span.textContent = '';
+      });
 
       const contrastIssueArray = event.data.contrastIssues;
 
@@ -366,10 +366,8 @@ export default async function decorate(block) {
       for (let index = 0; index < contrastIssueArray.length; index += 1) {
         const offendingElementInput1 = block.querySelector(`[data-var="${contrastIssueArray[index].var1}"]`);
         const offendingElementInput2 = block.querySelector(`[data-var="${contrastIssueArray[index].var2}"]`);
-        const item1Name = offendingElementInput1
-          .parentElement.parentElement.previousElementSibling.textContent;
-        const item2Name = offendingElementInput2
-          .parentElement.parentElement.previousElementSibling.textContent;
+        const item1Name = offendingElementInput1.parentElement.parentElement.previousElementSibling.textContent;
+        const item2Name = offendingElementInput2.parentElement.parentElement.previousElementSibling.textContent;
         const issueSpan1 = offendingElementInput1.parentElement.parentElement.nextElementSibling;
         const issueSpan2 = offendingElementInput2.parentElement.parentElement.nextElementSibling;
 
@@ -428,22 +426,11 @@ export default async function decorate(block) {
     block.querySelectorAll('.weight-picker').forEach((el) => {
       let selectedFontWeight = findCSSVar(varsObj.cssVars, el.dataset.var);
       el.innerHTML = `${fontWeights
-        .map(
-          (weight) => `<option ${
-            weight === selectedFontWeight.value ? 'selected' : ''
-          } value="${weight}">${fontWeightLabels[weight]}</option>`,
-        )
+        .map((weight) => `<option ${weight === selectedFontWeight.value ? 'selected' : ''} value="${weight}">${fontWeightLabels[weight]}</option>`)
         .join('')}`;
       el.onchange = () => {
         const newValue = el.value;
-        editor.setValue(
-          editor
-            .getValue()
-            .replace(
-              `--${selectedFontWeight.name}:${selectedFontWeight.fullValue}`,
-              `--${selectedFontWeight.name}: ${newValue}`,
-            ),
-        );
+        editor.setValue(editor.getValue().replace(`--${selectedFontWeight.name}:${selectedFontWeight.fullValue}`, `--${selectedFontWeight.name}: ${newValue}`));
 
         varsObj.cssVars = getCSSVars(editor.getValue());
         selectedFontWeight = findCSSVar(varsObj.cssVars, el.dataset.var);
@@ -482,14 +469,7 @@ export default async function decorate(block) {
           el.querySelector('span').textContent = newValue;
 
           // Update editor
-          editor.setValue(
-            editor
-              .getValue()
-              .replace(
-                `--${selectedColor.name}:${selectedColor.fullValue}`,
-                `--${selectedColor.name}: ${newValue}`,
-              ),
-          );
+          editor.setValue(editor.getValue().replace(`--${selectedColor.name}:${selectedColor.fullValue}`, `--${selectedColor.name}: ${newValue}`));
 
           // Update Elements
           const elements = [...block.querySelectorAll('.elements')].filter((element) => {
@@ -509,13 +489,7 @@ export default async function decorate(block) {
       } else if (el.classList.contains('elements')) {
         // Find base color
         const varValue = regExpVars.exec(selectedColor.value)?.[1].slice(2);
-        select.innerHTML = `${defaultColors
-          .map(
-            ({ label, value }) => `<option ${
-              varValue === value ? 'selected' : ''
-            } value="${value}">${label}</option>`,
-          )
-          .join()}`;
+        select.innerHTML = `${defaultColors.map(({ label, value }) => `<option ${varValue === value ? 'selected' : ''} value="${value}">${label}</option>`).join()}`;
 
         input.value = findCSSVar(varsObj.cssVars, varValue).value?.toUpperCase();
 
@@ -526,14 +500,7 @@ export default async function decorate(block) {
           input.value = base.value;
 
           // Update editor
-          editor.setValue(
-            editor
-              .getValue()
-              .replace(
-                `--${selectedColor.name}:${selectedColor.fullValue}`,
-                `--${selectedColor.name}: var(--${newValue})`,
-              ),
-          );
+          editor.setValue(editor.getValue().replace(`--${selectedColor.name}:${selectedColor.fullValue}`, `--${selectedColor.name}: var(--${newValue})`));
 
           // Update vars
           previewFrame.contentWindow.postMessage(
@@ -565,16 +532,13 @@ export default async function decorate(block) {
 
         throw new Error(res.status);
       })
-    // Assuming all templates have the all sheet
+      // Assuming all templates have the all sheet
       .then(({ data }) => {
         if (!data.length) {
           return;
         }
 
-        const pages = data.filter(({ path }) => !path.startsWith('/drafts/')
-          && !path.startsWith('/emails/')
-          && path !== '/footer'
-          && path !== '/nav');
+        const pages = data.filter(({ path }) => !path.startsWith('/drafts/') && !path.startsWith('/emails/') && path !== '/footer' && path !== '/nav');
 
         // Theme pages
         publishThemeSelector.innerHTML = `${pages

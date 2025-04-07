@@ -12,13 +12,16 @@ export default function generateTour(tour, showAutoTour, tourData) {
 
     const tourStep = {
       element: step.element,
-      elementEvent() { step.elementEvent?.(); showDisableTour = !step.elementEvent; },
+      elementEvent() {
+        step.elementEvent?.();
+        showDisableTour = !step.elementEvent;
+      },
       destroyOnClicked: step.destroyOnClicked ?? true,
       popover: {
         title: step.title,
         description: step.description,
         disableButtons: step.disableButtons ?? [],
-        showButtons: step.showButtons ?? index === 0 ? ['next', 'close'] : ['next', 'previous', 'close'],
+        showButtons: (step.showButtons ?? index === 0) ? ['next', 'close'] : ['next', 'previous', 'close'],
         showProgress: step.showProgress ?? false,
         side: step.side ?? 'bottom',
         align: step.align ?? 'start',
@@ -33,12 +36,12 @@ export default function generateTour(tour, showAutoTour, tourData) {
   const wholeTour = tour({
     progressText: tourData.progressText ?? 'Step {{current}} of {{total}}',
     onNextClick: tourData.onNextClick,
-    onFinished: (() => {
+    onFinished: () => {
       if (tourData.onFinished) {
         showDisableTour = false;
         tourData.onFinished?.();
       }
-    }),
+    },
     steps: tourSteps,
     smoothScroll: true,
     onDestroyed: (element, step, { state }) => {

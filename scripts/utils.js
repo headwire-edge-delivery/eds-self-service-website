@@ -18,6 +18,7 @@ export const confirmUnsavedChanges = (element) => {
     const confirmLeave = window.confirm('Leave site?\nChanges you made may not be saved.');
     if (confirmLeave) {
       element.dataset.unsavedChanges = 'false';
+      window.zaraz?.track('Discarding unsave changes');
       return true;
     }
     return false;
@@ -45,18 +46,20 @@ export async function cacheFetch(url, fetchOptions, parseMethod = 'text', forceR
     }
   }
 
-  fetchCache[url] = await fetch(url, fetchOptions).then(async (res) => {
-    const output = {
-      ok: res.ok,
-      status: res.status,
-    };
-    try {
-      output.dataText = res.ok ? await res[parseMethod]() : null;
-    } catch {
-      output.dataText = null;
-    }
-    return output;
-  }).catch(() => null);
+  fetchCache[url] = await fetch(url, fetchOptions)
+    .then(async (res) => {
+      const output = {
+        ok: res.ok,
+        status: res.status,
+      };
+      try {
+        output.dataText = res.ok ? await res[parseMethod]() : null;
+      } catch {
+        output.dataText = null;
+      }
+      return output;
+    })
+    .catch(() => null);
 
   return fetchCache[url];
 }

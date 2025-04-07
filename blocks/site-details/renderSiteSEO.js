@@ -1,27 +1,11 @@
-import {
-  daProjectRepo,
-  OOPS,
-  parseFragment,
-  projectRepo, safeText,
-  defaultBranch,
-  SCRIPT_API,
-} from '../../scripts/scripts.js';
+import { daProjectRepo, OOPS, parseFragment, projectRepo, safeText, defaultBranch, SCRIPT_API } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, createDialog } from '../../scripts/dialogs.js';
 import paginator from '../../libs/pagination/pagination.js';
 import { readQueryParams } from '../../libs/queryParams/queryParams.js';
 import { cacheFetch } from '../../scripts/utils.js';
 
-const filters = [
-  /\/nav$/i,
-  /\/footer$/i,
-  /\/search$/i,
-  /\/unsubscribe$/i,
-  /^\/drafts\//i,
-  /^\/tools\//i,
-  /^\/emails\//i,
-  /^\/\.helix\//i,
-];
+const filters = [/\/nav$/i, /\/footer$/i, /\/search$/i, /\/unsubscribe$/i, /^\/drafts\//i, /^\/tools\//i, /^\/emails\//i, /^\/\.helix\//i];
 
 function filterSortIndexData(indexList) {
   const filtered = indexList.filter(({ path }) => {
@@ -81,16 +65,17 @@ function decorateCell(metaProperty, content) {
 
 // MARK: render
 export default async function renderSiteSEO({ container, nav, renderOptions }) {
-  const {
-    projectDetails, siteSlug,
-  } = renderOptions;
+  const { projectDetails, siteSlug } = renderOptions;
   container.innerHTML = renderSkeleton('seo');
 
-  nav.insertAdjacentHTML('beforeend', `
+  nav.insertAdjacentHTML(
+    'beforeend',
+    `
     <button id="open-sitemap" class="button secondary action sitemap">Open sitemap</button>
     <button id="edit-robots" class="button secondary action robots">Edit robots</button>
     ${projectDetails.darkAlleyProject ? `<a id="edit-bulk-metadata" href="/redirect?url=https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata" target="_blank" class="button secondary action">Edit Bulk Metadata</a>` : '<button id="edit-bulk-metadata" class="button secondary action bulk-metadata">Edit Bulk Metadata</button>'}
-  `);
+  `,
+  );
 
   // TODO: Allow editing robots.txt for non kestrelone.com domains
   // TODO: Support reading complex multi-sitemaps
@@ -119,7 +104,9 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     nav.querySelector('button.bulk-metadata').onclick = async (event) => {
       const button = event.target;
       button.classList.add('loading');
-      const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${siteSlug}/${defaultBranch}/metadata.json?editUrl=auto`).then((res) => res.json()).catch(() => null);
+      const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${siteSlug}/${defaultBranch}/metadata.json?editUrl=auto`)
+        .then((res) => res.json())
+        .catch(() => null);
       if (statusData?.edit?.url) {
         window.open(statusData.edit.url, '_blank');
       } else {
@@ -129,7 +116,9 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     };
   }
 
-  const indexData = await fetch(`${SCRIPT_API}/index/${siteSlug}`).then((res) => res.json()).catch(() => null);
+  const indexData = await fetch(`${SCRIPT_API}/index/${siteSlug}`)
+    .then((res) => res.json())
+    .catch(() => null);
   if (typeof indexData?.data?.length !== 'number') {
     container.innerHTML = `<p>${OOPS}</p>`;
     return;
@@ -288,16 +277,18 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
   document.addEventListener('visibilitychange', visibilityHandler);
 
   // add pagination after table
-  table.after(paginator(filteredIndex.length, limit, startPage, { page: 'seoPage' }, ({ rangeStart, rangeEnd }) => {
-    // populate table
-    tableBody.innerHTML = '';
-    const rowsToDisplay = createTableRows(filteredIndex, rangeStart, rangeEnd);
-    tableBody.append(...rowsToDisplay);
-    // trigger fetching of displayed cells
-    for (let i = 0; i < rowsToDisplay.length; i += 1) {
-      if (typeof rowsToDisplay[i]?.populate === 'function') rowsToDisplay[i].populate();
-    }
-  }));
+  table.after(
+    paginator(filteredIndex.length, limit, startPage, { page: 'seoPage' }, ({ rangeStart, rangeEnd }) => {
+      // populate table
+      tableBody.innerHTML = '';
+      const rowsToDisplay = createTableRows(filteredIndex, rangeStart, rangeEnd);
+      tableBody.append(...rowsToDisplay);
+      // trigger fetching of displayed cells
+      for (let i = 0; i < rowsToDisplay.length; i += 1) {
+        if (typeof rowsToDisplay[i]?.populate === 'function') rowsToDisplay[i].populate();
+      }
+    }),
+  );
   if (tableBody.matches(':empty')) {
     const cols = table.querySelectorAll('th').length;
     tableBody.innerHTML = `<tr><td colspan="${cols}" class="empty">Not enough data</td></tr>`;

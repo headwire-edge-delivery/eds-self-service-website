@@ -42,11 +42,9 @@ function afterDeleteAccount() {
 // MARK: text lookup
 const textLookup = {
   account: {
-    dialog:
-      '<h2>Delete Account?</h2><p class="warning">Are you want to delete your account and your projects? This action cannot be undone!</p>',
+    dialog: '<h2>Delete Account?</h2><p class="warning">Are you want to delete your account and your projects? This action cannot be undone!</p>',
     button: 'Delete My Account',
-    confirmDialog:
-      '<h2>Last Chance!</h2><p class="warning">Are you <strong>ABSOLUTELY</strong> sure you want to delete your account?</p>',
+    confirmDialog: '<h2>Last Chance!</h2><p class="warning">Are you <strong>ABSOLUTELY</strong> sure you want to delete your account?</p>',
     loading: 'Deleting Account and Projects...',
     endpoint: '/deleteAccount',
     success: '<div class="centered-info">Account Deleted</div>',
@@ -54,11 +52,9 @@ const textLookup = {
   },
   projects: {
     noProjectsDialog: '<h4 class="centered-info">You have no projects.</h4>',
-    dialog:
-    '<h2>Delete All Projects?</h2><p class="warning">Are you want to delete all of your projects? This action cannot be undone!</p>',
+    dialog: '<h2>Delete All Projects?</h2><p class="warning">Are you want to delete all of your projects? This action cannot be undone!</p>',
     button: 'Delete All Projects',
-    confirmDialog:
-    '<p class="warning">Are you <strong>ABSOLUTELY</strong> sure you want to delete all of your projects?</p>',
+    confirmDialog: '<p class="warning">Are you <strong>ABSOLUTELY</strong> sure you want to delete all of your projects?</p>',
     loading: 'Deleting All Projects...',
     endpoint: '/deleteAllProjects',
     success: '<div class="centered-info">All Projects Deleted</div>',
@@ -115,9 +111,7 @@ async function createDeleteDialog(event, deleteAccount = false) {
   });
 
   confirmButton.addEventListener('click', async () => {
-    if (
-      !(await confirmDialog(textLookup[lookupStr].confirmDialog))
-    ) {
+    if (!(await confirmDialog(textLookup[lookupStr].confirmDialog))) {
       deleteDialog.close();
       return;
     }
