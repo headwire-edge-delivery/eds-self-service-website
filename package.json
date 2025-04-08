@@ -11,22 +11,20 @@
     "lint": "npm run lint:js && npm run lint:css",
     "lint:fix": "npm run lint:js-fix && npm run lint:css",
     "prettier": "npx prettier --write '**/*.{html,json,js,mjs,cjs,css}",
-    "prepare": "husky"
+    "prepare": "husky",
+    "knip": "knip"
   },
   "devDependencies": {
-    "@adobe/aem-cli": "^16.10.12",
-    "@babel/core": "7.26.10",
-    "@babel/eslint-parser": "7.27.0",
-    "@eslint/js": "^9.23.0",
-    "chai": "5.2.0",
-    "eslint": "^9.23.0",
-    "eslint-config-prettier": "^10.1.1",
-    "globals": "^16.0.0",
+    "@adobe/aem-cli": "^16.10.15",
+    "@driftingsands/self-service-lint": "^1.0.0",
+    "@types/node": "^22.14.0",
+    "eslint": "^9.24.0",
     "husky": "^9.1.7",
+    "knip": "^5.47.0",
     "lint-staged": "^15.5.0",
-    "stylelint": "16.17.0",
-    "stylelint-config-standard": "37.0.0",
-    "@driftingsands/self-service-lint": "^1.0.0"
+    "stylelint": "16.18.0",
+    "stylelint-config-standard": "38.0.0",
+    "typescript": "^5.8.3"
   },
   "lint-staged": {
     "**/*.{html,json}": [
