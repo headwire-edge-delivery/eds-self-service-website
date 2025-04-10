@@ -61,3 +61,67 @@ export async function cacheFetch(url, fetchOptions, parseMethod = 'text') {
 
   return fetchCache[url];
 }
+
+const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
+export function parseAcceptLanguage(str) {
+  try {
+    if (!str || str === '*' || str === '*/*') return null;
+    return langNames.of(str.split(',')[0].split(';')[0]);
+  } catch {
+    return null;
+  }
+}
+
+// header: sec-ch-ua
+export function parseBrowser(str) {
+  if (!str) return null;
+
+  const browserParts = str.split(',');
+  try {
+    let output = '';
+    for (const browserStr of browserParts) {
+      // matches semicolon that is not within quotes
+      const browserName = browserStr
+        .match(/(?:[^";]|"(?:\\.|[^"\\])*")+/g)[0]
+        .trim()
+        .replaceAll('"', '');
+
+      if (/not[\s\S]*a[\s\S]*brand/i.test(browserName)) continue;
+      if (/chromium/i.test(browserName)) {
+        output = browserName;
+        continue;
+      }
+
+      if (browserName) {
+        output = browserName;
+        break;
+      }
+    }
+
+    return output;
+  } catch {
+    return null;
+  }
+}
+
+export const generateThumbnails = (sitesList) => {
+  sitesList.querySelectorAll('.project-thumbnail').forEach((thumbnail) => {
+    fetch(thumbnail.dataset.src)
+      .then((res) => {
+        if (res.ok) {
+          return res.text();
+        }
+        return false;
+      })
+      .then((res) => {
+        if (res) {
+          let src = res.split('\n').find((line) => line.trim().startsWith('<meta property="og:image" content="'));
+          if (src) {
+            src = src.replace('<meta property="og:image" content="', '').replace('">', '');
+            thumbnail.innerHTML = `<img src="${src}" alt="thumbnail" loading="lazy"/>`;
+          }
+        }
+      })
+      .catch(() => null);
+  });
+};

@@ -5,48 +5,7 @@ import paginator from '../../libs/pagination/pagination.js';
 import { toClassName } from '../../scripts/aem.js';
 import { createDialog } from '../../scripts/dialogs.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
-
-const langNames = new Intl.DisplayNames(['en'], { type: 'language' });
-function parseAcceptLanguage(str) {
-  try {
-    if (!str || str === '*' || str === '*/*') return null;
-    return langNames.of(str.split(',')[0].split(';')[0]);
-  } catch {
-    return null;
-  }
-}
-
-// header: sec-ch-ua
-function parseBrowser(str) {
-  if (!str) return null;
-
-  const browserParts = str.split(',');
-  try {
-    let output = '';
-    for (const browserStr of browserParts) {
-      // matches semicolon that is not within quotes
-      const browserName = browserStr
-        .match(/(?:[^";]|"(?:\\.|[^"\\])*")+/g)[0]
-        .trim()
-        .replaceAll('"', '');
-
-      if (/not[\s\S]*a[\s\S]*brand/i.test(browserName)) continue;
-      if (/chromium/i.test(browserName)) {
-        output = browserName;
-        continue;
-      }
-
-      if (browserName) {
-        output = browserName;
-        break;
-      }
-    }
-
-    return output;
-  } catch {
-    return null;
-  }
-}
+import { parseAcceptLanguage, parseBrowser } from '../../scripts/utils.js';
 
 let { maxRows = 10000 } = readQueryParams();
 maxRows = parseInt(maxRows, 10);
