@@ -232,7 +232,7 @@ dialog .columns iframe {
 }
 
 ::backdrop {
-  background: rgba(0 0 0 / 20%);
+  background: rgb(0 0 0 / 20%);
   backdrop-filter: blur(2px);
 }
 
