@@ -348,7 +348,7 @@ export default async function renderCheckList({ container, renderOptions, histor
   }
 
   const visibilityHandler = () => {
-    if (!document.body.contains(container)) {
+    if (!document.body.contains(checklistTitle)) {
       // remove self if container was removed (other tab opened)
       document.removeEventListener('visibilitychange', visibilityHandler);
       return;
