@@ -185,8 +185,8 @@ export default async function decorate(block) {
             <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
             <iframe class="preview" src="${demo}" loading="lazy"></iframe>
             <div id="preview-create-container">
-              <a href="/templates/${id}" class="button">Preview</a>
-              <a href="/templates/${id}/create" class="button primary">Create</a>
+              <a href="/templates/${id}" class="button template-preview">Preview</a>
+              <a href="/templates/${id}/create" class="button primary template-create">Create</a>
             </div>
           </div>`;
             })
@@ -222,9 +222,9 @@ export default async function decorate(block) {
           const templateImage = document.createElement('div');
           templateImage.className = 'template-image';
           const templateName = document.createElement('h3');
-          templateName.textContent = templateContainer.querySelector(`.template#${selectedTemplateSlug} h3`).textContent;
+          templateName.textContent = templateContainer.querySelector(`.template#${selectedTemplateSlug} h3`)?.textContent;
           templateImage.append(templateName);
-          templateImage.append(templateContainer.querySelector(`.template#${selectedTemplateSlug} img`).cloneNode(true));
+          templateImage.append(templateContainer.querySelector(`.template#${selectedTemplateSlug} img`)?.cloneNode(true));
 
           // Add template image to all steps
           const step = templateContainer.closest('.step');
@@ -388,6 +388,7 @@ export default async function decorate(block) {
   slugInput.dataset.copyName = true;
 
   const slugPreview = document.createElement('span');
+  slugPreview.classList.add('slug-preview');
   slugPreview.textContent = 'https://my-site.kestrelone.com';
   slugInputWrapper.append(slugPreview);
 
