@@ -5,7 +5,7 @@ import noTourAvailable from './noTour.js';
 import { siteOverviewTour, sitePagesTour, siteSheetsTour, siteMonitoringTour } from './site.js';
 import { campaignEmailsTour, campaignEmailsAudienceTour, campaignEmailAnalyticsTour, emailTour } from './email.js';
 import { settingsGeneralTour, settingsThemeTour } from './settings.js';
-import adminTour from './admin.js';
+import adminUsersTour from './admin.js';
 import SEOTour from './seo.js';
 import generateTour from './generateTour.js';
 import { getUserSettings } from '../scripts/scripts.js';
@@ -215,8 +215,8 @@ const startTour = (isAutoTour, showDisableTour = false) =>
         case switchCase('/dashboard/account'):
           getTour(dashboardAccountTour);
           break;
-        case switchCase('/dashboard/admin'):
-          getTour(adminTour);
+        case switchCase('/dashboard/users'):
+          getTour(adminUsersTour);
           break;
         case switchCase('/templates/', '/create'):
           getTour(createTemplateTour);

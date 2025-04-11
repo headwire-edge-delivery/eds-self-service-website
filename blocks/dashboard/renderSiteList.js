@@ -2,30 +2,9 @@ import { waitForAuthenticated, SCRIPT_API, KESTREL_ONE, getUserSettings, updateU
 import renderSkeleton from '../../scripts/skeletons.js';
 import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs/queryParams/queryParams.js';
 import paginator from '../../libs/pagination/pagination.js';
+import { generateThumbnails } from '../../scripts/utils.js';
 
 const defaultLimit = 6;
-
-const generateThumbnails = (sitesList) => {
-  sitesList.querySelectorAll('.project-thumbnail').forEach((thumbnail) => {
-    fetch(thumbnail.dataset.src)
-      .then((res) => {
-        if (res.ok) {
-          return res.text();
-        }
-        return false;
-      })
-      .then((res) => {
-        if (res) {
-          let src = res.split('\n').find((line) => line.trim().startsWith('<meta property="og:image" content="'));
-          if (src) {
-            src = src.replace('<meta property="og:image" content="', '').replace('">', '');
-            thumbnail.innerHTML = `<img src="${src}" alt="thumbnail" loading="lazy"/>`;
-          }
-        }
-      })
-      .catch(() => null);
-  });
-};
 
 export default async function renderSites({ container, nav }) {
   const userSettings = await getUserSettings(SCRIPT_API);

@@ -1,4 +1,5 @@
 function SEOTour({ showAutoTour }) {
+  const environment = document.querySelector('#show-preview-data').classList.contains('is-selected') ? 'previewed' : 'published';
   const tourData = {
     onFinished: () => {
       if (showAutoTour) {
@@ -38,17 +39,17 @@ function SEOTour({ showAutoTour }) {
       {
         title: 'Page entry',
         description: 'This displays the most relevant information about the page for search engines.',
-        element: '.seo-audit tbody tr:not(:empty)',
+        element: `.seo-audit tbody tr[data-environment="${environment}"]:not(:empty)`,
       },
       {
         title: 'Page title',
         description: 'This is the page title that will be displayed in search results and the title in the browser tab.',
-        element: '.seo-audit tbody tr:not(:empty) td[data-meta-property="og:title"]',
+        element: `.seo-audit tbody tr[data-environment="${environment}"]:not(:empty) td[data-meta-property="og:title"]`,
       },
       {
         title: 'Page description',
         description: 'This is the page description that will be displayed in search engine results.',
-        element: '.seo-audit tbody tr:not(:empty) td[data-meta-property="og:description"]',
+        element: `.seo-audit tbody tr[data-environment="${environment}"]:not(:empty) td[data-meta-property="og:description"]`,
       },
       {
         title: 'Page keywords',
