@@ -5,11 +5,16 @@ const progressSteps = ['name', 'drive', 'code', 'publish'];
 
 const daPrefix = 'da-';
 
+// TODO: I think this could use a big refactor, everything is a bit all over the place
+
 /**
  * decorates the header, mainly the nav
  * @param {Element} block The header block element
  */
 export default async function decorate(block) {
+  // Try to treat this new variable as the "source-of-truth", so we don't have any more template selection mixups
+  let selectedTemplateSlug = null;
+
   const creationSteps = block.querySelectorAll(':scope > div');
   creationSteps.forEach((div) => div.classList.add('step'));
 
@@ -163,13 +168,18 @@ export default async function decorate(block) {
             }
           };
 
+          const templateSlugMatch = window.location.pathname.split('/').find((part) => data.some(({ id }) => id === part));
+          if (templateSlugMatch) {
+            selectedTemplateSlug = templateSlugMatch;
+          }
+
           templateContainer.innerHTML = data
-            .map(({ id, name, description, enabled, demo }, i) => {
+            .map(({ id, name, description, enabled, demo }) => {
               if (enabled.toLowerCase() === 'false') {
                 return '';
               }
               return `
-          <div id="${id}" class="template ${i === 0 ? 'is-selected' : ''}">
+          <div id="${id}" class="template ${id === selectedTemplateSlug ? 'is-selected' : ''}">
             <h3>${name}</h3>
             <p>${description}</p>
             <img alt="" src="/assets/${id}/image1.png" loading="lazy" class="is-selected"/>
@@ -212,9 +222,9 @@ export default async function decorate(block) {
           const templateImage = document.createElement('div');
           templateImage.className = 'template-image';
           const templateName = document.createElement('h3');
-          templateName.textContent = templateContainer.querySelector('.template.is-selected h3').textContent;
+          templateName.textContent = templateContainer.querySelector(`.template#${selectedTemplateSlug} h3`).textContent;
           templateImage.append(templateName);
-          templateImage.append(templateContainer.querySelector('.template.is-selected img').cloneNode(true));
+          templateImage.append(templateContainer.querySelector(`.template#${selectedTemplateSlug} img`).cloneNode(true));
 
           // Add template image to all steps
           const step = templateContainer.closest('.step');
@@ -225,9 +235,10 @@ export default async function decorate(block) {
           }
 
           templateContainer.addEventListener('click', (event) => {
-            if (event.target.closest('.template')) {
+            const template = event.target.closest('.template');
+            if (template) {
+              selectedTemplateSlug = template.id;
               event.preventDefault();
-              const template = event.target.closest('.template');
               if (!event.target.matches('.template .button, .template .button *')) {
                 return;
               }
@@ -240,7 +251,7 @@ export default async function decorate(block) {
                 }
               }
 
-              block.querySelector('.template.is-selected').classList.remove('is-selected');
+              block.querySelector(`.template#${selectedTemplateSlug}`).classList.remove('is-selected');
               template.classList.add('is-selected');
 
               document.body.classList.add('is-template-previewing');
@@ -500,7 +511,6 @@ export default async function decorate(block) {
     e.preventDefault();
 
     const token = await window.auth0Client.getTokenSilently();
-    const template = block.querySelector('.template.is-selected').id;
 
     window.history.pushState({}, '', `${window.location.pathname}/progress`);
 
@@ -514,7 +524,7 @@ export default async function decorate(block) {
         inputProjectSlug: slugInput.value,
         inputProjectDescription: descriptionTextarea.value,
         preferDarkAlley: darkAlleyCheckbox.checked,
-        template,
+        template: selectedTemplateSlug,
       }),
       method: 'POST',
     });
