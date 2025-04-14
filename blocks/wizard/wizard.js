@@ -193,8 +193,8 @@ export default async function decorate(block) {
 
           // This is partly to blame for the create button working while auth0 fails to authenticate.
           // The extra logout in the catch of auth0.js fixes the issue, so I didn't change anything here, but this setup with two click listeners doing separate things is bad.
-          // Also Somehow this code can be reached sometimes when auth0 fails, resulting in the body not having it's classes. Breaking this half of the listener code.
-          // The later code that routes you to /create will end up doing so without this causing the popup. I still think this entire file should be rewritten
+          // Without the force-logout in auth0.js, somehow this code can be reached sometimes when auth0 fails, resulting in the body not having it's classes (yet?). Breaking this half of the listener code.
+          // The later code that routes you to /create will end up doing so without this listener causing the popup. I still think this entire file should be rewritten
           if (document.body.classList.contains('is-anonymous')) {
             const createLinks = templateContainer.querySelectorAll('a[href$="/create"]');
 
