@@ -72,6 +72,13 @@ window.auth0
       } catch (e) {
         // eslint-disable-next-line no-console
         console.log(e);
+        // Stephan has an issue where isAuthenticated() returns true, but the above getTokenSilently() fails & was in this catch
+        // Somehow he was still able to go though the wizard to the /create step.
+        // This doesn't make sense since getTokenSilently has to be successful to set the is-authenticated class on body, which is how we check to show the login dialog or continue to /create
+        // I was able to get this to fail earlier in code, by messing with the localStorage in specific ways.
+        // An extra force logout here seems to fix that, hopefully it fixes the issue that can naturally happen as well
+        delete window.localStorage.sessionExpiration;
+        window.auth0Client.logout({ logoutParams: { returnTo: window.location.origin } });
       }
     }
 
