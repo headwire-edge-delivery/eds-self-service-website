@@ -280,7 +280,7 @@ export default async function decorate(block) {
         if (req.ok) {
           showToast('Styles updated! Updates can take up to 1 minute to be reflected for all users.');
         } else {
-          showErrorToast();
+          showErrorToast('Something went wrong! We could not update your styles. Please try again or contact support.');
         }
 
         saveStyles.classList.remove('loading');
@@ -548,7 +548,7 @@ export default async function decorate(block) {
                 tr.remove();
                 showToast('Recipient removed.');
               } else {
-                showErrorToast();
+                showErrorToast('Something went wrong! We could not remove the recipient. Please try again or contact support.');
               }
 
               tr.classList.remove('loading');
@@ -610,7 +610,7 @@ export default async function decorate(block) {
               });
               showToast('Recipient added.');
             } else {
-              showErrorToast();
+              showErrorToast(`Something went wrong! We couldn't add ${contact.email} as a recipient. Please try again.`);
             }
 
             add.classList.remove('loading');
@@ -647,7 +647,7 @@ export default async function decorate(block) {
               if (req.ok) {
                 showToast('Email delivered.');
               } else {
-                showErrorToast();
+                showErrorToast("Something went wrong! We couldn't send the email. Please try again. If the problem persists, please contact support.");
               }
 
               block.classList.remove('is-sending');

@@ -140,9 +140,8 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
             }
             return response;
           } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('Could not update the site', error);
-            showErrorToast();
+            const siteName = previewOrPublish === 'PreviewAndPublish' ? 'site' : `${previewOrPublish} site`;
+            showErrorToast(`Something went wrong while updating the ${siteName}. Try again in a moment. ${error}`);
             showButtonLoading(false);
           }
         };
@@ -354,7 +353,7 @@ export default async function renderSiteSpreadsheets({ container, renderOptions 
           body: JSON.stringify([headers, ...sheetData]),
         }).catch(() => null);
         if (!res.ok) {
-          showErrorToast('Failed to save changes. Please try again.');
+          showErrorToast('We couldn’t save your changes. Please try again.');
         } else {
           originalSheetData = structuredClone(sheetData);
           showToast('Sheet saved.');

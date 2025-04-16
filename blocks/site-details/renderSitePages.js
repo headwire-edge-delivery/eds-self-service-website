@@ -66,7 +66,7 @@ export function renderTable({ table, tableData, type, projectDetails, token, isD
               });
               showToast('Email deleted.');
             } else {
-              showErrorToast();
+              showErrorToast(`Something went wrong! We couldn't delete "${email}". Please try again`);
             }
             deleteEmail.classList.remove('loading');
           }
@@ -398,7 +398,7 @@ export default async function renderSitePages({ container, nav, renderOptions })
           tableRow.remove();
           showToast('Page deleted.');
         } else {
-          showErrorToast();
+          showErrorToast(`Something went wrong! We couldn't delete "${body.path}". Please try again`);
         }
         deletePage.classList.remove('loading');
       }

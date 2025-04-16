@@ -47,11 +47,26 @@ export function showToast(text = 'Done.', type = 'success') {
     toast.classList.add('is-visible');
   }, 1);
 
-  setTimeout(() => {
-    hideToast(toast);
-  }, delay);
+  let hideTimeout;
+
+  const startHideTimer = () => {
+    hideTimeout = setTimeout(() => {
+      hideToast(toast);
+    }, delay);
+  };
+
+  const clearHideTimer = () => {
+    clearTimeout(hideTimeout);
+  };
+
+  const toastElement = toast.querySelector('.toast');
+  toastElement.addEventListener('mouseenter', clearHideTimer);
+  toastElement.addEventListener('mouseleave', startHideTimer);
+
+  startHideTimer();
 }
 
 export function showErrorToast(content = OOPS) {
-  showToast(content, 'error');
+  const message = content.length ? content : OOPS;
+  showToast(message, 'error');
 }

@@ -42,7 +42,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
     </form>
     <ul class="authors-list"></ul>
   </div>
-    
+
   <div id="contact-email">
     <h2>Contact email</h2>
     <form class="contact-email-form form">
@@ -50,20 +50,20 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
             <span>Define which email the contact form submits to.
             <span id="contact-email-warning" hidden class="warning">Please enter a valid Email (e.g. person@example.com)</span></span>
             <input name="email" type="email" placeholder="person@example.com" />
-        </label>    
+        </label>
         <button id="contact-email-save" title="Update the Contact Email" class="button primary is-disabled action" type="submit">Update</button>
     </form>
   </div>
-    
+
   <div id="favicon">
     <h2>Favicon</h2>
     <p>Only <code>.ico</code> files are supported.</p>
     <div class="favicon-section">
       <img alt="favicon" src="https://${siteSlug}.kestrelone.com/favicon.ico" loading="lazy">
-      <button id="change-favicon" title="Change the Favicon. (Only .ico is supported)" class="button action primary change-favicon">Update</button>     
+      <button id="change-favicon" title="Change the Favicon. (Only .ico is supported)" class="button action primary change-favicon">Update</button>
     </div>
   </div>
-    
+
     <div id="blocks">
       <h2>Blocks</h2>
       <button id="add-block-button" title="Add a new block" class="button primary action add-block">Add block</button>
@@ -75,7 +75,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
       <button id="add-icon-button" title="Upload a new Icon" class="button action primary add-icon">Add icon</button>
       <ul id="icons-list" class="icons list"></ul>
     </div>
-    
+
     <div id="updates">
       <h2>Updates</h2>
       <div class="update-info" aria-label="loading"></div>
@@ -121,7 +121,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
           authorsList.querySelector(`li[data-author-email="${authorEmail}"]`).remove();
           showToast(`Author "${authorEmail}" removed.`);
         } else {
-          showErrorToast();
+          showErrorToast(`We couldn’t revoke access for the author "${authorEmail}". Please try again.`);
         }
         authorsList.classList.remove('is-disabled');
       }
@@ -153,7 +153,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
           listItem.classList.add('is-owner');
           showToast('Owner updated.');
         } else {
-          showErrorToast();
+          showErrorToast(`We couldn’t transfer the ownership to the author "${authorEmail}". Please try again.`);
         }
         authorsList.classList.remove('is-disabled');
       }
@@ -194,7 +194,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
       event.target.email.value = '';
       showToast('Author added.');
     } else {
-      showErrorToast();
+      showErrorToast(`We couldn’t add "${email}" as a new author. Please try again.`);
     }
     addAuthorForm.classList.remove('is-disabled');
   };
@@ -252,7 +252,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
       projectDetails.contactEmail = contactEmailFormInput.value;
       showToast('Contact email updated.');
     } else {
-      showErrorToast();
+      showErrorToast(`We couldn’t update the contact email to "${contactEmailFormInput.value}". Please try again.`);
     }
 
     contactEmailForm.classList.remove('is-disabled');
@@ -305,7 +305,7 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
         showToast('Update prompts enabled.');
         event.target.parentElement.remove();
       } else {
-        showErrorToast('Failed to enable update prompts. Try again later.');
+        showErrorToast('Enabling update prompts failed. Please try again or contact support.');
       }
       event.target.classList.remove('loading');
     };

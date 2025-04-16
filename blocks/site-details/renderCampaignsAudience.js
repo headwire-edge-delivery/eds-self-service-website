@@ -76,7 +76,7 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
           </div>
         </div>
       </div>
-        
+
       <table>
         <thead>
           <tr>
@@ -104,7 +104,7 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
     const content = parseFragment(`
       <div>
         <h3>Add Contact</h3>
-        
+
         <form id="add-contact-form">
           <label>
               <span>Email *</span>
@@ -314,6 +314,7 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
   nav.append(addContactEl);
 
   container.addEventListener('click', async (event) => {
+    container.dataset.listenerAttached = 'true';
     if (event.target.id === 'add-contact') {
       addContact();
     } else if (event.target.id === 'bulk-import') {
@@ -337,7 +338,6 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
       const content = parseFragment(`
       <div>
         <h3>Update Contact</h3>
-        
         <form id="update-contact-form">
           <input type="hidden" name="id" value="${safeText(contact.id)}">
           <label>
@@ -412,7 +412,7 @@ export default async function renderCampaignsAudience({ container, nav, renderOp
 
           toggleWell();
         } else {
-          showErrorToast();
+          showErrorToast(`Something went wrong! We couldn’t remove contact "${tr.dataset.email}". Please try again.`);
         }
 
         tr.classList.remove('loading');

@@ -257,7 +257,7 @@ export default async function renderCheckList({ container, renderOptions, histor
               checklistData[item.property] = true;
               checklistItem.nextElementSibling.removeAttribute('inert');
             } else {
-              showErrorToast();
+              showErrorToast('Marking the step as completed failed. Please try again or refresh the page.');
             }
             manualCheckButton.classList.remove('loading');
           };

@@ -38,9 +38,7 @@ const BLOCK_ICON_LOOKUP = {
 
 const iconBase64Prefix = 'data:image/svg+xml;base64,';
 
-// MARK: google calendar link
 export function manageGoogleCalendarLink(calendarId, nav, onlyRemove = false) {
-  // resetting in case
   nav.querySelectorAll('.google-calendar-link').forEach((link) => link.remove());
   if (onlyRemove) return;
   nav.insertAdjacentHTML(
@@ -50,7 +48,6 @@ export function manageGoogleCalendarLink(calendarId, nav, onlyRemove = false) {
   );
 }
 
-// MARK: add Icon dialog
 function validateFileType(acceptString, fileName) {
   const fileAcceptArray = acceptString.split(',');
   const fileExtension = fileName.split('.').pop();
@@ -67,6 +64,7 @@ export function addIconDialogSetup({
   titleText = 'Add icon',
   uploadEndpoint = `${SCRIPT_API}/icons/${siteSlug}`,
   defaultSrc,
+  returnElements = false,
 }) {
   const isFavicon = titleText === 'Favicon';
   window?.zaraz?.track(`click site ${isFavicon ? 'favicon' : 'icon'} add`);
@@ -76,15 +74,14 @@ export function addIconDialogSetup({
   const content = parseFragment(`
     <div>
       <h3>${titleText}</h3>
-      
       <form id="${formId}">
-          <p>${isFavicon ? 'Don\'t have an .ico file yet? You can convert your image to a .ico file <a href="/redirect?url=https://www.icoconverter.com/" target="_blank">here</a>.' : 'Upload a new SVG icon.'}</p>
-          <label>
-              <span>File *</span>
-              <input type="file" accept="${fileAccept}" required/>
-          </label>
-          <div class="preview">${defaultSrc ? `<img alt="favicon" src="${defaultSrc}" loading="lazy" />` : ''}</div>
-        </form>
+        <p>${isFavicon ? 'Don\'t have an .ico file yet? You can convert your image to a .ico file <a href="/redirect?url=https://www.icoconverter.com/" target="_blank">here</a>.' : 'Upload a new SVG icon.'}</p>
+        <label>
+          <span>File *</span>
+          <input type="file" accept="${fileAccept}" required/>
+        </label>
+        <div class="preview">${defaultSrc ? `<img alt="favicon" src="${defaultSrc}" loading="lazy" />` : ''}</div>
+      </form>
     </div>
   `);
 
@@ -115,12 +112,15 @@ export function addIconDialogSetup({
     }
   };
 
-  const dialog = createDialog(content, [submit]);
+  if (returnElements) {
+    return { content, submit };
+  }
 
+  const dialog = createDialog(content, [submit]);
   const form = document.getElementById(formId);
+
   form.onsubmit = async (event) => {
     event.preventDefault();
-
     window?.zaraz?.track(`click site ${isFavicon ? 'favicon' : 'icon'} add submit`);
 
     if (!file) {
@@ -136,7 +136,7 @@ export function addIconDialogSetup({
     const formData = new FormData();
     formData.append('file', file);
     dialog.setLoading(true, nameOverride ? 'Replacing Icon...' : 'Adding Icon...');
-    const addRequest = await fetch(uploadEndpoint + (nameOverride ? `?nameOverride=${nameOverride}` : ''), {
+    const addRequest = await fetch(`${uploadEndpoint}${nameOverride ? `?nameOverride=${nameOverride}` : ''}`, {
       method: 'POST',
       body: formData,
       headers: authHeaders,
@@ -149,7 +149,7 @@ export function addIconDialogSetup({
       if (replaceIconItem) {
         const iconImage = replaceIconItem.tagName === 'IMG' ? replaceIconItem : replaceIconItem.querySelector('img');
         iconImage.src = fileAsBase64;
-        showToast('Icon updated.');
+        showToast('Icon succesfully updated.');
       } else {
         itemList?.addItem({ name: file.name, base64: fileAsBase64 });
         showToast('Icon added.');
@@ -164,28 +164,22 @@ export function addIconDialogSetup({
 
 function blockIconDialogPreview({ base64, iconUrl }) {
   if (!base64 && !iconUrl) return '';
-  let src = '';
-  if (base64) {
-    src = base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64;
-  } else if (iconUrl) {
-    src = iconUrl;
-  }
+  const src = base64 ? (base64.startsWith(iconBase64Prefix) ? base64 : iconBase64Prefix + base64) : iconUrl;
   return `<div class="preview"><img class="icon-display" src="${src}" alt="icon display" /></div>`;
 }
 
-// MARK: block/icon dialog
 export function blockIconDialogSetup({ name, deleteWarning, projectDetails, authHeaders, isIcon = false, base64, iconUrl, showBlockScreenshots, siteSlug, container, nav }) {
   window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} settings`);
 
   const formId = `change-${isIcon ? 'icon' : 'block'}-form`;
   const content = parseFragment(`
     <div>
-        <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>    
-        <form id="${formId}">
-          <p>${deleteWarning || ''}</p>
-          ${blockIconDialogPreview({ base64, iconUrl })}
-          <div class="block-preview"></div>
-        </form>
+      <h3>${name} ${isIcon ? 'Icon' : 'Block'}</h3>
+      <form id="${formId}">
+        <p>${deleteWarning || ''}</p>
+        ${blockIconDialogPreview({ base64, iconUrl })}
+        <div class="block-preview"></div>
+      </form>
     </div>
   `);
 
@@ -194,78 +188,97 @@ export function blockIconDialogSetup({ name, deleteWarning, projectDetails, auth
       .then((response) => response.json())
       .then((data) => {
         const blockPreview = content.querySelector('.block-preview');
-
         data.forEach((screenshot) => {
           blockPreview.insertAdjacentHTML(
             'beforeend',
-            `
-            <img src="http://main--${projectDetails.templateSlug}--headwire-self-service-templates.aem.live/${screenshot.substring(2)}" alt="screenshot"/>
-          `,
+            `<img src="http://main--${projectDetails.templateSlug}--headwire-self-service-templates.aem.live/${screenshot.substring(2)}" alt="screenshot"/>`,
           );
         });
       });
   }
 
   const buttonList = [];
-
-  // MARK: replace icon button
   if (isIcon) {
-    const replaceButton = parseFragment(`
-      <button class="button action primary replace">Replace</button>
-    `);
+    const replaceButton = parseFragment('<button class="button action primary replace">Replace</button>');
     buttonList.push(replaceButton);
 
-    const replaceIconItem = container.querySelector(`[data-icon-name="${name}"`);
+    const replaceIconItem = container.querySelector(`[data-icon-name="${name}"]`);
 
-    // closes this dialog, then opens add Icon dialog
-    // that will replace this item instead of adding new icon.
     replaceButton.onclick = () => {
-      replaceButton.closest('dialog').close();
-      const addDialogForReplace = addIconDialogSetup({
+      const dialog = replaceButton.closest('dialog');
+      const { content: newContent, submit } = addIconDialogSetup({
         nameOverride: name,
         authHeaders,
         siteSlug,
         replaceIconItem,
         titleText: `Replace ${name}`,
+        returnElements: true,
       });
-      addDialogForReplace.showModal();
+
+      dialog.renderDialog(newContent, [submit]);
+
+      const form = newContent.querySelector('form');
+      form.onsubmit = async (event) => {
+        event.preventDefault();
+        window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} add submit`);
+
+        const fileInput = newContent.querySelector('input[type="file"]');
+        const file = fileInput?.files?.[0];
+        if (!file) {
+          await alertDialog('Please select a file');
+          return;
+        }
+
+        dialog.setLoading(true, 'Replacing Icon...');
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const addRequest = await fetch(`${SCRIPT_API}/icons/${siteSlug}?nameOverride=${name}`, {
+          method: 'POST',
+          body: formData,
+          headers: authHeaders,
+        }).catch(() => null);
+
+        if (addRequest?.ok) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const iconImage = replaceIconItem.tagName === 'IMG' ? replaceIconItem : replaceIconItem.querySelector('img');
+            iconImage.src = e.target.result;
+            showToast('Icon succesfully updated.');
+            dialog.close();
+          };
+          reader.readAsDataURL(file);
+        } else {
+          dialog.setLoading(false);
+          await alertDialog("Something went wrong! Make sure this icon doesn't already exist.");
+        }
+      };
     };
   }
 
-  // MARK: delete block/icon button
-  const submit = parseFragment(`
-    <button type="submit" form="${formId}" class="button action destructive">Delete</button>
-  `);
-
+  const submit = parseFragment(`<button type="submit" form="${formId}" class="button action destructive">Delete</button>`);
   buttonList.push(submit);
-  if (protectedBlocks[name]) {
-    submit.disabled = true;
-  }
+  if (protectedBlocks[name]) submit.disabled = true;
 
   const dialog = createDialog(content, buttonList);
   const form = document.getElementById(formId);
 
   form.onsubmit = async (event) => {
     event.preventDefault();
-
     window?.zaraz?.track(`click site ${isIcon ? 'icon' : 'block'} delete submit`);
 
     submit.disabled = true;
     dialog.setLoading(true, 'Deleting...');
 
-    const delResponse = await fetch(`${SCRIPT_API}/${isIcon ? 'icons' : 'blocks'}/${projectDetails.projectSlug}/${name}`, {
-      method: 'DELETE',
-      headers: authHeaders,
-    }).catch(() => null);
+    const delResponse = await fetch(`${SCRIPT_API}/${isIcon ? 'icons' : 'blocks'}/${projectDetails.projectSlug}/${name}`, { method: 'DELETE', headers: authHeaders }).catch(
+      () => null,
+    );
+
     if (delResponse?.ok) {
       dialog.close();
       showToast(`${isIcon ? 'Icon' : 'Block'} "${name}" deleted.`);
-
-      submit.remove();
       container.querySelectorAll(`li[data-block-name="${name}"], li[data-icon-name="${name}"]`).forEach((item) => item.remove());
-      if (name === 'schedule') {
-        manageGoogleCalendarLink(null, nav, true);
-      }
+      if (name === 'schedule') manageGoogleCalendarLink(null, nav, true);
     } else {
       submit.disabled = false;
       dialog.setLoading(false);
@@ -301,7 +314,6 @@ function addBlockDialogSetup({ projectDetails, authHeaders, itemList, nav }) {
           <select class="button secondary action">
           ${data.map((blockOption) => `<option data-block-create-info="${blockOption.createInfo || ''}" value="${blockOption.name}">${blockOption.name}</option>`).join('')}
           </select>
-          
           <p class="block-info"></p>
           <div class="block-preview"></div>
         </form>
@@ -618,7 +630,6 @@ export async function renderPrevUpdatesSection(div, { projectDetails, authHeader
       content = parseFragment(`
         <div>
             <h3>Revert Updates to Project</h3>
-            
             <form id="revert-form">
               <p class="warning">
                 Keep in mind, any changes made on the options and theme pages after an update will

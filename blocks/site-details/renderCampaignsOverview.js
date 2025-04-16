@@ -151,7 +151,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
               ${dateToRelativeSpan(campaign.lastUpdated, 'last-updated').outerHTML}
           </div>
         </div>
-        
+
         <h2>${safeText(campaign.name)} emails</h2>
         <table class="emails"></table>
       </div>
@@ -204,7 +204,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
     const content = parseFragment(`
         <div>
           <h3>Create a new campaign</h3>
-          
+
           <form id="create-campaign-form">
             <p>
                 Start your email marketing campaign with individual email messages with specific purposes including the following:
@@ -298,7 +298,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
                     ${dateToRelativeSpan(newCampaign.lastUpdated).outerHTML}
                 </div>
               </div>
-              
+
               <h2>${safeText(newCampaign.name)} emails</h2>
               <table class="emails"></table>
             </div>
@@ -346,7 +346,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
       const content = parseFragment(`
           <div>
             <h3>Update campaign</h3>
-            
+
             <form id="update-campaign-form">
               <label>
                   <span>Description *</span>
@@ -398,7 +398,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
     const content = parseFragment(`
         <div>
           <h3>Add email to Campaign</h3>
-          
+
           <div class="columns">
             <form id="add-email-form">
               <p>Add a newsletter email to your campaign</p>
@@ -494,7 +494,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
 
           toggleWell();
         } else {
-          showErrorToast();
+          showErrorToast(`Failed to delete the campaign "${campaignSlug}". Please try again. If the issue persists, contact support.`);
         }
         event.target.classList.remove('loading');
       }

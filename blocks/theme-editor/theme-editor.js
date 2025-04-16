@@ -81,7 +81,7 @@ export default async function decorate(block) {
             </a>
           </div>
         </div>
-        
+
         <div class="content with-skeleton">
           ${renderSkeleton('theme-editor')}
         </div>
@@ -93,7 +93,7 @@ export default async function decorate(block) {
         if (res.ok) {
           return res.text();
         }
-        throw new Error(res.status);
+        throw new Error(res.statusText);
       })
       .catch((error) => {
         // eslint-disable-next-line no-console
@@ -530,7 +530,7 @@ export default async function decorate(block) {
           return res.json();
         }
 
-        throw new Error(res.status);
+        throw new Error(res.statusText);
       })
       // Assuming all templates have the all sheet
       .then(({ data }) => {
@@ -606,6 +606,7 @@ export default async function decorate(block) {
 
       editor.setOption('readOnly', true);
       let failed = false;
+      let errorMessage = '';
       if (varsObj.cssFonts) {
         let res = await fetch(`${SCRIPT_API}/cssVariables/${projectSlug}`, {
           method: 'POST',
@@ -615,6 +616,7 @@ export default async function decorate(block) {
 
         if (!res.ok) {
           failed = true;
+          errorMessage = await res.text();
         } else {
           res = await fetch(`${SCRIPT_API}/cssFonts/${projectSlug}`, {
             method: 'POST',
@@ -623,6 +625,7 @@ export default async function decorate(block) {
           });
 
           failed = !res.ok;
+          errorMessage = await res.text();
         }
       } else {
         const res = await fetch(`${SCRIPT_API}/cssVariables/${projectSlug}`, {
@@ -632,10 +635,11 @@ export default async function decorate(block) {
         });
 
         failed = !res.ok;
+        errorMessage = await res.text();
       }
 
       if (failed) {
-        showErrorToast();
+        showErrorToast(errorMessage);
       } else {
         showToast('Theme updated! Please note theme updates can take up to 1 minute to propagate to all site pages.');
       }
