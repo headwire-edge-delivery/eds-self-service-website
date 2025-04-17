@@ -95,8 +95,10 @@ export function addIconDialogSetup({
     if (file) {
       if (!validateFileType(fileAccept, file.name.toLowerCase())) {
         preview.innerHTML = 'Please select a valid file!';
+        submit.disabled = true;
         return;
       }
+      submit.disabled = false;
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = document.createElement('img');
@@ -128,11 +130,6 @@ export function addIconDialogSetup({
       return;
     }
 
-    if (!validateFileType(fileAccept, file.name)) {
-      await alertDialog('Please select a valid file!');
-      return;
-    }
-
     const formData = new FormData();
     formData.append('file', file);
     dialog.setLoading(true, nameOverride ? 'Replacing Icon...' : 'Adding Icon...');
@@ -149,7 +146,7 @@ export function addIconDialogSetup({
       if (replaceIconItem) {
         const iconImage = replaceIconItem.tagName === 'IMG' ? replaceIconItem : replaceIconItem.querySelector('img');
         iconImage.src = fileAsBase64;
-        showToast('Icon succesfully updated.');
+        showToast('Icon successfully updated.');
       } else {
         itemList?.addItem({ name: file.name, base64: fileAsBase64 });
         showToast('Icon added.');
@@ -244,7 +241,8 @@ export function blockIconDialogSetup({ name, deleteWarning, projectDetails, auth
           reader.onload = (e) => {
             const iconImage = replaceIconItem.tagName === 'IMG' ? replaceIconItem : replaceIconItem.querySelector('img');
             iconImage.src = e.target.result;
-            showToast('Icon succesfully updated.');
+            if (name === 'logo.svg') completeChecklistItem(siteSlug, 'logoAdded');
+            showToast('Icon successfully updated.');
             dialog.close();
           };
           reader.readAsDataURL(file);

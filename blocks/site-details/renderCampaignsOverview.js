@@ -323,7 +323,9 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
 
         toggleWell();
 
-        addEmailEl.click();
+        setTimeout(() => {
+          addEmailEl.click();
+        }, 10);
       }
     };
   };

@@ -194,7 +194,15 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
       event.target.email.value = '';
       showToast('Author added.');
     } else {
-      showErrorToast(`We couldn’t add "${email}" as a new author. Please try again.`);
+      const text = await response.text();
+      let message = `We couldn’t add "${email}" as a new author. Please try again.`;
+
+      try {
+        message = text.split('Bad Request. User message: "')[1]?.split('"')[0];
+        // eslint-disable-next-line no-empty, no-unused-vars
+      } catch (e) {}
+
+      showErrorToast(message);
     }
     addAuthorForm.classList.remove('is-disabled');
   };
