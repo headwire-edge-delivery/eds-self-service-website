@@ -7,10 +7,10 @@ import { createDialog } from '../../scripts/dialogs.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
 import { parseAcceptLanguage, parseBrowser } from '../../scripts/utils.js';
 
-let { maxRows = 10000 } = readQueryParams();
+let { maxRows = 5000 } = readQueryParams();
 maxRows = parseInt(maxRows, 10);
 if (!Number.isInteger(maxRows)) {
-  maxRows = 10000;
+  maxRows = 5000;
 }
 maxRows = Math.max(100, maxRows);
 
@@ -263,7 +263,7 @@ export default async function renderUserTab({ container }) {
         },
       });
     } else {
-      showErrorToast();
+      showErrorToast(`Could not load recent activity data for user ${button.dataset.user}`);
     }
 
     button.classList.remove('loading');

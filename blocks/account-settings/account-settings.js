@@ -42,22 +42,22 @@ function afterDeleteAccount() {
 // MARK: text lookup
 const textLookup = {
   account: {
-    dialog: '<h2>Delete Account?</h2><p class="warning">Are you want to delete your account and your projects? This action cannot be undone!</p>',
+    dialog: '<h2>Delete Account?</h2><p class="warning">Do you want to delete your account and all projects? This action cannot be undone!</p>',
     button: 'Delete My Account',
-    confirmDialog: '<h2>Last Chance!</h2><p class="warning">Are you <strong>ABSOLUTELY</strong> sure you want to delete your account?</p>',
+    confirmDialog: '<h2>Last Chance!</h2><p class="warning">Are you <strong>ABSOLUTELY SURE</strong> you want to delete your account?</p>',
     loading: 'Deleting Account and Projects...',
     endpoint: '/deleteAccount',
-    success: '<div class="centered-info">Account Deleted</div>',
+    success: '<div class="centered-info">Account Successfully Deleted</div>',
     error: '<div class="centered-info">Something went wrong. Please try again later. Contact support if the issue persists.</div>',
   },
   projects: {
-    noProjectsDialog: '<h4 class="centered-info">You have no projects.</h4>',
-    dialog: '<h2>Delete All Projects?</h2><p class="warning">Are you want to delete all of your projects? This action cannot be undone!</p>',
+    noProjectsDialog: '<h4 class="centered-info">No projects found.</h4>',
+    dialog: '<h2>Delete All Projects?</h2><p class="warning">Do you want to permanently delete all your projects? This cannot be reversed!</p>',
     button: 'Delete All Projects',
-    confirmDialog: '<p class="warning">Are you <strong>ABSOLUTELY</strong> sure you want to delete all of your projects?</p>',
-    loading: 'Deleting All Projects...',
+    confirmDialog: '<p class="warning">Are you <strong>ABSOLUTELY SURE</strong> you want to delete all of your projects?</p>',
+    loading: 'Removing All Projects...',
     endpoint: '/deleteAllProjects',
-    success: '<div class="centered-info">All Projects Deleted</div>',
+    success: '<div class="centered-info">All Projects Successfully Deleted</div>',
     error: '<div class="centered-info">Something went wrong. Please try again later.</div>',
   },
 };

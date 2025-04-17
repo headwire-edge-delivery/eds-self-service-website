@@ -37,7 +37,7 @@ async function onFeedbackFormSubmit(event) {
       { once: true },
     );
   } else {
-    showErrorToast();
+    showErrorToast('Something went wrong! Please refresh the page and try again.');
     disableForm(form, false);
   }
   form.classList.remove('loading');
@@ -59,7 +59,7 @@ async function onSalesContactFormSubmit(event) {
   if (response.ok) {
     form.classList.add('success');
   } else {
-    showErrorToast();
+    showErrorToast('Something went wrong! Please refresh the page and try again.');
     disableForm(form, false);
   }
   form.classList.remove('loading');

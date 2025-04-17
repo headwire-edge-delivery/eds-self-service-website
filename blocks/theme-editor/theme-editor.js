@@ -81,7 +81,7 @@ export default async function decorate(block) {
             </a>
           </div>
         </div>
-        
+
         <div class="content with-skeleton">
           ${renderSkeleton('theme-editor')}
         </div>
@@ -93,7 +93,7 @@ export default async function decorate(block) {
         if (res.ok) {
           return res.text();
         }
-        throw new Error(res.status);
+        throw new Error(res.statusText);
       })
       .catch((error) => {
         // eslint-disable-next-line no-console
@@ -530,7 +530,7 @@ export default async function decorate(block) {
           return res.json();
         }
 
-        throw new Error(res.status);
+        throw new Error(res.statusText);
       })
       // Assuming all templates have the all sheet
       .then(({ data }) => {
@@ -635,7 +635,7 @@ export default async function decorate(block) {
       }
 
       if (failed) {
-        showErrorToast();
+        showErrorToast('Something went wrong! We could not update your theme. Please try again later. If the issue persists, please contact support.');
       } else {
         showToast('Theme updated! Please note theme updates can take up to 1 minute to propagate to all site pages.');
       }

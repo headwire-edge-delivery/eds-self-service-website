@@ -1,5 +1,6 @@
 import { loadCSS } from './aem.js';
 import { OOPS, parseFragment } from './scripts.js';
+import { escapeHTML } from './utils.js';
 
 loadCSS(`${window.hlx.codeBasePath}/styles/toast.css`);
 
@@ -31,7 +32,7 @@ export function showToast(text = 'Done.', type = 'success') {
   const toast = parseFragment(`
     <li>
         <div aria-atomic="true" role="alert" class="toast ${type}" tabindex="0">
-          <span>${text}</span>
+        <span>${escapeHTML(text)}</span>
           <button class="button secondary close" aria-label="close">✕</button>
         </div>
     </li>
@@ -47,11 +48,26 @@ export function showToast(text = 'Done.', type = 'success') {
     toast.classList.add('is-visible');
   }, 1);
 
-  setTimeout(() => {
-    hideToast(toast);
-  }, delay);
+  let hideTimeout;
+
+  const startHideTimer = () => {
+    hideTimeout = setTimeout(() => {
+      hideToast(toast);
+    }, delay);
+  };
+
+  const clearHideTimer = () => {
+    clearTimeout(hideTimeout);
+  };
+
+  const toastElement = toast.querySelector('.toast');
+  toastElement.addEventListener('mouseenter', clearHideTimer);
+  toastElement.addEventListener('mouseleave', startHideTimer);
+
+  startHideTimer();
 }
 
 export function showErrorToast(content = OOPS) {
-  showToast(content, 'error');
+  const message = content.length ? content : OOPS;
+  showToast(message, 'error');
 }

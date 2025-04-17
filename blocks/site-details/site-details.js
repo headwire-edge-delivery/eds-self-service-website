@@ -191,7 +191,7 @@ export default async function decorate(block) {
         showToast(`You will no longer be prompted to update ${safeText(siteDetails?.project?.projectName) || 'this project'} when a new version is available.`);
         siteDetails.project.hideUpdatePrompts[emailAsPropertyName] = true;
       } else {
-        showErrorToast('Something went wrong. Update prompts failed to be disabled.');
+        showErrorToast('Disabling update prompts failed. Please try again or contact support.');
       }
     };
   }

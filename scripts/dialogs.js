@@ -17,6 +17,12 @@ loadCSS(`${window.hlx.codeBasePath}/styles/dialogs.css`);
  * @returns {HTMLDialogElement} The created dialog element.
  */
 export const createDialog = (contentDiv, buttons, { open = true, onCloseFn, fullscreen, surviveClose = false } = {}) => {
+  // makes sure, that only one dialog element exists at a time
+  const existingDialog = document.querySelector('dialog');
+  if (existingDialog) {
+    return existingDialog;
+  }
+
   const dialog = document.createElement('dialog');
   dialog.classList.add('display-dialog');
   if (fullscreen) dialog.classList.add('fullscreen');
