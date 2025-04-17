@@ -1,5 +1,6 @@
 import { loadCSS } from './aem.js';
 import { OOPS, parseFragment } from './scripts.js';
+import { escapeHTML } from './utils.js';
 
 loadCSS(`${window.hlx.codeBasePath}/styles/toast.css`);
 
@@ -31,7 +32,7 @@ export function showToast(text = 'Done.', type = 'success') {
   const toast = parseFragment(`
     <li>
         <div aria-atomic="true" role="alert" class="toast ${type}" tabindex="0">
-          <span>${text}</span>
+        <span>${escapeHTML(text)}</span>
           <button class="button secondary close" aria-label="close">✕</button>
         </div>
     </li>

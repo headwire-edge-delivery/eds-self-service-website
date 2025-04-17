@@ -222,7 +222,14 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
         </div>
       `);
 
-    const dialog = createDialog(content, [submit]);
+    let addEmailAfterClose = false;
+    const dialog = createDialog(content, [submit], {
+      onCloseFn: () => {
+        if (addEmailAfterClose) {
+          addEmailEl.click();
+        }
+      },
+    });
     const existingCampaigns = [...campaignList.querySelectorAll('li[data-campaign]')].map((el) => el.dataset.campaign);
     const form = content.querySelector('#create-campaign-form');
     const nameInput = form.querySelector('input[name="name"]');
@@ -245,6 +252,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
     nameInput.oninput();
 
     form.onsubmit = async (e) => {
+      addEmailAfterClose = false;
       window.zaraz?.track('click create campaign');
 
       e.preventDefault();
@@ -322,10 +330,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
         dialog.close();
 
         toggleWell();
-
-        setTimeout(() => {
-          addEmailEl.click();
-        }, 10);
+        addEmailAfterClose = true;
       }
     };
   };

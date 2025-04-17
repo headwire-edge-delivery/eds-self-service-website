@@ -606,7 +606,6 @@ export default async function decorate(block) {
 
       editor.setOption('readOnly', true);
       let failed = false;
-      let errorMessage = '';
       if (varsObj.cssFonts) {
         let res = await fetch(`${SCRIPT_API}/cssVariables/${projectSlug}`, {
           method: 'POST',
@@ -616,7 +615,6 @@ export default async function decorate(block) {
 
         if (!res.ok) {
           failed = true;
-          errorMessage = await res.text();
         } else {
           res = await fetch(`${SCRIPT_API}/cssFonts/${projectSlug}`, {
             method: 'POST',
@@ -625,7 +623,6 @@ export default async function decorate(block) {
           });
 
           failed = !res.ok;
-          errorMessage = await res.text();
         }
       } else {
         const res = await fetch(`${SCRIPT_API}/cssVariables/${projectSlug}`, {
@@ -635,11 +632,10 @@ export default async function decorate(block) {
         });
 
         failed = !res.ok;
-        errorMessage = await res.text();
       }
 
       if (failed) {
-        showErrorToast(errorMessage);
+        showErrorToast('Something went wrong! We could not update your theme. Please try again later. If the issue persists, please contact support.');
       } else {
         showToast('Theme updated! Please note theme updates can take up to 1 minute to propagate to all site pages.');
       }

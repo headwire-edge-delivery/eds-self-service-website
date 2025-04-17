@@ -199,8 +199,9 @@ export default async function renderSettingsGeneral({ container, nav, renderOpti
 
       try {
         message = text.split('Bad Request. User message: "')[1]?.split('"')[0];
-        // eslint-disable-next-line no-empty, no-unused-vars
-      } catch (e) {}
+      } catch {
+        // do nothing
+      }
 
       showErrorToast(message);
     }

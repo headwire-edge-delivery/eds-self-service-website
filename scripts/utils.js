@@ -127,3 +127,41 @@ export const generateThumbnails = (sitesList) => {
       .catch(() => null);
   });
 };
+
+export const escapeHTML = (str) => {
+  const temp = document.createElement('div');
+  temp.innerHTML = str;
+
+  const walker = document.createTreeWalker(temp, NodeFilter.SHOW_ELEMENT, null, false);
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+
+    if (node.nodeName !== 'A') {
+      const span = document.createElement('span');
+      span.textContent = node.outerHTML;
+      node.replaceWith(span);
+    } else {
+      const href = node.getAttribute('href') || '';
+      const isSafeHref = href.startsWith('http://') || href.startsWith('https://');
+      if (!isSafeHref) {
+        const safeSpan = document.createElement('span');
+        safeSpan.textContent = node.outerHTML;
+        node.replaceWith(safeSpan);
+        continue;
+      }
+
+      [...node.attributes].forEach((attr) => {
+        if (!['href', 'target', 'rel'].includes(attr.name)) {
+          node.removeAttribute(attr.name);
+        }
+      });
+
+      if (node.getAttribute('target') === '_blank') {
+        node.setAttribute('rel', 'noopener noreferrer');
+      }
+    }
+  }
+
+  return temp.innerHTML;
+};
