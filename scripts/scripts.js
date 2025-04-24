@@ -478,7 +478,7 @@ export function createTabs({ block, breadcrumbs, tabs, renderOptions, defaultTab
       event.preventDefault();
 
       // if there are unsaved changes, you can't change the page unless you confirm
-      const tabsAside = block.querySelector('aside.tabs-aside');
+      const tabsAside = block.querySelector('aside');
       if (!confirmUnsavedChanges(tabsAside)) {
         return;
       }
@@ -693,7 +693,7 @@ export function toValidPropertyName(email) {
 
 // prevents a reload when an unsaved change is detected
 window.addEventListener('beforeunload', (event) => {
-  if (!confirmUnsavedChanges(document.querySelector('aside.tabs-aside'))) {
+  if (!confirmUnsavedChanges(document.querySelector('aside'))) {
     event.preventDefault();
   }
 });

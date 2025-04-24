@@ -15,14 +15,14 @@
     "knip": "knip"
   },
   "devDependencies": {
-    "@adobe/aem-cli": "^16.10.17",
+    "@adobe/aem-cli": "^16.10.19",
     "@driftingsands/self-service-lint": "^1.0.0",
     "@types/node": "^22.14.1",
-    "eslint": "^9.24.0",
+    "eslint": "^9.25.1",
     "husky": "^9.1.7",
-    "knip": "^5.50.4",
+    "knip": "^5.50.5",
     "lint-staged": "^15.5.1",
-    "stylelint": "16.18.0",
+    "stylelint": "16.19.0",
     "stylelint-config-standard": "38.0.0",
     "prettier": "3.5.3"
   },
