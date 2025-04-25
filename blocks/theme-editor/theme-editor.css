@@ -31,7 +31,14 @@
   display: flex;
   max-width: 100%;
   flex-wrap: wrap;
+  margin-left: auto;
   gap: 8px;
+}
+
+@media screen and (width <= 850px) {
+  .theme-editor.block .actions #unsaved-text {
+    display: none;
+  }
 }
 
 .theme-editor.block .details {

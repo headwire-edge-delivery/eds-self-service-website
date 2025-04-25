@@ -18,13 +18,13 @@ export default function createBaseBlockHtml(projectSlug) {
         <h1>Theme Editor</h1>
       </a>
     </div>
-    
+
     <div class="actions">
       <div class="warning" hidden>
         <span class="icon icon-info">
-          <img alt src="/icons/info.svg" loading="lazy">  
+          <img alt src="/icons/info.svg" loading="lazy">
         </span>
-        <span>You have unsaved changes</span>
+        <span id="unsaved-text">You have unsaved changes</span>
         <button type="button" aria-label="close">&#x2715;</button>
       </div>
       <div class="button-container">
@@ -43,7 +43,7 @@ export default function createBaseBlockHtml(projectSlug) {
             </button>
         </div>
         <select id="publish-theme-selector" title="Select the previewed page" class="button action secondary publish-theme-selector"></select>
-        <button id="save-button" title="Save your changes" class="button action primary is-disabled publish-theme">Save</button>
+        <button id="save-button" title="Save your changes" disabled class="button action primary publish-theme">Save</button>
       </div>
     </div>
   </div>
@@ -63,7 +63,7 @@ export default function createBaseBlockHtml(projectSlug) {
 
         <div class="aside-content">
           <h2>Typography</h2>
-          
+
           <h3>Heading</h3>
           <label>
               <span>Font family</span>
@@ -80,9 +80,9 @@ export default function createBaseBlockHtml(projectSlug) {
               <select class="font-picker" data-var="body-font-family"></select>
               <button class="button secondary action more-fonts">More fonts</button>
           </label>
-          
+
           <h2>Colors</h2>
-          
+
           <h3>Presets</h3>
           <label>
             <span>Color preset</span>
@@ -90,7 +90,7 @@ export default function createBaseBlockHtml(projectSlug) {
                 <option class="custom" hidden>Custom</option>
             </select>
           </label>
-          
+
           <h3>Base</h3>
           <label>
             <span>Light</span>
@@ -141,7 +141,7 @@ export default function createBaseBlockHtml(projectSlug) {
                 ${colorInput('color-brand-tertiary')}
             </div>
           </label>
-          
+
           <h3>Elements</h3>
           <label>
               <span>Background color</span>
@@ -151,7 +151,7 @@ export default function createBaseBlockHtml(projectSlug) {
               </div>
               <span class="contrast-issues"></span>
           </label>
-          
+
           <label>
               <span>Header background color</span>
               <div title="Open the color picker" class="color-picker elements">
@@ -160,7 +160,7 @@ export default function createBaseBlockHtml(projectSlug) {
               </div>
               <span class="contrast-issues"></span>
           </label>
-          
+
           <label>
               <span>Heading text color</span>
               <div title="Open the color picker" class="color-picker elements">
@@ -169,7 +169,7 @@ export default function createBaseBlockHtml(projectSlug) {
               </div>
               <span class="contrast-issues"></span>
           </label>
-          
+
           <label>
               <span>Body text color</span>
               <div title="Open the color picker" class="color-picker elements">
@@ -178,7 +178,7 @@ export default function createBaseBlockHtml(projectSlug) {
               </div>
               <span class="contrast-issues"></span>
           </label>
-          
+
           <label>
               <span>Links text color</span>
               <div title="Open the color picker" class="color-picker elements">
@@ -195,11 +195,11 @@ export default function createBaseBlockHtml(projectSlug) {
               </div>
               <span class="contrast-issues"></span>
           </label>
-          
+
           <h2>Buttons</h2>
-          
+
           <h3>Default</h3>
-          
+
           <label>
               <span>Text color</span>
               <div title="Open the color picker" class="color-picker elements">
@@ -248,9 +248,9 @@ export default function createBaseBlockHtml(projectSlug) {
               </div>
               <span class="contrast-issues"></span>
           </label>
-          
+
           <h3>Primary</h3>
-          
+
           <label>
               <span>Text color</span>
               <div title="Open the color picker" class="color-picker elements">
@@ -299,9 +299,9 @@ export default function createBaseBlockHtml(projectSlug) {
               </div>
               <span class="contrast-issues"></span>
           </label>
-          
+
           <h3>Secondary</h3>
-          
+
           <label>
               <span>Text color</span>
               <div title="Open the color picker" class="color-picker elements">
@@ -379,7 +379,7 @@ export default function createBaseBlockHtml(projectSlug) {
           </label>
 
           <h2>Footer</h2>
-          
+
           <label>
               <span>Footer background color</span>
               <div title="Open the color picker" class="color-picker elements">
@@ -415,7 +415,7 @@ export default function createBaseBlockHtml(projectSlug) {
               </div>
               <span class="contrast-issues"></span>
           </label>
-        
+
           <!--<h2>Styles (Developer)</h2>-->
           <!--<button class="button secondary action enable-styles">Edit styles (developer mode)</button>-->
           <textarea class="vars"></textarea>
