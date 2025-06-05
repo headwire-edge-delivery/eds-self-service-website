@@ -64,6 +64,21 @@ export function renderTable({ table, tableData, type, projectDetails, token, isD
               emails.forEach((el) => {
                 el.remove();
               });
+              // eslint-disable-next-line no-restricted-syntax
+              document.querySelectorAll('.emails tbody').forEach((tbody) => {
+                if (tbody.children.length === 0) {
+                  const row = document.createElement('tr');
+                  const cell = document.createElement('td');
+
+                  cell.colSpan = 4;
+                  cell.className = 'empty';
+                  cell.textContent = 'Not enough data';
+
+                  row.appendChild(cell);
+                  tbody.appendChild(row);
+                }
+              });
+
               showToast('Email deleted.');
             } else {
               showErrorToast(`Something went wrong! We couldn't delete "${email}". Please try again`);

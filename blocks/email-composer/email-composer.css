@@ -10,7 +10,7 @@
 
 .email-composer.block .nav {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   flex-wrap: wrap;
   padding-block: 32px;
@@ -19,6 +19,8 @@
 
 .email-composer.block .actions {
   display: flex;
+  justify-content: flex-end;
+  width: max-content;
   gap: 8px;
 }
 
@@ -50,6 +52,7 @@
 }
 
 .email-composer.block h2 {
+  display: flex;
   font-size: 16px;
   margin-top: 16px;
   padding-block: 16px;
@@ -155,6 +158,42 @@
   background-color: transparent;
   border-color: transparent;
   cursor: pointer;
+}
+
+#email-variables .kv input:read-only {
+  background-color: lightgray;
+  outline: none;
+}
+
+#unmet-requirements {
+  margin-right: 0;
+  padding-right: 8px;
+  cursor: pointer;
+}
+
+#send-button-info p {
+  text-align: center;
+}
+
+.requirements-list:not(:has(li)) {
+  display: none;
+}
+
+#static-defaults {
+  padding-inline-start: 20px;
+  margin-top: 0;
+}
+
+.requirements-list .unmet li::marker,
+#static-defaults li.unused-static-variable::marker {
+  content: '✕';
+  color: red;
+}
+
+.requirements-list .met li::marker,
+#static-defaults li.used-static-variable::marker {
+  content: '✔';
+  color: green;
 }
 
 @media (width < 768px) {

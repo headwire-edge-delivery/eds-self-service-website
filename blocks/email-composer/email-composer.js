@@ -1,16 +1,19 @@
-import { SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE, projectRepo, daProjectRepo } from '../../scripts/scripts.js';
+import { SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE, projectRepo, daProjectRepo, parseFragment } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS, toCamelCase } from '../../scripts/aem.js';
 import { confirmDialog } from '../../scripts/dialogs.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
+import { createDialog } from '../../scripts/dialogs.js';
 
 let timer;
-const debounce = (fn) => {
-  if (timer) {
-    clearTimeout(timer);
-    timer = undefined;
-  }
-  timer = setTimeout(() => fn(), 500);
+const debounce = (fn, delay = 800) => {
+  // eslint-disable-next-line func-names
+  return function (...args) {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
 };
 
 /**
@@ -76,21 +79,41 @@ export default async function decorate(block) {
     if (reqEmail.ok) {
       const { meta, variables } = await reqEmail.json();
       let customVariables = {};
+      let initialVariables = {};
 
-      // Default contact email
-      if (variables.includes('email')) {
-        customVariables.email = project.contactEmail;
-      }
+      // Default variables
+      const defaults = {
+        'contact email': project.contactEmail,
+        copyright: `${new Date().getFullYear()}`,
+      };
+      const staticDefaults = {
+        unsubscribe: `${SCRIPT_API}/unsubscribe/${project.projectSlug}/{id}`,
+        email: '{email}',
+        'first name': '{first name}',
+        'last name': '{last name}',
+        id: '{id}',
+      };
 
-      // Default unsubscribe link
-      if (variables.includes('unsubscribe')) {
-        customVariables.unsubscribe = `${SCRIPT_API}/unsubscribe/${project.projectSlug}/{id}`;
-      }
+      const staticDefaultsDescription = {
+        unsubscribe: `Generates this <a href="${SCRIPT_API}/unsubscribe/${project.projectSlug}/{id}" target="_blank">URL</a>
+        for the recipient to unsubscribe with the id of the recipient`,
+        email: 'E-Mail Address of the recipient',
+        'first name': 'First Name of the Recipient',
+        'last name': 'Last Name of the Recipient',
+        id: 'Unique id of the recipient',
+      };
 
-      // Default copyright
-      if (variables.includes('copyright')) {
-        customVariables.copyright = `${new Date().getFullYear()}`;
-      }
+      variables.forEach((key) => {
+        if (defaults[key]) {
+          customVariables[key] = defaults[key];
+        } else if (customVariables[key] === undefined) {
+          customVariables[key] = '';
+        }
+      });
+
+      Object.keys(staticDefaults).forEach((key) => {
+        customVariables[key] = staticDefaults[key];
+      });
 
       let localSave;
       if (window.localStorage[window.location.href]) {
@@ -101,6 +124,8 @@ export default async function decorate(block) {
           // do nothing
         }
       }
+
+      initialVariables = JSON.stringify(customVariables);
 
       block.innerHTML = `
         <div class="nav">
@@ -126,10 +151,10 @@ export default async function decorate(block) {
                 <iframe class="iframe is-loading" name="preview" src="${EMAIL_WORKER_API}/preview?contentUrl=${url}"></iframe>
                 <div class="skeleton" style="height: 100%; width: 100%; min-height: calc(100vh - 200px);"></div>
             </div>
-            <aside>
+            <aside data-unsaved-changes="false">
                 <div id="email-subject">
                 <h2>Subject</h2>
-                <input class="subject" type="text" value="${localSave?.subject ?? meta.subject}">
+                <input id="subject-input" class="subject" type="text" value="${localSave?.subject ?? meta.subject}">
                 </div>
 
                 <div id="email-recipients">
@@ -143,8 +168,9 @@ export default async function decorate(block) {
                 </div>
 
                 <div id="email-variables">
-                <h2>Variables</h2>
+                <h2>Variables <button id="variables-info-button" class="button transparent"><img src="/icons/help-dark.svg" alt="hint icon" /></button></h2>
                 ${variables
+                  .filter((variable) => !(variable in staticDefaults))
                   .map(
                     (variable) => `
                   <div class="kv">
@@ -156,9 +182,22 @@ export default async function decorate(block) {
                   .join('')}
 
                 <div class="button-container">
-                    <button class="button secondary action preview-variables">Preview</button>
-                    <button class="button primary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
+                    <button class="button primary action save-variables" disabled>Save variable${variables.length > 1 ? 's' : ''}</button>
                 </div>
+
+                <h2>Static Variables</h2>
+                    <ul id="static-defaults">
+                    ${Object.keys(staticDefaults)
+                      .map(
+                        (variable) => `
+                        <li class="${variables.includes(variable) ? 'used-static-variable' : 'unused-static-variable'}">
+                      <span>
+                          <strong>${variable}:</strong> ${staticDefaultsDescription[variable]} ${variables.includes(variable) ? '' : '(currently unused in your template)'}
+                      </span>
+                      </li>`,
+                      )
+                      .join('')}
+                    </ul>
 
                 <div id="email-styles">
                 <h2>Styles (Developer)</h2>
@@ -166,8 +205,7 @@ export default async function decorate(block) {
                 <form class="form" action="${EMAIL_WORKER_API}/preview?contentUrl=${url}" method="POST" target="preview">
                     <textarea name="styles" class="styles"></textarea>
                     <div class="button-container">
-                        <button type="submit" class="button secondary action">Preview</button>
-                        <button type="button" class="button primary action save-styles">Save styles</button>
+                        <button type="button" class="button primary action save-styles" disabled>Save styles</button>
                     </div>
                 </form>
                 </div>
@@ -175,14 +213,70 @@ export default async function decorate(block) {
         </div>
       `;
 
+      const variablesInfoButton = block.querySelector('#variables-info-button');
+      variablesInfoButton.addEventListener('click', () => {
+        window.zaraz?.track('Sheets-tab preview/publish info-dialog click');
+        createDialog(
+          `<div id="variables-info">
+            <p>
+              Variables allow you to personalize and customize parts of your template.
+              For example, you can use <var>{headline}</var> to dynamically insert a headline, or <var>{first name}</var> to address the recipient directly.
+            </p>
+            <p>
+              Variables and the email subject are saved locally in your browser.
+              This means that team members, or you if you're using a different browser or device, won’t have access to your saved variables.
+            </p>
+
+            <h3>Default Variables</h3>
+            <p>The following variables are automatically set but can be changed:</p>
+            <ul>
+              <li><var>{contact email}</var>: The contact email address associated with your project.</li>
+              <li><var>{copyright}</var>: Automatically adds the current year.</li>
+            </ul>
+
+            <h3>Static Variables</h3>
+            <p>The following variables are automatically set and cannot be changed:</p>
+            <ul>
+              ${Object.keys(staticDefaults)
+                .map(
+                  (variable) => `
+                  <li><span><var>{${variable}}</var>: ${staticDefaultsDescription[variable]}</span></li>`,
+                )
+                .join('')}
+            </ul>
+
+            <p>
+              You can create your own custom variables inside the template, such as <var>{color}</var>.
+            </p>
+            <p>
+            If you want to learn how to use variables in your template, see the guides.
+            </p>
+          </div>`,
+          [
+            parseFragment(
+              `<a href="/redirect?url=${project.authoringGuideUrl}" id="guides-button" title="Open the Guide for Mails"
+              class="button action secondary guides" target="_blank">Guides</a>`,
+            ),
+          ],
+        );
+      });
+
       const subject = block.querySelector('h1.subject');
       const subjectInput = block.querySelector('input.subject');
       const iframe = block.querySelector('.iframe');
       const form = block.querySelector('.form');
-      const previewVars = block.querySelector('.preview-variables');
       const saveVars = block.querySelector('.save-variables');
       let warning = { hidden: true };
       let savedEditorStyles;
+
+      subjectInput.addEventListener(
+        'input',
+        () =>
+          (window.localStorage[window.location.href] = JSON.stringify({
+            subject: subjectInput.value,
+            variables: JSON.parse(initialVariables),
+          })) && (subject.textContent = subjectInput.value),
+      );
 
       iframe.addEventListener('load', () => {
         // Add loading buffer
@@ -195,27 +289,6 @@ export default async function decorate(block) {
       setTimeout(() => {
         iframe.classList.remove('is-loading');
       }, 2000);
-
-      const hideWarning = () => {
-        try {
-          const JSONVars = JSON.stringify(customVariables);
-          const currentSave = JSON.parse(window.localStorage[window.location.href]);
-          const savedVars = JSONVars === JSON.stringify(currentSave?.variables ?? {}) && subjectInput.value === currentSave?.subject;
-
-          if (!editor) {
-            if (savedVars) {
-              warning.hidden = true;
-            }
-            return;
-          }
-
-          if (editor.getValue() === savedEditorStyles && savedVars) {
-            warning.hidden = true;
-          }
-        } catch {
-          // do nothing
-        }
-      };
 
       // MARK: Find variable in first selected recipient columns
       const replaceMatches = (value) => {
@@ -238,12 +311,23 @@ export default async function decorate(block) {
         return newValue;
       };
 
-      // MARK: Handle subject changes
-      subjectInput.oninput = () => {
-        debounce(() => {
-          previewVars.click();
-        });
-      };
+      const saveStyles = block.querySelector('.save-styles');
+
+      // MARK: Handle input changes
+      const debouncedHandler = debounce(() => {
+        refreshPreview();
+        const stored = window.localStorage[window.location.href] ? (JSON.parse(window.localStorage[window.location.href])?.variables ?? {}) : JSON.parse(initialVariables);
+        const variablesChanged = JSON.stringify(customVariables) !== JSON.stringify(stored);
+        const stylesChanged = savedEditorStyles !== editor?.getValue();
+        saveVars.disabled = !variablesChanged;
+        saveStyles.disabled = !stylesChanged;
+        warning.hidden = !variablesChanged && !stylesChanged;
+        block.querySelector('aside').dataset.unsavedChanges = variablesChanged.toString();
+      });
+
+      block.querySelectorAll('.kv input').forEach((input) => {
+        input.addEventListener('input', debouncedHandler);
+      });
 
       // MARK: Render codemirror
       block.querySelector('.enable-styles').onclick = (event) => {
@@ -252,15 +336,14 @@ export default async function decorate(block) {
         event.target.remove();
         editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
         editor.on('change', () => {
-          warning.hidden = false;
+          debouncedHandler();
         });
 
         savedEditorStyles = editor.getValue();
       };
 
-      const saveStyles = block.querySelector('.save-styles');
       saveStyles.onclick = async () => {
-        window?.zaraz?.track('click email preview styles');
+        window?.zaraz?.track('click email save styles');
 
         savedEditorStyles = editor.getValue();
 
@@ -285,31 +368,18 @@ export default async function decorate(block) {
 
         saveStyles.classList.remove('loading');
 
-        hideWarning();
+        debouncedHandler();
       };
 
       // MARK: Render preview with custom variables
-      previewVars.onclick = (event) => {
+      const refreshPreview = () => {
         iframe.classList.add('is-loading');
-
-        if (event.isTrusted) {
-          window?.zaraz?.track('click email preview variables');
-        }
 
         block.querySelectorAll('.kv input:first-child').forEach((input) => {
           const key = input.value;
           const { value } = input.nextElementSibling;
           customVariables[key] = value;
         });
-
-        try {
-          const currentSave = JSON.parse(window.localStorage[window.location.href]);
-          if (JSON.stringify(customVariables) !== JSON.stringify(currentSave?.variables ?? {}) || subjectInput.value !== currentSave?.subject) {
-            warning.hidden = false;
-          }
-        } catch {
-          // do nothing
-        }
 
         const keys = Object.keys(customVariables);
         const oldSource = new URL(iframe.src);
@@ -321,6 +391,8 @@ export default async function decorate(block) {
 
           if (newValue) {
             newSource.searchParams.set(key, newValue);
+          } else {
+            newSource.searchParams.delete(key);
           }
         });
 
@@ -331,18 +403,17 @@ export default async function decorate(block) {
         form.submit();
       };
       // MARK: Re-render with saved variables
-      previewVars.click();
+      refreshPreview();
 
       saveVars.onclick = () => {
         window?.zaraz?.track('click email save variables');
 
-        previewVars.click();
         window.localStorage[window.location.href] = JSON.stringify({
           subject: subjectInput.value,
           variables: customVariables,
         });
 
-        hideWarning();
+        debouncedHandler();
 
         const text = saveVars.textContent;
         saveVars.textContent = '✓';
@@ -359,11 +430,61 @@ export default async function decorate(block) {
               <span>You have unsaved changes</span>
               <button type="button" aria-label="close">&#x2715;</button>
             </div>
+            <div id="unmet-requirements" class="warning">
+                    <span class="icon icon-info">
+                      <img alt="" src="/icons/info.svg" loading="lazy">
+                    </span>
+                    <span id="unmet-info" class="info"></span>
+                  </div>
 
+            <a href="/redirect?url=${project.authoringGuideUrl}" id="guides-button"
+            title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
             <a href="#" target="_blank" id="copy-button" class="button secondary action copy">Copy</a>
             <button id="edit-button" class="button action secondary edit">Edit</button>
             <button id="send-button" class="button primary action send is-disabled">Send</button>
           `;
+
+      const unmetMessage = block.querySelector('#unmet-requirements');
+      const recipients = block.querySelector('.recipients');
+      const send = block.querySelector('#send-button');
+      const unmetMessageUpdate = () => {
+        const allVariablesSet = Object.values(customVariables).every((val) => typeof val === 'string' && val.trim() !== '');
+        const recipientsSelected = recipients.querySelector('tbody input[type="checkbox"]:checked') !== null;
+        const requirements = [allVariablesSet, recipientsSelected];
+        const unmetRequirements = requirements.filter((req) => !req).length;
+        block.querySelector('#unmet-info').textContent = `${unmetRequirements} of ${requirements.length} requirements to send unmet`;
+        unmetMessage.hidden = unmetRequirements === 0;
+        send.classList.toggle('is-disabled', !(allVariablesSet && recipientsSelected));
+      };
+      unmetMessageUpdate();
+      unmetMessage.addEventListener('click', () => {
+        window.zaraz?.track('Sheets-tab preview/publish info-dialog click');
+        const recipientCount = block.querySelectorAll('.recipients tbody tr[data-email]').length;
+        const selectedRecipientCount = block.querySelectorAll('.recipients tbody tr[data-email] td:first-child input[type="checkbox"]:checked').length;
+        const variableValues = Object.values(customVariables);
+        const variableLength = variableValues.length;
+        const emptyVariableLength = Object.values(customVariables).filter((val) => typeof val === 'string' && val.trim() === '').length;
+
+        createDialog(`
+        <div id="send-button-info">
+           <p>To be able to send an e-mail, the following points must be fulfilled:</p>
+           <div class="requirements-list">
+              <h3>Unmet Requirements</h3>
+              <ul class="unmet">
+                 ${!selectedRecipientCount ? '<li>At least 1 Recipient must be selected!</li>' : ''}
+                 ${emptyVariableLength ? `<li>All Variables must be set; ${emptyVariableLength} of ${variableLength} are currently not set!</li>` : ''}
+              </ul>
+           </div>
+           <div class="requirements-list">
+              <h3>Met Requirements</h3>
+              <ul class="met">
+                 ${selectedRecipientCount ? `<li>${selectedRecipientCount} from ${recipientCount} ${recipientCount > 1 ? 'Recipients' : 'Recipient'} selected</li>` : ''}
+                 ${!emptyVariableLength && variableLength ? `<li>${variableLength > 1 ? `All ${variableLength} Variables are set!` : '1 Variable set!'}</li>` : ''}
+              </ul>
+           </div>
+        </div>
+        `);
+      });
 
       warning = block.querySelector('.warning');
       warning.querySelector('button').onclick = () => {
@@ -447,7 +568,7 @@ export default async function decorate(block) {
           return false;
         })
         .then((data) => {
-          const recipients = block.querySelector('.recipients');
+          // const recipients = block.querySelector('.recipients');
 
           if (!data?.length) {
             // eslint-disable-next-line no-param-reassign
@@ -498,23 +619,18 @@ export default async function decorate(block) {
               </tbody>
             `;
 
-          const send = block.querySelector('.send');
-          const toggleSendDisabled = () => {
-            send.classList.toggle('is-disabled', recipients.querySelector('tbody input[type="checkbox"]:checked') === null);
-          };
-
           recipients.querySelector('thead input[type="checkbox"]').onclick = (e) => {
             const check = e.target.checked;
             recipients.querySelectorAll('tbody input[type="checkbox"]').forEach((checkbox) => {
               checkbox.checked = check;
             });
 
-            toggleSendDisabled();
+            unmetMessageUpdate();
           };
 
           recipients.querySelector('tbody').onclick = async (e) => {
             if (e.target.matches('input[type="checkbox"]')) {
-              toggleSendDisabled();
+              unmetMessageUpdate();
             } else if (e.target.matches('.render')) {
               window?.zaraz?.track('click email preview recipients');
 
@@ -526,7 +642,7 @@ export default async function decorate(block) {
               e.target.closest('tr').classList.add('is-rendering');
 
               // Re-render preview with newly selected recipient
-              previewVars.click();
+              refreshPreview();
             } else if (e.target.matches('.remove')) {
               window?.zaraz?.track('click email recipients remove');
 
@@ -552,14 +668,19 @@ export default async function decorate(block) {
               }
 
               tr.classList.remove('loading');
-              toggleSendDisabled();
+              unmetMessageUpdate();
             }
           };
 
           const add = recipients.querySelector('.add');
           recipients.querySelector('input[name="email"]').oninput = (e) => {
             const { value } = e.target;
-            add.classList.toggle('is-disabled', !(value.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)));
+            const emailList = Array.from(block.querySelectorAll('.recipients tbody tr[data-email]')).map((row) => row.getAttribute('data-email'));
+            const emailAlreadyAdded = emailList.includes(value);
+            add.classList.toggle('is-disabled', emailAlreadyAdded || !(value.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)));
+            if (emailAlreadyAdded) {
+              showErrorToast('This email is already in the recipient list!');
+            }
           };
 
           add.onclick = async () => {
@@ -620,11 +741,15 @@ export default async function decorate(block) {
             window?.zaraz?.track('click email send');
 
             // Preview to update the iframe source
-            previewVars.click();
+            refreshPreview();
 
             const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
 
-            if (await confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
+            if (
+              await confirmDialog(
+                `You are about to send an email to ${selectedRecipients.length > 1 ? selectedRecipients.length + ' recipients' : '1 recipient'}.\nDo you want to continue ?`,
+              )
+            ) {
               window?.zaraz?.track('click email copy submit');
 
               block.classList.add('is-sending');
@@ -654,6 +779,14 @@ export default async function decorate(block) {
             }
           };
         });
+
+      // "Ctrl + S" to trigger the Save variables button
+      window.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key === 's') {
+          event.preventDefault();
+          saveVars.click();
+        }
+      });
     } else {
       block.querySelector('.content [aria-label="loading"]').textContent = OOPS;
     }

@@ -515,6 +515,7 @@ table tr.loading {
   padding: 4px 8px;
   border-radius: var(--small-border-radius);
   background-color: var(--light-gray);
+  margin-right: auto;
 }
 
 .breadcrumbs h1 {
@@ -827,4 +828,8 @@ table tr.loading {
 .badge.orange {
   background-color: var(--orange);
   color: var(--white);
+}
+
+.hidden {
+  display: none;
 }
