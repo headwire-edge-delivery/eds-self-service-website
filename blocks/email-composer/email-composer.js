@@ -352,6 +352,8 @@ export default async function decorate(block) {
         saveStyles.onclick = async () => {
           window?.zaraz?.track('click email save styles');
 
+          saveStyles.disabled = true;
+
           savedEditorStyles = editor.getValue();
 
           saveStyles.classList.add('loading');
@@ -414,6 +416,7 @@ export default async function decorate(block) {
 
         saveVars.onclick = () => {
           window?.zaraz?.track('click email save variables');
+          saveVars.disabled = true;
 
           window.localStorage[window.location.href] = JSON.stringify({
             subject: subjectInput.value,
