@@ -1,16 +1,20 @@
-import { SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE, projectRepo, daProjectRepo } from '../../scripts/scripts.js';
+import { SCRIPT_API, onAuthenticated, EMAIL_WORKER_API, OOPS, KESTREL_ONE, projectRepo, daProjectRepo, parseFragment } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { loadCSS, toCamelCase } from '../../scripts/aem.js';
 import { confirmDialog } from '../../scripts/dialogs.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
+import { createDialog } from '../../scripts/dialogs.js';
+import { confirmUnsavedChanges } from '../../scripts/utils.js';
 
 let timer;
-const debounce = (fn) => {
-  if (timer) {
-    clearTimeout(timer);
-    timer = undefined;
-  }
-  timer = setTimeout(() => fn(), 500);
+const debounce = (fn, delay = 800) => {
+  // eslint-disable-next-line func-names
+  return function (...args) {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
 };
 
 /**
@@ -72,37 +76,60 @@ export default async function decorate(block) {
         </div>
       </div>`;
 
-    const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta?contentUrl=${url}`);
-    if (reqEmail.ok) {
-      const { meta, variables } = await reqEmail.json();
-      let customVariables = {};
+    const load = async (checkboxStates) => {
+      const reqEmail = await fetch(`${EMAIL_WORKER_API}/meta?contentUrl=${url}`);
+      if (reqEmail.ok) {
+        const { meta, variables } = await reqEmail.json();
+        let customVariables = {};
+        let initialVariables = {};
 
-      // Default contact email
-      if (variables.includes('email')) {
-        customVariables.email = project.contactEmail;
-      }
+        // Default variables
+        const defaults = {
+          'contact email': project.contactEmail,
+          copyright: `${new Date().getFullYear()}`,
+        };
+        const staticDefaults = {
+          unsubscribe: `${SCRIPT_API}/unsubscribe/${project.projectSlug}/{id}`,
+          email: '{email}',
+          'first name': '{first name}',
+          'last name': '{last name}',
+          id: '{id}',
+        };
 
-      // Default unsubscribe link
-      if (variables.includes('unsubscribe')) {
-        customVariables.unsubscribe = `${SCRIPT_API}/unsubscribe/${project.projectSlug}/{id}`;
-      }
+        const staticDefaultsDescription = {
+          unsubscribe: `Generates this <a href="${SCRIPT_API}/unsubscribe/${project.projectSlug}/{id}" target="_blank">URL</a>
+        for the recipient to unsubscribe with the id of the recipient`,
+          email: 'E-Mail Address of the recipient',
+          'first name': 'First Name of the Recipient',
+          'last name': 'Last Name of the Recipient',
+          id: 'Unique id of the recipient',
+        };
 
-      // Default copyright
-      if (variables.includes('copyright')) {
-        customVariables.copyright = `${new Date().getFullYear()}`;
-      }
+        variables.forEach((key) => {
+          if (defaults[key]) {
+            customVariables[key] = defaults[key];
+          } else if (customVariables[key] === undefined) {
+            customVariables[key] = '';
+          }
+        });
 
-      let localSave;
-      if (window.localStorage[window.location.href]) {
-        try {
-          localSave = JSON.parse(window.localStorage[window.location.href]);
-          customVariables = localSave?.variables ?? customVariables;
-        } catch {
-          // do nothing
+        Object.keys(staticDefaults).forEach((key) => {
+          customVariables[key] = staticDefaults[key];
+        });
+
+        let localSave;
+        if (window.localStorage[window.location.href]) {
+          try {
+            localSave = JSON.parse(window.localStorage[window.location.href]);
+            customVariables = localSave?.variables ?? customVariables;
+          } catch {
+            // do nothing
+          }
         }
-      }
 
-      block.innerHTML = `
+        initialVariables = JSON.stringify(customVariables);
+
+        block.innerHTML = `
         <div class="nav">
           <div class="breadcrumbs">
             <a href="/dashboard/sites">
@@ -126,10 +153,10 @@ export default async function decorate(block) {
                 <iframe class="iframe is-loading" name="preview" src="${EMAIL_WORKER_API}/preview?contentUrl=${url}"></iframe>
                 <div class="skeleton" style="height: 100%; width: 100%; min-height: calc(100vh - 200px);"></div>
             </div>
-            <aside>
+            <aside data-unsaved-changes="false">
                 <div id="email-subject">
                 <h2>Subject</h2>
-                <input class="subject" type="text" value="${localSave?.subject ?? meta.subject}">
+                <input id="subject-input" class="subject" type="text" value="${localSave?.subject ?? meta.subject}">
                 </div>
 
                 <div id="email-recipients">
@@ -143,8 +170,9 @@ export default async function decorate(block) {
                 </div>
 
                 <div id="email-variables">
-                <h2>Variables</h2>
+                <h2>Variables <button id="variables-info-button" class="button transparent"><img src="/icons/help-dark.svg" alt="hint icon" /></button></h2>
                 ${variables
+                  .filter((variable) => !(variable in staticDefaults))
                   .map(
                     (variable) => `
                   <div class="kv">
@@ -156,202 +184,256 @@ export default async function decorate(block) {
                   .join('')}
 
                 <div class="button-container">
-                    <button class="button secondary action preview-variables">Preview</button>
-                    <button class="button primary action save-variables">Save variable${variables.length > 1 ? 's' : ''}</button>
+                    <button class="button primary action save-variables" disabled>Save variable${variables.length > 1 ? 's' : ''}</button>
                 </div>
 
+                <h2>Static Variables</h2>
+                    <ul id="static-defaults">
+                    ${Object.keys(staticDefaults)
+                      .map(
+                        (variable) => `
+                        <li class="${variables.includes(variable) ? 'used-static-variable' : 'unused-static-variable'}">
+                      <span>
+                          <strong>${variable}:</strong> ${staticDefaultsDescription[variable]} ${variables.includes(variable) ? '' : '(currently unused in your template)'}
+                      </span>
+                      </li>`,
+                      )
+                      .join('')}
+                    </ul>
+
+                </div>
                 <div id="email-styles">
                 <h2>Styles (Developer)</h2>
                 <button class="button secondary action enable-styles">Edit styles (developer mode)</button>
                 <form class="form" action="${EMAIL_WORKER_API}/preview?contentUrl=${url}" method="POST" target="preview">
                     <textarea name="styles" class="styles"></textarea>
                     <div class="button-container">
-                        <button type="submit" class="button secondary action">Preview</button>
-                        <button type="button" class="button primary action save-styles">Save styles</button>
+                        <button type="button" class="button primary action save-styles" disabled>Save styles</button>
                     </div>
                 </form>
-                </div>
             </aside>
         </div>
       `;
 
-      const subject = block.querySelector('h1.subject');
-      const subjectInput = block.querySelector('input.subject');
-      const iframe = block.querySelector('.iframe');
-      const form = block.querySelector('.form');
-      const previewVars = block.querySelector('.preview-variables');
-      const saveVars = block.querySelector('.save-variables');
-      let warning = { hidden: true };
-      let savedEditorStyles;
+        const variablesInfoButton = block.querySelector('#variables-info-button');
+        variablesInfoButton.addEventListener('click', () => {
+          window.zaraz?.track('Sheets-tab preview/publish info-dialog click');
+          createDialog(
+            `<div id="variables-info">
+            <h2>Variables</h2>
+            <p>
+              Variables allow you to personalize and customize parts of your template.
+              For example, you can use <var>{headline}</var> to dynamically insert a headline, or <var>{first name}</var> to address the recipient directly.
+            </p>
+            <p>
+              Variables are not required, but they are an easy way to reuse the same template multiple times or to address the recipient directly. For example:
+              "Hi {first name}" -> this would be personalized for each recipient like "Hi John" or "Hi Jane".
+            </p>
+            <p>
+              Variables and the email subject are saved locally in your browser.
+              This means that team members, or you if you're using a different browser or device, won’t have access to your saved variables.
+            </p>
 
-      iframe.addEventListener('load', () => {
-        // Add loading buffer
+            <h3>Default Variables</h3>
+            <p>The following variables are automatically set but can be changed:</p>
+            <ul>
+              <li><var>{contact email}</var>: The contact email address associated with your project.</li>
+              <li><var>{copyright}</var>: Automatically adds the current year.</li>
+            </ul>
+
+            <h3>Static Variables</h3>
+            <p>The following variables are automatically set and cannot be changed:</p>
+            <ul>
+              ${Object.keys(staticDefaults)
+                .map(
+                  (variable) => `
+                  <li><span><var>{${variable}}</var>: ${staticDefaultsDescription[variable]}</span></li>`,
+                )
+                .join('')}
+            </ul>
+
+            <h3>New Variables</h3>
+            <p>
+              You can create your own custom variables inside the template, such as <var>{color}</var>.
+            </p>
+            <p>
+            If you want to learn how to use variables in your template, see the guides.
+            </p>
+          </div>`,
+            [
+              parseFragment(
+                `<a href="/redirect?url=${project.authoringGuideUrl}" id="guides-button" title="Open the Guide for Mails"
+              class="button action secondary guides" target="_blank">Guides</a>`,
+              ),
+            ],
+          );
+        });
+
+        const subject = block.querySelector('h1.subject');
+        const subjectInput = block.querySelector('input.subject');
+        const iframe = block.querySelector('.iframe');
+        const form = block.querySelector('.form');
+        const saveVars = block.querySelector('.save-variables');
+        let warning = { hidden: true };
+        let savedEditorStyles;
+
+        subjectInput.addEventListener(
+          'input',
+          () =>
+            (window.localStorage[window.location.href] = JSON.stringify({
+              subject: subjectInput.value,
+              variables: JSON.parse(initialVariables),
+            })) && (subject.textContent = subjectInput.value),
+        );
+
+        iframe.addEventListener('load', () => {
+          // Add loading buffer
+          setTimeout(() => {
+            iframe.classList.remove('is-loading');
+          }, 1000);
+        });
+        // Loading timeout
         setTimeout(() => {
           iframe.classList.remove('is-loading');
-          iframe.parentElement.querySelector('.skeleton')?.remove();
-        }, 1000);
-      });
-      // Loading timeout
-      setTimeout(() => {
-        iframe.classList.remove('is-loading');
-      }, 2000);
-
-      const hideWarning = () => {
-        try {
-          const JSONVars = JSON.stringify(customVariables);
-          const currentSave = JSON.parse(window.localStorage[window.location.href]);
-          const savedVars = JSONVars === JSON.stringify(currentSave?.variables ?? {}) && subjectInput.value === currentSave?.subject;
-
-          if (!editor) {
-            if (savedVars) {
-              warning.hidden = true;
-            }
-            return;
-          }
-
-          if (editor.getValue() === savedEditorStyles && savedVars) {
-            warning.hidden = true;
-          }
-        } catch {
-          // do nothing
-        }
-      };
-
-      // MARK: Find variable in first selected recipient columns
-      const replaceMatches = (value) => {
-        let newValue = value;
-        const matches = value.match(regExp);
-        if (matches) {
-          const rendering = block.querySelector('.recipients tbody tr.is-rendering, .recipients tbody tr:has(input:checked)');
-          if (!rendering) {
-            return newValue;
-          }
-
-          const selectedRecipient = audience.find((contact) => contact.id === rendering.dataset.id);
-
-          matches.forEach((match) => {
-            const matchingCol = Object.keys(selectedRecipient).find((col) => col === toCamelCase(match));
-            newValue = value.replace(`{${match}}`, selectedRecipient[matchingCol] ?? `{${match}}`);
-          });
-        }
-
-        return newValue;
-      };
-
-      // MARK: Handle subject changes
-      subjectInput.oninput = () => {
-        debounce(() => {
-          previewVars.click();
-        });
-      };
-
-      // MARK: Render codemirror
-      block.querySelector('.enable-styles').onclick = (event) => {
-        window?.zaraz?.track('click email styles enable');
-
-        event.target.remove();
-        editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
-        editor.on('change', () => {
-          warning.hidden = false;
-        });
-
-        savedEditorStyles = editor.getValue();
-      };
-
-      const saveStyles = block.querySelector('.save-styles');
-      saveStyles.onclick = async () => {
-        window?.zaraz?.track('click email preview styles');
-
-        savedEditorStyles = editor.getValue();
-
-        saveStyles.classList.add('loading');
-        const req = await fetch(`${SCRIPT_API}/emailStyles/${id}`, {
-          method: 'POST',
-          headers: {
-            authorization: `bearer ${token}`,
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify({
-            filePath: meta.styles,
-            css: btoa(editor.getValue() || ''),
-          }),
-        });
-
-        if (req.ok) {
-          showToast('Styles updated! Updates can take up to 1 minute to be reflected for all users.');
-        } else {
-          showErrorToast('Something went wrong! We could not update your styles. Please try again or contact support.');
-        }
-
-        saveStyles.classList.remove('loading');
-
-        hideWarning();
-      };
-
-      // MARK: Render preview with custom variables
-      previewVars.onclick = (event) => {
-        iframe.classList.add('is-loading');
-
-        if (event.isTrusted) {
-          window?.zaraz?.track('click email preview variables');
-        }
-
-        block.querySelectorAll('.kv input:first-child').forEach((input) => {
-          const key = input.value;
-          const { value } = input.nextElementSibling;
-          customVariables[key] = value;
-        });
-
-        try {
-          const currentSave = JSON.parse(window.localStorage[window.location.href]);
-          if (JSON.stringify(customVariables) !== JSON.stringify(currentSave?.variables ?? {}) || subjectInput.value !== currentSave?.subject) {
-            warning.hidden = false;
-          }
-        } catch {
-          // do nothing
-        }
-
-        const keys = Object.keys(customVariables);
-        const oldSource = new URL(iframe.src);
-        const newSource = new URL(`${oldSource.origin}${oldSource.pathname}${oldSource.search}`);
-        let newSubject = subjectInput.value;
-        keys.forEach((key) => {
-          const newValue = replaceMatches(customVariables[key]);
-          newSubject = newSubject.replace(`{${key}}`, newValue || `{${key}}`);
-
-          if (newValue) {
-            newSource.searchParams.set(key, newValue);
-          }
-        });
-
-        subject.textContent = newSubject;
-
-        iframe.src = newSource.toString();
-        form.action = newSource.toString();
-        form.submit();
-      };
-      // MARK: Re-render with saved variables
-      previewVars.click();
-
-      saveVars.onclick = () => {
-        window?.zaraz?.track('click email save variables');
-
-        previewVars.click();
-        window.localStorage[window.location.href] = JSON.stringify({
-          subject: subjectInput.value,
-          variables: customVariables,
-        });
-
-        hideWarning();
-
-        const text = saveVars.textContent;
-        saveVars.textContent = '✓';
-        setTimeout(() => {
-          saveVars.textContent = text;
         }, 2000);
-      };
 
-      block.querySelector('.actions').innerHTML = `
+        // MARK: Find variable in first selected recipient columns
+        const replaceMatches = (value) => {
+          let newValue = value;
+          const matches = value.match(regExp);
+          if (matches) {
+            const rendering = block.querySelector('.recipients tbody tr.is-rendering, .recipients tbody tr:has(input:checked)');
+            if (!rendering) {
+              return newValue;
+            }
+
+            const selectedRecipient = audience.find((contact) => contact.id === rendering.dataset.id);
+
+            matches.forEach((match) => {
+              const matchingCol = Object.keys(selectedRecipient).find((col) => col === toCamelCase(match));
+              newValue = value.replace(`{${match}}`, selectedRecipient[matchingCol] ?? `{${match}}`);
+            });
+          }
+
+          return newValue;
+        };
+
+        const saveStyles = block.querySelector('.save-styles');
+
+        // MARK: Handle input changes
+        const debouncedHandler = debounce(() => {
+          refreshPreview();
+          const stored = window.localStorage[window.location.href] ? (JSON.parse(window.localStorage[window.location.href])?.variables ?? {}) : JSON.parse(initialVariables);
+          const variablesChanged = JSON.stringify(customVariables) !== JSON.stringify(stored);
+          const stylesChanged = savedEditorStyles !== editor?.getValue();
+          saveVars.disabled = !variablesChanged;
+          saveStyles.disabled = !stylesChanged;
+          warning.hidden = !variablesChanged && !stylesChanged;
+          block.querySelector('aside').dataset.unsavedChanges = variablesChanged.toString();
+        });
+
+        block.querySelectorAll('.kv input').forEach((input) => {
+          input.addEventListener('input', debouncedHandler);
+        });
+
+        // MARK: Render codemirror
+        block.querySelector('.enable-styles').onclick = (event) => {
+          window?.zaraz?.track('click email styles enable');
+
+          event.target.remove();
+          editor = window.CodeMirror.fromTextArea(block.querySelector('.styles'));
+          editor.on('change', () => {
+            debouncedHandler();
+          });
+
+          savedEditorStyles = editor.getValue();
+        };
+
+        saveStyles.onclick = async () => {
+          window?.zaraz?.track('click email save styles');
+
+          saveStyles.disabled = true;
+
+          savedEditorStyles = editor.getValue();
+
+          saveStyles.classList.add('loading');
+          const req = await fetch(`${SCRIPT_API}/emailStyles/${id}`, {
+            method: 'POST',
+            headers: {
+              authorization: `bearer ${token}`,
+              'content-type': 'application/json',
+            },
+            body: JSON.stringify({
+              filePath: meta.styles,
+              css: btoa(editor.getValue() || ''),
+            }),
+          });
+
+          if (req.ok) {
+            showToast('Styles updated! Updates can take up to 1 minute to be reflected for all users.');
+          } else {
+            showErrorToast('Something went wrong! We could not update your styles. Please try again or contact support.');
+          }
+
+          saveStyles.classList.remove('loading');
+
+          debouncedHandler();
+        };
+
+        // MARK: Render preview with custom variables
+        const refreshPreview = () => {
+          iframe.classList.add('is-loading');
+
+          block.querySelectorAll('.kv input:first-child').forEach((input) => {
+            const key = input.value;
+            const { value } = input.nextElementSibling;
+            customVariables[key] = value;
+          });
+
+          const keys = Object.keys(customVariables);
+          const oldSource = new URL(iframe.src);
+          const newSource = new URL(`${oldSource.origin}${oldSource.pathname}${oldSource.search}`);
+          let newSubject = subjectInput.value;
+          keys.forEach((key) => {
+            const newValue = replaceMatches(customVariables[key]);
+            newSubject = newSubject.replace(`{${key}}`, newValue || `{${key}}`);
+
+            if (newValue) {
+              newSource.searchParams.set(key, newValue);
+            } else {
+              newSource.searchParams.delete(key);
+            }
+          });
+
+          subject.textContent = newSubject;
+
+          iframe.src = newSource.toString();
+          form.action = newSource.toString();
+          form.submit();
+        };
+        // MARK: Re-render with saved variables
+        refreshPreview();
+
+        saveVars.onclick = () => {
+          window?.zaraz?.track('click email save variables');
+          saveVars.disabled = true;
+
+          window.localStorage[window.location.href] = JSON.stringify({
+            subject: subjectInput.value,
+            variables: customVariables,
+          });
+
+          debouncedHandler();
+          unmetMessageUpdate();
+
+          const text = saveVars.textContent;
+          saveVars.textContent = '✓';
+          setTimeout(() => {
+            saveVars.textContent = text;
+          }, 2000);
+        };
+
+        block.querySelector('.actions').innerHTML = `
             <div class="warning" hidden>
               <span class="icon icon-info">
                 <img alt src="/icons/info.svg" loading="lazy">
@@ -359,103 +441,149 @@ export default async function decorate(block) {
               <span>You have unsaved changes</span>
               <button type="button" aria-label="close">&#x2715;</button>
             </div>
+            <div id="unmet-requirements" class="warning">
+                    <span class="icon icon-info">
+                      <img alt="" src="/icons/info.svg" loading="lazy">
+                    </span>
+                    <span id="unmet-info" class="info"></span>
+                  </div>
 
-            <a href="#" target="_blank" id="copy-button" class="button secondary action copy">Copy</a>
+            <a href="/redirect?url=${project.authoringGuideUrl}" id="guides-button"
+            title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
+            <a href="${EMAIL_WORKER_API}/preview?contentUrl=${url}" target="_blank" class="button secondary action preview-mail">Preview</a>
             <button id="edit-button" class="button action secondary edit">Edit</button>
             <button id="send-button" class="button primary action send is-disabled">Send</button>
           `;
 
-      warning = block.querySelector('.warning');
-      warning.querySelector('button').onclick = () => {
-        warning.hidden = true;
-      };
+        const unmetMessage = block.querySelector('#unmet-requirements');
+        const recipients = block.querySelector('.recipients');
+        const send = block.querySelector('#send-button');
+        const unmetMessageUpdate = () => {
+          const allVariablesSet = Object.values(customVariables).every((val) => typeof val === 'string' && val.trim() !== '');
+          const recipientsSelected = recipients.querySelector('tbody input[type="checkbox"]:checked') !== null;
+          const requirements = [allVariablesSet, recipientsSelected];
+          const unmetRequirements = requirements.filter((req) => !req).length;
+          block.querySelector('#unmet-info').textContent = `${unmetRequirements} of ${requirements.length} requirements to send unmet`;
+          unmetMessage.hidden = unmetRequirements === 0;
+          send.classList.toggle('is-disabled', !(allVariablesSet && recipientsSelected));
+        };
+        unmetMessageUpdate();
+        unmetMessage.addEventListener('click', () => {
+          window.zaraz?.track('Sheets-tab preview/publish info-dialog click');
+          const recipientCount = block.querySelectorAll('.recipients tbody tr[data-email]').length;
+          const selectedRecipientCount = block.querySelectorAll('.recipients tbody tr[data-email] td:first-child input[type="checkbox"]:checked').length;
+          const variableValues = Object.values(customVariables);
+          const variableLength = variableValues.length;
+          const emptyVariableLength = Object.values(customVariables).filter((val) => typeof val === 'string' && val.trim() === '').length;
 
-      const editButton = block.querySelector('.actions button.edit');
-      if (project?.darkAlleyProject) {
-        // DA project
-        const daEditLink = document.createElement('a');
-        daEditLink.classList.add('button', 'action', 'secondary', 'edit');
-        daEditLink.target = '_blank';
-        daEditLink.href = `https://da.live/edit#/${daProjectRepo}/${id}${path}`;
-        daEditLink.innerText = 'Edit';
-        daEditLink.id = 'edit-button';
-        editButton.replaceWith(daEditLink);
-      } else {
-        // is drive project
-        editButton.addEventListener('click', async () => {
-          editButton.classList.add('loading');
-          const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${project.projectSlug}/main${path}?editUrl=auto`)
-            .then((res) => res.json())
-            .catch(() => null);
-          if (statusData?.edit?.url) {
-            window.open(statusData.edit.url, '_blank');
-          } else {
-            window.open(project.driveUrl, '_blank');
-          }
-          editButton.classList.remove('loading');
+          createDialog(`
+        <div id="send-button-info">
+           <p>To be able to send an e-mail, the following points must be fulfilled:</p>
+           <div class="requirements-list">
+              <h3>Unmet Requirements</h3>
+              <ul class="unmet">
+                 ${!selectedRecipientCount ? '<li>At least 1 Recipient must be selected!</li>' : ''}
+                 ${emptyVariableLength ? `<li>All Variables must be set; ${emptyVariableLength} of ${variableLength} are currently not set!</li>` : ''}
+              </ul>
+           </div>
+           <div class="requirements-list">
+              <h3>Met Requirements</h3>
+              <ul class="met">
+                 ${selectedRecipientCount ? `<li>${selectedRecipientCount} from ${recipientCount} ${recipientCount > 1 ? 'Recipients' : 'Recipient'} selected</li>` : ''}
+                 ${!emptyVariableLength && variableLength ? `<li>${variableLength > 1 ? `All ${variableLength} Variables are set!` : '1 Variable set!'}</li>` : ''}
+              </ul>
+           </div>
+        </div>
+        `);
         });
-      }
 
-      if (project.darkAlleyProject) {
-        block.querySelectorAll('.breadcrumbs a').forEach((link) => {
-          if (link.href.includes('/site/')) {
-            link.href = link.href.replace('/site/', '/da-site/');
-          }
-        });
-      }
+        warning = block.querySelector('.warning');
+        warning.querySelector('button').onclick = () => {
+          warning.hidden = true;
+        };
 
-      block.querySelector('.edit').onclick = () => {
-        window?.zaraz?.track('click email edit');
-      };
+        const editButton = block.querySelector('.actions button.edit');
+        if (project?.darkAlleyProject) {
+          // DA project
+          const daEditLink = document.createElement('a');
+          daEditLink.classList.add('button', 'action', 'secondary', 'edit');
+          daEditLink.target = '_blank';
+          daEditLink.href = `https://da.live/edit#/${daProjectRepo}/${id}${path}`;
+          daEditLink.innerText = 'Edit';
+          daEditLink.id = 'edit-button';
+          editButton.replaceWith(daEditLink);
+        } else {
+          // is drive project
+          editButton.addEventListener('click', async () => {
+            editButton.classList.add('loading');
+            const statusData = await fetch(`https://admin.hlx.page/status/${projectRepo}/${project.projectSlug}/main${path}?editUrl=auto`)
+              .then((res) => res.json())
+              .catch(() => null);
+            if (statusData?.edit?.url) {
+              window.open(statusData.edit.url, '_blank');
+            } else {
+              window.open(project.driveUrl, '_blank');
+            }
+            editButton.classList.remove('loading');
+          });
+        }
 
-      block.querySelector('.copy').onclick = (e) => {
-        window?.zaraz?.track('click email copy');
+        if (project.darkAlleyProject) {
+          block.querySelectorAll('.breadcrumbs a').forEach((link) => {
+            if (link.href.includes('/site/')) {
+              link.href = link.href.replace('/site/', '/da-site/');
+            }
+          });
+        }
 
-        e.preventDefault();
+        block.querySelector('.edit').onclick = () => {
+          window?.zaraz?.track('click email edit');
+        };
 
-        window.open(iframe.src.replace('/preview/', '/copy/'), '_blank');
-      };
+        block.querySelector('.preview-mail').onclick = () => {
+          window?.zaraz?.track('click email preview');
+        };
 
-      // Load codemirror to edit styles
-      loadCSS('/libs/codemirror/codemirror.min.css');
-      await import('../../libs/codemirror/codemirror.min.js');
-      await import('../../libs/codemirror/css.min.js');
+        // Load codemirror to edit styles
+        loadCSS('/libs/codemirror/codemirror.min.css');
+        await import('../../libs/codemirror/codemirror.min.js');
+        await import('../../libs/codemirror/css.min.js');
 
-      fetch(`${project.customPreviewUrl}${meta.styles}`)
-        .then((resStyles) => {
-          if (resStyles.ok) {
-            return resStyles.text();
-          }
-          return '';
+        fetch(`${project.customPreviewUrl}${meta.styles}`)
+          .then((resStyles) => {
+            if (resStyles.ok) {
+              return resStyles.text();
+            }
+            return '';
+          })
+          .then((css) => {
+            const styles = block.querySelector('.styles');
+            styles.value = css;
+          });
+
+        // Load email metadata
+        fetch(`${SCRIPT_API}/audience/${id}`, {
+          headers: {
+            authorization: `bearer ${token}`,
+          },
         })
-        .then((css) => {
-          const styles = block.querySelector('.styles');
-          styles.value = css;
-        });
+          .then((res) => {
+            if (res.ok) {
+              return res.json();
+            }
 
-      // Load email metadata
-      fetch(`${SCRIPT_API}/audience/${id}`, {
-        headers: {
-          authorization: `bearer ${token}`,
-        },
-      })
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
-          }
+            return false;
+          })
+          .then((data) => {
+            // const recipients = block.querySelector('.recipients');
 
-          return false;
-        })
-        .then((data) => {
-          const recipients = block.querySelector('.recipients');
+            if (!data?.length) {
+              // eslint-disable-next-line no-param-reassign
+              data = [];
+            }
 
-          if (!data?.length) {
-            // eslint-disable-next-line no-param-reassign
-            data = [];
-          }
-
-          audience = data.filter(({ unsubscribed }) => !unsubscribed);
-          recipients.innerHTML = `
+            audience = data.filter(({ unsubscribed }) => !unsubscribed);
+            recipients.innerHTML = `
               <thead>
                 <tr>
                     <th><input type="checkbox"></th>
@@ -498,96 +626,105 @@ export default async function decorate(block) {
               </tbody>
             `;
 
-          const send = block.querySelector('.send');
-          const toggleSendDisabled = () => {
-            send.classList.toggle('is-disabled', recipients.querySelector('tbody input[type="checkbox"]:checked') === null);
-          };
+            // restores the selected recipients during a visibilityChange reload
+            if (checkboxStates.length) {
+              const checkboxes = block.querySelectorAll('.select');
+              checkboxes.forEach((checkbox, i) => {
+                checkbox.checked = checkboxStates[i];
+              });
+              unmetMessageUpdate();
+            }
 
-          recipients.querySelector('thead input[type="checkbox"]').onclick = (e) => {
-            const check = e.target.checked;
-            recipients.querySelectorAll('tbody input[type="checkbox"]').forEach((checkbox) => {
-              checkbox.checked = check;
-            });
+            recipients.querySelector('thead input[type="checkbox"]').onclick = (e) => {
+              const check = e.target.checked;
+              recipients.querySelectorAll('tbody input[type="checkbox"]').forEach((checkbox) => {
+                checkbox.checked = check;
+              });
 
-            toggleSendDisabled();
-          };
+              unmetMessageUpdate();
+            };
 
-          recipients.querySelector('tbody').onclick = async (e) => {
-            if (e.target.matches('input[type="checkbox"]')) {
-              toggleSendDisabled();
-            } else if (e.target.matches('.render')) {
-              window?.zaraz?.track('click email preview recipients');
+            recipients.querySelector('tbody').onclick = async (e) => {
+              if (e.target.matches('input[type="checkbox"]')) {
+                unmetMessageUpdate();
+              } else if (e.target.matches('.render')) {
+                window?.zaraz?.track('click email preview recipients');
 
-              const isRendering = recipients.querySelector('.is-rendering');
-              if (isRendering) {
-                isRendering.classList.remove('is-rendering');
+                const isRendering = recipients.querySelector('.is-rendering');
+                if (isRendering) {
+                  isRendering.classList.remove('is-rendering');
+                }
+
+                e.target.closest('tr').classList.add('is-rendering');
+
+                // Re-render preview with newly selected recipient
+                refreshPreview();
+              } else if (e.target.matches('.remove')) {
+                window?.zaraz?.track('click email recipients remove');
+
+                const tr = e.target.closest('tr[data-id]');
+                tr.classList.add('loading');
+
+                const req = await fetch(`${SCRIPT_API}/audience/${id}`, {
+                  method: 'DELETE',
+                  headers: {
+                    authorization: `bearer ${token}`,
+                    'content-type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    id: tr.dataset.id,
+                  }),
+                });
+
+                if (req.ok) {
+                  tr.remove();
+                  showToast('Recipient removed.');
+                } else {
+                  showErrorToast('Something went wrong! We could not remove the recipient. Please try again or contact support.');
+                }
+
+                tr.classList.remove('loading');
+                unmetMessageUpdate();
               }
+            };
 
-              e.target.closest('tr').classList.add('is-rendering');
+            const add = recipients.querySelector('.add');
+            recipients.querySelector('input[name="email"]').oninput = (e) => {
+              const { value } = e.target;
+              const emailList = Array.from(block.querySelectorAll('.recipients tbody tr[data-email]')).map((row) => row.getAttribute('data-email'));
+              const emailAlreadyAdded = emailList.includes(value);
+              add.classList.toggle('is-disabled', emailAlreadyAdded || !(value.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)));
+              if (emailAlreadyAdded) {
+                showErrorToast('This email is already in the recipient list!');
+              }
+            };
 
-              // Re-render preview with newly selected recipient
-              previewVars.click();
-            } else if (e.target.matches('.remove')) {
-              window?.zaraz?.track('click email recipients remove');
+            add.onclick = async () => {
+              window?.zaraz?.track('click email recipients add');
 
-              const tr = e.target.closest('tr[data-id]');
-              tr.classList.add('loading');
+              add.classList.add('loading');
+
+              const contact = {};
+              ['email', 'firstName', 'lastName'].forEach((name) => {
+                contact[name] = recipients.querySelector(`input[name="${name}"]`).value;
+              });
 
               const req = await fetch(`${SCRIPT_API}/audience/${id}`, {
-                method: 'DELETE',
+                method: 'POST',
                 headers: {
                   authorization: `bearer ${token}`,
                   'content-type': 'application/json',
                 },
-                body: JSON.stringify({
-                  id: tr.dataset.id,
-                }),
+                body: JSON.stringify(contact),
               });
 
               if (req.ok) {
-                tr.remove();
-                showToast('Recipient removed.');
-              } else {
-                showErrorToast('Something went wrong! We could not remove the recipient. Please try again or contact support.');
-              }
+                const res = await req.json();
+                contact.id = res.id;
+                audience.push(contact);
 
-              tr.classList.remove('loading');
-              toggleSendDisabled();
-            }
-          };
-
-          const add = recipients.querySelector('.add');
-          recipients.querySelector('input[name="email"]').oninput = (e) => {
-            const { value } = e.target;
-            add.classList.toggle('is-disabled', !(value.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)));
-          };
-
-          add.onclick = async () => {
-            window?.zaraz?.track('click email recipients add');
-
-            add.classList.add('loading');
-
-            const contact = {};
-            ['email', 'firstName', 'lastName'].forEach((name) => {
-              contact[name] = recipients.querySelector(`input[name="${name}"]`).value;
-            });
-
-            const req = await fetch(`${SCRIPT_API}/audience/${id}`, {
-              method: 'POST',
-              headers: {
-                authorization: `bearer ${token}`,
-                'content-type': 'application/json',
-              },
-              body: JSON.stringify(contact),
-            });
-
-            if (req.ok) {
-              const res = await req.json();
-              contact.id = res.id;
-              audience.push(contact);
-
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
                 <td><input type="checkbox" class="select"></td>
                 <td>${contact.email}</td>
                 <td>${contact.firstName}</td>
@@ -600,62 +737,91 @@ export default async function decorate(block) {
                 </td>
               `;
 
-              tr.dataset.id = contact.id;
-              tr.dataset.email = contact.email;
-              add.closest('tr').before(tr);
+                tr.dataset.id = contact.id;
+                tr.dataset.email = contact.email;
+                add.closest('tr').before(tr);
 
-              // Reset
-              recipients.querySelectorAll('input[name]').forEach((input) => {
-                input.value = '';
-              });
-              showToast('Recipient added.');
-            } else {
-              showErrorToast(`Something went wrong! We couldn't add ${contact.email} as a recipient. Please try again.`);
-            }
-
-            add.classList.remove('loading');
-          };
-
-          send.onclick = async () => {
-            window?.zaraz?.track('click email send');
-
-            // Preview to update the iframe source
-            previewVars.click();
-
-            const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
-
-            if (await confirmDialog(`You are about to send an email to ${selectedRecipients.length} recipient(s).\nDo you want to continue ?`)) {
-              window?.zaraz?.track('click email copy submit');
-
-              block.classList.add('is-sending');
-
-              const req = await fetch(`${SCRIPT_API}/send/${id}`, {
-                headers: {
-                  'content-type': 'application/json',
-                  authorization: `bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  styles: block.querySelector('.styles').value,
-                  emailUrl: iframe.src,
-                  subject: subjectInput.value,
-                  variables: customVariables,
-                  to: audience.filter((contact) => selectedRecipients.find((el) => el.dataset.id === contact.id)),
-                }),
-                method: 'POST',
-              });
-
-              if (req.ok) {
-                showToast('Email delivered.');
+                // Reset
+                recipients.querySelectorAll('input[name]').forEach((input) => {
+                  input.value = '';
+                });
+                showToast('Recipient added.');
               } else {
-                showErrorToast("Something went wrong! We couldn't send the email. Please try again. If the problem persists, please contact support.");
+                showErrorToast(`Something went wrong! We couldn't add ${contact.email} as a recipient. Please try again.`);
               }
 
-              block.classList.remove('is-sending');
-            }
-          };
+              add.classList.remove('loading');
+            };
+
+            send.onclick = async () => {
+              window?.zaraz?.track('click email send');
+
+              // Preview to update the iframe source
+              refreshPreview();
+
+              const selectedRecipients = [...recipients.querySelectorAll('tbody tr:has(input:checked)')];
+
+              if (
+                await confirmDialog(
+                  `You are about to send an email to ${selectedRecipients.length > 1 ? selectedRecipients.length + ' recipients' : '1 recipient'}.\nDo you want to continue ?`,
+                )
+              ) {
+                window?.zaraz?.track('click email submit');
+
+                block.classList.add('is-sending');
+
+                const req = await fetch(`${SCRIPT_API}/send/${id}`, {
+                  headers: {
+                    'content-type': 'application/json',
+                    authorization: `bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    styles: block.querySelector('.styles').value,
+                    emailUrl: iframe.src,
+                    subject: subjectInput.value,
+                    variables: customVariables,
+                    to: audience.filter((contact) => selectedRecipients.find((el) => el.dataset.id === contact.id)),
+                  }),
+                  method: 'POST',
+                });
+
+                if (req.ok) {
+                  showToast('Email delivered.');
+                } else {
+                  showErrorToast("Something went wrong! We couldn't send the email. Please try again. If the problem persists, please contact support.");
+                }
+
+                block.classList.remove('is-sending');
+              }
+            };
+          });
+
+        // "Ctrl + S" to trigger the Save variables button
+        window.addEventListener('keydown', (event) => {
+          if (event.ctrlKey && event.key === 's') {
+            event.preventDefault();
+            saveVars.click();
+          }
         });
-    } else {
-      block.querySelector('.content [aria-label="loading"]').textContent = OOPS;
-    }
+      } else {
+        block.querySelector('.content [aria-label="loading"]').textContent = OOPS;
+      }
+    };
+    load([]);
+
+    document.addEventListener('visibilitychange', () => {
+      // saves the selected recipients
+      const checkboxStates = [];
+      const checkboxes = block.querySelectorAll('.select');
+      checkboxes.forEach((checkbox) => {
+        checkboxStates.push(checkbox.checked);
+      });
+      if (!document.hidden) {
+        if (confirmUnsavedChanges(block.querySelector('aside'))) {
+          // reload
+          load(checkboxStates);
+        }
+      }
+    });
   });
 }

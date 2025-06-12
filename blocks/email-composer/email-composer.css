@@ -10,7 +10,7 @@
 
 .email-composer.block .nav {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   flex-wrap: wrap;
   padding-block: 32px;
@@ -19,6 +19,8 @@
 
 .email-composer.block .actions {
   display: flex;
+  justify-content: flex-end;
+  width: max-content;
   gap: 8px;
 }
 
@@ -50,6 +52,7 @@
 }
 
 .email-composer.block h2 {
+  display: flex;
   font-size: 16px;
   margin-top: 16px;
   padding-block: 16px;
@@ -155,6 +158,67 @@
   background-color: transparent;
   border-color: transparent;
   cursor: pointer;
+}
+
+#email-variables .kv input:read-only {
+  background-color: lightgray;
+  outline: none;
+}
+
+#unmet-requirements {
+  margin-right: 0;
+  padding-right: 8px;
+  cursor: pointer;
+}
+
+#send-button-info p {
+  text-align: center;
+}
+
+.requirements-list:not(:has(li)) {
+  display: none;
+}
+
+#static-defaults {
+  padding-inline-start: 20px;
+  margin-top: 0;
+}
+
+#static-defaults p {
+  margin: 0;
+}
+
+.requirements-list li,
+#static-defaults li {
+  list-style: none;
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 4px;
+}
+
+.requirements-list li::before,
+#static-defaults li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.requirements-list .unmet li::before,
+#static-defaults li.unused-static-variable::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path fill='red' d='M14.3 5.7a1 1 0 0 0-1.4 0L10 8.59 7.1 5.7A1 1 0 1 0 5.7 7.1L8.59 10l-2.9 2.9a1 1 0 1 0 1.4 1.4L10 11.41l2.9 2.9a1 1 0 1 0 1.4-1.4L11.41 10l2.9-2.9a1 1 0 0 0 0-1.4z'/></svg>");
+}
+
+.requirements-list .met li::before,
+#static-defaults li.used-static-variable::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path fill='green' d='M15.66 4.08a.5.5 0 0 0-.7.09L8.1 13.36 4.32 9.63a.5.5 0 0 0-.71 0l-.65.65a.5.5 0 0 0 0 .71l4.59 4.57a.5.5 0 0 0 .74-.06L16.07 4.77a.5.5 0 0 0-.41-.7z'/></svg>");
+}
+
+#variables-info > h2 {
+  text-align: center;
 }
 
 @media (width < 768px) {
