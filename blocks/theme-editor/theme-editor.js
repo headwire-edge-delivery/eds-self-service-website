@@ -132,21 +132,18 @@ export default async function decorate(block) {
     const vars = block.querySelector('.vars');
 
     const previewFrame = block.querySelector('.iframe');
+    function adjustPreviewFrameHeight() {
+      previewFrame.style.height = window.innerHeight - 64 * 2 + 'px';
+    }
     previewFrame.addEventListener('load', () => {
       // MARK: Add loading buffer
       setTimeout(() => {
-        toggleLoading(false);
-        previewFrame.contentWindow.postMessage(
-          {
-            type: 'getHeightInterval',
-          },
-          '*',
-        );
-        window.addEventListener('message', (event) => {
-          if (event.data.type !== 'previewHeight') return;
-          previewFrame.style.height = event.data.height;
-        });
+        adjustPreviewFrameHeight();
       }, 1000);
+    });
+    // adjust Preview Frame on resize
+    window.addEventListener('resize', () => {
+      adjustPreviewFrameHeight();
     });
 
     // MARK: Loading timeout
