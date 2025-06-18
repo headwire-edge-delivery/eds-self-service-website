@@ -2,6 +2,7 @@ import { readQueryParams, removeQueryParams, writeQueryParams } from '../../libs
 import { clamp, dateToRelativeSpan, parseFragment, safeText, SCRIPT_API, syntheticClickEvent } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
 import { createDialog } from '../../scripts/dialogs.js';
+import { createRedirectUrl } from '../../scripts/utils.js';
 
 const createAnalyticsTableContent = (container, campaignAnalyticsData, search) => {
   if (!campaignAnalyticsData) {
@@ -64,7 +65,7 @@ const createAnalyticsTableContent = (container, campaignAnalyticsData, search) =
 
       return `
         <tr data-email="${emailId}" data-campaign="${campaign}">
-          <td>${emailURL ? `<a href="/redirect?url=${emailURL}" target="_blank">${subject}</a>` : subject}</td>
+          <td>${emailURL ? `<a href="${createRedirectUrl(emailURL)}" target="_blank">${subject}</a>` : subject}</td>
           <td>${campaignAnalyticsData[emailId][0].data.to.join(',')}</td>
           <td>${sent ? dateToRelativeSpan(sent.created_at).outerHTML : ''}</td>
           <td>${delivered ? dateToRelativeSpan(delivered.created_at).outerHTML : ''}</td>

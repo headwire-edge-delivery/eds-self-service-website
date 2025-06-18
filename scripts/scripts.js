@@ -12,7 +12,7 @@ import {
   loadCSS,
   fetchPlaceholders,
 } from './aem.js';
-import { confirmUnsavedChanges } from './utils.js';
+import { confirmUnsavedChanges, createRedirectUrl } from './utils.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 const range = document.createRange();
@@ -419,7 +419,9 @@ export function createTabs({ block, breadcrumbs, tabs, renderOptions, defaultTab
 
   const defaultNavItems = block.querySelector('.tabs-default-nav-items');
   if (renderOptions?.projectDetails?.customLiveUrl) {
-    const openLink = parseFragment(`<a id="open-button" class="button action primary" href="/redirect?url=${renderOptions.projectDetails.customLiveUrl}" target="_blank">Open</a>`);
+    const openLink = parseFragment(
+      `<a id="open-button" class="button action primary" href="${createRedirectUrl(renderOptions.projectDetails.customLiveUrl)}" target="_blank">Open</a>`,
+    );
     openLink.onclick = () => window?.zaraz?.track('click site open');
     defaultNavItems.append(openLink);
   }

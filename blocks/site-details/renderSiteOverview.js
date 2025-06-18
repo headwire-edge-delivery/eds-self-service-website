@@ -3,6 +3,7 @@ import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, createDialog } from '../../scripts/dialogs.js';
 import renderCheckList from './renderCheckList.js';
 import { showToast } from '../../scripts/toast.js';
+import { createRedirectUrl } from '../../scripts/utils.js';
 
 export default async function renderSiteOverview({ container, nav, renderOptions, historyArray }) {
   const { projectDetails, user, token } = renderOptions;
@@ -12,7 +13,7 @@ export default async function renderSiteOverview({ container, nav, renderOptions
   // MARK: Extension tests
   const oldSidekickIds = ['ccfggkjabjahcjoljmgmklhpaccedipo', 'olciodlegapfmemadcjicljalmfmlehb', 'ahahnfffoakmmahloojpkmlkjjffnial'];
   const newSidekickId = 'igkmdomcgoebiipaifhmpfjhbjccggml';
-  const newSidekickLink = '/redirect?url=https://chromewebstore.google.com/detail/aem-sidekick/igkmdomcgoebiipaifhmpfjhbjccggml';
+  const newSidekickLink = createRedirectUrl('https://chromewebstore.google.com/detail/aem-sidekick/igkmdomcgoebiipaifhmpfjhbjccggml');
   async function checkExtension(id) {
     return fetch(`chrome-extension://${id}/lib/polyfills.min.js`)
       .then(() => true)
@@ -28,8 +29,8 @@ export default async function renderSiteOverview({ container, nav, renderOptions
   /* eslint-disable */
   nav.innerHTML = `
     <a href="${newSidekickLink}" id="install-sidekick-button" title="Install the Chrome Plugin Sidekick" class="button action secondary sidekick" target="_blank" data-sidekick-installed="${newSidekickInstalled}">Install Sidekick</a>
-    <a href="/redirect?url=${projectDetails.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
-    <a href="/redirect?url=${projectDetails.driveUrl}${!projectDetails.darkAlleyProject ? `?authuser=${user.email}` : ''}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
+    <a href="${createRedirectUrl(projectDetails.authoringGuideUrl)}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
+    <a href="${createRedirectUrl(`${projectDetails.driveUrl}${!projectDetails.darkAlleyProject ? `?authuser=${user.email}` : ''}`)}" id="edit-button" title="Edit your Content" class="button action secondary edit" target="_blank">Edit</a>
   `;
 
   // Warn user they are using deprecated sidekick version

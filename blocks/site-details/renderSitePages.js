@@ -2,6 +2,7 @@ import { daProjectRepo, dateToRelativeSpan, EMAIL_WORKER_API, OOPS, parseFragmen
 import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
+import { createRedirectUrl } from '../../scripts/utils.js';
 
 export function renderTable({ table, tableData, type, projectDetails, token, isDrafts = false }) {
   const isEmail = type === 'emails';
@@ -36,9 +37,9 @@ export function renderTable({ table, tableData, type, projectDetails, token, isD
         <td>
           <div id="email-open-edit" class="button-container">
             <a class="button action secondary edit" href="/email/${projectDetails.projectSlug}${item.path}" target="_blank">Edit</a>
-            <a class="button action secondary open" href="/redirect?url=${EMAIL_WORKER_API}/preview?contentUrl=${
-              projectDetails.customPreviewUrl
-            }${item.path}" target="_blank">Open</a>
+            <a class="button action secondary open" href="${createRedirectUrl(
+              `${EMAIL_WORKER_API}/preview?contentUrl=${projectDetails.customPreviewUrl}${item.path}`,
+            )}" target="_blank">Open</a>
             ${isDeletable ? '<button class="button action secondary delete-email destructive">Delete</button>' : ''}
           </div>
         </td>
@@ -98,7 +99,7 @@ export function renderTable({ table, tableData, type, projectDetails, token, isD
       <td class="status"><div class="skeleton" style="width: 120px; height: 30px;"></div></td>
       <td>
         <div class="button-container">
-            <a class="button action secondary edit" href="/redirect?url=${projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`}" target="_blank">Edit</a>
+            <a class="button action secondary edit" href="${createRedirectUrl(projectDetails.darkAlleyProject ? `https://da.live/edit#/${daProjectRepo}/${projectDetails.projectSlug}${item.path.endsWith('/') ? `${item.path}index` : item.path}` : `https://docs.google.com/document/d/${item.id}/edit`)}" target="_blank">Edit</a>
             <button class="button action secondary delete-page destructive">Delete</button>
         </div>
       </td>
@@ -111,13 +112,15 @@ export function renderTable({ table, tableData, type, projectDetails, token, isD
           tableRow.querySelector('.status').innerHTML = `<div class="badge ${variant}">${status}</div>`;
 
           const container = tableRow.querySelector('.button-container');
-          const previewButton = `<a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}${item.path}" target="_blank">Preview</a>`;
+          const previewButton = `<a class="button action secondary preview" href="${createRedirectUrl(
+            `${projectDetails.customPreviewUrl}${item.path}`,
+          )}" target="_blank">Preview</a>`;
           if (status === 'Published') {
             container.insertAdjacentHTML(
               'afterbegin',
               `
               ${previewButton}
-              ${!item.path.startsWith('/drafts/') ? `<a class="button action secondary live" href="/redirect?url=${projectDetails.customLiveUrl}${item.path}" target="_blank">Live</a>` : ''}
+              ${!item.path.startsWith('/drafts/') ? `<a class="button action secondary live" href="${createRedirectUrl(`${projectDetails.customLiveUrl}${item.path}`)}" target="_blank">Live</a>` : ''}
             `,
             );
           } else if (status === 'Previewed') {
@@ -240,11 +243,11 @@ function addPageDialogSetup({ projectDetails, token, user }) {
       let editHref;
 
       if (projectDetails.darkAlleyProject) {
-        draftsHref = `/redirect?url=https://da.live/#${responseData.daPath}`;
-        editHref = `/redirect?url=https://da.live/edit#${responseData.daPath}/${responseData.daNewPageSlug}`;
+        draftsHref = createRedirectUrl(`https://da.live/#${responseData.daPath}`);
+        editHref = createRedirectUrl(`https://da.live/edit#${responseData.daPath}/${responseData.daNewPageSlug}`);
       } else {
-        draftsHref = `/redirect?url=https://drive.google.com/drive/folders/${responseData.folderId}?authuser=${user.email}`;
-        editHref = `/redirect?url=https://docs.google.com/document/d/${responseData.newPageId}/edit`;
+        draftsHref = createRedirectUrl(`https://drive.google.com/drive/folders/${responseData.folderId}?authuser=${user.email}`);
+        editHref = createRedirectUrl(`https://docs.google.com/document/d/${responseData.newPageId}/edit`);
       }
 
       const draftsLink = parseFragment(`
@@ -275,7 +278,9 @@ function addPageDialogSetup({ projectDetails, token, user }) {
             <td>Just now</td>
             <td class="status"><div class="badge orange">Previewed</div></td>
             <td class="button-container">
-                <a class="button action secondary preview" href="/redirect?url=${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}" target="_blank">Preview</a>
+                <a class="button action secondary preview" href="${createRedirectUrl(
+                  `${projectDetails.customPreviewUrl}/drafts/${responseData.pageSlug}`,
+                )}" target="_blank">Preview</a>
                 <a class="button action secondary edit" href="${editHref}" target="_blank">Edit</a>
                 <button class="button action secondary delete-page destructive">Delete</button>
             </td>
@@ -296,7 +301,7 @@ export default async function renderSitePages({ container, nav, renderOptions })
 
   /* eslint-disable */
   nav.innerHTML = `
-    <a href="/redirect?url=${projectDetails.authoringGuideUrl}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
+    <a href="${createRedirectUrl(projectDetails.authoringGuideUrl)}" id="guides-button" title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
     <button class="button secondary action add-page" id="add-page-button" title="Add a new Page">Add Page</button>
   `;
   nav.querySelector('#add-page-button').onclick = () => {

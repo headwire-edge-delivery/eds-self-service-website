@@ -165,3 +165,7 @@ export const escapeHTML = (str) => {
 
   return temp.innerHTML;
 };
+
+export const createRedirectUrl = (url) => {
+  return `/redirect?url=${encodeURIComponent(url)}`;
+};

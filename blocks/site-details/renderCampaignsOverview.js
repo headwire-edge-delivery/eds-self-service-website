@@ -17,6 +17,7 @@ import { renderTable } from './renderSitePages.js';
 import { alertDialog, confirmDialog, createDialog } from '../../scripts/dialogs.js';
 import { readQueryParams, removeQueryParams } from '../../libs/queryParams/queryParams.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
+import { createRedirectUrl } from '../../scripts/utils.js';
 
 export default async function renderCampaignsOverview({ container, nav, renderOptions, pushHistory, replaceHistory, onHistoryPopArray }) {
   const { projectDetails, user, token, siteSlug, pathname } = renderOptions;
@@ -40,7 +41,7 @@ export default async function renderCampaignsOverview({ container, nav, renderOp
   const emailDocuments = indexData.data.filter(({ path }) => path.startsWith('/emails/'));
 
   nav.innerHTML = `
-    <a href="/redirect?url=${projectDetails.authoringGuideUrl}" id="guides-button"
+    <a href="${createRedirectUrl(projectDetails.authoringGuideUrl)}" id="guides-button"
     title="Open the Guide for the Mail" class="button action secondary guides" target="_blank">Guides</a>
     <button id="delete-campaign" title="Delete the Campaign" class="button secondary delete-campaign action destructive" >Delete</button>
     <button id="add-email" title="Add Email" class="button secondary add-email action" >Add Email</button>
