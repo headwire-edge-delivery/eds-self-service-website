@@ -26,16 +26,34 @@ export const projectRepo = 'headwire-self-service';
 export const daProjectRepo = 'da-self-service';
 
 if (window.location.hostname === 'localhost') {
+  function getRedirectLink(urlStr) {
+    const searchParams = new URLSearchParams(urlStr.replace(/^.*?\?/i, ''));
+    const paramObj = {};
+    for (const [key, value] of searchParams) {
+      paramObj[key] = value;
+    }
+    if (searchParams.size > 1)
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Redirect path had more params in addition to "url", this is probably unintentional and ment to be part of the "url" param. Make sure you encode the url!\nPath: ${urlStr}`,
+        paramObj,
+      );
+    const redirectTo = new URL(searchParams.get('url'));
+    searchParams.delete('url');
+    redirectTo.search = searchParams.toString();
+    return redirectTo.toString();
+  }
+
   document.addEventListener('mousedown', (event) => {
     if (event.target.matches('a[href^="/redirect?url="]')) {
-      event.target.setAttribute('href', event.target.getAttribute('href').replace('/redirect?url=', ''));
+      event.target.setAttribute('href', getRedirectLink(event.target.getAttribute('href')));
     }
   });
 
   const oldOpen = window.open;
   window.open = (...args) => {
     if (typeof args[0] === 'string' && args[0].startsWith('/redirect?url=')) {
-      args[0] = args[0].replace('/redirect?url=', '');
+      args[0] = getRedirectLink(args[0]);
     }
     return oldOpen(...args);
   };
