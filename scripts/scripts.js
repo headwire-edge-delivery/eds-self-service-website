@@ -28,19 +28,29 @@ export const daProjectRepo = 'da-self-service';
 if (window.location.hostname === 'localhost') {
   function getRedirectLink(urlStr) {
     const searchParams = new URLSearchParams(urlStr.replace(/^.*?\?/i, ''));
-    const paramObj = {};
-    for (const [key, value] of searchParams) {
-      paramObj[key] = value;
-    }
-    if (searchParams.size > 1)
+
+    // notify about wrongly setup queryparams
+    if (searchParams.size > 1) {
+      const paramObj = {};
+      for (const [key, value] of searchParams) {
+        paramObj[key] = value;
+      }
       // eslint-disable-next-line no-console
       console.warn(
         `Redirect path had more params in addition to "url", this is probably unintentional and ment to be part of the "url" param. Make sure you encode the url!\nPath: ${urlStr}`,
         paramObj,
       );
+    }
+
     const redirectTo = new URL(searchParams.get('url'));
     searchParams.delete('url');
-    redirectTo.search = searchParams.toString();
+    // append wrongly setup queryparams
+    const combinedParams = new URLSearchParams(redirectTo.searchParams);
+    for (const [key, value] of searchParams) {
+      if (!combinedParams.get(key)) combinedParams.set(key, value);
+    }
+
+    redirectTo.search = combinedParams.toString();
     return redirectTo.toString();
   }
 
