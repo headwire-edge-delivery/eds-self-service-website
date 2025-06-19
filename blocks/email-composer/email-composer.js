@@ -4,7 +4,7 @@ import { loadCSS, toCamelCase } from '../../scripts/aem.js';
 import { confirmDialog } from '../../scripts/dialogs.js';
 import { showErrorToast, showToast } from '../../scripts/toast.js';
 import { createDialog } from '../../scripts/dialogs.js';
-import { confirmUnsavedChanges } from '../../scripts/utils.js';
+import { confirmUnsavedChanges, createRedirectUrl } from '../../scripts/utils.js';
 
 let timer;
 const debounce = (fn, delay = 800) => {
@@ -262,7 +262,7 @@ export default async function decorate(block) {
           </div>`,
             [
               parseFragment(
-                `<a href="/redirect?url=${project.authoringGuideUrl}" id="guides-button" title="Open the Guide for Mails"
+                `<a href="${createRedirectUrl(project.authoringGuideUrl)}" id="guides-button" title="Open the Guide for Mails"
               class="button action secondary guides" target="_blank">Guides</a>`,
               ),
             ],
@@ -448,7 +448,7 @@ export default async function decorate(block) {
                     <span id="unmet-info" class="info"></span>
                   </div>
 
-            <a href="/redirect?url=${project.authoringGuideUrl}" id="guides-button"
+            <a href="${createRedirectUrl(project.authoringGuideUrl)}" id="guides-button"
             title="Open the Guide for the Template" class="button action secondary guides" target="_blank">Guides</a>
             <a href="${EMAIL_WORKER_API}/preview?contentUrl=${url}" target="_blank" class="button secondary action preview-mail">Preview</a>
             <button id="edit-button" class="button action secondary edit">Edit</button>

@@ -1,5 +1,6 @@
 import { getUserSettings, OOPS, parseFragment, SCRIPT_API, updateUserSettings, waitForAuthenticated } from '../../scripts/scripts.js';
 import renderSkeleton from '../../scripts/skeletons.js';
+import { createRedirectUrl } from '../../scripts/utils.js';
 
 export default async function renderAccount({ container, nav }) {
   container.insertAdjacentHTML('afterbegin', renderSkeleton('account'));
@@ -51,7 +52,7 @@ export default async function renderAccount({ container, nav }) {
 
   nav.innerHTML = `
     <button id="toggle-auto-tour-button" class="button secondary action">${userSettings?.showAutoTour ? 'Disable Auto Tour' : 'Enable Auto Tour'}</button>
-    <a href="/redirect?url=https://myaccount.google.com/?authuser=${user.email}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>
+    <a href="${createRedirectUrl('https://myaccount.google.com/?authuser=' + user.email)}" target="_blank" id="edit-account-button" class="button edit action primary">Edit account</a>
   `;
 
   const toggleAutoTourButton = document.getElementById('toggle-auto-tour-button');

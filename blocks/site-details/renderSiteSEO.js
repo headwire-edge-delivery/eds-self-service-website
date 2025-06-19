@@ -3,7 +3,7 @@ import renderSkeleton from '../../scripts/skeletons.js';
 import { alertDialog, createDialog } from '../../scripts/dialogs.js';
 import paginator from '../../libs/pagination/pagination.js';
 import { readQueryParams } from '../../libs/queryParams/queryParams.js';
-import { cacheFetch } from '../../scripts/utils.js';
+import { cacheFetch, createRedirectUrl } from '../../scripts/utils.js';
 
 const filters = [/\/nav$/i, /\/footer$/i, /\/search$/i, /\/unsubscribe$/i, /^\/drafts\//i, /^\/tools\//i, /^\/emails\//i, /^\/\.helix\//i];
 
@@ -73,7 +73,7 @@ export default async function renderSiteSEO({ container, nav, renderOptions }) {
     `
     <button id="open-sitemap" class="button secondary action sitemap">Open sitemap</button>
     <button id="edit-robots" class="button secondary action robots">Edit robots</button>
-    ${projectDetails.darkAlleyProject ? `<a id="edit-bulk-metadata" href="/redirect?url=https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata" target="_blank" class="button secondary action">Edit Bulk Metadata</a>` : '<button id="edit-bulk-metadata" class="button secondary action bulk-metadata">Edit Bulk Metadata</button>'}
+    ${projectDetails.darkAlleyProject ? `<a id="edit-bulk-metadata" href="${createRedirectUrl(`https://da.live/edit#/${daProjectRepo}/${siteSlug}/metadata`)}" target="_blank" class="button secondary action">Edit Bulk Metadata</a>` : '<button id="edit-bulk-metadata" class="button secondary action bulk-metadata">Edit Bulk Metadata</button>'}
   `,
   );
 

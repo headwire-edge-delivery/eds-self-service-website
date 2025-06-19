@@ -12,7 +12,7 @@ import {
   loadCSS,
   fetchPlaceholders,
 } from './aem.js';
-import { confirmUnsavedChanges } from './utils.js';
+import { confirmUnsavedChanges, createRedirectUrl, getRedirectLink } from './utils.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 const range = document.createRange();
@@ -28,14 +28,14 @@ export const daProjectRepo = 'da-self-service';
 if (window.location.hostname === 'localhost') {
   document.addEventListener('mousedown', (event) => {
     if (event.target.matches('a[href^="/redirect?url="]')) {
-      event.target.setAttribute('href', event.target.getAttribute('href').replace('/redirect?url=', ''));
+      event.target.setAttribute('href', getRedirectLink(event.target.getAttribute('href')));
     }
   });
 
   const oldOpen = window.open;
   window.open = (...args) => {
     if (typeof args[0] === 'string' && args[0].startsWith('/redirect?url=')) {
-      args[0] = args[0].replace('/redirect?url=', '');
+      args[0] = getRedirectLink(args[0]);
     }
     return oldOpen(...args);
   };
@@ -401,7 +401,9 @@ export function createTabs({ block, breadcrumbs, tabs, renderOptions, defaultTab
 
   const defaultNavItems = block.querySelector('.tabs-default-nav-items');
   if (renderOptions?.projectDetails?.customLiveUrl) {
-    const openLink = parseFragment(`<a id="open-button" class="button action primary" href="/redirect?url=${renderOptions.projectDetails.customLiveUrl}" target="_blank">Open</a>`);
+    const openLink = parseFragment(
+      `<a id="open-button" class="button action primary" href="${createRedirectUrl(renderOptions.projectDetails.customLiveUrl)}" target="_blank">Open</a>`,
+    );
     openLink.onclick = () => window?.zaraz?.track('click site open');
     defaultNavItems.append(openLink);
   }
