@@ -12,7 +12,7 @@ import {
   loadCSS,
   fetchPlaceholders,
 } from './aem.js';
-import { confirmUnsavedChanges, createRedirectUrl } from './utils.js';
+import { confirmUnsavedChanges, createRedirectUrl, getRedirectLink } from './utils.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 const range = document.createRange();
@@ -26,34 +26,6 @@ export const projectRepo = 'headwire-self-service';
 export const daProjectRepo = 'da-self-service';
 
 if (window.location.hostname === 'localhost') {
-  function getRedirectLink(urlStr) {
-    const searchParams = new URLSearchParams(urlStr.replace(/^.*?\?/i, ''));
-
-    // notify about wrongly setup queryparams
-    if (searchParams.size > 1) {
-      const paramObj = {};
-      for (const [key, value] of searchParams) {
-        paramObj[key] = value;
-      }
-      // eslint-disable-next-line no-console
-      console.warn(
-        `Redirect path had more params in addition to "url", this is probably unintentional and ment to be part of the "url" param. Make sure you encode the url!\nPath: ${urlStr}`,
-        paramObj,
-      );
-    }
-
-    const redirectTo = new URL(searchParams.get('url'));
-    searchParams.delete('url');
-    // append wrongly setup queryparams
-    const combinedParams = new URLSearchParams(redirectTo.searchParams);
-    for (const [key, value] of searchParams) {
-      if (!combinedParams.get(key)) combinedParams.set(key, value);
-    }
-
-    redirectTo.search = combinedParams.toString();
-    return redirectTo.toString();
-  }
-
   document.addEventListener('mousedown', (event) => {
     if (event.target.matches('a[href^="/redirect?url="]')) {
       event.target.setAttribute('href', getRedirectLink(event.target.getAttribute('href')));
